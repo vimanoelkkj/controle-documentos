@@ -288,11 +288,7 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
   }
 
   if (carregando) {
-    return (
-      <section className="communication-page">
-        Carregando comunicação...
-      </section>
-    );
+    return <section className="communication-page">Carregando comunicação...</section>;
   }
 
   if (erro) {
@@ -367,8 +363,7 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
                       : item.documentos.map((doc) => doc.curto).join(" + ")}
                   </strong>
                   <span>
-                    {item.alunos.length} aluno
-                    {item.alunos.length === 1 ? "" : "s"}
+                    {item.alunos.length} aluno{item.alunos.length === 1 ? "" : "s"}
                   </span>
                 </div>
                 <span className="communication-group-count">
@@ -425,9 +420,7 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
               <div className="communication-actions">
                 <div>
                   <span>DESTINATÁRIOS</span>
-                  <strong>
-                    {alunosSelecionados.length} alunos selecionados
-                  </strong>
+                  <strong>{alunosSelecionados.length} alunos selecionados</strong>
                   <small>
                     {emailsInstitucionais.length} institucionais •{" "}
                     {emailsAlternativos.length} alternativos
@@ -446,9 +439,7 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
                 </div>
               </div>
 
-              {feedback && (
-                <div className="communication-feedback">{feedback}</div>
-              )}
+              {feedback && <div className="communication-feedback">{feedback}</div>}
 
               <div className="communication-content-grid">
                 <section className="communication-email-card">
@@ -578,8 +569,7 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
                             RA {aluno.ra} • {aluno.curso} • {aluno.unidade}
                           </span>
                           <small>
-                            {normalizarEmail(aluno.email) ||
-                              "Sem e-mail institucional"}
+                            {normalizarEmail(aluno.email) || "Sem e-mail institucional"}
                             {" • "}
                             {normalizarEmail(aluno.email_outro) ||
                               "Sem e-mail alternativo"}

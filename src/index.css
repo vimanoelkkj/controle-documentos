@@ -2064,6 +2064,7 @@ a {
   }
 }
 
+
 /* =========================================================
    CENTRAL DE COMUNICAÇÃO
    ========================================================= */
@@ -2112,7 +2113,7 @@ a {
   color: #6d8496;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.11em;
+  letter-spacing: .11em;
 }
 
 .communication-summary {
@@ -2370,7 +2371,7 @@ a {
 
 .communication-content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
   gap: 12px;
   margin-top: 12px;
 }
