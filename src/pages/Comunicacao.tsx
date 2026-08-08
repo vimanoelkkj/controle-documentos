@@ -826,9 +826,8 @@ ${textoEmail}`;
                     ))}
                   </div>
                 </section>
-              </div>
 
-              <section className="communication-history">
+                <section className="communication-history">
                 <div className="communication-history-header">
                   <div>
                     <span>HISTÓRICO DE COBRANÇAS</span>
@@ -878,6 +877,7 @@ ${textoEmail}`;
                   </div>
                 )}
               </section>
+              </div>
             </>
           )}
         </main>

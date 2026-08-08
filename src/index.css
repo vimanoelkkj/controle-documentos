@@ -2826,3 +2826,56 @@ a {
 .communication-charge-summary span:nth-child(2) { border-color:#725d25; color:#ffe39a; background:#332c17; }
 .communication-charged-badge { display:inline-block !important; width:fit-content; margin-top:5px; padding:3px 6px; border:1px solid #315e3c; border-radius:999px; color:#bceccb !important; background:#153322; font-size:9px !important; font-weight:800; }
 .communication-select-actions button:disabled { opacity:.45; cursor:not-allowed; }
+
+
+/* =========================================================
+   COMUNICAÇÃO — CORREÇÃO DE ALTURA / RECORTE
+   ========================================================= */
+
+.communication-content-grid {
+  align-items: stretch;
+}
+
+.communication-email-card,
+.communication-students-card {
+  min-height: 0;
+}
+
+.communication-students-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Usa a altura real do card e elimina o corte causado pelo max-height fixo. */
+.communication-student-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 18px;
+  scrollbar-gutter: stable;
+}
+
+.communication-student:last-child {
+  margin-bottom: 6px;
+  border-bottom: 0;
+}
+
+/* O histórico agora é parte do mesmo grid, ocupando a largura inteira.
+   Assim ele só começa DEPOIS das duas colunas terminarem. */
+.communication-history {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  position: relative;
+  z-index: 0;
+}
+
+.communication-email-card,
+.communication-students-card,
+.communication-history {
+  box-sizing: border-box;
+}
