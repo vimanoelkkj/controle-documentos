@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type AlunoApi = {
   ra: string;
@@ -154,6 +154,29 @@ function Comunicacao() {
   const [historico, setHistorico] = useState<HistoricoComunicacao[]>([]);
   const [historicoErro, setHistoricoErro] = useState("");
   const [registrandoHistorico, setRegistrandoHistorico] = useState(false);
+  const emailCardRef = useRef<HTMLElement | null>(null);
+  const [alturaMaximaAlunos, setAlturaMaximaAlunos] = useState<number | null>(null);
+
+  useEffect(() => {
+    const elemento = emailCardRef.current;
+    if (!elemento) return;
+
+    const atualizarAltura = () => {
+      setAlturaMaximaAlunos(Math.ceil(elemento.getBoundingClientRect().height));
+    };
+
+    atualizarAltura();
+
+    const observer = new ResizeObserver(atualizarAltura);
+    observer.observe(elemento);
+
+    window.addEventListener("resize", atualizarAltura);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", atualizarAltura);
+    };
+  }, [grupoSelecionado, prazo, assunto]);
 
   useEffect(() => {
     fetch("/api/alunos")
@@ -668,7 +691,7 @@ ${textoEmail}`;
               </div>
 
               <div className="communication-content-grid">
-                <section className="communication-email-card">
+                <section ref={emailCardRef} className="communication-email-card">
                   <div className="communication-email-settings">
                     <label>
                       Data limite
@@ -755,7 +778,14 @@ ${textoEmail}`;
                   </div>
                 </section>
 
-                <section className="communication-students-card">
+                <section
+                  className="communication-students-card"
+                  style={
+                    alturaMaximaAlunos
+                      ? { maxHeight: `${alturaMaximaAlunos}px` }
+                      : undefined
+                  }
+                >
                   <div className="communication-students-header">
                     <div>
                       <span>ALUNOS DO GRUPO</span>

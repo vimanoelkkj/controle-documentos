@@ -2879,3 +2879,39 @@ a {
 .communication-history {
   box-sizing: border-box;
 }
+
+/* =========================================================
+   COMUNICAÇÃO — LISTA COM ALTURA DINÂMICA
+   Poucos alunos: o card encolhe naturalmente.
+   Muitos alunos: cresce até a altura da prévia e então ganha scroll interno.
+   ========================================================= */
+.communication-content-grid {
+  align-items: start;
+}
+
+.communication-students-card {
+  align-self: start;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* O card recebe via React somente um max-height igual à altura real
+   do card da prévia. Portanto ele nunca fica maior que a coluna esquerda,
+   mas também não é forçado a ocupar espaço vazio quando há poucos alunos. */
+.communication-student-list {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 18px;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.communication-student:last-child {
+  margin-bottom: 0;
+  border-bottom: 0;
+}
