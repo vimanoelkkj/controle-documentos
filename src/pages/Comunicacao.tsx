@@ -50,6 +50,7 @@ type HistoricoComunicacao = {
   assunto: string;
   prazo: string;
   tipo_destinatario: string;
+  ras: string[];
 };
 
 const DOCUMENTOS: DocumentoDef[] = [
@@ -167,7 +168,7 @@ function Comunicacao() {
 
   async function carregarHistorico() {
     try {
-      const resposta = await fetch("/api/comunicacoes?limit=20");
+      const resposta = await fetch("/api/comunicacoes?limit=100");
       if (!resposta.ok) {
         const dados = (await resposta.json().catch(() => ({}))) as { erro?: string };
         throw new Error(dados.erro || "Não foi possível carregar o histórico.");
@@ -289,6 +290,30 @@ function Comunicacao() {
     alunosSelecionados.length > 0 &&
     selecionadosSemInstitucional === 0 &&
     emailsInstitucionaisInvalidos.length === 0;
+
+  const cobrancasDaCombinacao = useMemo(
+    () => historico.filter((registro) => registro.grupo_chave === grupo?.chave),
+    [historico, grupo?.chave],
+  );
+
+  const cobrancasPorRa = useMemo(() => {
+    const mapa = new Map<string, { quantidade: number; ultima: string }>();
+    cobrancasDaCombinacao.forEach((registro) => {
+      (registro.ras || []).forEach((ra) => {
+        const atual = mapa.get(ra);
+        if (!atual) mapa.set(ra, { quantidade: 1, ultima: registro.criado_em });
+        else {
+          atual.quantidade += 1;
+          if (new Date(registro.criado_em) > new Date(atual.ultima)) atual.ultima = registro.criado_em;
+        }
+      });
+    });
+    return mapa;
+  }, [cobrancasDaCombinacao]);
+
+  const alunosJaCobrados = grupo?.alunos.filter((aluno) => cobrancasPorRa.has(aluno.ra)) || [];
+  const alunosNaoCobrados = grupo?.alunos.filter((aluno) => !cobrancasPorRa.has(aluno.ra)) || [];
+  const ultimaCobrancaGrupo = cobrancasDaCombinacao[0]?.criado_em || "";
 
   const temContrato =
     grupo?.documentos.some((documento) => documento.campo === "contrato") ??
@@ -553,6 +578,11 @@ ${textoEmail}`;
                     Aqui entram somente alunos que devem exatamente estes
                     documentos — nenhum a mais e nenhum a menos.
                   </p>
+                  <div className="communication-charge-summary">
+                    <span><b>{alunosJaCobrados.length}</b> já cobrado(s)</span>
+                    <span><b>{alunosNaoCobrados.length}</b> ainda não cobrado(s)</span>
+                    {ultimaCobrancaGrupo && <span>Última cobrança: <b>{new Date(ultimaCobrancaGrupo).toLocaleString("pt-BR")}</b></span>}
+                  </div>
                 </div>
                 <strong className="communication-big-count">
                   {grupo.alunos.length}
@@ -667,11 +697,15 @@ ${textoEmail}`;
 
                   <div className="communication-preview">
                     <div className="communication-preview-top">
-                      <div>
-                        <span>PRÉ-VISUALIZAÇÃO</span>
-                        <strong>{assunto || "Sem assunto"}</strong>
+                      <div className="communication-preview-heading">
+                        <div className="communication-preview-icon">✉</div>
+                        <div>
+                          <span>PRÉVIA DA MENSAGEM</span>
+                          <strong>{assunto || "Sem assunto"}</strong>
+                          <small>Para: {alunosSelecionados.length} destinatário(s)</small>
+                        </div>
                       </div>
-                      <span>{grupo.documentos.length} pendência(s)</span>
+                      <span className="communication-preview-count">{grupo.documentos.length} pendência(s)</span>
                     </div>
 
                     <div className="communication-email-body">
@@ -750,6 +784,13 @@ ${textoEmail}`;
                     </button>
                     <button
                       type="button"
+                      onClick={() => setSelecionados(new Set(alunosNaoCobrados.map((aluno) => aluno.ra)))}
+                      disabled={alunosNaoCobrados.length === 0}
+                    >
+                      Selecionar não cobrados
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setSelecionados(new Set())}
                     >
                       Limpar seleção
@@ -775,6 +816,11 @@ ${textoEmail}`;
                             {normalizarEmail(aluno.email_outro) ||
                               "Sem e-mail alternativo"}
                           </small>
+                          {cobrancasPorRa.has(aluno.ra) && (
+                            <span className="communication-charged-badge">
+                              ✓ Cobrado em {new Date(cobrancasPorRa.get(aluno.ra)!.ultima).toLocaleDateString("pt-BR")} • {cobrancasPorRa.get(aluno.ra)!.quantidade}x
+                            </span>
+                          )}
                         </div>
                       </label>
                     ))}

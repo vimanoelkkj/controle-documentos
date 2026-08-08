@@ -2802,3 +2802,27 @@ a {
     grid-template-columns: minmax(0, 1fr) 55px 55px;
   }
 }
+
+/* COMUNICAÇÃO — prévia integrada + status de cobrança */
+.communication-preview { padding: 0; background: #0b151e; }
+.communication-preview-top { padding: 14px 16px; background: linear-gradient(180deg, rgba(28,55,75,.42), rgba(12,22,31,.2)); }
+.communication-preview-heading { display:flex; align-items:center; gap:10px; }
+.communication-preview-icon { display:grid; place-items:center; width:34px; height:34px; flex:0 0 34px; border:1px solid #315b79; border-radius:9px; color:#79c8ff; background:#122b3d; font-size:16px; }
+.communication-preview-heading small { display:block; margin-top:4px; color:#728b9e; font-size:10px; }
+.communication-preview-count { padding:5px 8px; border:1px solid #2b4558; border-radius:999px; color:#91a9bb !important; background:#0d1c27; font-size:10px !important; font-weight:800; }
+.communication-email-body { margin:14px; padding:18px; border:1px solid #294052; border-radius:11px; color:#d6e0e8; background:#101d27; box-shadow:0 10px 28px rgba(0,0,0,.16); }
+.communication-email-body p { color:#d6e0e8; }
+.communication-warning { padding:10px 12px; border:1px solid #73433e; border-radius:8px; color:#ffb1a8 !important; background:#321f1d; }
+.communication-address { display:inline-block; padding:6px 9px; border:1px solid #315b79; border-radius:7px; color:#72c5ff !important; background:#102a3c; text-decoration:none; }
+.communication-email-body ul { display:grid; gap:6px; padding-left:0; list-style:none; }
+.communication-email-body li { margin:0; padding:8px 10px; border:1px solid #294052; border-radius:7px; color:#dbe7ef; background:#0c1821; }
+.communication-email-body li::before { content:"•"; margin-right:7px; color:#69bfff; }
+.communication-email-body li.priority { border-color:#74433d; color:#ffaaa0 !important; background:#2a1c1b; }
+.communication-email-body li.priority::before { color:#ff776b; }
+.communication-priority-text { color:#ff9187 !important; }
+.communication-charge-summary { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+.communication-charge-summary span { padding:5px 8px; border:1px solid #294359; border-radius:999px; color:#8fa5b5; background:#0c1922; font-size:10px; }
+.communication-charge-summary span:nth-child(1) { border-color:#315e3c; color:#bceccb; background:#153322; }
+.communication-charge-summary span:nth-child(2) { border-color:#725d25; color:#ffe39a; background:#332c17; }
+.communication-charged-badge { display:inline-block !important; width:fit-content; margin-top:5px; padding:3px 6px; border:1px solid #315e3c; border-radius:999px; color:#bceccb !important; background:#153322; font-size:9px !important; font-weight:800; }
+.communication-select-actions button:disabled { opacity:.45; cursor:not-allowed; }

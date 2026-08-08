@@ -1075,7 +1075,8 @@ export default {
               quantidade_emails,
               assunto,
               prazo,
-              tipo_destinatario
+              tipo_destinatario,
+              ras_json
             FROM comunicacoes
             ORDER BY id DESC
             LIMIT ?
@@ -1093,6 +1094,7 @@ export default {
             assunto: string;
             prazo: string;
             tipo_destinatario: string;
+            ras_json: string;
           }>();
 
         return Response.json(
@@ -1107,6 +1109,7 @@ export default {
             assunto: registro.assunto,
             prazo: registro.prazo,
             tipo_destinatario: registro.tipo_destinatario,
+            ras: JSON.parse(registro.ras_json || "[]"),
           })),
         );
       } catch (erro) {
