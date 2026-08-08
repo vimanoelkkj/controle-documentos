@@ -2553,3 +2553,50 @@ a {
     width: 100%;
   }
 }
+
+
+/* Comunicação — polimento do fluxo Outlook */
+.communication-outlook-button {
+  border-color: #3d7da8 !important;
+  background: #205a80 !important;
+}
+
+.communication-copy-stack {
+  display: flex;
+  gap: 7px;
+}
+
+.communication-mini-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 2px;
+}
+
+.communication-mini-tags span {
+  display: inline-flex;
+  max-width: 100%;
+  border: 1px solid #294153;
+  border-radius: 999px;
+  padding: 3px 6px;
+  color: #a9c0d0;
+  background: #101f2a;
+  font-size: 9px;
+  line-height: 1.15;
+}
+
+.communication-mini-tags span.priority {
+  border-color: #66541e;
+  color: #f0ce64;
+  background: #2b2714;
+}
+
+@media (max-width: 760px) {
+  .communication-copy-stack {
+    width: 100%;
+  }
+
+  .communication-copy-stack button {
+    flex: 1;
+  }
+}

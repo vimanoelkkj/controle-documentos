@@ -227,6 +227,12 @@ function Comunicacao() {
     ),
   ];
 
+  const selecionadosComInstitucional = alunosSelecionados.filter((a) =>
+    normalizarEmail(a.email),
+  ).length;
+  const selecionadosSemInstitucional =
+    alunosSelecionados.length - selecionadosComInstitucional;
+
   const temContrato =
     grupo?.documentos.some((documento) => documento.campo === "contrato") ??
     false;
@@ -285,6 +291,34 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
   async function copiarComunicado() {
     await copiar(textoEmail);
     setFeedback("✓ Texto do comunicado copiado.");
+  }
+
+  async function copiarAssunto() {
+    await copiar(assunto || "Documentação pendente - Matrícula");
+    setFeedback("✓ Assunto copiado.");
+  }
+
+  async function copiarPacoteOutlook() {
+    if (!emailsInstitucionais.length) {
+      setFeedback("Nenhum e-mail institucional válido nos alunos selecionados.");
+      return;
+    }
+
+    const pacote = `CCO:
+${emailsInstitucionais.join("; ")}
+
+ASSUNTO:
+${assunto || "Documentação pendente - Matrícula"}
+
+MENSAGEM:
+${textoEmail}`;
+
+    await copiar(pacote);
+    setFeedback(
+      `✓ Pacote Outlook copiado: ${emailsInstitucionais.length} destinatário${
+        emailsInstitucionais.length === 1 ? "" : "s"
+      }, assunto e mensagem.`,
+    );
   }
 
   if (carregando) {
@@ -360,10 +394,20 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
                   <strong>
                     {item.documentos.length === 7
                       ? "Todos os documentos"
-                      : item.documentos.map((doc) => doc.curto).join(" + ")}
+                      : `${item.documentos.length} documentos pendentes`}
                   </strong>
+                  {item.documentos.length !== 7 && (
+                    <div className="communication-mini-tags">
+                      {item.documentos.map((doc) => (
+                        <span key={doc.campo} className={doc.prioritario ? "priority" : ""}>
+                          {doc.curto}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <span>
                     {item.alunos.length} aluno{item.alunos.length === 1 ? "" : "s"}
+                    {grupos[0]?.chave === item.chave && grupos.length > 1 ? " • maior grupo" : ""}
                   </span>
                 </div>
                 <span className="communication-group-count">
@@ -422,7 +466,8 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
                   <span>DESTINATÁRIOS</span>
                   <strong>{alunosSelecionados.length} alunos selecionados</strong>
                   <small>
-                    {emailsInstitucionais.length} institucionais •{" "}
+                    {selecionadosComInstitucional} com e-mail institucional •{" "}
+                    {selecionadosSemInstitucional} sem institucional •{" "}
                     {emailsAlternativos.length} alternativos
                   </small>
                 </div>
@@ -435,6 +480,12 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
                   </button>
                   <button onClick={() => copiarEmails("ambos")}>
                     Copiar ambos
+                  </button>
+                  <button
+                    className="communication-outlook-button"
+                    onClick={copiarPacoteOutlook}
+                  >
+                    Copiar pacote Outlook
                   </button>
                 </div>
               </div>
@@ -459,9 +510,14 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
                         onChange={(e) => setAssunto(e.target.value)}
                       />
                     </label>
-                    <button type="button" onClick={copiarComunicado}>
-                      Copiar texto
-                    </button>
+                    <div className="communication-copy-stack">
+                      <button type="button" onClick={copiarAssunto}>
+                        Copiar assunto
+                      </button>
+                      <button type="button" onClick={copiarComunicado}>
+                        Copiar texto
+                      </button>
+                    </div>
                   </div>
 
                   <div className="communication-preview">
