@@ -1055,6 +1055,164 @@ export default {
     }
 
     // =====================================================
+    // GET /api/comunicacoes
+    // =====================================================
+
+    if (url.pathname === "/api/comunicacoes" && request.method === "GET") {
+      try {
+        const limiteSolicitado = Number(url.searchParams.get("limit") || "20");
+        const limite = Math.max(1, Math.min(100, limiteSolicitado));
+
+        const resultado = await env.DB.prepare(
+          `
+            SELECT
+              id,
+              criado_em,
+              grupo_chave,
+              unidade,
+              documentos_json,
+              quantidade_alunos,
+              quantidade_emails,
+              assunto,
+              prazo,
+              tipo_destinatario
+            FROM comunicacoes
+            ORDER BY id DESC
+            LIMIT ?
+          `,
+        )
+          .bind(limite)
+          .all<{
+            id: number;
+            criado_em: string;
+            grupo_chave: string;
+            unidade: string;
+            documentos_json: string;
+            quantidade_alunos: number;
+            quantidade_emails: number;
+            assunto: string;
+            prazo: string;
+            tipo_destinatario: string;
+          }>();
+
+        return Response.json(
+          resultado.results.map((registro) => ({
+            id: registro.id,
+            criado_em: registro.criado_em,
+            grupo_chave: registro.grupo_chave,
+            unidade: registro.unidade,
+            documentos: JSON.parse(registro.documentos_json || "[]"),
+            quantidade_alunos: registro.quantidade_alunos,
+            quantidade_emails: registro.quantidade_emails,
+            assunto: registro.assunto,
+            prazo: registro.prazo,
+            tipo_destinatario: registro.tipo_destinatario,
+          })),
+        );
+      } catch (erro) {
+        console.error(erro);
+
+        return Response.json(
+          {
+            erro:
+              "Histórico indisponível. Execute a migration 001_comunicacoes.sql no D1.",
+          },
+          {
+            status: 500,
+          },
+        );
+      }
+    }
+
+    // =====================================================
+    // POST /api/comunicacoes
+    // Registra a cobrança depois que o usuário conclui o envio.
+    // =====================================================
+
+    if (url.pathname === "/api/comunicacoes" && request.method === "POST") {
+      try {
+        const body = await request.json<{
+          grupo_chave: string;
+          unidade: string;
+          documentos: string[];
+          quantidade_alunos: number;
+          quantidade_emails: number;
+          assunto: string;
+          prazo: string;
+          tipo_destinatario: string;
+          ras: string[];
+        }>();
+
+        if (
+          !body.grupo_chave ||
+          !Array.isArray(body.documentos) ||
+          !Array.isArray(body.ras) ||
+          body.quantidade_alunos < 1
+        ) {
+          return Response.json(
+            {
+              erro: "Dados insuficientes para registrar a cobrança.",
+            },
+            {
+              status: 400,
+            },
+          );
+        }
+
+        const resultado = await env.DB.prepare(
+          `
+            INSERT INTO comunicacoes (
+              grupo_chave,
+              unidade,
+              documentos_json,
+              quantidade_alunos,
+              quantidade_emails,
+              assunto,
+              prazo,
+              tipo_destinatario,
+              ras_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+        )
+          .bind(
+            body.grupo_chave,
+            body.unidade || "TODAS",
+            JSON.stringify(body.documentos),
+            body.quantidade_alunos,
+            body.quantidade_emails,
+            body.assunto || "",
+            body.prazo || "",
+            body.tipo_destinatario || "institucional",
+            JSON.stringify(body.ras),
+          )
+          .run();
+
+        return Response.json(
+          {
+            sucesso: true,
+            id: resultado.meta.last_row_id,
+          },
+          {
+            status: 201,
+          },
+        );
+      } catch (erro) {
+        console.error(erro);
+
+        return Response.json(
+          {
+            erro:
+              "Não foi possível registrar a cobrança. Verifique se a migration 001_comunicacoes.sql foi executada.",
+          },
+          {
+            status: 500,
+          },
+        );
+      }
+    }
+
+    // =====================================================
     // React / assets
     // =====================================================
 

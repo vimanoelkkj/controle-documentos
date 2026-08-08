@@ -39,6 +39,19 @@ type Grupo = {
   alunos: AlunoApi[];
 };
 
+type HistoricoComunicacao = {
+  id: number;
+  criado_em: string;
+  grupo_chave: string;
+  unidade: string;
+  documentos: string[];
+  quantidade_alunos: number;
+  quantidade_emails: number;
+  assunto: string;
+  prazo: string;
+  tipo_destinatario: string;
+};
+
 const DOCUMENTOS: DocumentoDef[] = [
   { campo: "identidade", curto: "Identidade", email: "IDENTIDADE" },
   { campo: "cpf", curto: "CPF", email: "CPF" },
@@ -137,6 +150,9 @@ function Comunicacao() {
   const [prazo, setPrazo] = useState("01/07");
   const [assunto, setAssunto] = useState("Documentação pendente - Matrícula");
   const [feedback, setFeedback] = useState("");
+  const [historico, setHistorico] = useState<HistoricoComunicacao[]>([]);
+  const [historicoErro, setHistoricoErro] = useState("");
+  const [registrandoHistorico, setRegistrandoHistorico] = useState(false);
 
   useEffect(() => {
     fetch("/api/alunos")
@@ -147,6 +163,30 @@ function Comunicacao() {
       .then((dados) => setAlunos(dados))
       .catch(() => setErro("Não foi possível carregar os alunos."))
       .finally(() => setCarregando(false));
+  }, []);
+
+  async function carregarHistorico() {
+    try {
+      const resposta = await fetch("/api/comunicacoes?limit=20");
+      if (!resposta.ok) {
+        const dados = (await resposta.json().catch(() => ({}))) as { erro?: string };
+        throw new Error(dados.erro || "Não foi possível carregar o histórico.");
+      }
+
+      const dados = (await resposta.json()) as HistoricoComunicacao[];
+      setHistorico(dados);
+      setHistoricoErro("");
+    } catch (erroAtual) {
+      setHistoricoErro(
+        erroAtual instanceof Error
+          ? erroAtual.message
+          : "Não foi possível carregar o histórico.",
+      );
+    }
+  }
+
+  useEffect(() => {
+    void carregarHistorico();
   }, []);
 
   const unidades = useMemo(
@@ -232,6 +272,23 @@ function Comunicacao() {
   ).length;
   const selecionadosSemInstitucional =
     alunosSelecionados.length - selecionadosComInstitucional;
+
+  const emailsInstitucionaisBrutos = alunosSelecionados
+    .map((a) => (a.email || "").trim())
+    .filter(Boolean);
+
+  const emailsInstitucionaisInvalidos = emailsInstitucionaisBrutos.filter(
+    (email) => !normalizarEmail(email),
+  );
+
+  const emailsInstitucionaisDuplicados =
+    emailsInstitucionaisBrutos.length -
+    new Set(emailsInstitucionaisBrutos.map((email) => email.toLowerCase())).size;
+
+  const validacaoOk =
+    alunosSelecionados.length > 0 &&
+    selecionadosSemInstitucional === 0 &&
+    emailsInstitucionaisInvalidos.length === 0;
 
   const temContrato =
     grupo?.documentos.some((documento) => documento.campo === "contrato") ??
@@ -319,6 +376,59 @@ ${textoEmail}`;
         emailsInstitucionais.length === 1 ? "" : "s"
       }, assunto e mensagem.`,
     );
+  }
+
+  async function registrarCobranca() {
+    if (!grupo || alunosSelecionados.length === 0) {
+      setFeedback("Selecione pelo menos um aluno antes de registrar a cobrança.");
+      return;
+    }
+
+    setRegistrandoHistorico(true);
+
+    try {
+      const resposta = await fetch("/api/comunicacoes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          grupo_chave: grupo.chave,
+          unidade,
+          documentos: grupo.documentos.map((documento) => documento.curto),
+          quantidade_alunos: alunosSelecionados.length,
+          quantidade_emails: emailsInstitucionais.length,
+          assunto: assunto || "Documentação pendente - Matrícula",
+          prazo,
+          tipo_destinatario: "institucional",
+          ras: alunosSelecionados.map((aluno) => aluno.ra),
+        }),
+      });
+
+      const dados = (await resposta.json().catch(() => ({}))) as {
+        erro?: string;
+      };
+
+      if (!resposta.ok) {
+        throw new Error(dados.erro || "Não foi possível registrar a cobrança.");
+      }
+
+      setFeedback(
+        `✓ Cobrança registrada no histórico para ${alunosSelecionados.length} aluno${
+          alunosSelecionados.length === 1 ? "" : "s"
+        }.`,
+      );
+
+      await carregarHistorico();
+    } catch (erroAtual) {
+      setFeedback(
+        erroAtual instanceof Error
+          ? `⚠ ${erroAtual.message}`
+          : "⚠ Não foi possível registrar a cobrança.",
+      );
+    } finally {
+      setRegistrandoHistorico(false);
+    }
   }
 
   if (carregando) {
@@ -484,13 +594,48 @@ ${textoEmail}`;
                   <button
                     className="communication-outlook-button"
                     onClick={copiarPacoteOutlook}
+                    title="Copia CCO, assunto e mensagem para a área de transferência"
                   >
-                    Copiar pacote Outlook
+                    Copiar pacote
+                  </button>
+                  <button
+                    className="communication-register-button"
+                    onClick={registrarCobranca}
+                    disabled={registrandoHistorico || alunosSelecionados.length === 0}
+                    title="Use depois de concluir o envio para registrar a cobrança no histórico"
+                  >
+                    {registrandoHistorico ? "Registrando..." : "Registrar cobrança"}
                   </button>
                 </div>
               </div>
 
               {feedback && <div className="communication-feedback">{feedback}</div>}
+
+              <div className={`communication-validation ${validacaoOk ? "ok" : "warning"}`}>
+                <div>
+                  <span>VALIDAÇÃO DOS DESTINATÁRIOS</span>
+                  <strong>
+                    {validacaoOk
+                      ? "Lista pronta para comunicação"
+                      : "Revise a lista antes de copiar"}
+                  </strong>
+                </div>
+
+                <div className="communication-validation-items">
+                  <span className={selecionadosSemInstitucional === 0 ? "ok" : "warning"}>
+                    {selecionadosSemInstitucional === 0 ? "✓" : "!"}{" "}
+                    {selecionadosSemInstitucional} sem e-mail institucional
+                  </span>
+                  <span className={emailsInstitucionaisInvalidos.length === 0 ? "ok" : "warning"}>
+                    {emailsInstitucionaisInvalidos.length === 0 ? "✓" : "!"}{" "}
+                    {emailsInstitucionaisInvalidos.length} e-mail(is) inválido(s)
+                  </span>
+                  <span className={emailsInstitucionaisDuplicados === 0 ? "ok" : "attention"}>
+                    {emailsInstitucionaisDuplicados === 0 ? "✓" : "!"}{" "}
+                    {emailsInstitucionaisDuplicados} duplicado(s)
+                  </span>
+                </div>
+              </div>
 
               <div className="communication-content-grid">
                 <section className="communication-email-card">
@@ -636,6 +781,57 @@ ${textoEmail}`;
                   </div>
                 </section>
               </div>
+
+              <section className="communication-history">
+                <div className="communication-history-header">
+                  <div>
+                    <span>HISTÓRICO DE COBRANÇAS</span>
+                    <strong>Últimos registros</strong>
+                  </div>
+                  <button type="button" onClick={() => void carregarHistorico()}>
+                    Atualizar
+                  </button>
+                </div>
+
+                {historicoErro ? (
+                  <div className="communication-history-error">
+                    {historicoErro}
+                  </div>
+                ) : historico.length === 0 ? (
+                  <div className="communication-history-empty">
+                    Nenhuma cobrança registrada ainda.
+                  </div>
+                ) : (
+                  <div className="communication-history-list">
+                    {historico.map((registro) => (
+                      <article key={registro.id} className="communication-history-item">
+                        <div>
+                          <strong>
+                            {registro.documentos.length === 7
+                              ? "Todos os documentos"
+                              : registro.documentos.join(" + ")}
+                          </strong>
+                          <span>
+                            {registro.unidade === "TODAS"
+                              ? "Todas as unidades"
+                              : registro.unidade}
+                            {" • "}
+                            {new Date(registro.criado_em).toLocaleString("pt-BR")}
+                          </span>
+                        </div>
+                        <div className="communication-history-numbers">
+                          <strong>{registro.quantidade_alunos}</strong>
+                          <span>alunos</span>
+                        </div>
+                        <div className="communication-history-numbers">
+                          <strong>{registro.quantidade_emails}</strong>
+                          <span>e-mails</span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
             </>
           )}
         </main>
