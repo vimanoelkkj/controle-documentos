@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "controle-documentos",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-08-08",
+
+"assets": {
+  "directory": "./dist",
+  "binding": "ASSETS",
+  "not_found_handling": "single-page-application",
+  "run_worker_first": true
+},
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "controle-documentos-db",
+      "database_id": "a3e879b8-f44b-4af0-9a1a-87c26979acc2",
+      "remote": true
+    }
+  ]
+}

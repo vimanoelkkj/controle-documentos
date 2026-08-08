@@ -1,14 +1,14 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import AppLayout from './layouts/AppLayout'
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import AppLayout from "./layouts/AppLayout";
 
-import Dashboard from './pages/Dashboard'
-import Conferencia from './pages/Conferencia'
-import Comunicacao from './pages/Comunicacao'
-import Auditoria from './pages/Auditoria'
-import Estatisticas from './pages/Estatisticas'
-import Log from './pages/Log'
-import Configuracoes from './pages/Configuracoes'
-import Sobre from './pages/Sobre'
+import Dashboard from "./pages/Dashboard";
+import Conferencia from "./pages/Conferencia";
+import Comunicacao from "./pages/Comunicacao";
+import Auditoria from "./pages/Auditoria";
+import Estatisticas from "./pages/Estatisticas";
+import Log from "./pages/Log";
+import Configuracoes from "./pages/Configuracoes";
+import Sobre from "./pages/Sobre";
 
 function App() {
   return (
@@ -28,7 +28,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

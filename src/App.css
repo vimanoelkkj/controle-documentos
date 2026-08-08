@@ -58,8 +58,7 @@ textarea {
 
   background: #101b25;
 
-  box-shadow:
-    0 30px 80px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
 }
 
 .brand {
