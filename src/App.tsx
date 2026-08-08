@@ -1,26 +1,33 @@
-import './App.css'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import AppLayout from './layouts/AppLayout'
+
+import Dashboard from './pages/Dashboard'
+import Conferencia from './pages/Conferencia'
+import Comunicacao from './pages/Comunicacao'
+import Auditoria from './pages/Auditoria'
+import Estatisticas from './pages/Estatisticas'
+import Log from './pages/Log'
+import Configuracoes from './pages/Configuracoes'
+import Sobre from './pages/Sobre'
 
 function App() {
   return (
-    <main className="app-shell">
-      <section className="hero">
-        <div className="brand">CD</div>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/conferencia" element={<Conferencia />} />
+          <Route path="/comunicacao" element={<Comunicacao />} />
+          <Route path="/auditoria" element={<Auditoria />} />
+          <Route path="/estatisticas" element={<Estatisticas />} />
+          <Route path="/log" element={<Log />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/sobre" element={<Sobre />} />
 
-        <div>
-          <span className="eyebrow">SISTEMA ACADÊMICO</span>
-
-          <h1>Controle de Documentos</h1>
-
-          <p>
-            Nova versão em React.
-          </p>
-
-          <span className="status">
-            ● Sistema online
-          </span>
-        </div>
-      </section>
-    </main>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 
