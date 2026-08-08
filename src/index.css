@@ -245,3 +245,547 @@ a {
     padding: 28px 26px;
   }
 }
+
+/* =========================================================
+   CONFERÊNCIA
+   ========================================================= */
+
+.conference-page {
+  width: 100%;
+  max-width: 1600px;
+}
+
+.page-header {
+  margin-bottom: 22px;
+}
+
+.conference-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* LISTA DE ALUNOS */
+
+.student-panel,
+.student-details {
+  border: 1px solid #253847;
+  border-radius: 14px;
+  background: #101d27;
+}
+
+.student-panel {
+  overflow: hidden;
+}
+
+.student-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px;
+}
+
+.student-panel-header span,
+.summary-card > span {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #62bfff;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.student-panel-header h2 {
+  margin: 0;
+
+  font-size: 18px;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+
+  border: 1px solid #2a4254;
+  border-radius: 9px;
+
+  color: #75c7ff;
+  background: #152633;
+
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: #1b3344;
+}
+
+.unit-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+
+  padding: 0 14px 12px;
+}
+
+.unit-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-width: 0;
+  padding: 10px 11px;
+
+  border: 1px solid #2a4051;
+  border-radius: 9px;
+
+  color: #9eb1c0;
+  background: #162530;
+
+  cursor: pointer;
+}
+
+.unit-tabs button.active {
+  border-color: #438fc1;
+
+  color: #fff;
+  background: #1c4561;
+}
+
+.unit-tabs strong {
+  padding: 2px 6px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, .08);
+
+  font-size: 10px;
+}
+
+.student-search {
+  width: calc(100% - 28px);
+  height: 42px;
+
+  margin: 0 14px 12px;
+  padding: 0 13px;
+
+  border: 1px solid #2a4051;
+  border-radius: 9px;
+  outline: none;
+
+  color: #edf5fa;
+  background: #0c1720;
+}
+
+.student-search::placeholder {
+  color: #738999;
+}
+
+.student-search:focus {
+  border-color: #58b7f4;
+
+  box-shadow: 0 0 0 3px rgba(88, 183, 244, .1);
+}
+
+.student-list {
+  display: grid;
+
+  border-top: 1px solid #253847;
+}
+
+.student-card {
+  display: block;
+
+  width: 100%;
+  padding: 13px 14px;
+
+  border: 0;
+  border-bottom: 1px solid #253847;
+
+  color: #dce8ef;
+  background: transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.student-card:hover {
+  background: #142633;
+}
+
+.student-card.active {
+  box-shadow: inset 3px 0 #61bfff;
+
+  background: #172b39;
+}
+
+.student-card-main {
+  display: grid;
+  gap: 4px;
+}
+
+.student-card-main strong {
+  overflow: hidden;
+
+  font-size: 12px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-card-main span {
+  overflow: hidden;
+
+  color: #8298a8;
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 9px;
+}
+
+.student-card-footer span {
+  padding: 3px 7px;
+
+  border: 1px solid #315a74;
+  border-radius: 999px;
+
+  color: #8fd0fa;
+  background: #163044;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.student-card-footer strong {
+  color: #7e94a4;
+
+  font-size: 10px;
+}
+
+/* FICHA DO ALUNO */
+
+.student-details {
+  min-width: 0;
+
+  overflow: hidden;
+}
+
+.student-details-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 15px;
+  align-items: center;
+
+  padding: 22px;
+
+  border-bottom: 1px solid #253847;
+}
+
+.student-avatar {
+  display: grid;
+
+  width: 54px;
+  height: 54px;
+
+  place-items: center;
+
+  border-radius: 14px;
+
+  color: #07131b;
+  background: #5db8f5;
+
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.student-identity {
+  min-width: 0;
+}
+
+.student-identity h2 {
+  overflow: hidden;
+
+  margin: 0 0 9px;
+
+  color: #f4f8fb;
+
+  font-size: clamp(18px, 2vw, 26px);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.student-tags span {
+  padding: 5px 8px;
+
+  border: 1px solid #294354;
+  border-radius: 999px;
+
+  color: #9db2c1;
+  background: #14242f;
+
+  font-size: 10px;
+}
+
+.student-progress {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+}
+
+.student-progress strong {
+  color: #5ebcff;
+
+  font-size: 32px;
+  line-height: 1;
+}
+
+.student-progress span {
+  padding: 4px 8px;
+
+  border: 1px solid #854638;
+  border-radius: 999px;
+
+  color: #ffb6a7;
+  background: #49251f;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.document-progress {
+  padding: 17px 22px;
+}
+
+.document-progress-label {
+  display: flex;
+  justify-content: space-between;
+
+  margin-bottom: 9px;
+
+  color: #91a7b7;
+
+  font-size: 10px;
+}
+
+.progress-track {
+  height: 10px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: #263a49;
+}
+
+.progress-value {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: #59b6f2;
+}
+
+/* DOCUMENTOS */
+
+.documents-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 16px;
+
+  padding: 0 22px 22px;
+}
+
+.documents-area h3 {
+  margin: 0 0 10px;
+
+  font-size: 14px;
+}
+
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.document-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  min-height: 64px;
+  padding: 11px 13px;
+
+  border: 1px solid #304655;
+  border-radius: 10px;
+
+  background: #172733;
+
+  cursor: pointer;
+}
+
+.document-card:hover {
+  border-color: #46708b;
+}
+
+.document-card.delivered {
+  border-color: #31643e;
+
+  background: #173520;
+}
+
+.document-card input {
+  width: 18px;
+  height: 18px;
+
+  flex: 0 0 auto;
+
+  accent-color: #66d181;
+
+  cursor: pointer;
+}
+
+.document-card div {
+  display: grid;
+  gap: 3px;
+}
+
+.document-card strong {
+  color: #f2f7fa;
+
+  font-size: 12px;
+}
+
+.document-card span {
+  color: #91a6b5;
+
+  font-size: 9px;
+}
+
+/* RESUMO */
+
+.summary-card {
+  align-self: start;
+
+  padding: 15px;
+
+  border: 1px solid #2b4354;
+  border-radius: 11px;
+
+  background: #152631;
+}
+
+.summary-number {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  margin: 13px 0;
+}
+
+.summary-number strong {
+  color: #ffd65b;
+
+  font-size: 30px;
+}
+
+.summary-number span {
+  color: #a5b6c2;
+
+  font-size: 11px;
+}
+
+.summary-card ul {
+  display: grid;
+  gap: 7px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.summary-card li {
+  padding: 8px 9px;
+
+  border: 1px solid #2d4352;
+  border-radius: 8px;
+
+  color: #cad7df;
+  background: #101e28;
+
+  font-size: 10px;
+}
+
+.summary-card li::before {
+  content: "●";
+
+  margin-right: 7px;
+
+  color: #ffd65b;
+}
+
+/* TELAS MENORES */
+
+@media (max-width: 1180px) {
+  .conference-grid {
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+
+  .documents-area {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .conference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-panel {
+    max-height: 420px;
+  }
+
+  .student-list {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .documents-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-details-header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .student-progress {
+    grid-column: 1 / -1;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
