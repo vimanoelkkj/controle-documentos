@@ -8156,7 +8156,6 @@ html[data-theme="light"] .importacao-processando-spinner span {
   }
 }
 
-
 /* =========================================================
    FERRAMENTAS DE DESENVOLVIMENTO
    ========================================================= */
@@ -8312,14 +8311,17 @@ html[data-theme="light"] .settings-dev-message {
   }
 }
 
-
 /* =========================================================
    MOTION — MODAIS DA CONFERÊNCIA
    ========================================================= */
 
 @keyframes conference-modal-overlay-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes conference-modal-card-enter {
@@ -8334,8 +8336,12 @@ html[data-theme="light"] .settings-dev-message {
 }
 
 @keyframes conference-modal-overlay-exit {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes conference-modal-card-exit {
@@ -8354,8 +8360,8 @@ html[data-theme="light"] .settings-dev-message {
 }
 
 .conference-page .modal-overlay > [class*="modal-"] {
-  animation: conference-modal-card-enter 220ms
-    cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: conference-modal-card-enter 220ms cubic-bezier(0.16, 1, 0.3, 1)
+    both;
 }
 
 .conference-page .modal-overlay.modal-overlay-exit {
@@ -8370,8 +8376,7 @@ html[data-theme="light"] .settings-dev-message {
 /* Mantém a entrada especial do sucesso da importação. */
 .conference-page .modal-overlay > .modal-importacao-sucesso {
   animation: sucesso-enter 260ms
-    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1))
-    both;
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -8382,7 +8387,6 @@ html[data-theme="light"] .settings-dev-message {
     animation-duration: 1ms !important;
   }
 }
-
 
 /* =========================================================
    MODAL EDITAR ALUNO — ZONA DE PERIGO
@@ -8431,12 +8435,13 @@ html[data-theme="light"] .edit-student-danger-zone .student-delete-button {
   color: #c9362b;
 }
 
-html[data-theme="light"] .edit-student-danger-zone .student-delete-button:hover:not(:disabled) {
+html[data-theme="light"]
+  .edit-student-danger-zone
+  .student-delete-button:hover:not(:disabled) {
   border-color: #cf4338;
   background: #fff0ee;
   color: #b92d23;
 }
-
 
 /* =========================================================
    MODAL CANCELAR / REATIVAR MATRÍCULA — MODO CLARO
@@ -8486,7 +8491,10 @@ html[data-theme="light"] .modal-excluir-aviso {
 }
 
 /* Quando o modal estiver reativando, o aviso acompanha o verde. */
-html[data-theme="light"] .modal-reativar-icon ~ .modal-excluir-conteudo .modal-excluir-aviso {
+html[data-theme="light"]
+  .modal-reativar-icon
+  ~ .modal-excluir-conteudo
+  .modal-excluir-aviso {
   border-color: #add9bb;
   color: #2d7047 !important;
   background: #eff9f2;
@@ -8503,7 +8511,9 @@ html[data-theme="light"] .modal-excluir-acoes .botao-cancelar {
   background: #ffffff;
 }
 
-html[data-theme="light"] .modal-excluir-acoes .botao-cancelar:hover:not(:disabled) {
+html[data-theme="light"]
+  .modal-excluir-acoes
+  .botao-cancelar:hover:not(:disabled) {
   border-color: #9eb4c2;
   background: #eef4f7;
 }
@@ -8514,7 +8524,9 @@ html[data-theme="light"] .modal-excluir-acoes .botao-confirmar-exclusao {
   background: #bd453b;
 }
 
-html[data-theme="light"] .modal-excluir-acoes .botao-confirmar-exclusao:hover:not(:disabled) {
+html[data-theme="light"]
+  .modal-excluir-acoes
+  .botao-confirmar-exclusao:hover:not(:disabled) {
   border-color: #c9453a;
   background: #a93830;
 }
@@ -8525,7 +8537,6 @@ html[data-theme="light"] .modal-excluir-acoes .botao-confirmar-exclusao:hover:no
     transition-duration: 1ms !important;
   }
 }
-
 
 /* =========================================================
    HEADER — STATUS GOOGLE PLANILHAS
@@ -8661,8 +8672,12 @@ html[data-theme="light"] .modal-excluir-acoes .botao-confirmar-exclusao:hover:no
 }
 
 @keyframes sheets-status-pulse {
-  from { opacity: 0.35; }
-  to { opacity: 1; }
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* LIGHT */
@@ -8681,7 +8696,10 @@ html[data-theme="light"] .google-sheets-status--conectado {
   box-shadow: inset 0 0 0 1px rgba(52, 168, 83, 0.03);
 }
 
-html[data-theme="light"] .google-sheets-status--conectado .google-sheets-status-copy small {
+html[data-theme="light"]
+  .google-sheets-status--conectado
+  .google-sheets-status-copy
+  small {
   color: #277742;
 }
 
@@ -8695,7 +8713,10 @@ html[data-theme="light"] .google-sheets-status--nao-conectado {
   background: #fff3f2;
 }
 
-html[data-theme="light"] .google-sheets-status--nao-conectado .google-sheets-status-copy small {
+html[data-theme="light"]
+  .google-sheets-status--nao-conectado
+  .google-sheets-status-copy
+  small {
   color: #bd453b;
 }
 
@@ -8737,7 +8758,6 @@ html[data-theme="light"] .google-sheets-status--nao-conectado:hover {
   }
 }
 
-
 /* =========================================================
    GOOGLE PLANILHAS — MODAL DE CONEXÃO
    ========================================================= */
@@ -8753,8 +8773,7 @@ html[data-theme="light"] .google-sheets-status--nao-conectado:hover {
   border-radius: 16px;
   background: #101d26;
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
-  animation: google-sheets-modal-enter 220ms
-    cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: google-sheets-modal-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .google-sheets-modal-overlay-exit {
@@ -8767,13 +8786,21 @@ html[data-theme="light"] .google-sheets-status--nao-conectado:hover {
 }
 
 @keyframes google-sheets-overlay-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes google-sheets-overlay-exit {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes google-sheets-modal-enter {
@@ -9090,7 +9117,6 @@ html[data-theme="light"] .google-sheets-modal-actions {
   }
 }
 
-
 /* =========================================================
    GOOGLE SHEETS — SINCRONIZAÇÃO REAL
    ========================================================= */
@@ -9116,7 +9142,7 @@ html[data-theme="light"] .google-sheets-modal-actions {
   color: #62b97b;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
 }
 
 .period-sheets-sync-bar strong {
@@ -9154,8 +9180,9 @@ html[data-theme="light"] .google-sheets-modal-actions {
   border: 1px solid #2b4553;
   border-radius: 16px;
   background: #101d26;
-  box-shadow: 0 30px 90px rgba(0,0,0,.5);
-  animation: conference-modal-card-enter 220ms cubic-bezier(.16,1,.3,1) both;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+  animation: conference-modal-card-enter 220ms cubic-bezier(0.16, 1, 0.3, 1)
+    both;
 }
 
 .period-sync-confirm-modal > header {
@@ -9167,7 +9194,7 @@ html[data-theme="light"] .google-sheets-modal-actions {
   color: #62b97b;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .13em;
+  letter-spacing: 0.13em;
 }
 
 .period-sync-confirm-modal h2 {
@@ -9183,7 +9210,9 @@ html[data-theme="light"] .google-sheets-modal-actions {
   line-height: 1.55;
 }
 
-.period-sync-confirm-modal header p strong { color: #dbe8ee; }
+.period-sync-confirm-modal header p strong {
+  color: #dbe8ee;
+}
 
 .period-sync-confirm-grid {
   display: grid;
@@ -9243,15 +9272,25 @@ html[data-theme="light"] .google-sheets-modal-actions {
   background: #10251a;
 }
 
-.period-sheets-sync-result > div { display: grid; gap: 2px; }
+.period-sheets-sync-result > div {
+  display: grid;
+  gap: 2px;
+}
 .period-sheets-sync-result span {
   color: #62b97b;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .1em;
+  letter-spacing: 0.1em;
 }
-.period-sheets-sync-result strong { color: #dff3e5; font-size: 11px; }
-.period-sheets-sync-result p { margin: 0; color: #8aa494; font-size: 10px; }
+.period-sheets-sync-result strong {
+  color: #dff3e5;
+  font-size: 11px;
+}
+.period-sheets-sync-result p {
+  margin: 0;
+  color: #8aa494;
+  font-size: 10px;
+}
 .period-sheets-sync-result > button {
   position: absolute;
   right: 12px;
@@ -9269,41 +9308,67 @@ html[data-theme="light"] .period-sheets-sync-result {
 }
 
 html[data-theme="light"] .period-sheets-sync-bar span,
-html[data-theme="light"] .period-sheets-sync-result span { color: #347a49; }
+html[data-theme="light"] .period-sheets-sync-result span {
+  color: #347a49;
+}
 html[data-theme="light"] .period-sheets-sync-bar strong,
-html[data-theme="light"] .period-sheets-sync-result strong { color: #285239; }
+html[data-theme="light"] .period-sheets-sync-result strong {
+  color: #285239;
+}
 html[data-theme="light"] .period-sheets-sync-bar small,
-html[data-theme="light"] .period-sheets-sync-result p { color: #6d8375; }
+html[data-theme="light"] .period-sheets-sync-result p {
+  color: #6d8375;
+}
 
 html[data-theme="light"] .period-sync-confirm-modal {
   border-color: #d4e0e7;
   background: #fff;
-  box-shadow: 0 30px 90px rgba(43,66,80,.2);
+  box-shadow: 0 30px 90px rgba(43, 66, 80, 0.2);
 }
 html[data-theme="light"] .period-sync-confirm-modal > header,
-html[data-theme="light"] .period-sync-confirm-modal footer { border-color: #dce6eb; }
-html[data-theme="light"] .period-sync-confirm-modal h2 { color: #203440; }
-html[data-theme="light"] .period-sync-confirm-modal header p { color: #718691; }
-html[data-theme="light"] .period-sync-confirm-modal header p strong { color: #304854; }
+html[data-theme="light"] .period-sync-confirm-modal footer {
+  border-color: #dce6eb;
+}
+html[data-theme="light"] .period-sync-confirm-modal h2 {
+  color: #203440;
+}
+html[data-theme="light"] .period-sync-confirm-modal header p {
+  color: #718691;
+}
+html[data-theme="light"] .period-sync-confirm-modal header p strong {
+  color: #304854;
+}
 html[data-theme="light"] .period-sync-confirm-grid > div {
   border-color: #d8e3e9;
   background: #f7fafb;
 }
-html[data-theme="light"] .period-sync-confirm-grid strong { color: #29404c; }
-html[data-theme="light"] .period-sync-confirm-grid span { color: #728792; }
+html[data-theme="light"] .period-sync-confirm-grid strong {
+  color: #29404c;
+}
+html[data-theme="light"] .period-sync-confirm-grid span {
+  color: #728792;
+}
 html[data-theme="light"] .period-sync-confirm-note {
   border-color: #e6d9a7;
   color: #78682d;
   background: #fff9e7;
 }
-html[data-theme="light"] .period-sync-confirm-modal footer { background: #f8fafb; }
-
-@media (max-width: 620px) {
-  .period-sheets-sync-bar { align-items: stretch; flex-direction: column; }
-  .period-sheets-sync-bar button { width: 100%; }
-  .period-sync-confirm-grid { grid-template-columns: repeat(2, 1fr); }
+html[data-theme="light"] .period-sync-confirm-modal footer {
+  background: #f8fafb;
 }
 
+@media (max-width: 620px) {
+  .period-sheets-sync-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .period-sheets-sync-bar button {
+    width: 100%;
+  }
+  .period-sync-confirm-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
 /* =========================================================
    GOOGLE SHEETS — SALVAR MAPEAMENTOS EM LOTE
@@ -9332,7 +9397,7 @@ html[data-theme="light"] .period-sync-confirm-modal footer { background: #f8fafb
   color: #5f8ba2;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .11em;
+  letter-spacing: 0.11em;
 }
 
 .period-course-map-save strong {
@@ -9356,7 +9421,10 @@ html[data-theme="light"] .period-sync-confirm-modal footer { background: #f8fafb
   font-size: 11px;
   font-weight: 900;
   cursor: pointer;
-  transition: transform 140ms ease, background 140ms ease, opacity 140ms ease;
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    opacity 140ms ease;
 }
 
 .period-course-map-save button:hover:not(:disabled) {
@@ -9366,7 +9434,7 @@ html[data-theme="light"] .period-sync-confirm-modal footer { background: #f8fafb
 
 .period-course-map-save button:disabled {
   cursor: default;
-  opacity: .45;
+  opacity: 0.45;
 }
 
 .period-course-actions {
@@ -9404,7 +9472,6 @@ html[data-theme="light"] .period-course-map-save small {
     width: 100%;
   }
 }
-
 
 /* =========================================================
    MODAL SINCRONIZAÇÃO — BOTÃO VOLTAR
@@ -9456,7 +9523,6 @@ html[data-theme="light"] .period-sync-back-button:hover:not(:disabled) {
   background: #edf4f7;
 }
 
-
 /* =========================================================
    IDENTIDADE VISUAL — ÍCONES DE PÁGINA E MARCA
    ========================================================= */
@@ -9501,7 +9567,7 @@ html[data-theme="light"] .period-sync-back-button:hover:not(:disabled) {
   border-radius: 10px;
   color: #59b8ed;
   background: #102735;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .page-title-icon svg {
@@ -9512,7 +9578,7 @@ html[data-theme="light"] .page-title-icon {
   border-color: #c5deeb;
   color: #2387bd;
   background: #eef8fd;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 @media (max-width: 620px) {
@@ -9526,7 +9592,6 @@ html[data-theme="light"] .page-title-icon {
     border-radius: 9px;
   }
 }
-
 
 /* =========================================================
    SOBRE
@@ -9564,7 +9629,7 @@ html[data-theme="light"] .page-title-icon {
   color: #69a7c9;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: .13em;
+  letter-spacing: 0.13em;
 }
 
 .about-hero .page-title-row {
@@ -9704,7 +9769,7 @@ html[data-theme="light"] .page-title-icon {
   height: 7px;
   border-radius: 50%;
   background: #46c66a;
-  box-shadow: 0 0 0 4px rgba(70, 198, 106, .1);
+  box-shadow: 0 0 0 4px rgba(70, 198, 106, 0.1);
 }
 
 /* LIGHT */
@@ -9713,7 +9778,7 @@ html[data-theme="light"] .about-card,
 html[data-theme="light"] .about-footer-card {
   border-color: #d6e1e8;
   background: #fff;
-  box-shadow: 0 8px 24px rgba(44, 73, 94, .05);
+  box-shadow: 0 8px 24px rgba(44, 73, 94, 0.05);
 }
 
 html[data-theme="light"] .about-version-card {
@@ -10014,8 +10079,6 @@ html[data-theme="light"] .about-footer-badge {
   }
 }
 
-
-
 /* =========================================================
    CONFERÊNCIA — PROTEÇÃO CONTRA ALTERAÇÕES NÃO SALVAS
    ========================================================= */
@@ -10026,7 +10089,7 @@ html[data-theme="light"] .about-footer-badge {
   border: 1px solid #60493a;
   border-radius: 15px;
   background: #111d25;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, .48);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
 }
 
 .unsaved-student-icon {
@@ -10047,7 +10110,7 @@ html[data-theme="light"] .about-footer-badge {
   color: #e3ad48;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
 }
 
 .unsaved-student-modal h2 {
@@ -10106,7 +10169,7 @@ html[data-theme="light"] .about-footer-badge {
 html[data-theme="light"] .unsaved-student-modal {
   border-color: #e6d0bb;
   background: #fff;
-  box-shadow: 0 30px 90px rgba(44, 64, 78, .2);
+  box-shadow: 0 30px 90px rgba(44, 64, 78, 0.2);
 }
 
 html[data-theme="light"] .unsaved-student-icon {
@@ -10147,7 +10210,6 @@ html[data-theme="light"] .unsaved-student-discard:hover {
   background: #ffe7e3;
 }
 
-
 /* =========================================================
    DASHBOARD — NAVEGAÇÃO PARA A CONFERÊNCIA
    ========================================================= */
@@ -10168,7 +10230,7 @@ html[data-theme="light"] .unsaved-student-discard:hover {
 .dashboard-nav-card:hover {
   transform: translateY(-2px);
   border-color: #4d9aca;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, .12);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
 .dashboard-nav-card:focus-visible,
@@ -10192,7 +10254,7 @@ html[data-theme="light"] .unsaved-student-discard:hover {
 }
 
 .dashboard-legend button:hover {
-  background: rgba(97, 191, 255, .055);
+  background: rgba(97, 191, 255, 0.055);
 }
 
 .dashboard-nav-bar {
@@ -10204,12 +10266,14 @@ html[data-theme="light"] .unsaved-student-discard:hover {
   border-radius: 8px;
   color: inherit;
   background: transparent;
-  transition: background 140ms ease, transform 140ms ease;
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
 }
 
 .dashboard-nav-bar:hover {
   transform: translateX(2px);
-  background: rgba(97, 191, 255, .05);
+  background: rgba(97, 191, 255, 0.05);
 }
 
 .dashboard-nav-row {
@@ -10221,7 +10285,7 @@ html[data-theme="light"] .unsaved-student-discard:hover {
 }
 
 .dashboard-nav-row:hover {
-  background: rgba(97, 191, 255, .055);
+  background: rgba(97, 191, 255, 0.055);
 }
 
 /* =========================================================
@@ -10250,7 +10314,7 @@ html[data-theme="light"] .unsaved-student-discard:hover {
   color: #65bdf3;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .11em;
+  letter-spacing: 0.11em;
 }
 
 .dashboard-context-filter strong {
@@ -10285,7 +10349,7 @@ html[data-theme="light"] .unsaved-student-discard:hover {
 
 html[data-theme="light"] .dashboard-nav-card:hover {
   border-color: #78bce2;
-  box-shadow: 0 10px 24px rgba(39, 82, 108, .08);
+  box-shadow: 0 10px 24px rgba(39, 82, 108, 0.08);
 }
 
 html[data-theme="light"] .dashboard-legend button:hover,
@@ -10321,7 +10385,6 @@ html[data-theme="light"] .dashboard-context-filter button:hover {
   background: #e5f4fb;
 }
 
-
 /* =========================================================
    DASHBOARD — MÚLTIPLAS PENDÊNCIAS
    ========================================================= */
@@ -10331,7 +10394,7 @@ html[data-theme="light"] .dashboard-context-filter button:hover {
 }
 
 .dashboard-nav-bar.selected {
-  background: rgba(79, 174, 228, .11);
+  background: rgba(79, 174, 228, 0.11);
   box-shadow: inset 0 0 0 1px #3d8ebd;
 }
 
@@ -10372,7 +10435,7 @@ html[data-theme="light"] .dashboard-context-filter button:hover {
   color: #63bcf0;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .11em;
+  letter-spacing: 0.11em;
 }
 
 .dashboard-pending-selection strong {
@@ -10480,13 +10543,11 @@ html[data-theme="light"] .dashboard-pending-open {
   right: 8px;
 }
 
-
-
 /* Dashboard — pré-cálculo de pendências exatas */
 .dashboard-pending-open:disabled {
-  opacity: .48;
+  opacity: 0.48;
   cursor: not-allowed;
-  filter: saturate(.55);
+  filter: saturate(0.55);
 }
 
 .dashboard-pending-open:disabled:hover {
@@ -10496,7 +10557,6 @@ html[data-theme="light"] .dashboard-pending-open {
 html[data-theme="light"] .dashboard-pending-open:disabled:hover {
   background: #2589ba;
 }
-
 
 /* =========================================================
    CONFERÊNCIA — BUSCA TURBINADA
@@ -10549,4 +10609,17 @@ html[data-theme="light"] .student-search-result button {
 
 html[data-theme="light"] .student-search-result button:hover {
   background: #edf7fb;
+}
+
+/* =========================================================
+   CONFERÊNCIA — cards da lista nunca esticam
+   ========================================================= */
+
+.student-list {
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+.student-card {
+  align-self: start;
 }
