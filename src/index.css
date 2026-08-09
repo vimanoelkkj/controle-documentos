@@ -1006,6 +1006,46 @@ a {
   background: #213744;
 }
 
+.modal-adicionar-aluno {
+  width: min(560px, 100%);
+}
+
+.adicionar-aluno-opcoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 22px 24px 24px;
+}
+
+.adicionar-aluno-opcoes button {
+  display: grid;
+  gap: 6px;
+  min-height: 108px;
+  padding: 18px;
+  text-align: left;
+  border: 1px solid #2d4353;
+  border-radius: 12px;
+  color: #eef5f9;
+  background: #0b171f;
+  cursor: pointer;
+}
+
+.adicionar-aluno-opcoes button:hover {
+  border-color: #58b7f4;
+  background: #132a39;
+}
+
+.adicionar-aluno-opcoes strong {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.adicionar-aluno-opcoes span {
+  color: #8fa4b3;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 /* FORMULÁRIO */
 
 .modal-formulario {

@@ -116,6 +116,7 @@ function Conferencia() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
+  const [modalAdicionarAluno, setModalAdicionarAluno] = useState(false);
   const [modalImportarAlunos, setModalImportarAlunos] = useState(false);
 
   const [modoImportacao, setModoImportacao] = useState<"colar" | "csv">(
@@ -1299,21 +1300,10 @@ function Conferencia() {
 
               <button
                 type="button"
-                className="botao-importar-alunos"
-                onClick={abrirImportacao}
-              >
-                ⇧ Importar
-              </button>
-
-              <button
-                type="button"
                 className="botao-novo-aluno"
-                onClick={() => {
-                  setErroCadastro("");
-                  setModalNovoAluno(true);
-                }}
+                onClick={() => setModalAdicionarAluno(true)}
               >
-                + Novo aluno
+                + Adicionar alunos
               </button>
 
               <button
@@ -1585,6 +1575,53 @@ function Conferencia() {
           </article>
         )}
       </div>
+
+      {modalAdicionarAluno && (
+        <div className="modal-overlay">
+          <div className="modal-novo-aluno modal-adicionar-aluno">
+            <div className="modal-cabecalho">
+              <div>
+                <span className="modal-eyebrow">ALUNOS</span>
+                <h2>Adicionar alunos</h2>
+                <p>Escolha como deseja incluir alunos na conferência.</p>
+              </div>
+
+              <button
+                type="button"
+                className="modal-fechar"
+                onClick={() => setModalAdicionarAluno(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="adicionar-aluno-opcoes">
+              <button
+                type="button"
+                onClick={() => {
+                  setModalAdicionarAluno(false);
+                  setErroCadastro("");
+                  setModalNovoAluno(true);
+                }}
+              >
+                <strong>+ Novo aluno</strong>
+                <span>Cadastrar um aluno manualmente.</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setModalAdicionarAluno(false);
+                  abrirImportacao();
+                }}
+              >
+                <strong>⇧ Importar lista</strong>
+                <span>Adicionar ou atualizar vários alunos de uma vez.</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {modalNovoAluno && (
         <div className="modal-overlay">
