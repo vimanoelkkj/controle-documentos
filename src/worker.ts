@@ -1156,6 +1156,18 @@ export default {
               curso: aluno.curso,
               unidade,
             });
+
+            // Se o aluno já estiver na planilha de cancelados,
+            // ele entrará no primeiro import já como CANCELADO.
+            if (cancelados.has(aluno.ra)) {
+              cancelar += 1;
+
+              detalhesCancelamentos.push({
+                ra: aluno.ra,
+                nome: aluno.nome,
+                unidade: unidade ?? "",
+              });
+            }
           } else {
             const campos = [
               ["Nome", atual.nome, aluno.nome],
@@ -1205,10 +1217,15 @@ export default {
         }
         for (const ra of cancelados) {
           const atual = porRa.get(ra);
+
+          // Alunos novos já foram contabilizados acima.
           if (!atual) continue;
-          if (atual.status === "CANCELADO") jaCancelados += 1;
-          else {
+
+          if (atual.status === "CANCELADO") {
+            jaCancelados += 1;
+          } else {
             cancelar += 1;
+
             detalhesCancelamentos.push({
               ra,
               nome: atual.nome,
@@ -1469,14 +1486,22 @@ export default {
           if (!atual) {
             novos += 1;
 
+            const novoJaCancelado = cancelados.has(aluno.ra);
+
+            if (novoJaCancelado) {
+              cancelamentos += 1;
+            }
+
+            const statusInicial = novoJaCancelado ? "CANCELADO" : "ATIVO";
+
             comandos.push(
               env.DB.prepare(
                 `
-                INSERT INTO alunos (
-                  periodo_id, ra, nome, email, email_outro, curso, unidade, status
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'ATIVO')
-              `,
+      INSERT INTO alunos (
+        periodo_id, ra, nome, email, email_outro, curso, unidade, status
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `,
               ).bind(
                 periodoId,
                 aluno.ra,
@@ -1485,6 +1510,7 @@ export default {
                 aluno.email_outro || null,
                 aluno.curso,
                 unidade!,
+                statusInicial,
               ),
             );
 
@@ -1652,6 +1678,10 @@ export default {
           )
           .run();
 
+        const novosCancelados = resolvidos.filter(
+          ({ aluno }) => !porRa.has(aluno.ra) && cancelados.has(aluno.ra),
+        ).length;
+
         return Response.json({
           sucesso: true,
           novos,
@@ -1659,7 +1689,11 @@ export default {
           documentos_alterados: documentosAlterados,
           cancelamentos,
           total_operacoes:
-            novos + cadastros + documentosAlterados + cancelamentos,
+            novos +
+            cadastros +
+            documentosAlterados +
+            cancelamentos -
+            novosCancelados,
         });
       } catch (erro) {
         console.error("Erro na sincronização Google Sheets:", erro);

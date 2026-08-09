@@ -297,11 +297,20 @@ function Periodos() {
     }
   }
 
+  const novosJaCancelados = sheetsPrevia
+    ? sheetsPrevia.detalhes.novos.filter((novo) =>
+        sheetsPrevia.detalhes.cancelamentos.some(
+          (cancelado) => cancelado.ra === novo.ra,
+        ),
+      ).length
+    : 0;
+
   const totalOperacoesPrevia = sheetsPrevia
     ? sheetsPrevia.novos +
       sheetsPrevia.alteracoes_cadastrais +
       sheetsPrevia.documentos_alterados +
-      sheetsPrevia.prontos_para_cancelar
+      sheetsPrevia.prontos_para_cancelar -
+      novosJaCancelados
     : 0;
 
   const ativos = useMemo(
