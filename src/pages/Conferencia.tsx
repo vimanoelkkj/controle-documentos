@@ -1606,7 +1606,11 @@ function Conferencia() {
               </button>
             </div>
 
-            <FormularioAluno dados={novoAluno} setDados={setNovoAluno} mostrarDocumentos />
+            <FormularioAluno
+              dados={novoAluno}
+              setDados={setNovoAluno}
+              mostrarDocumentos
+            />
 
             {erroCadastro && <div className="modal-erro">{erroCadastro}</div>}
 
@@ -2574,12 +2578,28 @@ function FormularioAluno({
         RA *
         <input
           value={dados.ra}
-          onChange={(event) =>
+          onChange={(event) => {
+            const raAnterior = dados.ra.trim();
+            const novoRa = event.target.value;
+            const emailAutomaticoAnterior = raAnterior
+              ? `a${raAnterior}@fumec.edu.br`
+              : "";
+            const deveAtualizarEmail =
+              mostrarDocumentos &&
+              (!dados.email.trim() || dados.email === emailAutomaticoAnterior);
+
             setDados({
               ...dados,
-              ra: event.target.value,
-            })
-          }
+              ra: novoRa,
+              ...(deveAtualizarEmail
+                ? {
+                    email: novoRa.trim()
+                      ? `a${novoRa.trim()}@fumec.edu.br`
+                      : "",
+                  }
+                : {}),
+            });
+          }}
           placeholder="Ex.: 2910136038"
         />
       </label>
@@ -2591,7 +2611,7 @@ function FormularioAluno({
           onChange={(event) =>
             setDados({
               ...dados,
-              nome: event.target.value,
+              nome: event.target.value.toLocaleUpperCase("pt-BR"),
             })
           }
           placeholder="Nome completo"
@@ -2605,7 +2625,7 @@ function FormularioAluno({
           onChange={(event) =>
             setDados({
               ...dados,
-              curso: event.target.value,
+              curso: event.target.value.toLocaleUpperCase("pt-BR"),
             })
           }
           placeholder="Ex.: PSICOLOGIA"
