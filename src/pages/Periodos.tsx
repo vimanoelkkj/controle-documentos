@@ -10,6 +10,7 @@ function Periodos() {
   const [novoCodigo, setNovoCodigo] = useState("");
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
+  const [confirmacao, setConfirmacao] = useState<{ id: number; codigo: string; status: "ATIVO" | "ARQUIVADO" } | null>(null);
 
   const ativos = useMemo(() => periodos.filter((periodo) => periodo.status === "ATIVO"), [periodos]);
   const arquivados = useMemo(() => periodos.filter((periodo) => periodo.status === "ARQUIVADO"), [periodos]);
@@ -41,12 +42,7 @@ function Periodos() {
     }
   }
 
-  async function alterarStatus(id: number, status: "ATIVO" | "ARQUIVADO", codigo: string) {
-    const mensagem = status === "ARQUIVADO"
-      ? `Arquivar ${codigo}? Ele sairá da operação diária, mas continuará acessível e editável.`
-      : `Reativar ${codigo}?`;
-    if (!window.confirm(mensagem)) return;
-
+  async function alterarStatus(id: number, status: "ATIVO" | "ARQUIVADO") {
     try {
       setProcessando(true);
       setErro("");
@@ -58,6 +54,7 @@ function Periodos() {
       const dados = (await resposta.json()) as { erro?: string };
       if (!resposta.ok) throw new Error(dados.erro || "Não foi possível alterar o período.");
       await recarregarPeriodos();
+      setConfirmacao(null);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Não foi possível alterar o período.");
     } finally {
@@ -77,7 +74,7 @@ function Periodos() {
         <button
           type="button"
           className={periodo.status === "ATIVO" ? "danger-soft" : "secondary"}
-          onClick={() => alterarStatus(periodo.id, periodo.status === "ATIVO" ? "ARQUIVADO" : "ATIVO", periodo.codigo)}
+          onClick={() => setConfirmacao({ id: periodo.id, codigo: periodo.codigo, status: periodo.status === "ATIVO" ? "ARQUIVADO" : "ATIVO" })}
           disabled={processando}
         >
           {periodo.status === "ATIVO" ? "Arquivar" : "Reativar"}
@@ -120,10 +117,48 @@ function Periodos() {
         <div className="period-list">{ativos.map(renderPeriodo)}</div>
       </section>
 
-      <section className="period-section archived">
+      <section className={`period-section archived ${arquivados.length === 0 ? "empty" : ""}`}>
         <div className="period-section-header"><div><span>HISTÓRICO</span><h2>Períodos arquivados</h2></div><strong>{arquivados.length}</strong></div>
-        {arquivados.length ? <div className="period-list">{arquivados.map(renderPeriodo)}</div> : <div className="period-empty">Nenhum período arquivado.</div>}
+        {arquivados.length ? (
+          <div className="period-list">{arquivados.map(renderPeriodo)}</div>
+        ) : (
+          <div className="period-empty">
+            <div className="period-empty-icon" aria-hidden="true">◷</div>
+            <strong>Nenhum período arquivado</strong>
+            <p>Quando um período for arquivado, ele continuará disponível aqui para consulta, edição ou reativação.</p>
+          </div>
+        )}
       </section>
+
+      {confirmacao && (
+        <div className="modal-overlay" onMouseDown={() => !processando && setConfirmacao(null)}>
+          <div className="period-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="period-confirm-title" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="modal-cabecalho">
+              <div>
+                <span className="modal-eyebrow">PERÍODOS LETIVOS</span>
+                <h2 id="period-confirm-title">{confirmacao.status === "ARQUIVADO" ? "Arquivar período?" : "Reativar período?"}</h2>
+                <p>
+                  {confirmacao.status === "ARQUIVADO"
+                    ? <>O período <strong>{confirmacao.codigo}</strong> sairá da operação diária, mas continuará acessível e poderá ser editado quando necessário.</>
+                    : <>O período <strong>{confirmacao.codigo}</strong> voltará para a lista de períodos ativos e poderá ser usado normalmente.</>}
+                </p>
+              </div>
+              <button type="button" className="modal-fechar" onClick={() => setConfirmacao(null)} disabled={processando}>×</button>
+            </div>
+            <div className="modal-acoes">
+              <button type="button" className="botao-cancelar" onClick={() => setConfirmacao(null)} disabled={processando}>Cancelar</button>
+              <button
+                type="button"
+                className={confirmacao.status === "ARQUIVADO" ? "period-confirm-danger" : "botao-cadastrar"}
+                onClick={() => alterarStatus(confirmacao.id, confirmacao.status)}
+                disabled={processando}
+              >
+                {processando ? "Processando..." : confirmacao.status === "ARQUIVADO" ? "Arquivar período" : "Reativar período"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
