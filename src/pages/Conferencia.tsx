@@ -90,6 +90,34 @@ function converterAlunosApi(dados: AlunoApi[]): Aluno[] {
   }));
 }
 
+
+const DOCUMENTO_DASHBOARD_POR_CAMPO: Record<string, string> = {
+  identidade: "ID",
+  cpf: "CPF",
+  certidao: "CERTIDÃO",
+  residencia: "RESIDÊNCIA",
+  titulo: "TÍTULO",
+  ensino_medio: "ENSINO MÉDIO",
+  contrato: "CONTRATO",
+};
+
+function statusDocumentalAluno(aluno: Aluno) {
+  const entregues = aluno.documentos.filter((documento) => documento.entregue).length;
+
+  if (entregues === aluno.documentos.length) return "COMPLETO";
+
+  const historico = aluno.documentos.find(
+    (documento) => documento.nome === "ENSINO MÉDIO",
+  )?.entregue;
+  const contrato = aluno.documentos.find(
+    (documento) => documento.nome === "CONTRATO",
+  )?.entregue;
+
+  if (historico && contrato) return "PARCIAL";
+
+  return "CRITICO";
+}
+
 const formularioVazio: FormAluno = {
   ra: "",
   nome: "",
@@ -115,7 +143,12 @@ function Conferencia() {
   const [busca, setBusca] = useState("");
 
   const [unidadeSelecionada, setUnidadeSelecionada] = useState<Unidade | "">(
-    "",
+    () => {
+      const valor = new URLSearchParams(window.location.search).get("unidade");
+      return ["FACE", "FEA", "FCH", "EAD"].includes(valor || "")
+        ? (valor as Unidade)
+        : "";
+    },
   );
   const [status, setStatus] = useState<"salvo" | "pendente">("salvo");
   const [carregando, setCarregando] = useState(true);
@@ -167,7 +200,38 @@ function Conferencia() {
   const [erroCadastro, setErroCadastro] = useState("");
   const [erroEdicao, setErroEdicao] = useState("");
 
-  const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("ATIVO");
+  const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>(() => {
+    const valor = new URLSearchParams(window.location.search).get("status");
+    return valor === "CANCELADO" || valor === "TODOS" ? valor : "ATIVO";
+  });
+
+  const [filtroDocumentalDashboard, setFiltroDocumentalDashboard] = useState<
+    "COMPLETO" | "PARCIAL" | "CRITICO" | ""
+  >(() => {
+    const valor = new URLSearchParams(window.location.search).get("docStatus");
+    return valor === "COMPLETO" || valor === "PARCIAL" || valor === "CRITICO"
+      ? valor
+      : "";
+  });
+
+  const [pendenciasDashboard, setPendenciasDashboard] = useState<string[]>(() => {
+    const valor = new URLSearchParams(window.location.search).get("pendencia");
+
+    const validos = new Set([
+      "identidade",
+      "cpf",
+      "certidao",
+      "residencia",
+      "titulo",
+      "ensino_medio",
+      "contrato",
+    ]);
+
+    return (valor || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => validos.has(item));
+  });
 
   const painelListaRef = useRef<HTMLElement | null>(null);
   const detalhesAlunoRef = useRef<HTMLElement | null>(null);
@@ -363,23 +427,91 @@ function Conferencia() {
     EAD: alunosNoStatus.filter((aluno) => aluno.unidade === "EAD").length,
   };
 
+  const temFiltroDashboard = Boolean(
+    filtroDocumentalDashboard || pendenciasDashboard.length > 0,
+  );
+
+  const alunoCorrespondeFiltroDashboard = (aluno: Aluno) => {
+    if (
+      filtroDocumentalDashboard &&
+      statusDocumentalAluno(aluno) !== filtroDocumentalDashboard
+    ) {
+      return false;
+    }
+
+    if (pendenciasDashboard.length > 0) {
+      const pendenciasSelecionadas = new Set(
+        pendenciasDashboard.map(
+          (campo) => DOCUMENTO_DASHBOARD_POR_CAMPO[campo],
+        ),
+      );
+
+      const pendenciasDoAluno = aluno.documentos
+        .filter((documento) => !documento.entregue)
+        .map((documento) => documento.nome);
+
+      const correspondeExatamente =
+        pendenciasDoAluno.length === pendenciasSelecionadas.size &&
+        pendenciasDoAluno.every((nome) => pendenciasSelecionadas.has(nome));
+
+      if (!correspondeExatamente) return false;
+    }
+
+    return true;
+  };
+
   const alunosFiltrados = alunosEmEdicao.filter((aluno) => {
-    const pertenceUnidade = aluno.unidade === unidadeSelecionada;
+    const pertenceUnidade = unidadeSelecionada
+      ? aluno.unidade === unidadeSelecionada
+      : temFiltroDashboard;
     const pertenceStatus = correspondeFiltroStatus(aluno);
+    const pertenceDashboard = alunoCorrespondeFiltroDashboard(aluno);
 
     const correspondeBusca =
       !termo ||
       `${aluno.nome} ${aluno.ra} ${aluno.curso}`.toLowerCase().includes(termo);
 
-    return pertenceUnidade && pertenceStatus && correspondeBusca;
-  });
+    return (
+      pertenceUnidade &&
+      pertenceStatus &&
+      pertenceDashboard &&
+      correspondeBusca
+    );
+  }).sort((a, b) =>
+    a.nome.localeCompare(b.nome, "pt-BR", {
+      sensitivity: "base",
+    }),
+  );
 
   const temAlunoSelecionadoNoFiltro = alunosEmEdicao.some(
     (aluno) =>
       aluno.ra === raSelecionado &&
-      aluno.unidade === unidadeSelecionada &&
-      correspondeFiltroStatus(aluno),
+      (unidadeSelecionada
+        ? aluno.unidade === unidadeSelecionada
+        : temFiltroDashboard) &&
+      correspondeFiltroStatus(aluno) &&
+      alunoCorrespondeFiltroDashboard(aluno),
   );
+
+  const descricaoFiltroDashboard = filtroDocumentalDashboard
+    ? filtroDocumentalDashboard === "COMPLETO"
+      ? "Documentação completa"
+      : filtroDocumentalDashboard === "PARCIAL"
+        ? "Parcialmente completa"
+        : "Documentação crítica"
+    : pendenciasDashboard.length > 0
+      ? `${pendenciasDashboard
+          .map((campo) => DOCUMENTO_DASHBOARD_POR_CAMPO[campo])
+          .join(" + ")} pendente(s)`
+      : "";
+
+  function limparFiltroDashboard() {
+    setFiltroDocumentalDashboard("");
+    setPendenciasDashboard([]);
+    setRaSelecionado("");
+    setStatus("salvo");
+    window.history.replaceState(null, "", "/conferencia");
+  }
 
   const entregues = alunoSelecionado.documentos.filter(
     (documento) => documento.entregue,
@@ -1577,6 +1709,22 @@ function Conferencia() {
               </button>
             ))}
           </div>
+
+          {temFiltroDashboard && (
+            <div className="dashboard-context-filter">
+              <div>
+                <span>DASHBOARD</span>
+                <strong>{descricaoFiltroDashboard}</strong>
+                <small>
+                  {unidadeSelecionada || "Todas as unidades"} ·{" "}
+                  {alunosFiltrados.length} aluno(s)
+                </small>
+              </div>
+              <button type="button" onClick={limparFiltroDashboard}>
+                × Limpar
+              </button>
+            </div>
+          )}
 
           <input
             className="student-search"

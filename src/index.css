@@ -10146,3 +10146,353 @@ html[data-theme="light"] .unsaved-student-discard {
 html[data-theme="light"] .unsaved-student-discard:hover {
   background: #ffe7e3;
 }
+
+
+/* =========================================================
+   DASHBOARD — NAVEGAÇÃO PARA A CONFERÊNCIA
+   ========================================================= */
+
+.dashboard-nav-card,
+.dashboard-nav-bar,
+.dashboard-nav-row,
+.dashboard-legend button {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-nav-card {
+  width: 100%;
+}
+
+.dashboard-nav-card:hover {
+  transform: translateY(-2px);
+  border-color: #4d9aca;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, .12);
+}
+
+.dashboard-nav-card:focus-visible,
+.dashboard-nav-bar:focus-visible,
+.dashboard-nav-row:focus-visible,
+.dashboard-legend button:focus-visible {
+  outline: 2px solid #62bfff;
+  outline-offset: 2px;
+}
+
+.dashboard-legend button {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  border-radius: 8px;
+}
+
+.dashboard-legend button:hover {
+  background: rgba(97, 191, 255, .055);
+}
+
+.dashboard-nav-bar {
+  display: block;
+  width: 100%;
+  padding: 3px 4px;
+  margin: 0 -4px;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  background: transparent;
+  transition: background 140ms ease, transform 140ms ease;
+}
+
+.dashboard-nav-bar:hover {
+  transform: translateX(2px);
+  background: rgba(97, 191, 255, .05);
+}
+
+.dashboard-nav-row {
+  width: 100%;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  transition: background 140ms ease;
+}
+
+.dashboard-nav-row:hover {
+  background: rgba(97, 191, 255, .055);
+}
+
+/* =========================================================
+   CONFERÊNCIA — CONTEXTO VINDO DO DASHBOARD
+   ========================================================= */
+
+.dashboard-context-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 14px 10px;
+  padding: 9px 10px;
+  border: 1px solid #2f6584;
+  border-radius: 9px;
+  background: #10293a;
+}
+
+.dashboard-context-filter > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-context-filter span {
+  color: #65bdf3;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+
+.dashboard-context-filter strong {
+  overflow: hidden;
+  color: #e9f4fa;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-context-filter small {
+  color: #83a1b2;
+  font-size: 9px;
+}
+
+.dashboard-context-filter button {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid #396a85;
+  border-radius: 7px;
+  color: #a9d7f1;
+  background: #16384c;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dashboard-context-filter button:hover {
+  background: #1b4861;
+}
+
+html[data-theme="light"] .dashboard-nav-card:hover {
+  border-color: #78bce2;
+  box-shadow: 0 10px 24px rgba(39, 82, 108, .08);
+}
+
+html[data-theme="light"] .dashboard-legend button:hover,
+html[data-theme="light"] .dashboard-nav-bar:hover,
+html[data-theme="light"] .dashboard-nav-row:hover {
+  background: #f0f8fd;
+}
+
+html[data-theme="light"] .dashboard-context-filter {
+  border-color: #b9dbed;
+  background: #eef8fd;
+}
+
+html[data-theme="light"] .dashboard-context-filter span {
+  color: #298abf;
+}
+
+html[data-theme="light"] .dashboard-context-filter strong {
+  color: #294452;
+}
+
+html[data-theme="light"] .dashboard-context-filter small {
+  color: #6f8997;
+}
+
+html[data-theme="light"] .dashboard-context-filter button {
+  border-color: #b3d5e7;
+  color: #287ca9;
+  background: #fff;
+}
+
+html[data-theme="light"] .dashboard-context-filter button:hover {
+  background: #e5f4fb;
+}
+
+
+/* =========================================================
+   DASHBOARD — MÚLTIPLAS PENDÊNCIAS
+   ========================================================= */
+
+.dashboard-nav-bar {
+  position: relative;
+}
+
+.dashboard-nav-bar.selected {
+  background: rgba(79, 174, 228, .11);
+  box-shadow: inset 0 0 0 1px #3d8ebd;
+}
+
+.dashboard-nav-bar.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  color: #eaf8ff;
+  background: #278bc2;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.dashboard-pending-selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid #2d688a;
+  border-radius: 10px;
+  background: #10293a;
+}
+
+.dashboard-pending-selection > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-pending-selection span {
+  color: #63bcf0;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+
+.dashboard-pending-selection strong {
+  color: #eef7fb;
+  font-size: 12px;
+}
+
+.dashboard-pending-selection small {
+  color: #83a0b0;
+  font-size: 9px;
+}
+
+.dashboard-pending-selection-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.dashboard-pending-selection-actions button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.dashboard-pending-clear {
+  border: 1px solid #35566a;
+  color: #a9bfcb;
+  background: #142631;
+}
+
+.dashboard-pending-open {
+  border: 1px solid #459bc9;
+  color: #f4fbff;
+  background: #237fac;
+}
+
+.dashboard-pending-open:hover {
+  background: #2b94c7;
+}
+
+html[data-theme="light"] .dashboard-nav-bar.selected {
+  background: #eaf6fd;
+  box-shadow: inset 0 0 0 1px #72b9df;
+}
+
+html[data-theme="light"] .dashboard-pending-selection {
+  border-color: #b7dcec;
+  background: #eef8fd;
+}
+
+html[data-theme="light"] .dashboard-pending-selection strong {
+  color: #2a4655;
+}
+
+html[data-theme="light"] .dashboard-pending-selection small {
+  color: #718997;
+}
+
+html[data-theme="light"] .dashboard-pending-clear {
+  border-color: #c6dae5;
+  color: #56717f;
+  background: #fff;
+}
+
+html[data-theme="light"] .dashboard-pending-open {
+  border-color: #65add4;
+  color: #fff;
+  background: #2589ba;
+}
+
+@media (max-width: 720px) {
+  .dashboard-pending-selection {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-pending-selection-actions {
+    width: 100%;
+  }
+
+  .dashboard-pending-selection-actions button {
+    flex: 1 1 0;
+  }
+}
+
+/* =========================================================
+   DASHBOARD — AJUSTE DO CHECK NAS PENDÊNCIAS SELECIONADAS
+   ========================================================= */
+
+/* Reserva espaço para o check sem cobrir a quantidade à direita. */
+.dashboard-nav-bar.selected .dashboard-bar-label {
+  padding-right: 30px;
+}
+
+.dashboard-nav-bar.selected .dashboard-bar-label strong {
+  margin-right: 2px;
+}
+
+/* Centraliza melhor o indicador dentro da linha selecionada. */
+.dashboard-nav-bar.selected::after {
+  top: 8px;
+  right: 8px;
+}
+
+
+
+/* Dashboard — pré-cálculo de pendências exatas */
+.dashboard-pending-open:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+  filter: saturate(.55);
+}
+
+.dashboard-pending-open:disabled:hover {
+  background: #237fac;
+}
+
+html[data-theme="light"] .dashboard-pending-open:disabled:hover {
+  background: #2589ba;
+}

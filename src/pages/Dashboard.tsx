@@ -61,6 +61,45 @@ function Dashboard() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [unidade, setUnidade] = useState("GERAL");
+  const [pendenciasSelecionadas, setPendenciasSelecionadas] = useState<DocumentoCampo[]>([]);
+
+  function abrirConferencia(filtros: {
+    unidade?: string;
+    docStatus?: StatusDocumental;
+    pendencias?: DocumentoCampo[];
+  } = {}) {
+    const params = new URLSearchParams();
+    params.set("status", "ATIVO");
+
+    const unidadeDestino =
+      filtros.unidade ?? (unidade !== "GERAL" ? unidade : "");
+
+    if (unidadeDestino) params.set("unidade", unidadeDestino);
+    if (filtros.docStatus) params.set("docStatus", filtros.docStatus);
+
+    const pendencias = filtros.pendencias ?? [];
+    if (pendencias.length > 0) {
+      params.set("pendencia", pendencias.join(","));
+    }
+
+    window.location.assign(`/conferencia?${params.toString()}`);
+  }
+
+  function alternarPendenciaDashboard(campo: DocumentoCampo) {
+    setPendenciasSelecionadas((atuais) =>
+      atuais.includes(campo)
+        ? atuais.filter((item) => item !== campo)
+        : [...atuais, campo],
+    );
+  }
+
+  function abrirPendenciasSelecionadas() {
+    if (pendenciasSelecionadas.length === 0) return;
+
+    abrirConferencia({
+      pendencias: pendenciasSelecionadas,
+    });
+  }
 
   useEffect(() => {
     fetch("/api/alunos")
@@ -160,6 +199,23 @@ function Dashboard() {
     resumo.documentosPossiveis,
   );
 
+  const quantidadePendenciasExatas = useMemo(() => {
+    if (pendenciasSelecionadas.length === 0) return 0;
+
+    const selecionadas = new Set(pendenciasSelecionadas);
+
+    return base.filter((aluno) => {
+      const pendenciasDoAluno = DOCUMENTOS
+        .filter((doc) => aluno[doc.campo] !== 1)
+        .map((doc) => doc.campo);
+
+      return (
+        pendenciasDoAluno.length === selecionadas.size &&
+        pendenciasDoAluno.every((campo) => selecionadas.has(campo))
+      );
+    }).length;
+  }, [base, pendenciasSelecionadas]);
+
   const maiorPendencia = pendencias[0];
 
   const donut = useMemo(() => {
@@ -235,40 +291,60 @@ function Dashboard() {
       </header>
 
       <div className="dashboard-kpis">
-        <article className="dashboard-kpi">
+        <button
+          type="button"
+          className="dashboard-kpi dashboard-nav-card"
+          onClick={() => abrirConferencia()}
+        >
           <span>ALUNOS ATIVOS</span>
           <strong>{total.toLocaleString("pt-BR")}</strong>
           <small>
             {unidade === "GERAL" ? "Todas as unidades" : unidade}
           </small>
-        </article>
+        </button>
 
-        <article className="dashboard-kpi complete">
+        <button
+          type="button"
+          className="dashboard-kpi complete dashboard-nav-card"
+          onClick={() => abrirConferencia({ docStatus: "COMPLETO" })}
+        >
           <span>DOCUMENTAÇÃO COMPLETA</span>
           <strong>{resumo.completo.toLocaleString("pt-BR")}</strong>
           <small>{taxaCompleta}% dos alunos</small>
-        </article>
+        </button>
 
-        <article className="dashboard-kpi partial">
+        <button
+          type="button"
+          className="dashboard-kpi partial dashboard-nav-card"
+          onClick={() => abrirConferencia({ docStatus: "PARCIAL" })}
+        >
           <span>PARCIALMENTE COMPLETA</span>
           <strong>{resumo.parcial.toLocaleString("pt-BR")}</strong>
           <small>Histórico + Contrato entregues</small>
-        </article>
+        </button>
 
-        <article className="dashboard-kpi critical">
+        <button
+          type="button"
+          className="dashboard-kpi critical dashboard-nav-card"
+          onClick={() => abrirConferencia({ docStatus: "CRITICO" })}
+        >
           <span>DOCUMENTAÇÃO CRÍTICA</span>
           <strong>{resumo.critico.toLocaleString("pt-BR")}</strong>
           <small>{percentual(resumo.critico, total)}% dos alunos</small>
-        </article>
+        </button>
 
-        <article className="dashboard-kpi progress">
+        <button
+          type="button"
+          className="dashboard-kpi progress dashboard-nav-card"
+          onClick={() => abrirConferencia()}
+        >
           <span>PROGRESSO DOCUMENTAL</span>
           <strong>{progressoGeral}%</strong>
           <small>
             {resumo.documentosEntregues.toLocaleString("pt-BR")} de{" "}
             {resumo.documentosPossiveis.toLocaleString("pt-BR")} documentos
           </small>
-        </article>
+        </button>
       </div>
 
       <div className="dashboard-main-grid">
@@ -312,27 +388,36 @@ function Dashboard() {
             </div>
 
             <div className="dashboard-legend">
-              <div>
+              <button
+                type="button"
+                onClick={() => abrirConferencia({ docStatus: "COMPLETO" })}
+              >
                 <span className="dashboard-dot complete" />
                 <p>
                   <strong>{resumo.completo}</strong>
                   <span>Completos</span>
                 </p>
-              </div>
-              <div>
+              </button>
+              <button
+                type="button"
+                onClick={() => abrirConferencia({ docStatus: "PARCIAL" })}
+              >
                 <span className="dashboard-dot partial" />
                 <p>
                   <strong>{resumo.parcial}</strong>
                   <span>Parciais</span>
                 </p>
-              </div>
-              <div>
+              </button>
+              <button
+                type="button"
+                onClick={() => abrirConferencia({ docStatus: "CRITICO" })}
+              >
                 <span className="dashboard-dot critical" />
                 <p>
                   <strong>{resumo.critico}</strong>
                   <span>Críticos</span>
                 </p>
-              </div>
+              </button>
             </div>
           </div>
         </article>
@@ -355,7 +440,15 @@ function Dashboard() {
               const largura = percentual(item.quantidade, total);
 
               return (
-                <div className="dashboard-bar-row" key={item.campo}>
+                <button
+                  type="button"
+                  className={`dashboard-bar-row dashboard-nav-bar ${
+                    pendenciasSelecionadas.includes(item.campo) ? "selected" : ""
+                  }`}
+                  key={item.campo}
+                  aria-pressed={pendenciasSelecionadas.includes(item.campo)}
+                  onClick={() => alternarPendenciaDashboard(item.campo)}
+                >
                   <div className="dashboard-bar-label">
                     <span>{item.nome}</span>
                     <strong>{item.quantidade.toLocaleString("pt-BR")}</strong>
@@ -372,10 +465,43 @@ function Dashboard() {
                     />
                   </div>
                   <small>{largura}% dos alunos</small>
-                </div>
+                </button>
               );
             })}
           </div>
+
+          {pendenciasSelecionadas.length > 0 && (
+            <div className="dashboard-pending-selection">
+              <div>
+                <span>PENDÊNCIAS SELECIONADAS</span>
+                <strong>
+                  {quantidadePendenciasExatas.toLocaleString("pt-BR")} aluno(s) encontrado(s)
+                </strong>
+                <small>
+                  {pendenciasSelecionadas.length} documento(s) selecionado(s) · correspondência exata
+                </small>
+              </div>
+
+              <div className="dashboard-pending-selection-actions">
+                <button
+                  type="button"
+                  className="dashboard-pending-clear"
+                  onClick={() => setPendenciasSelecionadas([])}
+                >
+                  Limpar
+                </button>
+
+                <button
+                  type="button"
+                  className="dashboard-pending-open"
+                  onClick={abrirPendenciasSelecionadas}
+                  disabled={quantidadePendenciasExatas === 0}
+                >
+                  Ver alunos na Conferência
+                </button>
+              </div>
+            </div>
+          )}
         </article>
       </div>
 
@@ -399,7 +525,12 @@ function Dashboard() {
           </div>
 
           {comparacaoUnidades.map((item) => (
-            <div className="dashboard-unit-row" key={item.unidade}>
+            <button
+              type="button"
+              className="dashboard-unit-row dashboard-nav-row"
+              key={item.unidade}
+              onClick={() => abrirConferencia({ unidade: item.unidade })}
+            >
               <strong>{item.unidade}</strong>
               <span>{item.total}</span>
               <span className="complete">{item.completo}</span>
@@ -420,7 +551,7 @@ function Dashboard() {
                   style={{ width: `${percentual(item.critico, item.total)}%` }}
                 />
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </article>
