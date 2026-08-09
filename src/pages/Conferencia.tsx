@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useRef,
   useState,
   type ChangeEvent,
   type Dispatch,
@@ -170,34 +169,11 @@ function Conferencia() {
   const [processandoCancelados, setProcessandoCancelados] = useState(false);
   const [erroCancelados, setErroCancelados] = useState("");
 
-  const detalhesRef = useRef<HTMLElement | null>(null);
-  const [alturaMaximaPainel, setAlturaMaximaPainel] = useState<number | null>(
-    null,
-  );
-
-  useEffect(() => {
-    const elemento = detalhesRef.current;
-    if (!elemento) return;
-
-    const atualizarAltura = () => {
-      setAlturaMaximaPainel(
-        Math.ceil(elemento.getBoundingClientRect().height),
-      );
-    };
-
-    atualizarAltura();
-
-    const observer = new ResizeObserver(atualizarAltura);
-    observer.observe(elemento);
-    window.addEventListener("resize", atualizarAltura);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", atualizarAltura);
-    };
-  }, [raSelecionado, unidadeSelecionada, filtroStatus]);
-
-  async function carregarAlunos(raParaSelecionar?: string) {
+  async function carregarAlunos(
+    raParaSelecionar?: string,
+    unidadeFiltro: Unidade = unidadeSelecionada,
+    statusFiltro: FiltroStatus = filtroStatus,
+  ) {
     try {
       setCarregando(true);
       setErro("");
@@ -214,22 +190,23 @@ function Conferencia() {
       setAlunosSalvos(clonarAlunos(alunosConvertidos));
       setAlunosEmEdicao(clonarAlunos(alunosConvertidos));
 
+      const pertenceAoFiltroAtual = (aluno: Aluno) =>
+        aluno.unidade === unidadeFiltro &&
+        (statusFiltro === "TODOS" || aluno.status === statusFiltro);
+
       if (raParaSelecionar) {
-        const existe = alunosConvertidos.some(
+        const alunoSolicitado = alunosConvertidos.find(
           (aluno) => aluno.ra === raParaSelecionar,
         );
 
-        if (existe) {
+        if (alunoSolicitado && pertenceAoFiltroAtual(alunoSolicitado)) {
           setRaSelecionado(raParaSelecionar);
           return;
         }
       }
 
-      if (alunosConvertidos.length > 0) {
-        setRaSelecionado(alunosConvertidos[0].ra);
-      } else {
-        setRaSelecionado("");
-      }
+      const primeiroDoFiltro = alunosConvertidos.find(pertenceAoFiltroAtual);
+      setRaSelecionado(primeiroDoFiltro?.ra ?? "");
     } catch (erro) {
       console.error(erro);
       setErro("Não foi possível carregar os alunos.");
@@ -506,9 +483,9 @@ function Conferencia() {
 
       setResultadoImportacao(dados);
 
-      await carregarAlunos();
-
       setUnidadeSelecionada(unidadeImportacao);
+
+      await carregarAlunos(undefined, unidadeImportacao, filtroStatus);
     } catch (erro) {
       console.error(erro);
 
@@ -700,10 +677,10 @@ function Conferencia() {
 
       setResultadoCancelados(dados);
 
-      await carregarAlunos(ras[0]);
-
       setUnidadeSelecionada(unidadeCancelados);
       setFiltroStatus("CANCELADO");
+
+      await carregarAlunos(ras[0], unidadeCancelados, "CANCELADO");
     } catch (erro) {
       console.error(erro);
       setErroCancelados(
@@ -1245,12 +1222,12 @@ function Conferencia() {
 
       setModalStatusAluno(false);
 
-      await carregarAlunos(alunoSelecionado.ra);
+      const unidadeDoAluno = alunoSelecionado.unidade as Unidade;
 
       setFiltroStatus(novoStatus);
-      setUnidadeSelecionada(
-        alunoSelecionado.unidade as "FACE" | "FEA" | "FCH" | "EAD",
-      );
+      setUnidadeSelecionada(unidadeDoAluno);
+
+      await carregarAlunos(alunoSelecionado.ra, unidadeDoAluno, novoStatus);
     } catch (erro) {
       console.error(erro);
 
@@ -1303,14 +1280,7 @@ function Conferencia() {
       </header>
 
       <div className="conference-grid">
-        <aside
-          className="student-panel"
-          style={
-            alturaMaximaPainel
-              ? { maxHeight: `${alturaMaximaPainel}px` }
-              : undefined
-          }
-        >
+        <aside className="student-panel">
           <div className="student-panel-header">
             <div>
               <span>ALUNOS POR UNIDADE</span>
@@ -1450,7 +1420,7 @@ function Conferencia() {
         </aside>
 
         {temAlunoSelecionadoNoFiltro ? (
-          <article ref={detalhesRef} className="student-details">
+          <article className="student-details">
             <header className="student-details-header">
               <div className="student-avatar">{iniciais}</div>
 
@@ -1607,7 +1577,7 @@ function Conferencia() {
             </footer>
           </article>
         ) : (
-          <article ref={detalhesRef} className="student-details">
+          <article className="student-details">
             <div style={{ padding: "32px" }}>
               <h2>Nenhum aluno encontrado</h2>
               <p>Não há alunos nesta unidade para o filtro selecionado.</p>

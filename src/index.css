@@ -3422,17 +3422,25 @@ a {
   box-sizing: border-box;
   width: auto;
   min-width: 0;
+  height: 42px;
+  min-height: 42px;
+  flex: 0 0 42px;
   margin: 0 12px 12px;
+  line-height: 42px;
 }
 
-/* O max-height do painel é fornecido pelo React a partir da altura REAL
-   do card de detalhes à direita. */
+/* A lista não pode mudar de altura conforme o aluno selecionado.
+   Antes, o React copiava a altura do card de detalhes da direita; assim,
+   um aluno 7/7 deixava a coluna menor do que um aluno 0/7.
+   Agora existe um teto estável: poucas linhas continuam ocupando só o
+   necessário e listas grandes rolam sempre na mesma altura. */
 .student-panel {
   display: flex;
   flex-direction: column;
   align-self: start;
   height: auto;
   min-height: 0;
+  max-height: 650px;
   overflow: hidden;
 }
 
