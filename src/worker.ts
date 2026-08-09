@@ -42,9 +42,122 @@ type DocumentosBody = {
   contrato: boolean;
 };
 
+
+type PeriodoRow = {
+  id: number;
+  codigo: string;
+  status: "ATIVO" | "ARQUIVADO";
+  criado_em: string;
+  atualizado_em: string;
+};
+
+function obterCookie(request: Request, nome: string) {
+  const cookies = request.headers.get("Cookie") || "";
+  for (const parte of cookies.split(";")) {
+    const [chave, ...valor] = parte.trim().split("=");
+    if (chave === nome) return decodeURIComponent(valor.join("="));
+  }
+  return null;
+}
+
+async function obterPeriodoAtual(request: Request, env: Env, url: URL) {
+  const codigo = url.searchParams.get("periodo") || obterCookie(request, "periodo");
+
+  if (codigo) {
+    const periodo = await env.DB.prepare(
+      `SELECT id, codigo, status, criado_em, atualizado_em FROM periodos WHERE codigo = ?`,
+    )
+      .bind(codigo)
+      .first<PeriodoRow>();
+    if (periodo) return periodo;
+  }
+
+  return env.DB.prepare(
+    `SELECT id, codigo, status, criado_em, atualizado_em FROM periodos ORDER BY CASE status WHEN 'ATIVO' THEN 0 ELSE 1 END, id DESC LIMIT 1`,
+  ).first<PeriodoRow>();
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // =====================================================
+    // PERÍODOS LETIVOS
+    // =====================================================
+
+    if (url.pathname === "/api/periodos" && request.method === "GET") {
+      try {
+        const resultado = await env.DB.prepare(
+          `
+            SELECT
+              p.id, p.codigo, p.status, p.criado_em, p.atualizado_em,
+              COUNT(a.id) AS total_alunos
+            FROM periodos p
+            LEFT JOIN alunos a ON a.periodo_id = p.id
+            GROUP BY p.id
+            ORDER BY p.codigo DESC
+          `,
+        ).all<PeriodoRow & { total_alunos: number }>();
+        return Response.json(resultado.results);
+      } catch (erro) {
+        console.error(erro);
+        return Response.json(
+          { erro: "Períodos indisponíveis. Execute a migration 003_periodos.sql no D1." },
+          { status: 500 },
+        );
+      }
+    }
+
+    if (url.pathname === "/api/periodos" && request.method === "POST") {
+      try {
+        const body = await request.json<{ codigo: string }>();
+        const codigo = body.codigo?.trim().toUpperCase();
+        if (!/^\d{4}-(1|2)$/.test(codigo || "")) {
+          return Response.json({ erro: "Período inválido. Use AAAA-1 ou AAAA-2." }, { status: 400 });
+        }
+
+        const existente = await env.DB.prepare(`SELECT id FROM periodos WHERE codigo = ?`).bind(codigo).first();
+        if (existente) return Response.json({ erro: "Este período já existe." }, { status: 409 });
+
+        const resultado = await env.DB.prepare(
+          `INSERT INTO periodos (codigo, status) VALUES (?, 'ATIVO')`,
+        ).bind(codigo).run();
+
+        return Response.json({ sucesso: true, id: resultado.meta.last_row_id, codigo }, { status: 201 });
+      } catch (erro) {
+        console.error(erro);
+        return Response.json({ erro: "Não foi possível criar o período." }, { status: 500 });
+      }
+    }
+
+    const rotaPeriodo = url.pathname.match(/^\/api\/periodos\/(\d+)$/);
+    if (rotaPeriodo && request.method === "PUT") {
+      try {
+        const id = Number(rotaPeriodo[1]);
+        const body = await request.json<{ status: "ATIVO" | "ARQUIVADO" }>();
+        if (!["ATIVO", "ARQUIVADO"].includes(body.status)) {
+          return Response.json({ erro: "Status de período inválido." }, { status: 400 });
+        }
+        const periodo = await env.DB.prepare(`SELECT id, codigo FROM periodos WHERE id = ?`).bind(id).first<{id:number; codigo:string}>();
+        if (!periodo) return Response.json({ erro: "Período não encontrado." }, { status: 404 });
+        await env.DB.prepare(`UPDATE periodos SET status = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`).bind(body.status, id).run();
+        return Response.json({ sucesso: true, id, codigo: periodo.codigo, status: body.status });
+      } catch (erro) {
+        console.error(erro);
+        return Response.json({ erro: "Não foi possível alterar o período." }, { status: 500 });
+      }
+    }
+
+    const periodoAtual = url.pathname.startsWith("/api/")
+      ? await obterPeriodoAtual(request, env, url)
+      : null;
+
+    if (url.pathname.startsWith("/api/") && !url.pathname.startsWith("/api/periodos") && !periodoAtual) {
+      return Response.json(
+        { erro: "Nenhum período letivo disponível. Crie ou migre um período antes de continuar." },
+        { status: 409 },
+      );
+    }
 
     // =====================================================
     // GET /api/log
@@ -59,11 +172,12 @@ export default {
           `
             SELECT id, criado_em, acao, entidade, descricao, ra, unidade
             FROM logs
+            WHERE periodo_id = ?
             ORDER BY id DESC
             LIMIT ?
           `,
         )
-          .bind(limite)
+          .bind(periodoAtual!.id, limite)
           .all();
 
         return Response.json(resultado.results);
@@ -96,8 +210,8 @@ export default {
 
         await env.DB.prepare(
           `
-            INSERT INTO logs (acao, entidade, descricao, ra, unidade)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO logs (acao, entidade, descricao, ra, unidade, periodo_id)
+            VALUES (?, ?, ?, ?, ?, ?)
           `,
         )
           .bind(
@@ -106,6 +220,7 @@ export default {
             body.descricao.trim(),
             body.ra?.trim() || null,
             body.unidade?.trim() || null,
+            periodoAtual!.id,
           )
           .run();
 
@@ -141,9 +256,10 @@ export default {
           FROM alunos a
           INNER JOIN documentos d
             ON d.aluno_id = a.id
+          WHERE a.periodo_id = ?
           ORDER BY a.nome
         `,
-      ).all<AlunoRow>();
+      ).bind(periodoAtual!.id).all<AlunoRow>();
 
       return Response.json(resultado.results);
     }
@@ -176,10 +292,10 @@ export default {
           `
             SELECT id
             FROM alunos
-            WHERE ra = ?
+            WHERE periodo_id = ? AND ra = ?
           `,
         )
-          .bind(ra)
+          .bind(periodoAtual!.id, ra)
           .first<{ id: number }>();
 
         if (existente) {
@@ -196,6 +312,7 @@ export default {
         const resultado = await env.DB.prepare(
           `
             INSERT INTO alunos (
+              periodo_id,
               ra,
               nome,
               email,
@@ -203,10 +320,11 @@ export default {
               curso,
               unidade
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
           `,
         )
           .bind(
+            periodoAtual!.id,
             ra,
             nome,
             body.email?.trim() || null,
@@ -412,10 +530,10 @@ export default {
                 email_outro,
                 status
               FROM alunos
-              WHERE ra IN (${placeholders})
+              WHERE periodo_id = ? AND ra IN (${placeholders})
             `,
           )
-            .bind(...lote.map((aluno) => aluno.ra))
+            .bind(periodoAtual!.id, ...lote.map((aluno) => aluno.ra))
             .all<AlunoExistenteImportacao>();
 
           for (const existente of existentes.results) {
@@ -463,6 +581,7 @@ export default {
               env.DB.prepare(
                 `
                   INSERT INTO alunos (
+                    periodo_id,
                     ra,
                     nome,
                     email,
@@ -470,9 +589,10 @@ export default {
                     curso,
                     unidade
                   )
-                  VALUES (?, ?, ?, ?, ?, ?)
+                  VALUES (?, ?, ?, ?, ?, ?, ?)
                 `,
               ).bind(
+                periodoAtual!.id,
                 aluno.ra,
                 aluno.nome,
                 aluno.email,
@@ -505,9 +625,9 @@ export default {
                     0,
                     ?
                   FROM alunos
-                  WHERE ra = ?
+                  WHERE periodo_id = ? AND ra = ?
                 `,
-              ).bind(aluno.contrato ? 1 : 0, aluno.ra),
+              ).bind(aluno.contrato ? 1 : 0, periodoAtual!.id, aluno.ra),
             );
           }
 
@@ -534,7 +654,7 @@ export default {
                   unidade = ?,
                   status = 'ATIVO',
                   atualizado_em = CURRENT_TIMESTAMP
-                WHERE ra = ?
+                WHERE periodo_id = ? AND ra = ?
               `,
             ).bind(
               aluno.nome,
@@ -542,6 +662,7 @@ export default {
               aluno.email_outro,
               aluno.curso,
               body.unidade,
+              periodoAtual!.id,
               aluno.ra,
             ),
           );
@@ -627,10 +748,10 @@ export default {
             `
             SELECT ra, nome, curso, unidade, status
             FROM alunos
-            WHERE ra IN (${placeholders})
+            WHERE periodo_id = ? AND ra IN (${placeholders})
           `,
           )
-            .bind(...lote)
+            .bind(periodoAtual!.id, ...lote)
             .all<AlunoCancelamento>();
 
           for (const aluno of resultado.results) {
@@ -735,10 +856,10 @@ export default {
             `
             SELECT ra, unidade, status
             FROM alunos
-            WHERE ra IN (${placeholders})
+            WHERE periodo_id = ? AND ra IN (${placeholders})
           `,
           )
-            .bind(...lote)
+            .bind(periodoAtual!.id, ...lote)
             .all<StatusAluno>();
 
           for (const aluno of resultado.results) {
@@ -784,10 +905,11 @@ export default {
                 SET
                   status = 'CANCELADO',
                   atualizado_em = CURRENT_TIMESTAMP
-                WHERE ra = ?
+                WHERE periodo_id = ?
+                  AND ra = ?
                   AND unidade = ?
               `,
-              ).bind(ra, body.unidade),
+              ).bind(periodoAtual!.id, ra, body.unidade),
             ),
           );
         }
@@ -841,10 +963,10 @@ export default {
           `
             SELECT id, status
             FROM alunos
-            WHERE ra = ?
+            WHERE periodo_id = ? AND ra = ?
           `,
         )
-          .bind(ra)
+          .bind(periodoAtual!.id, ra)
           .first<{
             id: number;
             status: "ATIVO" | "CANCELADO";
@@ -912,10 +1034,10 @@ export default {
         `
           SELECT id
           FROM alunos
-          WHERE ra = ?
+          WHERE periodo_id = ? AND ra = ?
         `,
       )
-        .bind(ra)
+        .bind(periodoAtual!.id, ra)
         .first<{ id: number }>();
 
       if (!aluno) {
@@ -995,10 +1117,10 @@ export default {
           `
             SELECT id
             FROM alunos
-            WHERE ra = ?
+            WHERE periodo_id = ? AND ra = ?
           `,
         )
-          .bind(raAtual)
+          .bind(periodoAtual!.id, raAtual)
           .first<{ id: number }>();
 
         if (!aluno) {
@@ -1017,11 +1139,12 @@ export default {
             `
               SELECT id
               FROM alunos
-              WHERE ra = ?
+              WHERE periodo_id = ?
+              AND ra = ?
               AND id <> ?
             `,
           )
-            .bind(novoRa, aluno.id)
+            .bind(periodoAtual!.id, novoRa, aluno.id)
             .first<{ id: number }>();
 
           if (raEmUso) {
@@ -1092,10 +1215,10 @@ export default {
           `
             SELECT id
             FROM alunos
-            WHERE ra = ?
+            WHERE periodo_id = ? AND ra = ?
           `,
         )
-          .bind(ra)
+          .bind(periodoAtual!.id, ra)
           .first<{ id: number }>();
 
         if (!aluno) {
@@ -1160,11 +1283,12 @@ export default {
               tipo_destinatario,
               ras_json
             FROM comunicacoes
+            WHERE periodo_id = ?
             ORDER BY id DESC
             LIMIT ?
           `,
         )
-          .bind(limite)
+          .bind(periodoAtual!.id, limite)
           .all<{
             id: number;
             criado_em: string;
@@ -1255,9 +1379,10 @@ export default {
               assunto,
               prazo,
               tipo_destinatario,
-              ras_json
+              ras_json,
+              periodo_id
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `,
         )
           .bind(
@@ -1270,6 +1395,7 @@ export default {
             body.prazo || "",
             body.tipo_destinatario || "institucional",
             JSON.stringify(body.ras),
+            periodoAtual!.id,
           )
           .run();
 
