@@ -4694,3 +4694,212 @@ html[data-theme="light"] .statistics-state {
   border-color: #d5e0e8;
   background: #ffffff;
 }
+
+/* =========================================================
+   MODO CLARO — COMUNICAÇÃO E TELAS RESTANTES
+   ========================================================= */
+html[data-theme="light"] .communication-header,
+html[data-theme="light"] .communication-toolbar,
+html[data-theme="light"] .communication-groups,
+html[data-theme="light"] .communication-detail,
+html[data-theme="light"] .communication-email-card,
+html[data-theme="light"] .communication-students-card,
+html[data-theme="light"] .communication-history {
+  color: #20313d;
+  border-color: #d5e0e8;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(37, 61, 77, 0.06);
+}
+
+html[data-theme="light"] .communication-header h1,
+html[data-theme="light"] .communication-detail-header h2,
+html[data-theme="light"] .communication-panel-title strong,
+html[data-theme="light"] .communication-preview-top strong,
+html[data-theme="light"] .communication-students-header strong,
+html[data-theme="light"] .communication-validation strong,
+html[data-theme="light"] .communication-history-header strong,
+html[data-theme="light"] .communication-history-item strong {
+  color: #172b38;
+}
+
+html[data-theme="light"] .communication-header p,
+html[data-theme="light"] .communication-detail-header p,
+html[data-theme="light"] .communication-eyebrow,
+html[data-theme="light"] .communication-panel-title span,
+html[data-theme="light"] .communication-detail-header span,
+html[data-theme="light"] .communication-actions > div > span,
+html[data-theme="light"] .communication-preview-top span,
+html[data-theme="light"] .communication-students-header span,
+html[data-theme="light"] .communication-history-header span {
+  color: #617c8d;
+}
+
+html[data-theme="light"] .communication-summary {
+  border-color: #c9dbe7;
+  background: #f7fbfe;
+}
+html[data-theme="light"] .communication-summary span { color: #688293; }
+html[data-theme="light"] .communication-summary strong { color: #348fca; }
+
+html[data-theme="light"] .communication-toolbar label,
+html[data-theme="light"] .communication-email-settings label {
+  color: #526d7e;
+}
+html[data-theme="light"] .communication-toolbar select,
+html[data-theme="light"] .communication-toolbar input,
+html[data-theme="light"] .communication-email-settings input,
+html[data-theme="light"] .communication-students-header input {
+  color: #20313d;
+  border-color: #cbd9e2;
+  background: #f8fbfd;
+  color-scheme: light;
+}
+html[data-theme="light"] .communication-toolbar select option { color: #20313d; background: #fff; }
+
+html[data-theme="light"] .communication-panel-title,
+html[data-theme="light"] .communication-detail-header,
+html[data-theme="light"] .communication-preview-top,
+html[data-theme="light"] .communication-students-header,
+html[data-theme="light"] .communication-select-actions,
+html[data-theme="light"] .communication-email-settings,
+html[data-theme="light"] .communication-history-header,
+html[data-theme="light"] .communication-history-item,
+html[data-theme="light"] .communication-student {
+  border-color: #dce5eb;
+}
+
+html[data-theme="light"] .communication-group-card {
+  color: #20313d;
+  border-color: #d4e0e7;
+  background: #f8fbfd;
+}
+html[data-theme="light"] .communication-group-card:hover,
+html[data-theme="light"] .communication-group-card.active {
+  border-color: #80b7d9;
+  background: #eaf6fd;
+}
+html[data-theme="light"] .communication-group-card.active { box-shadow: inset 3px 0 #48a7df; }
+html[data-theme="light"] .communication-group-copy span,
+html[data-theme="light"] .communication-history-item > div:first-child span,
+html[data-theme="light"] .communication-history-numbers span { color: #6a8292; }
+html[data-theme="light"] .communication-group-count,
+html[data-theme="light"] .communication-big-count {
+  color: #23678f;
+  background: #e4f2fb;
+}
+
+html[data-theme="light"] .communication-tags span,
+html[data-theme="light"] .communication-mini-tags span {
+  color: #486879;
+  border-color: #cedce5;
+  background: #f3f8fb;
+}
+html[data-theme="light"] .communication-tags span.priority,
+html[data-theme="light"] .communication-mini-tags span.priority {
+  color: #8c6908;
+  border-color: #e5cd7a;
+  background: #fff8df;
+}
+
+html[data-theme="light"] .communication-actions,
+html[data-theme="light"] .communication-validation {
+  color: #20313d;
+  border-color: #d2e0e8;
+  background: #f6fafc;
+}
+html[data-theme="light"] .communication-actions small { color: #667f90; }
+html[data-theme="light"] .communication-action-buttons button,
+html[data-theme="light"] .communication-email-settings button,
+html[data-theme="light"] .communication-select-actions button,
+html[data-theme="light"] .communication-history-header button {
+  color: #23678f;
+  border-color: #acd0e5;
+  background: #eaf6fd;
+}
+html[data-theme="light"] .communication-register-button {
+  color: #27663d !important;
+  border-color: #a9d8b7 !important;
+  background: #e9f7ed !important;
+}
+html[data-theme="light"] .communication-outlook-button {
+  color: #1f648d !important;
+  border-color: #9bc9e4 !important;
+  background: #e3f2fb !important;
+}
+
+html[data-theme="light"] .communication-validation-items span {
+  color: #536d7d;
+  border-color: #cedae2;
+  background: #f5f8fa;
+}
+html[data-theme="light"] .communication-validation-items span.ok,
+html[data-theme="light"] .communication-charge-summary span:nth-child(1),
+html[data-theme="light"] .communication-charged-badge {
+  color: #2d7244 !important;
+  border-color: #b3dcc0;
+  background: #edf8f0;
+}
+html[data-theme="light"] .communication-validation-items span.warning {
+  color: #9b4d43;
+  border-color: #e6b8b1;
+  background: #fff2f0;
+}
+html[data-theme="light"] .communication-validation-items span.attention,
+html[data-theme="light"] .communication-charge-summary span:nth-child(2) {
+  color: #8d6a09;
+  border-color: #e5d08b;
+  background: #fff9e6;
+}
+
+html[data-theme="light"] .communication-preview {
+  background: #ffffff;
+}
+html[data-theme="light"] .communication-preview-top {
+  background: linear-gradient(180deg, #f5faff, #edf5f9);
+}
+html[data-theme="light"] .communication-preview-icon {
+  color: #2d83b7;
+  border-color: #b8d7e9;
+  background: #eaf6fd;
+}
+html[data-theme="light"] .communication-preview-heading small,
+html[data-theme="light"] .communication-preview-count { color: #667f90 !important; }
+html[data-theme="light"] .communication-preview-count {
+  border-color: #cfdae2;
+  background: #f4f8fa;
+}
+html[data-theme="light"] .communication-email-body {
+  color: #263946;
+  border-color: #d5e0e8;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(37, 61, 77, .06);
+}
+html[data-theme="light"] .communication-email-body p { color: #405966; }
+html[data-theme="light"] .communication-email-body li {
+  color: #263946;
+  border-color: #d7e2e9;
+  background: #f7fafc;
+}
+html[data-theme="light"] .communication-email-body li.priority {
+  color: #a9443a !important;
+  border-color: #e7afa9;
+  background: #fff1f0;
+}
+html[data-theme="light"] .communication-warning {
+  color: #a9443a !important;
+  border-color: #e7afa9;
+  background: #fff1f0;
+}
+html[data-theme="light"] .communication-address {
+  color: #1e6f9f !important;
+  border-color: #afd2e7;
+  background: #eef8fd;
+}
+
+html[data-theme="light"] .communication-student { color: #20313d; background: #ffffff; }
+html[data-theme="light"] .communication-student:hover { background: #f2f8fc; }
+html[data-theme="light"] .communication-student span { color: #617b8c; }
+html[data-theme="light"] .communication-student small { color: #738b9a; }
+html[data-theme="light"] .communication-history-numbers strong { color: #318bc1; }
+html[data-theme="light"] .communication-history-empty,
+html[data-theme="light"] .communication-empty { color: #667f90; }
