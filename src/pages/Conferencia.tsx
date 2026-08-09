@@ -111,7 +111,9 @@ function Conferencia() {
   const [raSelecionado, setRaSelecionado] = useState("");
   const [busca, setBusca] = useState("");
 
-  const [unidadeSelecionada, setUnidadeSelecionada] = useState<Unidade | "">("");
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<Unidade | "">(
+    "",
+  );
   const [status, setStatus] = useState<"salvo" | "pendente">("salvo");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
@@ -241,7 +243,6 @@ function Conferencia() {
       console.error("Não foi possível registrar o LOG.", erro);
     }
   }
-
 
   if (carregando) {
     return (
@@ -878,8 +879,9 @@ function Conferencia() {
       .replace(/[\u0300-\u036f]/g, "")
       .trim()
       .toLowerCase()
-      .replace(/[_-]+/g, " ")
-      .replace(/\s+/g, " ");
+      .replace(/[\-_()]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function interpretarContrato(valor: string): boolean | undefined {
@@ -1016,7 +1018,7 @@ function Conferencia() {
       "e mail outro",
       "email alternativo",
       "e mail alternativo",
-      "e-mail (outro)",
+      "e mail (outro)",
       "email (outro)",
     ]);
 
@@ -1367,7 +1369,6 @@ function Conferencia() {
               >
                 + Adicionar alunos
               </button>
-
             </div>
           </div>
 
@@ -1465,7 +1466,10 @@ function Conferencia() {
         </aside>
 
         {temAlunoSelecionadoNoFiltro ? (
-          <article className="student-details">
+          <article
+            key={alunoSelecionado.ra}
+            className="student-details student-details-animated"
+          >
             <header className="student-details-header">
               <div className="student-avatar">{iniciais}</div>
 
