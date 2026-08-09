@@ -1,0 +1,576 @@
+/* =========================================================
+   CONFERÊNCIA — HISTÓRICO DO ALUNO
+   ========================================================= */
+
+.student-history-button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #355a70;
+  border-radius: 8px;
+  color: #a9d8f1;
+  background: #132a37;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.student-history-button:hover {
+  transform: translateY(-1px);
+  border-color: #4c8eb3;
+  background: #19394a;
+}
+
+.student-history-modal {
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 40px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #2e4d5f;
+  border-radius: 15px;
+  background: #101e27;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
+}
+
+.student-history-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px 18px;
+  border-bottom: 1px solid #263f4e;
+}
+
+.student-history-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.student-history-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #2f6685;
+  border-radius: 11px;
+  color: #65c2f5;
+  background: #102c3d;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.student-history-heading > div:last-child {
+  min-width: 0;
+}
+
+.student-history-heading span {
+  color: #61bdf0;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.student-history-heading h2 {
+  margin: 3px 0 4px;
+  overflow: hidden;
+  color: #eef6fa;
+  font-size: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-history-heading p {
+  margin: 0;
+  overflow: hidden;
+  color: #8099a7;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-history-close {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #315165;
+  border-radius: 8px;
+  color: #aac0cc;
+  background: #142833;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.student-history-close:hover {
+  background: #1b3441;
+}
+
+.student-history-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 22px;
+  border-bottom: 1px solid #213846;
+  background: #0d1a22;
+}
+
+.student-history-toolbar > div {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  color: #839ba8;
+  font-size: 9px;
+}
+
+.student-history-toolbar strong {
+  color: #e8f3f8;
+  font-size: 12px;
+}
+
+.student-history-toolbar button,
+.student-history-state button,
+.student-history-footer button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #35627c;
+  border-radius: 7px;
+  color: #afd8ed;
+  background: #142c3a;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.student-history-toolbar button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.student-history-content {
+  min-height: 260px;
+  overflow: auto;
+  padding: 14px 22px 18px;
+}
+
+.student-history-timeline {
+  display: grid;
+  gap: 0;
+}
+
+.student-history-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 11px;
+  padding-bottom: 14px;
+}
+
+.student-history-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 0;
+  left: 5px;
+  width: 1px;
+  background: #294450;
+}
+
+.student-history-marker {
+  position: relative;
+  z-index: 1;
+  width: 11px;
+  height: 11px;
+  margin-top: 8px;
+  border: 2px solid #6a8492;
+  border-radius: 50%;
+  background: #101e27;
+}
+
+.student-history-marker.document {
+  border-color: #4eaadb;
+}
+
+.student-history-marker.success {
+  border-color: #53c882;
+}
+
+.student-history-marker.danger {
+  border-color: #ed6f68;
+}
+
+.student-history-marker.edit {
+  border-color: #bc91f1;
+}
+
+.student-history-event {
+  padding: 11px 12px;
+  border: 1px solid #284553;
+  border-radius: 9px;
+  background: #12232d;
+}
+
+.student-history-event-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-history-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border: 1px solid #405d6b;
+  border-radius: 999px;
+  color: #a8bbc5;
+  background: #172b35;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+
+.student-history-action.document {
+  border-color: #2f7095;
+  color: #82caef;
+  background: #123047;
+}
+
+.student-history-action.success {
+  border-color: #32794c;
+  color: #78db9a;
+  background: #102f1f;
+}
+
+.student-history-action.danger {
+  border-color: #84443d;
+  color: #ffaaa1;
+  background: #351d1b;
+}
+
+.student-history-action.edit {
+  border-color: #654b83;
+  color: #c9a9ef;
+  background: #291d39;
+}
+
+.student-history-event time {
+  flex: 0 0 auto;
+  color: #718b99;
+  font-size: 8px;
+}
+
+.student-history-event p {
+  margin: 8px 0 5px;
+  color: #d7e4ea;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.student-history-event small {
+  color: #718c99;
+  font-size: 8px;
+}
+
+.student-history-state {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  text-align: center;
+}
+
+.student-history-state strong {
+  color: #e0ebf0;
+  font-size: 12px;
+}
+
+.student-history-state span {
+  color: #77909e;
+  font-size: 9px;
+}
+
+.student-history-state.error strong {
+  color: #ff8f87;
+}
+
+.student-history-empty-icon {
+  color: #5d7b8b;
+  font-size: 28px;
+}
+
+.student-history-spinner {
+  width: 25px;
+  height: 25px;
+  border: 2px solid #294958;
+  border-top-color: #59baf0;
+  border-radius: 50%;
+  animation: student-history-spin .75s linear infinite;
+}
+
+@keyframes student-history-spin {
+  to { transform: rotate(360deg); }
+}
+
+.student-history-limit {
+  padding: 8px 22px;
+  border-top: 1px solid #493e25;
+  color: #d3ae64;
+  background: #282313;
+  font-size: 8px;
+}
+
+.student-history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 22px;
+  border-top: 1px solid #29424f;
+  background: #0c1820;
+}
+
+.student-history-footer span {
+  color: #6d8795;
+  font-size: 8px;
+}
+
+html[data-theme="light"] .student-history-button {
+  border-color: #b9d6e5;
+  color: #297ba6;
+  background: #f3faff;
+}
+
+html[data-theme="light"] .student-history-button:hover {
+  border-color: #88c2df;
+  background: #eaf6fc;
+}
+
+html[data-theme="light"] .student-history-modal {
+  border-color: #c9dce6;
+  background: #fff;
+  box-shadow: 0 30px 90px rgba(38, 66, 82, .22);
+}
+
+html[data-theme="light"] .student-history-header,
+html[data-theme="light"] .student-history-toolbar,
+html[data-theme="light"] .student-history-footer {
+  border-color: #d9e6ec;
+}
+
+html[data-theme="light"] .student-history-icon {
+  border-color: #acd8ed;
+  color: #2589ba;
+  background: #edf8fd;
+}
+
+html[data-theme="light"] .student-history-heading h2 {
+  color: #233945;
+}
+
+html[data-theme="light"] .student-history-heading p {
+  color: #708793;
+}
+
+html[data-theme="light"] .student-history-close,
+html[data-theme="light"] .student-history-toolbar button,
+html[data-theme="light"] .student-history-state button,
+html[data-theme="light"] .student-history-footer button {
+  border-color: #c1d9e5;
+  color: #367a9c;
+  background: #f7fbfd;
+}
+
+html[data-theme="light"] .student-history-toolbar,
+html[data-theme="light"] .student-history-footer {
+  background: #f8fbfd;
+}
+
+html[data-theme="light"] .student-history-toolbar strong {
+  color: #314a57;
+}
+
+html[data-theme="light"] .student-history-item:not(:last-child)::before {
+  background: #d5e3e9;
+}
+
+html[data-theme="light"] .student-history-marker {
+  background: #fff;
+}
+
+html[data-theme="light"] .student-history-event {
+  border-color: #d3e2e9;
+  background: #f8fbfd;
+}
+
+html[data-theme="light"] .student-history-event p {
+  color: #334c59;
+}
+
+html[data-theme="light"] .student-history-state strong {
+  color: #344d59;
+}
+
+html[data-theme="light"] .student-history-limit {
+  border-color: #ead39b;
+  color: #8a681c;
+  background: #fff9e9;
+}
+
+@media (max-width: 720px) {
+  .student-history-modal {
+    width: calc(100vw - 18px);
+    max-height: calc(100vh - 18px);
+  }
+
+  .student-history-header,
+  .student-history-content,
+  .student-history-toolbar,
+  .student-history-footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .student-history-event-top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+
+/* =========================================================
+   HISTÓRICO DO ALUNO — LEGIBILIDADE + USUÁRIO RESPONSÁVEL
+   ========================================================= */
+
+.student-history-heading span {
+  font-size: 11px;
+}
+
+.student-history-heading h2 {
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.student-history-heading p {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.student-history-toolbar {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.student-history-toolbar > div {
+  font-size: 11px;
+}
+
+.student-history-toolbar strong {
+  font-size: 14px;
+}
+
+.student-history-toolbar button,
+.student-history-state button,
+.student-history-footer button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 10px;
+}
+
+.student-history-content {
+  padding-top: 18px;
+}
+
+.student-history-event {
+  padding: 14px 15px;
+}
+
+.student-history-action {
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 9px;
+}
+
+.student-history-event p {
+  margin-top: 10px;
+  margin-bottom: 7px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.student-history-event small {
+  font-size: 10px;
+}
+
+.student-history-event-top {
+  align-items: flex-start;
+}
+
+.student-history-meta {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 3px;
+  margin-left: auto;
+  text-align: right;
+}
+
+.student-history-user {
+  color: #9eb6c3;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.student-history-event time {
+  color: #718b99;
+  font-size: 9px;
+}
+
+.student-history-state strong {
+  font-size: 14px;
+}
+
+.student-history-state span {
+  font-size: 11px;
+}
+
+.student-history-footer {
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+.student-history-footer span {
+  font-size: 10px;
+}
+
+.student-history-limit {
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+html[data-theme="light"] .student-history-user {
+  color: #567789;
+}
+
+@media (max-width: 720px) {
+  .student-history-heading h2 {
+    font-size: 20px;
+  }
+
+  .student-history-event p {
+    font-size: 11px;
+  }
+
+  .student-history-meta {
+    align-items: flex-start;
+    margin-left: 0;
+    text-align: left;
+  }
+}

@@ -1,4 +1,5 @@
 import AppIcon from "../components/AppIcon";
+import "./HistoricoAluno.css";
 import {
   useEffect,
   useLayoutEffect,
@@ -40,6 +41,19 @@ type AlunoApi = {
   ensino_medio: number;
   contrato: number;
   status: "ATIVO" | "CANCELADO";
+};
+
+type HistoricoLog = {
+  id: number;
+  criado_em: string;
+  acao: string;
+  entidade: string;
+  descricao: string;
+  ra: string | null;
+  unidade: string | null;
+  usuario_id?: number | null;
+  usuario_nome?: string | null;
+  usuario_username?: string | null;
 };
 
 type FormAluno = {
@@ -99,7 +113,6 @@ function converterAlunosApi(dados: AlunoApi[]): Aluno[] {
   }));
 }
 
-
 const DOCUMENTO_DASHBOARD_POR_CAMPO: Record<string, string> = {
   identidade: "ID",
   cpf: "CPF",
@@ -111,7 +124,9 @@ const DOCUMENTO_DASHBOARD_POR_CAMPO: Record<string, string> = {
 };
 
 function statusDocumentalAluno(aluno: Aluno) {
-  const entregues = aluno.documentos.filter((documento) => documento.entregue).length;
+  const entregues = aluno.documentos.filter(
+    (documento) => documento.entregue,
+  ).length;
 
   if (entregues === aluno.documentos.length) return "COMPLETO";
 
@@ -198,7 +213,15 @@ function Conferencia() {
   const [modalExcluirAluno, setModalExcluirAluno] = useState(false);
   const [modalStatusAluno, setModalStatusAluno] = useState(false);
   const [modalSaindo, setModalSaindo] = useState<string | null>(null);
-  const [trocaAlunoPendente, setTrocaAlunoPendente] = useState<string | null>(null);
+  const [trocaAlunoPendente, setTrocaAlunoPendente] = useState<string | null>(
+    null,
+  );
+  const [modalHistoricoAluno, setModalHistoricoAluno] = useState(false);
+  const [historicoAluno, setHistoricoAluno] = useState<HistoricoLog[]>([]);
+  const [carregandoHistorico, setCarregandoHistorico] = useState(false);
+  const [erroHistorico, setErroHistorico] = useState("");
+  const [historicoPossivelmenteLimitado, setHistoricoPossivelmenteLimitado] =
+    useState(false);
 
   const [novoAluno, setNovoAluno] = useState<FormAluno>(formularioVazio);
   const [alunoEdicao, setAlunoEdicao] = useState<FormAluno>(formularioVazio);
@@ -225,24 +248,28 @@ function Conferencia() {
       : "";
   });
 
-  const [pendenciasDashboard, setPendenciasDashboard] = useState<string[]>(() => {
-    const valor = new URLSearchParams(window.location.search).get("pendencia");
+  const [pendenciasDashboard, setPendenciasDashboard] = useState<string[]>(
+    () => {
+      const valor = new URLSearchParams(window.location.search).get(
+        "pendencia",
+      );
 
-    const validos = new Set([
-      "identidade",
-      "cpf",
-      "certidao",
-      "residencia",
-      "titulo",
-      "ensino_medio",
-      "contrato",
-    ]);
+      const validos = new Set([
+        "identidade",
+        "cpf",
+        "certidao",
+        "residencia",
+        "titulo",
+        "ensino_medio",
+        "contrato",
+      ]);
 
-    return (valor || "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => validos.has(item));
-  });
+      return (valor || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => validos.has(item));
+    },
+  );
 
   const painelListaRef = useRef<HTMLElement | null>(null);
   const detalhesAlunoRef = useRef<HTMLElement | null>(null);
@@ -307,8 +334,6 @@ function Conferencia() {
     };
   }, [carregando, raSelecionado, unidadeSelecionada, filtroStatus]);
 
-
-
   async function carregarAlunos(
     raParaSelecionar?: string,
     unidadeFiltro: Unidade | "" = unidadeSelecionada,
@@ -362,14 +387,15 @@ function Conferencia() {
     function atalhosConferencia(event: KeyboardEvent) {
       const algumModalAberto = Boolean(
         modalAdicionarAluno ||
-          modalImportarAlunos ||
-          sucessoImportacao ||
-          modalNovoAluno ||
-          modalEditarAluno ||
-          modalExcluirAluno ||
-          modalStatusAluno ||
-          modalImportarCancelados ||
-          trocaAlunoPendente,
+        modalImportarAlunos ||
+        sucessoImportacao ||
+        modalNovoAluno ||
+        modalEditarAluno ||
+        modalExcluirAluno ||
+        modalStatusAluno ||
+        modalImportarCancelados ||
+        trocaAlunoPendente ||
+        modalHistoricoAluno,
       );
 
       if (algumModalAberto) return;
@@ -436,8 +462,7 @@ function Conferencia() {
       if (event.key === "ArrowDown") {
         proximoIndice = base < 0 ? 0 : Math.min(base + 1, botoes.length - 1);
       } else {
-        proximoIndice =
-          base < 0 ? botoes.length - 1 : Math.max(base - 1, 0);
+        proximoIndice = base < 0 ? botoes.length - 1 : Math.max(base - 1, 0);
       }
 
       botoes[proximoIndice]?.focus();
@@ -473,6 +498,75 @@ function Conferencia() {
     } catch (erro) {
       console.error("Não foi possível registrar o LOG.", erro);
     }
+  }
+
+  function formatarDataHistorico(valor: string) {
+    const valorNormalizado = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(valor)
+      ? `${valor.replace(" ", "T")}Z`
+      : valor;
+
+    const data = new Date(valorNormalizado);
+
+    if (Number.isNaN(data.getTime())) {
+      return valor;
+    }
+
+    return new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+      timeZone: "America/Sao_Paulo",
+    }).format(data);
+  }
+
+  function classeAcaoHistorico(acao: string) {
+    const normalizada = normalizarBusca(acao);
+
+    if (normalizada.includes("cancel")) return "danger";
+    if (normalizada.includes("reativ")) return "success";
+    if (normalizada.includes("document")) return "document";
+    if (normalizada.includes("edicao") || normalizada.includes("cadastro"))
+      return "edit";
+
+    return "neutral";
+  }
+
+  async function carregarHistoricoAluno() {
+    if (!alunoSelecionado.ra) return;
+
+    try {
+      setCarregandoHistorico(true);
+      setErroHistorico("");
+
+      const resposta = await fetch("/api/log?limit=500");
+
+      if (!resposta.ok) {
+        throw new Error("Não foi possível carregar o histórico.");
+      }
+
+      const dados = (await resposta.json()) as HistoricoLog[];
+      const raAtual = alunoSelecionado.ra.trim();
+
+      setHistoricoAluno(
+        dados.filter((registro) => registro.ra?.trim() === raAtual),
+      );
+      setHistoricoPossivelmenteLimitado(dados.length >= 500);
+    } catch (erro) {
+      console.error(erro);
+      setHistoricoAluno([]);
+      setHistoricoPossivelmenteLimitado(false);
+      setErroHistorico(
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível carregar o histórico.",
+      );
+    } finally {
+      setCarregandoHistorico(false);
+    }
+  }
+
+  function abrirHistoricoAluno() {
+    setModalHistoricoAluno(true);
+    void carregarHistoricoAluno();
   }
 
   if (carregando) {
@@ -567,45 +661,39 @@ function Conferencia() {
     return true;
   };
 
-  const alunosFiltrados = alunosEmEdicao.filter((aluno) => {
-    const pertenceUnidade = unidadeSelecionada
-      ? aluno.unidade === unidadeSelecionada
-      : true;
-    const pertenceStatus = correspondeFiltroStatus(aluno);
-    const pertenceDashboard = alunoCorrespondeFiltroDashboard(aluno);
+  const alunosFiltrados = alunosEmEdicao
+    .filter((aluno) => {
+      const pertenceUnidade = unidadeSelecionada
+        ? aluno.unidade === unidadeSelecionada
+        : true;
+      const pertenceStatus = correspondeFiltroStatus(aluno);
+      const pertenceDashboard = alunoCorrespondeFiltroDashboard(aluno);
 
-    const textoBuscaAluno = normalizarBusca(
-      [
-        aluno.nome,
-        aluno.ra,
-        aluno.curso,
-        aluno.email,
-        aluno.email_outro,
-      ]
-        .filter(Boolean)
-        .join(" "),
+      const textoBuscaAluno = normalizarBusca(
+        [aluno.nome, aluno.ra, aluno.curso, aluno.email, aluno.email_outro]
+          .filter(Boolean)
+          .join(" "),
+      );
+
+      const correspondeBusca = !termo || textoBuscaAluno.includes(termo);
+
+      return (
+        pertenceUnidade &&
+        pertenceStatus &&
+        pertenceDashboard &&
+        correspondeBusca
+      );
+    })
+    .sort((a, b) =>
+      a.nome.localeCompare(b.nome, "pt-BR", {
+        sensitivity: "base",
+      }),
     );
-
-    const correspondeBusca = !termo || textoBuscaAluno.includes(termo);
-
-    return (
-      pertenceUnidade &&
-      pertenceStatus &&
-      pertenceDashboard &&
-      correspondeBusca
-    );
-  }).sort((a, b) =>
-    a.nome.localeCompare(b.nome, "pt-BR", {
-      sensitivity: "base",
-    }),
-  );
 
   const temAlunoSelecionadoNoFiltro = alunosEmEdicao.some(
     (aluno) =>
       aluno.ra === raSelecionado &&
-      (unidadeSelecionada
-        ? aluno.unidade === unidadeSelecionada
-        : true) &&
+      (unidadeSelecionada ? aluno.unidade === unidadeSelecionada : true) &&
       correspondeFiltroStatus(aluno) &&
       alunoCorrespondeFiltroDashboard(aluno),
   );
@@ -1187,15 +1275,35 @@ function Conferencia() {
       );
 
       setStatus("salvo");
+
+      const alteracoesDocumentais = alunoSelecionado.documentos
+        .map((documento, index) => {
+          const anterior = alunoSalvo.documentos[index];
+
+          if (!anterior || anterior.entregue === documento.entregue) {
+            return null;
+          }
+
+          return `${documento.nome} → ${
+            documento.entregue ? "entregue" : "pendente"
+          }`;
+        })
+        .filter(Boolean)
+        .join("; ");
+
       await registrarLog(
         "DOCUMENTOS",
-        `Documentação de ${alunoSelecionado.nome} atualizada.`,
+        alteracoesDocumentais
+          ? `Documentos atualizados: ${alteracoesDocumentais}.`
+          : `Documentação de ${alunoSelecionado.nome} atualizada.`,
         alunoSelecionado.ra,
         alunoSelecionado.unidade,
       );
     } catch (erro) {
       console.error(erro);
-      setErroSalvamento("Não foi possível salvar. Suas alterações continuam nesta tela.");
+      setErroSalvamento(
+        "Não foi possível salvar. Suas alterações continuam nesta tela.",
+      );
     } finally {
       setSalvando(false);
     }
@@ -1750,7 +1858,9 @@ function Conferencia() {
       <header className="page-header">
         <span>FLUXO DE TRABALHO</span>
         <div className="page-title-row">
-          <span className="page-title-icon"><AppIcon name="check" size={22} /></span>
+          <span className="page-title-icon">
+            <AppIcon name="check" size={22} />
+          </span>
           <h1>Conferência de documentos</h1>
         </div>
         <p>Confira e atualize a documentação dos alunos.</p>
@@ -1948,6 +2058,14 @@ function Conferencia() {
               <div className="student-header-actions">
                 <button
                   type="button"
+                  className="student-history-button"
+                  onClick={abrirHistoricoAluno}
+                >
+                  Histórico
+                </button>
+
+                <button
+                  type="button"
                   className="student-edit-button"
                   onClick={abrirEdicaoAluno}
                 >
@@ -2106,7 +2224,10 @@ function Conferencia() {
             </footer>
           </article>
         ) : (
-          <article ref={detalhesAlunoRef} className="student-details student-details-empty">
+          <article
+            ref={detalhesAlunoRef}
+            className="student-details student-details-empty"
+          >
             <div>
               <span className="empty-state-icon">✓</span>
               <h2>Selecione um aluno</h2>
@@ -2122,6 +2243,151 @@ function Conferencia() {
         )}
       </div>
 
+      {modalHistoricoAluno && (
+        <div className="modal-overlay">
+          <section
+            className="student-history-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="student-history-title"
+          >
+            <header className="student-history-header">
+              <div className="student-history-heading">
+                <div className="student-history-icon">↺</div>
+
+                <div>
+                  <span>HISTÓRICO DO ALUNO</span>
+                  <h2 id="student-history-title">{alunoSelecionado.nome}</h2>
+                  <p>
+                    RA {alunoSelecionado.ra} · {alunoSelecionado.unidade} ·{" "}
+                    {alunoSelecionado.curso}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="student-history-close"
+                onClick={() => setModalHistoricoAluno(false)}
+                aria-label="Fechar histórico"
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="student-history-toolbar">
+              <div>
+                <strong>{historicoAluno.length}</strong>
+                <span>
+                  {historicoAluno.length === 1
+                    ? " ocorrência encontrada"
+                    : " ocorrências encontradas"}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void carregarHistoricoAluno()}
+                disabled={carregandoHistorico}
+              >
+                {carregandoHistorico ? "Atualizando..." : "↻ Atualizar"}
+              </button>
+            </div>
+
+            <div className="student-history-content">
+              {carregandoHistorico && historicoAluno.length === 0 ? (
+                <div className="student-history-state">
+                  <div className="student-history-spinner" />
+                  <strong>Carregando histórico...</strong>
+                  <span>Buscando registros deste período letivo.</span>
+                </div>
+              ) : erroHistorico ? (
+                <div className="student-history-state error">
+                  <strong>Não foi possível carregar o histórico.</strong>
+                  <span>{erroHistorico}</span>
+                  <button
+                    type="button"
+                    onClick={() => void carregarHistoricoAluno()}
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              ) : historicoAluno.length === 0 ? (
+                <div className="student-history-state">
+                  <div className="student-history-empty-icon">○</div>
+                  <strong>Nenhum registro encontrado</strong>
+                  <span>
+                    As próximas alterações feitas neste aluno aparecerão aqui.
+                  </span>
+                </div>
+              ) : (
+                <div className="student-history-timeline">
+                  {historicoAluno.map((registro) => (
+                    <article className="student-history-item" key={registro.id}>
+                      <div
+                        className={`student-history-marker ${classeAcaoHistorico(
+                          registro.acao,
+                        )}`}
+                      />
+
+                      <div className="student-history-event">
+                        <div className="student-history-event-top">
+                          <span
+                            className={`student-history-action ${classeAcaoHistorico(
+                              registro.acao,
+                            )}`}
+                          >
+                            {registro.acao}
+                          </span>
+
+                          <div className="student-history-meta">
+                            <span className="student-history-user">
+                              {registro.usuario_nome
+                                ? `${registro.usuario_nome}${
+                                    registro.usuario_username
+                                      ? ` · @${registro.usuario_username}`
+                                      : ""
+                                  }`
+                                : "Usuário não registrado"}
+                            </span>
+                            <time>
+                              {formatarDataHistorico(registro.criado_em)}
+                            </time>
+                          </div>
+                        </div>
+
+                        <p>{registro.descricao}</p>
+
+                        {registro.unidade && (
+                          <small>Unidade {registro.unidade}</small>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {historicoPossivelmenteLimitado && (
+              <div className="student-history-limit">
+                Exibindo ocorrências encontradas entre os 500 registros mais
+                recentes deste período.
+              </div>
+            )}
+
+            <footer className="student-history-footer">
+              <span>Somente leitura · dados do LOG do período atual</span>
+              <button
+                type="button"
+                onClick={() => setModalHistoricoAluno(false)}
+              >
+                Fechar
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+
       {trocaAlunoPendente && (
         <div className="modal-overlay">
           <section
@@ -2132,7 +2398,9 @@ function Conferencia() {
           >
             <div className="unsaved-student-icon">!</div>
 
-            <span className="unsaved-student-eyebrow">ALTERAÇÕES NÃO SALVAS</span>
+            <span className="unsaved-student-eyebrow">
+              ALTERAÇÕES NÃO SALVAS
+            </span>
 
             <h2 id="unsaved-student-title">Trocar de aluno?</h2>
 
@@ -2240,7 +2508,9 @@ function Conferencia() {
                 type="button"
                 className="modal-fechar"
                 onClick={() =>
-                  fecharModalAnimado("novo-aluno", () => setModalNovoAluno(false))
+                  fecharModalAnimado("novo-aluno", () =>
+                    setModalNovoAluno(false),
+                  )
                 }
                 disabled={cadastrando}
               >
@@ -2261,7 +2531,9 @@ function Conferencia() {
                 type="button"
                 className="botao-cancelar"
                 onClick={() =>
-                  fecharModalAnimado("novo-aluno", () => setModalNovoAluno(false))
+                  fecharModalAnimado("novo-aluno", () =>
+                    setModalNovoAluno(false),
+                  )
                 }
                 disabled={cadastrando}
               >
@@ -2367,9 +2639,7 @@ function Conferencia() {
         <div
           className={`modal-overlay ${
             finalizandoImportacao ? "modal-overlay-finalizando" : ""
-          } ${
-            modalSaindo === "importar-alunos" ? "modal-overlay-exit" : ""
-          }`}
+          } ${modalSaindo === "importar-alunos" ? "modal-overlay-exit" : ""}`}
         >
           <div
             className={`modal-importacao ${
@@ -2407,7 +2677,10 @@ function Conferencia() {
                   role="status"
                   aria-live="polite"
                 >
-                  <div className="importacao-processando-spinner" aria-hidden="true">
+                  <div
+                    className="importacao-processando-spinner"
+                    aria-hidden="true"
+                  >
                     <span />
                     <span />
                     <span />
@@ -2427,225 +2700,227 @@ function Conferencia() {
                 </div>
               )}
 
-              {!resultadoImportacao && !importando && !finalizandoImportacao && (
-                <>
-                  <label className="importacao-unidade">
-                    <span>Unidade de destino</span>
+              {!resultadoImportacao &&
+                !importando &&
+                !finalizandoImportacao && (
+                  <>
+                    <label className="importacao-unidade">
+                      <span>Unidade de destino</span>
 
-                    <select
-                      value={unidadeImportacao}
-                      onChange={(event) => {
-                        setUnidadeImportacao(event.target.value as Unidade);
+                      <select
+                        value={unidadeImportacao}
+                        onChange={(event) => {
+                          setUnidadeImportacao(event.target.value as Unidade);
 
-                        setPreviaImportacao([]);
-                      }}
-                      disabled={importando}
-                    >
-                      <option value="FACE">FACE</option>
-                      <option value="FEA">FEA</option>
-                      <option value="FCH">FCH</option>
-                      <option value="EAD">EAD</option>
-                    </select>
-                  </label>
+                          setPreviaImportacao([]);
+                        }}
+                        disabled={importando}
+                      >
+                        <option value="FACE">FACE</option>
+                        <option value="FEA">FEA</option>
+                        <option value="FCH">FCH</option>
+                        <option value="EAD">EAD</option>
+                      </select>
+                    </label>
 
-                  <div className="importacao-tabs">
-                    <button
-                      type="button"
-                      className={modoImportacao === "colar" ? "active" : ""}
-                      onClick={() => {
-                        setModoImportacao("colar");
-                        limparImportacao();
-                      }}
-                    >
-                      Colar dados
-                    </button>
+                    <div className="importacao-tabs">
+                      <button
+                        type="button"
+                        className={modoImportacao === "colar" ? "active" : ""}
+                        onClick={() => {
+                          setModoImportacao("colar");
+                          limparImportacao();
+                        }}
+                      >
+                        Colar dados
+                      </button>
 
-                    <button
-                      type="button"
-                      className={modoImportacao === "csv" ? "active" : ""}
-                      onClick={() => {
-                        setModoImportacao("csv");
-                        limparImportacao();
-                      }}
-                    >
-                      Arquivo CSV
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        className={modoImportacao === "csv" ? "active" : ""}
+                        onClick={() => {
+                          setModoImportacao("csv");
+                          limparImportacao();
+                        }}
+                      >
+                        Arquivo CSV
+                      </button>
+                    </div>
 
-                  {previaImportacao.length === 0 ? (
-                    <>
-                      {modoImportacao === "colar" ? (
-                        <div className="importacao-colar">
-                          <textarea
-                            value={textoImportacao}
-                            onChange={(event) => {
-                              setTextoImportacao(event.target.value);
+                    {previaImportacao.length === 0 ? (
+                      <>
+                        {modoImportacao === "colar" ? (
+                          <div className="importacao-colar">
+                            <textarea
+                              value={textoImportacao}
+                              onChange={(event) => {
+                                setTextoImportacao(event.target.value);
 
-                              setErroImportacao("");
-                            }}
-                            placeholder={`Cole aqui os dados copiados da planilha.
+                                setErroImportacao("");
+                              }}
+                              placeholder={`Cole aqui os dados copiados da planilha.
 
 Exemplo:
 Contrato    Curso    E-mail (outro)    E-mail    Nome    RA
 SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2910130000`}
-                          />
-                        </div>
-                      ) : (
-                        <div className="importacao-arquivo">
-                          <input
-                            id="arquivo-importacao"
-                            type="file"
-                            accept=".csv,text/csv"
-                            onChange={selecionarArquivoImportacao}
-                          />
+                            />
+                          </div>
+                        ) : (
+                          <div className="importacao-arquivo">
+                            <input
+                              id="arquivo-importacao"
+                              type="file"
+                              accept=".csv,text/csv"
+                              onChange={selecionarArquivoImportacao}
+                            />
 
-                          <label
-                            htmlFor="arquivo-importacao"
-                            className="importacao-dropzone"
-                          >
-                            <strong>
-                              {arquivoImportacao || "Selecionar arquivo CSV"}
-                            </strong>
-
-                            <span>
-                              {arquivoImportacao
-                                ? "Arquivo carregado e pronto para análise."
-                                : "Clique para selecionar um arquivo .csv"}
-                            </span>
-                          </label>
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        className="botao-analisar-importacao"
-                        onClick={gerarPreviaImportacao}
-                        disabled={!textoImportacao.trim()}
-                      >
-                        Analisar dados
-                      </button>
-                    </>
-                  ) : (
-                    <div className="importacao-previa">
-                      <div className="importacao-previa-cabecalho">
-                        <div>
-                          <span>PRÉVIA</span>
-                          <h3>Confira antes de importar</h3>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setPreviaImportacao([])}
-                        >
-                          ← Editar dados
-                        </button>
-                      </div>
-
-                      <div className="importacao-resumo resultado">
-                        <div>
-                          <strong>{previaImportacao.length}</strong>
-                          <span>Encontrados</span>
-                        </div>
-
-                        <div>
-                          <strong>
-                            {
-                              previaImportacao.filter(
-                                (aluno) => aluno.status === "valido",
-                              ).length
-                            }
-                          </strong>
-                          <span>Novos</span>
-                        </div>
-
-                        <div>
-                          <strong>
-                            {
-                              previaImportacao.filter(
-                                (aluno) => aluno.status === "alterado",
-                              ).length
-                            }
-                          </strong>
-                          <span>Com alterações</span>
-                        </div>
-
-                        <div>
-                          <strong>
-                            {
-                              previaImportacao.filter(
-                                (aluno) => aluno.status === "igual",
-                              ).length
-                            }
-                          </strong>
-                          <span>Sem alterações</span>
-                        </div>
-
-                        <div>
-                          <strong>
-                            {
-                              previaImportacao.filter(
-                                (aluno) =>
-                                  aluno.status === "duplicado" ||
-                                  aluno.status === "invalido",
-                              ).length
-                            }
-                          </strong>
-                          <span>Problemas</span>
-                        </div>
-                      </div>
-
-                      <div className="importacao-lista">
-                        {previaImportacao.map((aluno, indice) => (
-                          <div
-                            key={`${aluno.ra}-${indice}`}
-                            className={`importacao-item ${
-                              aluno.status === "alterado"
-                                ? "valido"
-                                : aluno.status === "igual"
-                                  ? "duplicado"
-                                  : aluno.status
-                            }`}
-                          >
-                            <div className="importacao-item-principal">
+                            <label
+                              htmlFor="arquivo-importacao"
+                              className="importacao-dropzone"
+                            >
                               <strong>
-                                {aluno.nome || "Nome não informado"}
+                                {arquivoImportacao || "Selecionar arquivo CSV"}
                               </strong>
 
                               <span>
-                                RA {aluno.ra || "—"}
-                                {" · "}
-                                {aluno.curso || "Curso não informado"}
+                                {arquivoImportacao
+                                  ? "Arquivo carregado e pronto para análise."
+                                  : "Clique para selecionar um arquivo .csv"}
                               </span>
-
-                              {(aluno.email || aluno.email_outro) && (
-                                <small>
-                                  {aluno.email || aluno.email_outro}
-                                </small>
-                              )}
-                            </div>
-
-                            <div className="importacao-item-status">
-                              <strong>
-                                {aluno.status === "valido"
-                                  ? "NOVO"
-                                  : aluno.status === "alterado"
-                                    ? "ALTERADO"
-                                    : aluno.status === "igual"
-                                      ? "SEM ALTERAÇÕES"
-                                      : aluno.status === "duplicado"
-                                        ? "REPETIDO NO ARQUIVO"
-                                        : "INVÁLIDO"}
-                              </strong>
-
-                              {aluno.motivo && <span>{aluno.motivo}</span>}
-                            </div>
+                            </label>
                           </div>
-                        ))}
+                        )}
+
+                        <button
+                          type="button"
+                          className="botao-analisar-importacao"
+                          onClick={gerarPreviaImportacao}
+                          disabled={!textoImportacao.trim()}
+                        >
+                          Analisar dados
+                        </button>
+                      </>
+                    ) : (
+                      <div className="importacao-previa">
+                        <div className="importacao-previa-cabecalho">
+                          <div>
+                            <span>PRÉVIA</span>
+                            <h3>Confira antes de importar</h3>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setPreviaImportacao([])}
+                          >
+                            ← Editar dados
+                          </button>
+                        </div>
+
+                        <div className="importacao-resumo resultado">
+                          <div>
+                            <strong>{previaImportacao.length}</strong>
+                            <span>Encontrados</span>
+                          </div>
+
+                          <div>
+                            <strong>
+                              {
+                                previaImportacao.filter(
+                                  (aluno) => aluno.status === "valido",
+                                ).length
+                              }
+                            </strong>
+                            <span>Novos</span>
+                          </div>
+
+                          <div>
+                            <strong>
+                              {
+                                previaImportacao.filter(
+                                  (aluno) => aluno.status === "alterado",
+                                ).length
+                              }
+                            </strong>
+                            <span>Com alterações</span>
+                          </div>
+
+                          <div>
+                            <strong>
+                              {
+                                previaImportacao.filter(
+                                  (aluno) => aluno.status === "igual",
+                                ).length
+                              }
+                            </strong>
+                            <span>Sem alterações</span>
+                          </div>
+
+                          <div>
+                            <strong>
+                              {
+                                previaImportacao.filter(
+                                  (aluno) =>
+                                    aluno.status === "duplicado" ||
+                                    aluno.status === "invalido",
+                                ).length
+                              }
+                            </strong>
+                            <span>Problemas</span>
+                          </div>
+                        </div>
+
+                        <div className="importacao-lista">
+                          {previaImportacao.map((aluno, indice) => (
+                            <div
+                              key={`${aluno.ra}-${indice}`}
+                              className={`importacao-item ${
+                                aluno.status === "alterado"
+                                  ? "valido"
+                                  : aluno.status === "igual"
+                                    ? "duplicado"
+                                    : aluno.status
+                              }`}
+                            >
+                              <div className="importacao-item-principal">
+                                <strong>
+                                  {aluno.nome || "Nome não informado"}
+                                </strong>
+
+                                <span>
+                                  RA {aluno.ra || "—"}
+                                  {" · "}
+                                  {aluno.curso || "Curso não informado"}
+                                </span>
+
+                                {(aluno.email || aluno.email_outro) && (
+                                  <small>
+                                    {aluno.email || aluno.email_outro}
+                                  </small>
+                                )}
+                              </div>
+
+                              <div className="importacao-item-status">
+                                <strong>
+                                  {aluno.status === "valido"
+                                    ? "NOVO"
+                                    : aluno.status === "alterado"
+                                      ? "ALTERADO"
+                                      : aluno.status === "igual"
+                                        ? "SEM ALTERAÇÕES"
+                                        : aluno.status === "duplicado"
+                                          ? "REPETIDO NO ARQUIVO"
+                                          : "INVÁLIDO"}
+                                </strong>
+
+                                {aluno.motivo && <span>{aluno.motivo}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
 
               {resultadoImportacao && !importando && !finalizandoImportacao && (
                 <div className="importacao-resultado">
@@ -2704,42 +2979,42 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
             {!importando && !finalizandoImportacao && (
               <div className="modal-acoes">
                 {!resultadoImportacao ? (
-                <>
-                  <button
-                    type="button"
-                    className="botao-cancelar"
-                    onClick={fecharImportacao}
-                    disabled={importando}
-                  >
-                    Cancelar
-                  </button>
-
-                  {previaImportacao.length > 0 && (
+                  <>
                     <button
                       type="button"
-                      className="botao-cadastrar"
-                      onClick={confirmarImportacao}
-                      disabled={
-                        importando ||
-                        !previaImportacao.some(
-                          (aluno) =>
-                            aluno.status === "valido" ||
-                            aluno.status === "alterado",
-                        )
-                      }
+                      className="botao-cancelar"
+                      onClick={fecharImportacao}
+                      disabled={importando}
                     >
-                      {importando ? "Importando..." : `Confirmar importação`}
+                      Cancelar
                     </button>
-                  )}
-                </>
-              ) : (
-                <button
-                  type="button"
-                  className="botao-cadastrar"
-                  onClick={fecharImportacao}
-                >
-                  Concluir
-                </button>
+
+                    {previaImportacao.length > 0 && (
+                      <button
+                        type="button"
+                        className="botao-cadastrar"
+                        onClick={confirmarImportacao}
+                        disabled={
+                          importando ||
+                          !previaImportacao.some(
+                            (aluno) =>
+                              aluno.status === "valido" ||
+                              aluno.status === "alterado",
+                          )
+                        }
+                      >
+                        {importando ? "Importando..." : `Confirmar importação`}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="botao-cadastrar"
+                    onClick={fecharImportacao}
+                  >
+                    Concluir
+                  </button>
                 )}
               </div>
             )}
@@ -2749,7 +3024,11 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
 
       {sucessoImportacao && (
         <div className="modal-overlay">
-          <div className="modal-importacao-sucesso" role="dialog" aria-modal="true">
+          <div
+            className="modal-importacao-sucesso"
+            role="dialog"
+            aria-modal="true"
+          >
             <div className="importacao-sucesso-conteudo">
               <div className="importacao-sucesso-icone">✓</div>
 
@@ -2757,21 +3036,25 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
               <h2>Alunos sincronizados com sucesso</h2>
 
               <p>
-                A importação para a unidade <strong>{sucessoImportacao.unidade}</strong>{" "}
-                foi concluída.
+                A importação para a unidade{" "}
+                <strong>{sucessoImportacao.unidade}</strong> foi concluída.
               </p>
 
               <div className="importacao-sucesso-resumo">
                 <div>
                   <strong>
-                    {quantidadeResultado(sucessoImportacao.resultado.importados)}
+                    {quantidadeResultado(
+                      sucessoImportacao.resultado.importados,
+                    )}
                   </strong>
                   <span>incluídos</span>
                 </div>
 
                 <div>
                   <strong>
-                    {quantidadeResultado(sucessoImportacao.resultado.atualizados)}
+                    {quantidadeResultado(
+                      sucessoImportacao.resultado.atualizados,
+                    )}
                   </strong>
                   <span>atualizados</span>
                 </div>

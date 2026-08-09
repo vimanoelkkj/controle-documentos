@@ -1073,8 +1073,18 @@ export default {
           `${documentosAlterados} documento(s) e ${cancelamentos} cancelamento(s).`;
 
         await env.DB.prepare(`
-          INSERT INTO logs (acao, entidade, descricao, ra, unidade, periodo_id)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO logs (
+            acao,
+            entidade,
+            descricao,
+            ra,
+            unidade,
+            periodo_id,
+            usuario_id,
+            usuario_nome,
+            usuario_username
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
           "SINCRONIZAR",
           "GOOGLE_SHEETS",
@@ -1082,6 +1092,9 @@ export default {
           null,
           null,
           periodoId,
+          usuarioAtual?.id ?? null,
+          usuarioAtual?.nome ?? null,
+          usuarioAtual?.username ?? null,
         ).run();
 
         return Response.json({
@@ -1211,7 +1224,17 @@ export default {
 
         const resultado = await env.DB.prepare(
           `
-            SELECT id, criado_em, acao, entidade, descricao, ra, unidade
+            SELECT
+              id,
+              criado_em,
+              acao,
+              entidade,
+              descricao,
+              ra,
+              unidade,
+              usuario_id,
+              usuario_nome,
+              usuario_username
             FROM logs
             WHERE periodo_id = ?
             ORDER BY id DESC
@@ -1225,7 +1248,7 @@ export default {
       } catch (erro) {
         console.error(erro);
         return Response.json(
-          { erro: "LOG indisponível. Execute a migration 002_log.sql no D1." },
+          { erro: "LOG indisponível. Verifique se as migrations do LOG foram aplicadas no D1." },
           { status: 500 },
         );
       }
@@ -1251,8 +1274,18 @@ export default {
 
         await env.DB.prepare(
           `
-            INSERT INTO logs (acao, entidade, descricao, ra, unidade, periodo_id)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO logs (
+              acao,
+              entidade,
+              descricao,
+              ra,
+              unidade,
+              periodo_id,
+              usuario_id,
+              usuario_nome,
+              usuario_username
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           `,
         )
           .bind(
@@ -1262,6 +1295,9 @@ export default {
             body.ra?.trim() || null,
             body.unidade?.trim() || null,
             periodoAtual!.id,
+            usuarioAtual?.id ?? null,
+            usuarioAtual?.nome ?? null,
+            usuarioAtual?.username ?? null,
           )
           .run();
 
