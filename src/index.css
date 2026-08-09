@@ -7772,3 +7772,1320 @@ body,
     justify-content: flex-end;
   }
 }
+
+/* =========================================================
+   MODAL DE SUCESSO — IMPORTAÇÃO DE ALUNOS
+   ========================================================= */
+
+.modal-importacao-sucesso {
+  width: min(520px, 100%);
+  overflow: hidden;
+
+  border: 1px solid #2f5261;
+  border-radius: 16px;
+
+  background: #101d27;
+
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+
+  animation: modal-enter var(--motion-slow, 240ms)
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.importacao-sucesso-conteudo {
+  display: grid;
+  justify-items: center;
+
+  padding: 30px 30px 24px;
+
+  text-align: center;
+}
+
+.importacao-sucesso-icone {
+  display: grid;
+
+  width: 64px;
+  height: 64px;
+
+  margin-bottom: 16px;
+
+  place-items: center;
+
+  border: 1px solid #39724a;
+  border-radius: 50%;
+
+  color: #8be1a2;
+  background: #173620;
+
+  font-size: 28px;
+  font-weight: 900;
+
+  box-shadow: 0 0 0 8px rgba(79, 181, 107, 0.06);
+}
+
+.importacao-sucesso-conteudo .modal-eyebrow {
+  margin-bottom: 6px;
+}
+
+.importacao-sucesso-conteudo h2 {
+  margin: 0;
+
+  color: #f4f8fb;
+
+  font-size: 22px;
+}
+
+.importacao-sucesso-conteudo > p {
+  max-width: 390px;
+
+  margin: 9px 0 0;
+
+  color: #91a6b5;
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.importacao-sucesso-conteudo > p strong {
+  color: #dcecf5;
+}
+
+.importacao-sucesso-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+
+  width: 100%;
+
+  margin-top: 22px;
+}
+
+.importacao-sucesso-resumo > div {
+  display: grid;
+  gap: 3px;
+
+  padding: 13px 10px;
+
+  border: 1px solid #294554;
+  border-radius: 10px;
+
+  background: #0c1922;
+}
+
+.importacao-sucesso-resumo strong {
+  color: #f4f8fb;
+
+  font-size: 22px;
+  line-height: 1;
+}
+
+.importacao-sucesso-resumo span {
+  color: #8198a8;
+
+  font-size: 11px;
+}
+
+.importacao-sucesso-acoes {
+  justify-content: center;
+}
+
+.importacao-sucesso-acoes .botao-cadastrar {
+  min-width: 120px;
+}
+
+/* MODO CLARO */
+
+html[data-theme="light"] .modal-importacao-sucesso {
+  border-color: #d1dee6;
+
+  background: #ffffff;
+
+  box-shadow: 0 22px 55px rgba(37, 61, 77, 0.16);
+}
+
+html[data-theme="light"] .importacao-sucesso-conteudo h2 {
+  color: #20313d;
+}
+
+html[data-theme="light"] .importacao-sucesso-conteudo > p {
+  color: #6f8493;
+}
+
+html[data-theme="light"] .importacao-sucesso-conteudo > p strong {
+  color: #29404d;
+}
+
+html[data-theme="light"] .importacao-sucesso-icone {
+  border-color: #9fd7af;
+
+  color: #2f7d47;
+  background: #edf9f0;
+
+  box-shadow: 0 0 0 8px rgba(65, 156, 89, 0.06);
+}
+
+html[data-theme="light"] .importacao-sucesso-resumo > div {
+  border-color: #d3e0e8;
+
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .importacao-sucesso-resumo strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .importacao-sucesso-resumo span {
+  color: #718795;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 560px) {
+  .importacao-sucesso-conteudo {
+    padding: 26px 18px 20px;
+  }
+
+  .importacao-sucesso-resumo {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   CONFERÊNCIA — TRANSIÇÃO DA IMPORTAÇÃO PARA O SUCESSO
+   Cole este bloco no final de src/index.css
+   ========================================================= */
+
+.importacao-processando {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 32px 24px;
+  text-align: center;
+  animation: importacao-processando-enter 180ms
+    var(--ease-ui, cubic-bezier(0.2, 0.8, 0.2, 1)) both;
+}
+
+.importacao-processando > strong {
+  color: #dceaf3;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.importacao-processando > span {
+  max-width: 360px;
+  color: #7891a2;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.importacao-processando-spinner {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 5px;
+  border: 1px solid #284557;
+  border-radius: 18px;
+  background: #0b1720;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 2%);
+}
+
+.importacao-processando-spinner::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 2px solid #243e4f;
+  border-top-color: #6bc4fa;
+  border-radius: 50%;
+  animation: importacao-spinner 700ms linear infinite;
+}
+
+.importacao-processando-spinner span {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 999px;
+  background: #75c9fa;
+  opacity: 0.25;
+  animation: importacao-ponto 900ms ease-in-out infinite;
+}
+
+.importacao-processando-spinner span:nth-child(1) {
+  left: 18px;
+  animation-delay: 0ms;
+}
+.importacao-processando-spinner span:nth-child(2) {
+  left: 26px;
+  animation-delay: 120ms;
+}
+.importacao-processando-spinner span:nth-child(3) {
+  left: 34px;
+  animation-delay: 240ms;
+}
+
+.importacao-processando.concluindo .importacao-processando-spinner::before {
+  animation-duration: 420ms;
+}
+
+.modal-importacao-finalizando {
+  pointer-events: none;
+  animation: modal-importacao-exit 180ms ease forwards !important;
+}
+
+.modal-overlay-finalizando {
+  pointer-events: none;
+  animation: modal-overlay-importacao-exit 180ms ease forwards !important;
+}
+
+.modal-importacao-sucesso {
+  animation: sucesso-importacao-enter 260ms
+    var(--ease-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.importacao-sucesso-icone {
+  animation: sucesso-importacao-check 420ms cubic-bezier(0.34, 1.56, 0.64, 1)
+    100ms both;
+}
+
+@keyframes importacao-processando-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes importacao-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes importacao-ponto {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes modal-importacao-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes modal-overlay-importacao-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sucesso-importacao-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sucesso-importacao-check {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+html[data-theme="light"] .importacao-processando > strong {
+  color: #223746;
+}
+
+html[data-theme="light"] .importacao-processando > span {
+  color: #718390;
+}
+
+html[data-theme="light"] .importacao-processando-spinner {
+  border-color: #cbdbe5;
+  background: #f4f9fc;
+}
+
+html[data-theme="light"] .importacao-processando-spinner::before {
+  border-color: #d7e4ec;
+  border-top-color: #168ccc;
+}
+
+html[data-theme="light"] .importacao-processando-spinner span {
+  background: #168ccc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .importacao-processando,
+  .importacao-processando-spinner::before,
+  .importacao-processando-spinner span,
+  .modal-importacao-finalizando,
+  .modal-overlay-finalizando,
+  .modal-importacao-sucesso,
+  .importacao-sucesso-icone {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+  }
+}
+
+
+/* =========================================================
+   FERRAMENTAS DE DESENVOLVIMENTO
+   ========================================================= */
+
+.settings-dev-tools {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid #6f3a34;
+  border-radius: 12px;
+  background: #171111;
+}
+
+.settings-dev-tools-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #4b2c29;
+}
+
+.settings-dev-tools-head h2 {
+  margin: 3px 0 5px;
+}
+
+.settings-dev-tools-head p {
+  margin: 0;
+  max-width: 680px;
+  color: #9eaab3;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.settings-dev-tools-head > strong {
+  padding: 5px 8px;
+  border: 1px solid #7a4039;
+  border-radius: 7px;
+  color: #ff9f91;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.settings-dev-danger {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: end;
+  margin-top: 16px;
+}
+
+.settings-dev-fields {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.55fr) minmax(240px, 1fr);
+  gap: 12px;
+}
+
+.settings-dev-fields label {
+  display: grid;
+  gap: 7px;
+  color: #9eaab3;
+  font-size: 10px;
+}
+
+.settings-dev-fields label strong {
+  color: #ff9f91;
+}
+
+.settings-dev-fields select,
+.settings-dev-fields input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 11px;
+  border: 1px solid #55312d;
+  border-radius: 8px;
+  outline: none;
+  background: #0d1114;
+  color: #dce7ed;
+}
+
+.settings-dev-fields select:focus,
+.settings-dev-fields input:focus {
+  border-color: #a65348;
+}
+
+.settings-dev-delete {
+  min-height: 38px;
+  padding: 10px 14px;
+  border: 1px solid #8a463d;
+  border-radius: 8px;
+  background: #3a1d1a;
+  color: #ffb0a5;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-dev-delete:hover:not(:disabled) {
+  border-color: #b85d50;
+  background: #4a211d;
+}
+
+.settings-dev-delete:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settings-dev-message {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #4b3934;
+  border-radius: 8px;
+  background: #111619;
+  color: #b9c6cd;
+  font-size: 11px;
+}
+
+html[data-theme="light"] .settings-dev-tools {
+  border-color: #e5b8b1;
+  background: #fff8f7;
+}
+
+html[data-theme="light"] .settings-dev-tools-head {
+  border-bottom-color: #ecd0cb;
+}
+
+html[data-theme="light"] .settings-dev-tools-head p {
+  color: #6f7f88;
+}
+
+html[data-theme="light"] .settings-dev-fields select,
+html[data-theme="light"] .settings-dev-fields input {
+  border-color: #e2c0ba;
+  background: #fff;
+  color: #263b48;
+}
+
+html[data-theme="light"] .settings-dev-message {
+  border-color: #e0d2cf;
+  background: #fff;
+  color: #52646e;
+}
+
+@media (max-width: 900px) {
+  .settings-dev-danger {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-dev-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-dev-delete {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   MOTION — MODAIS DA CONFERÊNCIA
+   ========================================================= */
+
+@keyframes conference-modal-overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes conference-modal-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes conference-modal-overlay-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes conference-modal-card-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(5px) scale(0.985);
+  }
+}
+
+.conference-page .modal-overlay {
+  animation: conference-modal-overlay-enter 160ms ease-out both;
+}
+
+.conference-page .modal-overlay > [class*="modal-"] {
+  animation: conference-modal-card-enter 220ms
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.conference-page .modal-overlay.modal-overlay-exit {
+  pointer-events: none;
+  animation: conference-modal-overlay-exit 180ms ease-in both;
+}
+
+.conference-page .modal-overlay.modal-overlay-exit > [class*="modal-"] {
+  animation: conference-modal-card-exit 180ms ease-in both;
+}
+
+/* Mantém a entrada especial do sucesso da importação. */
+.conference-page .modal-overlay > .modal-importacao-sucesso {
+  animation: sucesso-enter 260ms
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1))
+    both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conference-page .modal-overlay,
+  .conference-page .modal-overlay > [class*="modal-"],
+  .conference-page .modal-overlay.modal-overlay-exit,
+  .conference-page .modal-overlay.modal-overlay-exit > [class*="modal-"] {
+    animation-duration: 1ms !important;
+  }
+}
+
+
+/* =========================================================
+   MODAL EDITAR ALUNO — ZONA DE PERIGO
+   ========================================================= */
+
+.edit-student-danger-zone {
+  margin: 18px 24px 0;
+  padding: 16px;
+  border: 1px solid #6f3a34;
+  border-radius: 10px;
+  background: #241817;
+}
+
+.edit-student-danger-zone > strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #ff9f91;
+  font-size: 11px;
+}
+
+.edit-student-danger-zone > p {
+  margin: 0 0 12px;
+  color: #9eaab3;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* Modo claro: aviso continua sendo de perigo sem virar um tijolo vinho. */
+html[data-theme="light"] .edit-student-danger-zone {
+  border-color: #f0b6b0;
+  background: #fff5f4;
+  box-shadow: inset 0 0 0 1px rgba(215, 63, 49, 0.025);
+}
+
+html[data-theme="light"] .edit-student-danger-zone > strong {
+  color: #c9362b;
+}
+
+html[data-theme="light"] .edit-student-danger-zone > p {
+  color: #52646e;
+}
+
+html[data-theme="light"] .edit-student-danger-zone .student-delete-button {
+  border-color: #e3655a;
+  background: #fffafa;
+  color: #c9362b;
+}
+
+html[data-theme="light"] .edit-student-danger-zone .student-delete-button:hover:not(:disabled) {
+  border-color: #cf4338;
+  background: #fff0ee;
+  color: #b92d23;
+}
+
+
+/* =========================================================
+   MODAL CANCELAR / REATIVAR MATRÍCULA — MODO CLARO
+   ========================================================= */
+
+html[data-theme="light"] .modal-excluir-conteudo h2 {
+  color: #14232d;
+}
+
+html[data-theme="light"] .modal-excluir-conteudo > p {
+  color: #6f8492;
+}
+
+html[data-theme="light"] .modal-excluir-icon {
+  border-color: #e9a59c;
+  color: #c83d32;
+  background: #fff0ee;
+}
+
+html[data-theme="light"] .modal-reativar-icon {
+  border-color: #9ed5b1;
+  color: #257746;
+  background: #edf9f1;
+}
+
+html[data-theme="light"] .modal-eyebrow-danger {
+  color: #d94c40;
+}
+
+html[data-theme="light"] .aluno-exclusao-card {
+  border-color: #d5e1e9;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .aluno-exclusao-card strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .aluno-exclusao-card span {
+  color: #718594;
+}
+
+html[data-theme="light"] .modal-excluir-aviso {
+  border-color: #efb3ab;
+  color: #a9443a !important;
+  background: #fff2f0;
+}
+
+/* Quando o modal estiver reativando, o aviso acompanha o verde. */
+html[data-theme="light"] .modal-reativar-icon ~ .modal-excluir-conteudo .modal-excluir-aviso {
+  border-color: #add9bb;
+  color: #2d7047 !important;
+  background: #eff9f2;
+}
+
+html[data-theme="light"] .modal-excluir-acoes {
+  border-top-color: #dbe5eb;
+  background: #f8fafc;
+}
+
+html[data-theme="light"] .modal-excluir-acoes .botao-cancelar {
+  border-color: #c8d6df;
+  color: #334b5a;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .modal-excluir-acoes .botao-cancelar:hover:not(:disabled) {
+  border-color: #9eb4c2;
+  background: #eef4f7;
+}
+
+html[data-theme="light"] .modal-excluir-acoes .botao-confirmar-exclusao {
+  border-color: #d75a4e;
+  color: #ffffff;
+  background: #bd453b;
+}
+
+html[data-theme="light"] .modal-excluir-acoes .botao-confirmar-exclusao:hover:not(:disabled) {
+  border-color: #c9453a;
+  background: #a93830;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="light"] .modal-excluir-aluno,
+  html[data-theme="light"] .modal-excluir-aluno * {
+    transition-duration: 1ms !important;
+  }
+}
+
+
+/* =========================================================
+   HEADER — STATUS GOOGLE PLANILHAS
+   ========================================================= */
+
+.period-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.period-toolbar-copy {
+  justify-self: start;
+}
+
+.period-toolbar-select {
+  justify-self: end;
+}
+
+.google-sheets-status {
+  justify-self: center;
+  min-width: 190px;
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 28px 1fr 8px;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 11px;
+  border: 1px solid #31505e;
+  border-radius: 10px;
+  outline: none;
+  color: #cfe0e8;
+  background: #0b171f;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.google-sheets-status:hover {
+  transform: translateY(-1px);
+}
+
+.google-sheets-status:active {
+  transform: translateY(0);
+}
+
+.google-sheets-status-icon {
+  width: 26px;
+  height: 26px;
+  color: #34a853;
+}
+
+.google-sheets-status-copy {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.google-sheets-status-copy strong {
+  overflow: hidden;
+  color: #e7f0f5;
+  font-size: 11px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.google-sheets-status-copy small {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.google-sheets-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.google-sheets-status--conectado {
+  border-color: #286340;
+  background: #10251b;
+  box-shadow: inset 0 0 0 1px rgba(52, 168, 83, 0.04);
+}
+
+.google-sheets-status--conectado .google-sheets-status-copy small {
+  color: #68ce83;
+}
+
+.google-sheets-status--conectado .google-sheets-status-dot {
+  background: #49c86b;
+  box-shadow: 0 0 0 3px rgba(73, 200, 107, 0.1);
+}
+
+.google-sheets-status--conectado:hover {
+  border-color: #3b8156;
+  background: #142d21;
+}
+
+.google-sheets-status--nao-conectado {
+  border-color: #6d3935;
+  background: #261716;
+}
+
+.google-sheets-status--nao-conectado .google-sheets-status-icon {
+  color: #d65b50;
+}
+
+.google-sheets-status--nao-conectado .google-sheets-status-copy small {
+  color: #ee8c82;
+}
+
+.google-sheets-status--nao-conectado .google-sheets-status-dot {
+  background: #e26459;
+  box-shadow: 0 0 0 3px rgba(226, 100, 89, 0.1);
+}
+
+.google-sheets-status--nao-conectado:hover {
+  border-color: #8b4a43;
+  background: #301b19;
+}
+
+.google-sheets-status--carregando {
+  opacity: 0.78;
+}
+
+.google-sheets-status--carregando .google-sheets-status-dot {
+  background: #78909f;
+  animation: sheets-status-pulse 900ms ease-in-out infinite alternate;
+}
+
+@keyframes sheets-status-pulse {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
+/* LIGHT */
+html[data-theme="light"] .google-sheets-status {
+  color: #334b58;
+  background: #f8fbfc;
+}
+
+html[data-theme="light"] .google-sheets-status-copy strong {
+  color: #233843;
+}
+
+html[data-theme="light"] .google-sheets-status--conectado {
+  border-color: #b9dfc4;
+  background: #eff9f2;
+  box-shadow: inset 0 0 0 1px rgba(52, 168, 83, 0.03);
+}
+
+html[data-theme="light"] .google-sheets-status--conectado .google-sheets-status-copy small {
+  color: #277742;
+}
+
+html[data-theme="light"] .google-sheets-status--conectado:hover {
+  border-color: #91cba2;
+  background: #e6f6eb;
+}
+
+html[data-theme="light"] .google-sheets-status--nao-conectado {
+  border-color: #efc0bb;
+  background: #fff3f2;
+}
+
+html[data-theme="light"] .google-sheets-status--nao-conectado .google-sheets-status-copy small {
+  color: #bd453b;
+}
+
+html[data-theme="light"] .google-sheets-status--nao-conectado:hover {
+  border-color: #e79f97;
+  background: #ffebe9;
+}
+
+@media (max-width: 980px) {
+  .period-toolbar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .google-sheets-status {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: min(100%, 260px);
+    justify-self: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .period-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .period-toolbar-copy,
+  .period-toolbar-select,
+  .google-sheets-status,
+  .period-toolbar-readonly {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .google-sheets-status {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+
+/* =========================================================
+   GOOGLE PLANILHAS — MODAL DE CONEXÃO
+   ========================================================= */
+
+.google-sheets-modal-overlay {
+  animation: google-sheets-overlay-enter 160ms ease-out both;
+}
+
+.google-sheets-modal {
+  width: min(520px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid #294452;
+  border-radius: 16px;
+  background: #101d26;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+  animation: google-sheets-modal-enter 220ms
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.google-sheets-modal-overlay-exit {
+  pointer-events: none;
+  animation: google-sheets-overlay-exit 180ms ease-in both;
+}
+
+.google-sheets-modal-overlay-exit .google-sheets-modal {
+  animation: google-sheets-modal-exit 180ms ease-in both;
+}
+
+@keyframes google-sheets-overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes google-sheets-overlay-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes google-sheets-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes google-sheets-modal-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(5px) scale(0.985);
+  }
+}
+
+.google-sheets-modal-head {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  align-items: center;
+  gap: 13px;
+  padding: 20px 22px 17px;
+  border-bottom: 1px solid #243945;
+}
+
+.google-sheets-modal-head > div:nth-child(2) > span {
+  color: #6d91a6;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.google-sheets-modal-head h2 {
+  margin: 3px 0 2px;
+  color: #ecf4f7;
+  font-size: 20px;
+}
+
+.google-sheets-modal-head p {
+  margin: 0;
+  color: #78909e;
+  font-size: 11px;
+}
+
+.google-sheets-modal-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #31505e;
+  border-radius: 12px;
+  background: #0b171f;
+}
+
+.google-sheets-modal-icon .google-sheets-status-icon {
+  width: 27px;
+  height: 27px;
+}
+
+.google-sheets-modal-icon.connected {
+  border-color: #2e6d45;
+  background: #11281c;
+}
+
+.google-sheets-modal-icon.connected .google-sheets-status-icon {
+  color: #42b961;
+}
+
+.google-sheets-modal-icon.disconnected {
+  border-color: #74413c;
+  background: #2a1817;
+}
+
+.google-sheets-modal-icon.disconnected .google-sheets-status-icon {
+  color: #df6257;
+}
+
+.google-sheets-modal-body {
+  display: grid;
+  gap: 13px;
+  padding: 18px 22px 20px;
+}
+
+.google-sheets-connection-state {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  align-items: start;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1px solid #334955;
+  border-radius: 11px;
+  background: #0c171e;
+}
+
+.google-sheets-connection-state.connected {
+  border-color: #285f3e;
+  background: #10231a;
+}
+
+.google-sheets-connection-state.disconnected {
+  border-color: #69403c;
+  background: #251817;
+}
+
+.google-sheets-connection-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #e05e53;
+}
+
+.google-sheets-connection-state.connected .google-sheets-connection-dot {
+  background: #45c469;
+  box-shadow: 0 0 0 4px rgba(69, 196, 105, 0.1);
+}
+
+.google-sheets-connection-state strong,
+.google-sheets-connection-state small {
+  display: block;
+}
+
+.google-sheets-connection-state strong {
+  color: #e7f0f4;
+  font-size: 12px;
+}
+
+.google-sheets-connection-state small {
+  margin-top: 4px;
+  color: #8498a4;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.google-sheets-modal-details {
+  display: grid;
+  gap: 9px;
+  padding: 13px 14px;
+  border: 1px solid #2a404d;
+  border-radius: 11px;
+  background: #0c171e;
+}
+
+.google-sheets-modal-details > div {
+  min-width: 0;
+}
+
+.google-sheets-modal-details span,
+.google-sheets-modal-details strong,
+.google-sheets-modal-details code {
+  display: block;
+}
+
+.google-sheets-modal-details span {
+  margin-bottom: 4px;
+  color: #6f8795;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.google-sheets-modal-details strong {
+  color: #dfe9ee;
+  font-size: 12px;
+}
+
+.google-sheets-modal-details code {
+  overflow: hidden;
+  color: #86a2b2;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.google-sheets-modal-error {
+  padding: 10px 12px;
+  border: 1px solid #70413c;
+  border-radius: 9px;
+  color: #efa198;
+  background: #2a1817;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.google-sheets-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 13px 22px;
+  border-top: 1px solid #243945;
+  background: #0c171e;
+}
+
+/* LIGHT */
+html[data-theme="light"] .google-sheets-modal {
+  border-color: #d3dfe6;
+  background: #fff;
+  box-shadow: 0 30px 90px rgba(43, 66, 80, 0.2);
+}
+
+html[data-theme="light"] .google-sheets-modal-head {
+  border-bottom-color: #dbe5eb;
+}
+
+html[data-theme="light"] .google-sheets-modal-head h2 {
+  color: #1d303c;
+}
+
+html[data-theme="light"] .google-sheets-modal-head p {
+  color: #758a97;
+}
+
+html[data-theme="light"] .google-sheets-modal-icon {
+  background: #f7fafb;
+}
+
+html[data-theme="light"] .google-sheets-modal-icon.connected {
+  border-color: #b7ddc2;
+  background: #edf8f0;
+}
+
+html[data-theme="light"] .google-sheets-modal-icon.disconnected {
+  border-color: #edbbb6;
+  background: #fff2f1;
+}
+
+html[data-theme="light"] .google-sheets-connection-state {
+  background: #f8fafb;
+}
+
+html[data-theme="light"] .google-sheets-connection-state.connected {
+  border-color: #b7dec2;
+  background: #eff9f2;
+}
+
+html[data-theme="light"] .google-sheets-connection-state.disconnected {
+  border-color: #ecc0bc;
+  background: #fff3f2;
+}
+
+html[data-theme="light"] .google-sheets-connection-state strong {
+  color: #283c48;
+}
+
+html[data-theme="light"] .google-sheets-connection-state small {
+  color: #6f838f;
+}
+
+html[data-theme="light"] .google-sheets-modal-details {
+  border-color: #d8e3e9;
+  background: #f7fafb;
+}
+
+html[data-theme="light"] .google-sheets-modal-details strong {
+  color: #263a46;
+}
+
+html[data-theme="light"] .google-sheets-modal-details code {
+  color: #617b89;
+}
+
+html[data-theme="light"] .google-sheets-modal-error {
+  border-color: #efc1bc;
+  color: #a9443a;
+  background: #fff3f2;
+}
+
+html[data-theme="light"] .google-sheets-modal-actions {
+  border-top-color: #dbe5eb;
+  background: #f8fafb;
+}
+
+@media (max-width: 560px) {
+  .google-sheets-modal-head {
+    grid-template-columns: 40px 1fr auto;
+    padding: 17px;
+  }
+
+  .google-sheets-modal-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .google-sheets-modal-body {
+    padding: 15px 17px 17px;
+  }
+
+  .google-sheets-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 12px 17px 16px;
+  }
+
+  .google-sheets-modal-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .google-sheets-modal-overlay,
+  .google-sheets-modal,
+  .google-sheets-modal-overlay-exit,
+  .google-sheets-modal-overlay-exit .google-sheets-modal {
+    animation-duration: 1ms !important;
+  }
+}

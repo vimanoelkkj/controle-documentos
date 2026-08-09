@@ -135,15 +135,22 @@ function Conferencia() {
   >([]);
 
   const [importando, setImportando] = useState(false);
+  const [finalizandoImportacao, setFinalizandoImportacao] = useState(false);
   const [erroImportacao, setErroImportacao] = useState("");
 
   const [resultadoImportacao, setResultadoImportacao] =
     useState<ResultadoImportacao | null>(null);
 
+  const [sucessoImportacao, setSucessoImportacao] = useState<{
+    resultado: ResultadoImportacao;
+    unidade: Unidade;
+  } | null>(null);
+
   const [modalNovoAluno, setModalNovoAluno] = useState(false);
   const [modalEditarAluno, setModalEditarAluno] = useState(false);
   const [modalExcluirAluno, setModalExcluirAluno] = useState(false);
   const [modalStatusAluno, setModalStatusAluno] = useState(false);
+  const [modalSaindo, setModalSaindo] = useState<string | null>(null);
 
   const [novoAluno, setNovoAluno] = useState<FormAluno>(formularioVazio);
   const [alunoEdicao, setAlunoEdicao] = useState<FormAluno>(formularioVazio);
@@ -260,20 +267,34 @@ function Conferencia() {
     );
   }
 
-  if (alunosEmEdicao.length === 0) {
-    return (
-      <section className="conference-page">
-        <p>Nenhum aluno encontrado.</p>
-      </section>
-    );
-  }
+  const alunoVazio: Aluno = {
+    ra: "",
+    nome: "",
+    unidade: "",
+    curso: "",
+    email: null,
+    email_outro: null,
+    status: "ATIVO",
+    documentos: [
+      { nome: "ID", entregue: false },
+      { nome: "CPF", entregue: false },
+      { nome: "CERTIDÃO", entregue: false },
+      { nome: "RESIDÊNCIA", entregue: false },
+      { nome: "TÍTULO", entregue: false },
+      { nome: "ENSINO MÉDIO", entregue: false },
+      { nome: "CONTRATO", entregue: false },
+    ],
+  };
 
   const alunoSelecionado =
     alunosEmEdicao.find((aluno) => aluno.ra === raSelecionado) ??
-    alunosEmEdicao[0];
+    alunosEmEdicao[0] ??
+    alunoVazio;
 
   const alunoSalvo =
-    alunosSalvos.find((aluno) => aluno.ra === raSelecionado) ?? alunosSalvos[0];
+    alunosSalvos.find((aluno) => aluno.ra === raSelecionado) ??
+    alunosSalvos[0] ??
+    alunoVazio;
 
   const termo = busca.trim().toLowerCase();
 
@@ -331,6 +352,22 @@ function Conferencia() {
       documento.entregue !== alunoSalvo.documentos[index].entregue,
   );
 
+  function fecharModalAnimado(
+    nome: string,
+    fechar: () => void,
+    depois?: () => void,
+  ) {
+    if (modalSaindo) return;
+
+    setModalSaindo(nome);
+
+    window.setTimeout(() => {
+      fechar();
+      setModalSaindo(null);
+      depois?.();
+    }, 180);
+  }
+
   function abrirImportacao() {
     setModoImportacao("colar");
     setUnidadeImportacao(unidadeSelecionada || "FCH");
@@ -339,12 +376,13 @@ function Conferencia() {
     setPreviaImportacao([]);
     setErroImportacao("");
     setResultadoImportacao(null);
+    setFinalizandoImportacao(false);
 
     setModalImportarAlunos(true);
   }
 
   function fecharImportacao() {
-    if (importando) return;
+    if (importando || finalizandoImportacao) return;
 
     setModalImportarAlunos(false);
   }
@@ -464,8 +502,11 @@ function Conferencia() {
       return;
     }
 
+    const inicioAnimacao = performance.now();
+
     try {
       setImportando(true);
+      setFinalizandoImportacao(false);
 
       const resposta = await fetch("/api/alunos/importar", {
         method: "POST",
@@ -499,16 +540,51 @@ function Conferencia() {
 
       setUnidadeSelecionada(unidadeImportacao);
 
-      await carregarAlunos(undefined, unidadeImportacao, filtroStatus);
+      // A lista será atualizada somente depois que o usuário fechar o modal
+      // de sucesso. Assim a confirmação aparece antes da tela de loading.
+
+      // Evita um loading que pisca rápido demais quando a API responde na hora.
+      const tempoDecorrido = performance.now() - inicioAnimacao;
+      const tempoMinimoLoading = 650;
+
+      if (tempoDecorrido < tempoMinimoLoading) {
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, tempoMinimoLoading - tempoDecorrido),
+        );
+      }
+
+      setImportando(false);
+      setFinalizandoImportacao(true);
+
+      // Dá tempo para o modal atual fazer o fade/scale-out antes do sucesso.
+      await new Promise((resolve) => window.setTimeout(resolve, 180));
+
+      setModalImportarAlunos(false);
+      setFinalizandoImportacao(false);
+      setSucessoImportacao({
+        resultado: dados,
+        unidade: unidadeImportacao,
+      });
     } catch (erro) {
       console.error(erro);
 
+      setFinalizandoImportacao(false);
       setErroImportacao(
         erro instanceof Error ? erro.message : "Erro ao sincronizar alunos.",
       );
     } finally {
       setImportando(false);
     }
+  }
+
+  async function fecharSucessoImportacao() {
+    const unidade = sucessoImportacao?.unidade;
+
+    setSucessoImportacao(null);
+
+    if (!unidade) return;
+
+    await carregarAlunos(undefined, unidade, filtroStatus);
   }
 
   function abrirImportacaoCancelados() {
@@ -524,7 +600,10 @@ function Conferencia() {
 
   function fecharImportacaoCancelados() {
     if (processandoCancelados) return;
-    setModalImportarCancelados(false);
+
+    fecharModalAnimado("importar-cancelados", () =>
+      setModalImportarCancelados(false),
+    );
   }
 
   function limparImportacaoCancelados() {
@@ -1643,7 +1722,9 @@ function Conferencia() {
       </div>
 
       {modalAdicionarAluno && (
-        <div className="modal-overlay">
+        <div
+          className={`modal-overlay ${modalSaindo === "adicionar-aluno" ? "modal-overlay-exit" : ""}`}
+        >
           <div className="modal-novo-aluno modal-adicionar-aluno">
             <div className="modal-cabecalho">
               <div>
@@ -1655,7 +1736,11 @@ function Conferencia() {
               <button
                 type="button"
                 className="modal-fechar"
-                onClick={() => setModalAdicionarAluno(false)}
+                onClick={() =>
+                  fecharModalAnimado("adicionar-aluno", () =>
+                    setModalAdicionarAluno(false),
+                  )
+                }
               >
                 ×
               </button>
@@ -1665,9 +1750,14 @@ function Conferencia() {
               <button
                 type="button"
                 onClick={() => {
-                  setModalAdicionarAluno(false);
-                  setErroCadastro("");
-                  setModalNovoAluno(true);
+                  fecharModalAnimado(
+                    "adicionar-aluno",
+                    () => setModalAdicionarAluno(false),
+                    () => {
+                      setErroCadastro("");
+                      setModalNovoAluno(true);
+                    },
+                  );
                 }}
               >
                 <strong>+ Novo aluno</strong>
@@ -1677,8 +1767,11 @@ function Conferencia() {
               <button
                 type="button"
                 onClick={() => {
-                  setModalAdicionarAluno(false);
-                  abrirImportacao();
+                  fecharModalAnimado(
+                    "adicionar-aluno",
+                    () => setModalAdicionarAluno(false),
+                    abrirImportacao,
+                  );
                 }}
               >
                 <strong>⇧ Importar lista</strong>
@@ -1690,7 +1783,9 @@ function Conferencia() {
       )}
 
       {modalNovoAluno && (
-        <div className="modal-overlay">
+        <div
+          className={`modal-overlay ${modalSaindo === "novo-aluno" ? "modal-overlay-exit" : ""}`}
+        >
           <div className="modal-novo-aluno">
             <div className="modal-cabecalho">
               <div>
@@ -1702,7 +1797,9 @@ function Conferencia() {
               <button
                 type="button"
                 className="modal-fechar"
-                onClick={() => setModalNovoAluno(false)}
+                onClick={() =>
+                  fecharModalAnimado("novo-aluno", () => setModalNovoAluno(false))
+                }
                 disabled={cadastrando}
               >
                 ×
@@ -1721,7 +1818,9 @@ function Conferencia() {
               <button
                 type="button"
                 className="botao-cancelar"
-                onClick={() => setModalNovoAluno(false)}
+                onClick={() =>
+                  fecharModalAnimado("novo-aluno", () => setModalNovoAluno(false))
+                }
                 disabled={cadastrando}
               >
                 Cancelar
@@ -1741,7 +1840,9 @@ function Conferencia() {
       )}
 
       {modalEditarAluno && (
-        <div className="modal-overlay">
+        <div
+          className={`modal-overlay ${modalSaindo === "editar-aluno" ? "modal-overlay-exit" : ""}`}
+        >
           <div className="modal-novo-aluno">
             <div className="modal-cabecalho">
               <div>
@@ -1753,7 +1854,11 @@ function Conferencia() {
               <button
                 type="button"
                 className="modal-fechar"
-                onClick={() => setModalEditarAluno(false)}
+                onClick={() =>
+                  fecharModalAnimado("editar-aluno", () =>
+                    setModalEditarAluno(false),
+                  )
+                }
                 disabled={editando}
               >
                 ×
@@ -1764,34 +1869,10 @@ function Conferencia() {
 
             {erroEdicao && <div className="modal-erro">{erroEdicao}</div>}
 
-            <div
-              style={{
-                margin: "18px 24px 0",
-                padding: "16px",
-                border: "1px solid #6f3a34",
-                borderRadius: "10px",
-                background: "#241817",
-              }}
-            >
-              <strong
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  color: "#ff9f91",
-                  fontSize: "11px",
-                }}
-              >
-                ZONA DE PERIGO
-              </strong>
+            <div className="edit-student-danger-zone">
+              <strong>ZONA DE PERIGO</strong>
 
-              <p
-                style={{
-                  margin: "0 0 12px",
-                  color: "#9eaab3",
-                  fontSize: "10px",
-                  lineHeight: 1.5,
-                }}
-              >
+              <p>
                 Excluir permanentemente deve ser usado apenas quando este
                 cadastro foi criado por engano. Para saída do aluno, use o
                 cancelamento de matrícula.
@@ -1801,8 +1882,11 @@ function Conferencia() {
                 type="button"
                 className="student-delete-button"
                 onClick={() => {
-                  setModalEditarAluno(false);
-                  setModalExcluirAluno(true);
+                  fecharModalAnimado(
+                    "editar-aluno",
+                    () => setModalEditarAluno(false),
+                    () => setModalExcluirAluno(true),
+                  );
                 }}
                 disabled={editando}
               >
@@ -1814,7 +1898,11 @@ function Conferencia() {
               <button
                 type="button"
                 className="botao-cancelar"
-                onClick={() => setModalEditarAluno(false)}
+                onClick={() =>
+                  fecharModalAnimado("editar-aluno", () =>
+                    setModalEditarAluno(false),
+                  )
+                }
                 disabled={editando}
               >
                 Cancelar
@@ -1834,8 +1922,18 @@ function Conferencia() {
       )}
 
       {modalImportarAlunos && (
-        <div className="modal-overlay">
-          <div className="modal-importacao">
+        <div
+          className={`modal-overlay ${
+            finalizandoImportacao ? "modal-overlay-finalizando" : ""
+          } ${
+            modalSaindo === "importar-alunos" ? "modal-overlay-exit" : ""
+          }`}
+        >
+          <div
+            className={`modal-importacao ${
+              finalizandoImportacao ? "modal-importacao-finalizando" : ""
+            }`}
+          >
             <div className="modal-cabecalho">
               <div>
                 <span className="modal-eyebrow">IMPORTAÇÃO EM LOTE</span>
@@ -1852,14 +1950,42 @@ function Conferencia() {
                 type="button"
                 className="modal-fechar"
                 onClick={fecharImportacao}
-                disabled={importando}
+                disabled={importando || finalizandoImportacao}
               >
                 ×
               </button>
             </div>
 
             <div className="importacao-conteudo">
-              {!resultadoImportacao && (
+              {(importando || finalizandoImportacao) && (
+                <div
+                  className={`importacao-processando ${
+                    finalizandoImportacao ? "concluindo" : ""
+                  }`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  <div className="importacao-processando-spinner" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+
+                  <strong>
+                    {finalizandoImportacao
+                      ? "Sincronização concluída"
+                      : "Sincronizando alunos..."}
+                  </strong>
+
+                  <span>
+                    {finalizandoImportacao
+                      ? "Preparando o resumo da importação."
+                      : "Atualizando a base e conferindo os dados importados."}
+                  </span>
+                </div>
+              )}
+
+              {!resultadoImportacao && !importando && !finalizandoImportacao && (
                 <>
                   <label className="importacao-unidade">
                     <span>Unidade de destino</span>
@@ -2079,7 +2205,7 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
                 </>
               )}
 
-              {resultadoImportacao && (
+              {resultadoImportacao && !importando && !finalizandoImportacao && (
                 <div className="importacao-resultado">
                   <div className="importacao-resultado-ok">✓</div>
 
@@ -2133,8 +2259,9 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
               )}
             </div>
 
-            <div className="modal-acoes">
-              {!resultadoImportacao ? (
+            {!importando && !finalizandoImportacao && (
+              <div className="modal-acoes">
+                {!resultadoImportacao ? (
                 <>
                   <button
                     type="button"
@@ -2171,14 +2298,71 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
                 >
                   Concluir
                 </button>
-              )}
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {sucessoImportacao && (
+        <div className="modal-overlay">
+          <div className="modal-importacao-sucesso" role="dialog" aria-modal="true">
+            <div className="importacao-sucesso-conteudo">
+              <div className="importacao-sucesso-icone">✓</div>
+
+              <span className="modal-eyebrow">IMPORTAÇÃO CONCLUÍDA</span>
+              <h2>Alunos sincronizados com sucesso</h2>
+
+              <p>
+                A importação para a unidade <strong>{sucessoImportacao.unidade}</strong>{" "}
+                foi concluída.
+              </p>
+
+              <div className="importacao-sucesso-resumo">
+                <div>
+                  <strong>
+                    {quantidadeResultado(sucessoImportacao.resultado.importados)}
+                  </strong>
+                  <span>incluídos</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {quantidadeResultado(sucessoImportacao.resultado.atualizados)}
+                  </strong>
+                  <span>atualizados</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {quantidadeResultado(
+                      sucessoImportacao.resultado.sem_alteracoes,
+                    )}
+                  </strong>
+                  <span>sem alterações</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-acoes importacao-sucesso-acoes">
+              <button
+                type="button"
+                className="botao-cadastrar"
+                onClick={() => void fecharSucessoImportacao()}
+                autoFocus
+              >
+                Fechar
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {modalImportarCancelados && (
-        <div className="modal-overlay">
+        <div
+          className={`modal-overlay ${modalSaindo === "importar-cancelados" ? "modal-overlay-exit" : ""}`}
+        >
           <div className="modal-importacao">
             <div className="modal-cabecalho">
               <div>
@@ -2467,7 +2651,9 @@ Não Entregue    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA 
       )}
 
       {modalStatusAluno && (
-        <div className="modal-overlay">
+        <div
+          className={`modal-overlay ${modalSaindo === "status-aluno" ? "modal-overlay-exit" : ""}`}
+        >
           <div className="modal-excluir-aluno">
             <div
               className={
@@ -2523,7 +2709,11 @@ Não Entregue    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA 
               <button
                 type="button"
                 className="botao-cancelar"
-                onClick={() => setModalStatusAluno(false)}
+                onClick={() =>
+                  fecharModalAnimado("status-aluno", () =>
+                    setModalStatusAluno(false),
+                  )
+                }
                 disabled={alterandoStatusAluno}
               >
                 Voltar
@@ -2551,7 +2741,9 @@ Não Entregue    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA 
       )}
 
       {modalExcluirAluno && (
-        <div className="modal-overlay">
+        <div
+          className={`modal-overlay ${modalSaindo === "excluir-aluno" ? "modal-overlay-exit" : ""}`}
+        >
           <div className="modal-excluir-aluno">
             <div className="modal-excluir-icon">!</div>
 
@@ -2582,7 +2774,11 @@ Não Entregue    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA 
               <button
                 type="button"
                 className="botao-cancelar"
-                onClick={() => setModalExcluirAluno(false)}
+                onClick={() =>
+                  fecharModalAnimado("excluir-aluno", () =>
+                    setModalExcluirAluno(false),
+                  )
+                }
                 disabled={excluindo}
               >
                 Cancelar

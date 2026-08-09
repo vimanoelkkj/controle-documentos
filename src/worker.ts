@@ -4,6 +4,7 @@ interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
   GOOGLE_SERVICE_ACCOUNT_JSON?: string;
+  ENVIRONMENT?: string;
 }
 
 type AlunoRow = {
@@ -135,6 +136,30 @@ function valorBooleano(valor: unknown) {
   return ["TRUE", "VERDADEIRO", "1", "SIM", "X"].includes(normalizarComparacao(valor));
 }
 
+async function testarConexaoGoogleSheets(env: Env, config: SheetsConfig) {
+  const token = await obterTokenGoogle(env);
+
+  const endpoint =
+    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(config.spreadsheet_id)}` +
+    `?fields=spreadsheetId,properties.title`;
+
+  const resposta = await fetch(endpoint, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!resposta.ok) {
+    const detalhe = await resposta.text();
+    throw new Error(
+      `Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`,
+    );
+  }
+
+  return resposta.json<{
+    spreadsheetId: string;
+    properties?: { title?: string };
+  }>();
+}
+
 async function lerRangesGoogle(env: Env, config: SheetsConfig) {
   const token = await obterTokenGoogle(env);
   const abas = [
@@ -237,6 +262,16 @@ async function usuarioDaRequisicao(request: Request, env: Env) {
 
 function podeEditar(usuario: UsuarioSessao) {
   return usuario.perfil === "ADMIN" || usuario.perfil === "EDITOR";
+}
+
+function ambienteDesenvolvimento(request: Request, env: Env) {
+  const hostname = new URL(request.url).hostname.toLowerCase();
+
+  return (
+    env.ENVIRONMENT?.toLowerCase() === "dev" ||
+    hostname === "localhost" ||
+    hostname === "127.0.0.1"
+  );
 }
 
 export default {
@@ -419,6 +454,53 @@ export default {
       }
     }
 
+
+    const rotaSheetsStatus = url.pathname.match(
+      /^\/api\/periodos\/(\d+)\/google-sheets\/status$/,
+    );
+
+    if (rotaSheetsStatus && request.method === "GET") {
+      const periodoId = Number(rotaSheetsStatus[1]);
+
+      const config = await env.DB.prepare(
+        `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+      ).bind(periodoId).first<SheetsConfig>();
+
+      if (!config) {
+        return Response.json({
+          configurado: false,
+          conectado: false,
+          spreadsheet_id: null,
+          titulo: null,
+          erro: null,
+        });
+      }
+
+      try {
+        const planilha = await testarConexaoGoogleSheets(env, config);
+
+        return Response.json({
+          configurado: true,
+          conectado: true,
+          spreadsheet_id: config.spreadsheet_id,
+          titulo: planilha.properties?.title || null,
+          erro: null,
+        });
+      } catch (erro) {
+        console.error("Falha ao testar conexão com Google Sheets.", erro);
+
+        return Response.json({
+          configurado: true,
+          conectado: false,
+          spreadsheet_id: config.spreadsheet_id,
+          titulo: null,
+          erro:
+            erro instanceof Error
+              ? erro.message
+              : "Não foi possível validar a conexão com o Google Sheets.",
+        });
+      }
+    }
 
     const rotaSheetsConfig = url.pathname.match(/^\/api\/periodos\/(\d+)\/google-sheets$/);
     if (rotaSheetsConfig && request.method === "GET") {
@@ -627,6 +709,89 @@ export default {
         { erro: "Nenhum período letivo disponível. Crie ou migre um período antes de continuar." },
         { status: 409 },
       );
+    }
+
+    // =====================================================
+    // FERRAMENTAS DE DESENVOLVIMENTO — LIMPEZA DE ALUNOS
+    // =====================================================
+
+    if (url.pathname === "/api/dev/alunos-reset/status" && request.method === "GET") {
+      return Response.json({
+        habilitado:
+          ambienteDesenvolvimento(request, env) &&
+          usuarioAtual?.perfil === "ADMIN",
+      });
+    }
+
+    if (url.pathname === "/api/dev/alunos-reset" && request.method === "DELETE") {
+      if (!ambienteDesenvolvimento(request, env)) {
+        return Response.json(
+          { erro: "Ferramenta disponível somente no ambiente de desenvolvimento." },
+          { status: 403 },
+        );
+      }
+
+      if (usuarioAtual?.perfil !== "ADMIN") {
+        return Response.json(
+          { erro: "Apenas administradores podem usar ferramentas de desenvolvimento." },
+          { status: 403 },
+        );
+      }
+
+      try {
+        const body = await request.json<{
+          unidade?: string;
+          confirmacao?: string;
+        }>();
+
+        const unidade = body.unidade?.trim().toUpperCase() || "TODOS";
+        const unidadesValidas = ["FACE", "FEA", "FCH", "EAD", "TODOS"];
+
+        if (!unidadesValidas.includes(unidade)) {
+          return Response.json({ erro: "Unidade inválida." }, { status: 400 });
+        }
+
+        const confirmacaoEsperada =
+          unidade === "TODOS" ? "LIMPAR TODOS" : `LIMPAR ${unidade}`;
+
+        if (body.confirmacao?.trim().toUpperCase() !== confirmacaoEsperada) {
+          return Response.json(
+            { erro: `Digite "${confirmacaoEsperada}" para confirmar.` },
+            { status: 400 },
+          );
+        }
+
+        const contagem = unidade === "TODOS"
+          ? await env.DB.prepare(
+              `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ?`,
+            ).bind(periodoAtual!.id).first<{ total: number }>()
+          : await env.DB.prepare(
+              `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ? AND unidade = ?`,
+            ).bind(periodoAtual!.id, unidade).first<{ total: number }>();
+
+        if (unidade === "TODOS") {
+          await env.DB.prepare(
+            `DELETE FROM alunos WHERE periodo_id = ?`,
+          ).bind(periodoAtual!.id).run();
+        } else {
+          await env.DB.prepare(
+            `DELETE FROM alunos WHERE periodo_id = ? AND unidade = ?`,
+          ).bind(periodoAtual!.id, unidade).run();
+        }
+
+        return Response.json({
+          sucesso: true,
+          unidade,
+          removidos: Number(contagem?.total ?? 0),
+          periodo: periodoAtual!.codigo,
+        });
+      } catch (erro) {
+        console.error(erro);
+        return Response.json(
+          { erro: "Não foi possível limpar os alunos de desenvolvimento." },
+          { status: 500 },
+        );
+      }
     }
 
     // =====================================================
