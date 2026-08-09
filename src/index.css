@@ -5979,10 +5979,10 @@ html[data-theme="light"] .period-sheets-warning {
   color: inherit;
   text-align: left;
   background: #0a151c;
-  cursor: pointer;
+  cursor: default;
 }
-.period-sheets-metrics > button:hover,
-.period-sheets-metrics > button.active {
+.period-sheets-metrics > button.has-details:hover,
+.period-sheets-metrics > button.has-details.active {
   border-color: #4f9dcc;
   background: #102432;
 }
@@ -6112,8 +6112,8 @@ html[data-theme="light"] .period-sheets-metrics > button {
   border-color: #d9e5eb;
   background: #f8fbfc;
 }
-html[data-theme="light"] .period-sheets-metrics > button:hover,
-html[data-theme="light"] .period-sheets-metrics > button.active {
+html[data-theme="light"] .period-sheets-metrics > button.has-details:hover,
+html[data-theme="light"] .period-sheets-metrics > button.has-details.active {
   border-color: #72b7df;
   background: #eef8fd;
 }
@@ -10622,4 +10622,49 @@ html[data-theme="light"] .student-search-result button:hover {
 
 .student-card {
   align-self: start;
+}
+
+/* =========================================================
+   GOOGLE PLANILHAS — MODAL DE SINCRONIZAÇÃO CONCLUÍDA
+   Reaproveita o visual do sucesso da importação de alunos.
+   ========================================================= */
+
+.sheets-sync-success-modal {
+  width: min(640px, 100%);
+}
+
+.sheets-sync-success-resumo {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sheets-sync-success-total {
+  display: block;
+  margin-top: 14px;
+  color: #7891a2;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+html[data-theme="light"] .sheets-sync-success-total {
+  color: #718795;
+}
+
+@media (max-width: 680px) {
+  .sheets-sync-success-resumo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .sheets-sync-success-resumo {
+    grid-template-columns: 1fr;
+  }
+}
+
+.period-sheets-metrics button.has-details {
+  cursor: pointer;
+}
+
+.period-sheets-metrics button.no-details {
+  cursor: default;
 }

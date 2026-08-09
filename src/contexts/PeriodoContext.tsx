@@ -32,8 +32,16 @@ export function PeriodoProvider({ children }: { children: ReactNode }) {
   const [erro, setErro] = useState("");
 
   async function recarregarPeriodos() {
+    const cargaInicial = periodos.length === 0;
+
     try {
-      setCarregando(true);
+      // Na primeira carga, mantém a tela global de inicialização.
+      // Nas atualizações posteriores, preserva a página montada para não
+      // perder estados locais como modais de sucesso.
+      if (cargaInicial) {
+        setCarregando(true);
+      }
+
       setErro("");
       const resposta = await fetch("/api/periodos");
       if (!resposta.ok) throw new Error("Falha ao carregar períodos.");
@@ -52,7 +60,9 @@ export function PeriodoProvider({ children }: { children: ReactNode }) {
       console.error(e);
       setErro("Não foi possível carregar os períodos letivos.");
     } finally {
-      setCarregando(false);
+      if (cargaInicial) {
+        setCarregando(false);
+      }
     }
   }
 

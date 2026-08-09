@@ -44,9 +44,6 @@ type DocumentosBody = {
   contrato: boolean;
 };
 
-
-
-
 type SheetsConfig = {
   periodo_id: number;
   spreadsheet_id: string;
@@ -66,14 +63,23 @@ type GoogleServiceAccount = {
 };
 
 function base64Url(valor: ArrayBuffer | string) {
-  const bytes = typeof valor === "string" ? new TextEncoder().encode(valor) : new Uint8Array(valor);
+  const bytes =
+    typeof valor === "string"
+      ? new TextEncoder().encode(valor)
+      : new Uint8Array(valor);
   let binario = "";
   for (const byte of bytes) binario += String.fromCharCode(byte);
-  return btoa(binario).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+  return btoa(binario)
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
 }
 
 function pemParaArrayBuffer(pem: string) {
-  const base64 = pem.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g, "");
+  const base64 = pem.replace(
+    /-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g,
+    "",
+  );
   const binario = atob(base64);
   const bytes = new Uint8Array(binario.length);
   for (let i = 0; i < binario.length; i += 1) bytes[i] = binario.charCodeAt(i);
@@ -84,16 +90,20 @@ async function obterTokenGoogle(env: Env) {
   if (!env.GOOGLE_SERVICE_ACCOUNT_JSON) {
     throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON não configurado no Worker.");
   }
-  const conta = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT_JSON) as GoogleServiceAccount;
+  const conta = JSON.parse(
+    env.GOOGLE_SERVICE_ACCOUNT_JSON,
+  ) as GoogleServiceAccount;
   const agora = Math.floor(Date.now() / 1000);
   const header = base64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const payload = base64Url(JSON.stringify({
-    iss: conta.client_email,
-    scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
-    aud: conta.token_uri || "https://oauth2.googleapis.com/token",
-    iat: agora,
-    exp: agora + 3600,
-  }));
+  const payload = base64Url(
+    JSON.stringify({
+      iss: conta.client_email,
+      scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
+      aud: conta.token_uri || "https://oauth2.googleapis.com/token",
+      iat: agora,
+      exp: agora + 3600,
+    }),
+  );
   const chave = await crypto.subtle.importKey(
     "pkcs8",
     pemParaArrayBuffer(conta.private_key),
@@ -107,12 +117,19 @@ async function obterTokenGoogle(env: Env) {
     new TextEncoder().encode(`${header}.${payload}`),
   );
   const jwt = `${header}.${payload}.${base64Url(assinatura)}`;
-  const resposta = await fetch(conta.token_uri || "https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }),
-  });
-  if (!resposta.ok) throw new Error(`Falha na autenticação Google (${resposta.status}).`);
+  const resposta = await fetch(
+    conta.token_uri || "https://oauth2.googleapis.com/token",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: jwt,
+      }),
+    },
+  );
+  if (!resposta.ok)
+    throw new Error(`Falha na autenticação Google (${resposta.status}).`);
   const dados = await resposta.json<{ access_token: string }>();
   return dados.access_token;
 }
@@ -128,12 +145,17 @@ function normalizarTexto(valor: unknown) {
 }
 
 function normalizarComparacao(valor: unknown) {
-  return normalizarTexto(valor).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+  return normalizarTexto(valor)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
 }
 
 function valorBooleano(valor: unknown) {
   if (typeof valor === "boolean") return valor;
-  return ["TRUE", "VERDADEIRO", "1", "SIM", "X"].includes(normalizarComparacao(valor));
+  return ["TRUE", "VERDADEIRO", "1", "SIM", "X"].includes(
+    normalizarComparacao(valor),
+  );
 }
 
 async function testarConexaoGoogleSheets(env: Env, config: SheetsConfig) {
@@ -171,17 +193,27 @@ async function lerRangesGoogle(env: Env, config: SheetsConfig) {
     config.aba_cancelados_fch_ead,
   ];
   const params = new URLSearchParams();
-  for (const aba of abas) params.append("ranges", `'${aba.replace(/'/g, "''")}'!A:K`);
+  for (const aba of abas)
+    params.append("ranges", `'${aba.replace(/'/g, "''")}'!A:K`);
   params.set("majorDimension", "ROWS");
   params.set("valueRenderOption", "UNFORMATTED_VALUE");
   const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(config.spreadsheet_id)}/values:batchGet?${params}`;
-  const resposta = await fetch(endpoint, { headers: { Authorization: `Bearer ${token}` } });
+  const resposta = await fetch(endpoint, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   if (!resposta.ok) {
     const detalhe = await resposta.text();
-    throw new Error(`Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`);
+    throw new Error(
+      `Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`,
+    );
   }
-  const dados = await resposta.json<{ valueRanges?: Array<{ values?: unknown[][] }> }>();
-  return abas.map((aba, indice) => ({ aba, linhas: dados.valueRanges?.[indice]?.values ?? [] }));
+  const dados = await resposta.json<{
+    valueRanges?: Array<{ values?: unknown[][] }>;
+  }>();
+  return abas.map((aba, indice) => ({
+    aba,
+    linhas: dados.valueRanges?.[indice]?.values ?? [],
+  }));
 }
 
 type PeriodoRow = {
@@ -202,7 +234,8 @@ function obterCookie(request: Request, nome: string) {
 }
 
 async function obterPeriodoAtual(request: Request, env: Env, url: URL) {
-  const codigo = url.searchParams.get("periodo") || obterCookie(request, "periodo");
+  const codigo =
+    url.searchParams.get("periodo") || obterCookie(request, "periodo");
 
   if (codigo) {
     const periodo = await env.DB.prepare(
@@ -218,29 +251,53 @@ async function obterPeriodoAtual(request: Request, env: Env, url: URL) {
   ).first<PeriodoRow>();
 }
 
-
 type PerfilUsuario = "ADMIN" | "EDITOR" | "VISUALIZADOR";
-type UsuarioSessao = { id: number; nome: string; email: string; username: string; perfil: PerfilUsuario; ativo: number };
+type UsuarioSessao = {
+  id: number;
+  nome: string;
+  email: string;
+  username: string;
+  perfil: PerfilUsuario;
+  ativo: number;
+};
 
 function bytesHex(bytes: Uint8Array) {
-  return Array.from(bytes).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function hexBytes(hex: string) {
   const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < bytes.length; i += 1) bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  for (let i = 0; i < bytes.length; i += 1)
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
   return bytes;
 }
 
 async function hashSenha(senha: string, saltHex?: string) {
-  const salt = saltHex ? hexBytes(saltHex) : crypto.getRandomValues(new Uint8Array(16));
-  const chave = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: 210000 }, chave, 256);
+  const salt = saltHex
+    ? hexBytes(saltHex)
+    : crypto.getRandomValues(new Uint8Array(16));
+  const chave = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(senha),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt, iterations: 210000 },
+    chave,
+    256,
+  );
   return { hash: bytesHex(new Uint8Array(bits)), salt: bytesHex(salt) };
 }
 
 async function hashToken(token: string) {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(token),
+  );
   return bytesHex(new Uint8Array(digest));
 }
 
@@ -253,7 +310,8 @@ class AuthStorageUnavailableError extends Error {
   constructor(causa?: unknown) {
     super("O banco de autenticação está temporariamente indisponível.");
     this.name = "AuthStorageUnavailableError";
-    if (causa) console.error("Falha temporária no D1 durante autenticação:", causa);
+    if (causa)
+      console.error("Falha temporária no D1 durante autenticação:", causa);
   }
 }
 
@@ -271,14 +329,18 @@ async function usuarioDaRequisicao(request: Request, env: Env) {
   // Uma nova tentativa curta evita transformar uma falha momentânea em logout/500.
   for (let tentativa = 1; tentativa <= 2; tentativa += 1) {
     try {
-      return await env.DB.prepare(`
+      return await env.DB.prepare(
+        `
         SELECT u.id, u.nome, u.email, u.username, u.perfil, u.ativo
         FROM sessoes s
         JOIN usuarios u ON u.id = s.usuario_id
         WHERE s.token_hash = ?
           AND s.expira_em > CURRENT_TIMESTAMP
           AND u.ativo = 1
-      `).bind(tokenHash).first<UsuarioSessao>();
+      `,
+      )
+        .bind(tokenHash)
+        .first<UsuarioSessao>();
     } catch (erro) {
       if (tentativa === 2) {
         throw new AuthStorageUnavailableError(erro);
@@ -330,57 +392,138 @@ export default {
     // =====================================================
     if (url.pathname === "/api/auth/bootstrap" && request.method === "GET") {
       try {
-        const total = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios`).first<{ total: number }>();
+        const total = await env.DB.prepare(
+          `SELECT COUNT(*) AS total FROM usuarios`,
+        ).first<{ total: number }>();
         return Response.json({ necessario: Number(total?.total || 0) === 0 });
       } catch {
-        return Response.json({ erro: "Autenticação indisponível. Execute a migration 005_auth.sql." }, { status: 500 });
+        return Response.json(
+          {
+            erro: "Autenticação indisponível. Execute a migration 005_auth.sql.",
+          },
+          { status: 500 },
+        );
       }
     }
 
     if (url.pathname === "/api/auth/bootstrap" && request.method === "POST") {
-      const total = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios`).first<{ total: number }>();
-      if (Number(total?.total || 0) !== 0) return Response.json({ erro: "O administrador inicial já foi criado." }, { status: 409 });
-      const body = await request.json<{ nome?: string; email?: string; username?: string; senha?: string }>();
+      const total = await env.DB.prepare(
+        `SELECT COUNT(*) AS total FROM usuarios`,
+      ).first<{ total: number }>();
+      if (Number(total?.total || 0) !== 0)
+        return Response.json(
+          { erro: "O administrador inicial já foi criado." },
+          { status: 409 },
+        );
+      const body = await request.json<{
+        nome?: string;
+        email?: string;
+        username?: string;
+        senha?: string;
+      }>();
       const nome = body.nome?.trim();
       const email = body.email?.trim().toLowerCase();
       const username = body.username?.trim().toLowerCase();
       const senha = body.senha || "";
-      if (!nome || !email || !username || senha.length < 8) return Response.json({ erro: "Informe nome, usuário, e-mail e uma senha com pelo menos 8 caracteres." }, { status: 400 });
-      if (!/^[a-z0-9._-]{3,40}$/i.test(username)) return Response.json({ erro: "O nome de usuário deve ter de 3 a 40 caracteres e usar apenas letras, números, ponto, hífen ou underline." }, { status: 400 });
+      if (!nome || !email || !username || senha.length < 8)
+        return Response.json(
+          {
+            erro: "Informe nome, usuário, e-mail e uma senha com pelo menos 8 caracteres.",
+          },
+          { status: 400 },
+        );
+      if (!/^[a-z0-9._-]{3,40}$/i.test(username))
+        return Response.json(
+          {
+            erro: "O nome de usuário deve ter de 3 a 40 caracteres e usar apenas letras, números, ponto, hífen ou underline.",
+          },
+          { status: 400 },
+        );
       const cred = await hashSenha(senha);
       try {
-        await env.DB.prepare(`INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, 'ADMIN', 1)`).bind(nome, email, username, cred.hash, cred.salt).run();
+        await env.DB.prepare(
+          `INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, 'ADMIN', 1)`,
+        )
+          .bind(nome, email, username, cred.hash, cred.salt)
+          .run();
       } catch {
-        return Response.json({ erro: "E-mail ou nome de usuário já cadastrado." }, { status: 409 });
+        return Response.json(
+          { erro: "E-mail ou nome de usuário já cadastrado." },
+          { status: 409 },
+        );
       }
       return Response.json({ sucesso: true }, { status: 201 });
     }
 
     if (url.pathname === "/api/auth/login" && request.method === "POST") {
-      const body = await request.json<{ identificador?: string; email?: string; senha?: string }>();
-      const identificador = (body.identificador || body.email || "").trim().toLowerCase();
+      const body = await request.json<{
+        identificador?: string;
+        email?: string;
+        senha?: string;
+      }>();
+      const identificador = (body.identificador || body.email || "")
+        .trim()
+        .toLowerCase();
       const senha = body.senha || "";
-      const usuario = identificador ? await env.DB.prepare(`SELECT id, nome, email, username, perfil, ativo, senha_hash, senha_salt FROM usuarios WHERE email = ? OR username = ? LIMIT 1`).bind(identificador, identificador).first<UsuarioSessao & { senha_hash: string; senha_salt: string }>() : null;
-      if (!usuario || !usuario.ativo) return Response.json({ erro: "Usuário/e-mail ou senha inválidos." }, { status: 401 });
+      const usuario = identificador
+        ? await env.DB.prepare(
+            `SELECT id, nome, email, username, perfil, ativo, senha_hash, senha_salt FROM usuarios WHERE email = ? OR username = ? LIMIT 1`,
+          )
+            .bind(identificador, identificador)
+            .first<UsuarioSessao & { senha_hash: string; senha_salt: string }>()
+        : null;
+      if (!usuario || !usuario.ativo)
+        return Response.json(
+          { erro: "Usuário/e-mail ou senha inválidos." },
+          { status: 401 },
+        );
       const cred = await hashSenha(senha, usuario.senha_salt);
-      if (cred.hash !== usuario.senha_hash) return Response.json({ erro: "Usuário/e-mail ou senha inválidos." }, { status: 401 });
+      if (cred.hash !== usuario.senha_hash)
+        return Response.json(
+          { erro: "Usuário/e-mail ou senha inválidos." },
+          { status: 401 },
+        );
       const token = bytesHex(crypto.getRandomValues(new Uint8Array(32)));
       const tokenHash = await hashToken(token);
-      await env.DB.prepare(`DELETE FROM sessoes WHERE expira_em <= CURRENT_TIMESTAMP`).run();
-      await env.DB.prepare(`INSERT INTO sessoes (usuario_id, token_hash, expira_em) VALUES (?, ?, datetime('now', '+12 hours'))`).bind(usuario.id, tokenHash).run();
-      return Response.json({ usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, username: usuario.username, perfil: usuario.perfil } }, { headers: { "Set-Cookie": cookieSessao(token, request) } });
+      await env.DB.prepare(
+        `DELETE FROM sessoes WHERE expira_em <= CURRENT_TIMESTAMP`,
+      ).run();
+      await env.DB.prepare(
+        `INSERT INTO sessoes (usuario_id, token_hash, expira_em) VALUES (?, ?, datetime('now', '+12 hours'))`,
+      )
+        .bind(usuario.id, tokenHash)
+        .run();
+      return Response.json(
+        {
+          usuario: {
+            id: usuario.id,
+            nome: usuario.nome,
+            email: usuario.email,
+            username: usuario.username,
+            perfil: usuario.perfil,
+          },
+        },
+        { headers: { "Set-Cookie": cookieSessao(token, request) } },
+      );
     }
 
     if (url.pathname === "/api/auth/logout" && request.method === "POST") {
       const token = obterCookie(request, "cd_session");
-      if (token) await env.DB.prepare(`DELETE FROM sessoes WHERE token_hash = ?`).bind(await hashToken(token)).run();
-      return Response.json({ sucesso: true }, { headers: { "Set-Cookie": cookieSessao("", request, 0) } });
+      if (token)
+        await env.DB.prepare(`DELETE FROM sessoes WHERE token_hash = ?`)
+          .bind(await hashToken(token))
+          .run();
+      return Response.json(
+        { sucesso: true },
+        { headers: { "Set-Cookie": cookieSessao("", request, 0) } },
+      );
     }
 
     if (url.pathname === "/api/auth/me" && request.method === "GET") {
       try {
         const usuario = await usuarioDaRequisicao(request, env);
-        if (!usuario) return Response.json({ erro: "Não autenticado." }, { status: 401 });
+        if (!usuario)
+          return Response.json({ erro: "Não autenticado." }, { status: 401 });
 
         return Response.json({
           usuario: {
@@ -418,48 +561,137 @@ export default {
       }
 
       if (url.pathname === "/api/usuarios") {
-        if (usuarioAtual.perfil !== "ADMIN") return Response.json({ erro: "Apenas administradores podem gerenciar usuários." }, { status: 403 });
+        if (usuarioAtual.perfil !== "ADMIN")
+          return Response.json(
+            { erro: "Apenas administradores podem gerenciar usuários." },
+            { status: 403 },
+          );
         if (request.method === "GET") {
-          const usuarios = await env.DB.prepare(`SELECT id, nome, email, username, perfil, ativo, criado_em FROM usuarios ORDER BY nome`).all();
+          const usuarios = await env.DB.prepare(
+            `SELECT id, nome, email, username, perfil, ativo, criado_em FROM usuarios ORDER BY nome`,
+          ).all();
           return Response.json(usuarios.results);
         }
         if (request.method === "POST") {
-          const body = await request.json<{ nome?: string; email?: string; username?: string; senha?: string; perfil?: PerfilUsuario }>();
+          const body = await request.json<{
+            nome?: string;
+            email?: string;
+            username?: string;
+            senha?: string;
+            perfil?: PerfilUsuario;
+          }>();
           const nome = body.nome?.trim();
           const email = body.email?.trim().toLowerCase();
           const username = body.username?.trim().toLowerCase();
           const senha = body.senha || "";
           const perfil = body.perfil;
-          if (!nome || !email || !username || senha.length < 8 || !perfil || !["ADMIN", "EDITOR", "VISUALIZADOR"].includes(perfil)) return Response.json({ erro: "Dados de usuário inválidos." }, { status: 400 });
-          if (!/^[a-z0-9._-]{3,40}$/i.test(username)) return Response.json({ erro: "Nome de usuário inválido." }, { status: 400 });
+          if (
+            !nome ||
+            !email ||
+            !username ||
+            senha.length < 8 ||
+            !perfil ||
+            !["ADMIN", "EDITOR", "VISUALIZADOR"].includes(perfil)
+          )
+            return Response.json(
+              { erro: "Dados de usuário inválidos." },
+              { status: 400 },
+            );
+          if (!/^[a-z0-9._-]{3,40}$/i.test(username))
+            return Response.json(
+              { erro: "Nome de usuário inválido." },
+              { status: 400 },
+            );
           const cred = await hashSenha(senha);
           try {
-            const result = await env.DB.prepare(`INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, ?, 1)`).bind(nome, email, username, cred.hash, cred.salt, perfil).run();
-            return Response.json({ sucesso: true, id: result.meta.last_row_id }, { status: 201 });
-          } catch { return Response.json({ erro: "E-mail ou nome de usuário já cadastrado." }, { status: 409 }); }
+            const result = await env.DB.prepare(
+              `INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, ?, 1)`,
+            )
+              .bind(nome, email, username, cred.hash, cred.salt, perfil)
+              .run();
+            return Response.json(
+              { sucesso: true, id: result.meta.last_row_id },
+              { status: 201 },
+            );
+          } catch {
+            return Response.json(
+              { erro: "E-mail ou nome de usuário já cadastrado." },
+              { status: 409 },
+            );
+          }
         }
       }
 
       const rotaUsuario = url.pathname.match(/^\/api\/usuarios\/(\d+)$/);
       if (rotaUsuario && request.method === "PUT") {
-        if (usuarioAtual.perfil !== "ADMIN") return Response.json({ erro: "Apenas administradores podem gerenciar usuários." }, { status: 403 });
-        const id = Number(rotaUsuario[1]); const body = await request.json<{ nome?: string; perfil?: PerfilUsuario; ativo?: boolean; senha?: string }>();
-        if (id === usuarioAtual.id && body.ativo === false) return Response.json({ erro: "Você não pode desativar seu próprio usuário." }, { status: 400 });
-        if (body.perfil && !["ADMIN", "EDITOR", "VISUALIZADOR"].includes(body.perfil)) return Response.json({ erro: "Perfil inválido." }, { status: 400 });
-        const atual = await env.DB.prepare(`SELECT nome, perfil, ativo FROM usuarios WHERE id = ?`).bind(id).first<{ nome: string; perfil: PerfilUsuario; ativo: number }>();
-        if (!atual) return Response.json({ erro: "Usuário não encontrado." }, { status: 404 });
-        const nome = body.nome?.trim() || atual.nome; const perfil = body.perfil || atual.perfil; const ativo = body.ativo === undefined ? atual.ativo : (body.ativo ? 1 : 0);
-        await env.DB.prepare(`UPDATE usuarios SET nome = ?, perfil = ?, ativo = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`).bind(nome, perfil, ativo, id).run();
+        if (usuarioAtual.perfil !== "ADMIN")
+          return Response.json(
+            { erro: "Apenas administradores podem gerenciar usuários." },
+            { status: 403 },
+          );
+        const id = Number(rotaUsuario[1]);
+        const body = await request.json<{
+          nome?: string;
+          perfil?: PerfilUsuario;
+          ativo?: boolean;
+          senha?: string;
+        }>();
+        if (id === usuarioAtual.id && body.ativo === false)
+          return Response.json(
+            { erro: "Você não pode desativar seu próprio usuário." },
+            { status: 400 },
+          );
+        if (
+          body.perfil &&
+          !["ADMIN", "EDITOR", "VISUALIZADOR"].includes(body.perfil)
+        )
+          return Response.json({ erro: "Perfil inválido." }, { status: 400 });
+        const atual = await env.DB.prepare(
+          `SELECT nome, perfil, ativo FROM usuarios WHERE id = ?`,
+        )
+          .bind(id)
+          .first<{ nome: string; perfil: PerfilUsuario; ativo: number }>();
+        if (!atual)
+          return Response.json(
+            { erro: "Usuário não encontrado." },
+            { status: 404 },
+          );
+        const nome = body.nome?.trim() || atual.nome;
+        const perfil = body.perfil || atual.perfil;
+        const ativo =
+          body.ativo === undefined ? atual.ativo : body.ativo ? 1 : 0;
+        await env.DB.prepare(
+          `UPDATE usuarios SET nome = ?, perfil = ?, ativo = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`,
+        )
+          .bind(nome, perfil, ativo, id)
+          .run();
         if (body.senha) {
-          if (body.senha.length < 8) return Response.json({ erro: "A nova senha deve ter pelo menos 8 caracteres." }, { status: 400 });
-          const cred = await hashSenha(body.senha); await env.DB.prepare(`UPDATE usuarios SET senha_hash = ?, senha_salt = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`).bind(cred.hash, cred.salt, id).run();
-          await env.DB.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`).bind(id).run();
+          if (body.senha.length < 8)
+            return Response.json(
+              { erro: "A nova senha deve ter pelo menos 8 caracteres." },
+              { status: 400 },
+            );
+          const cred = await hashSenha(body.senha);
+          await env.DB.prepare(
+            `UPDATE usuarios SET senha_hash = ?, senha_salt = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`,
+          )
+            .bind(cred.hash, cred.salt, id)
+            .run();
+          await env.DB.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`)
+            .bind(id)
+            .run();
         }
         return Response.json({ sucesso: true });
       }
 
-      if (!["GET", "HEAD", "OPTIONS"].includes(request.method) && !podeEditar(usuarioAtual)) {
-        return Response.json({ erro: "Seu perfil é somente visualização." }, { status: 403 });
+      if (
+        !["GET", "HEAD", "OPTIONS"].includes(request.method) &&
+        !podeEditar(usuarioAtual)
+      ) {
+        return Response.json(
+          { erro: "Seu perfil é somente visualização." },
+          { status: 403 },
+        );
       }
     }
 
@@ -484,7 +716,9 @@ export default {
       } catch (erro) {
         console.error(erro);
         return Response.json(
-          { erro: "Períodos indisponíveis. Execute a migration 003_periodos.sql no D1." },
+          {
+            erro: "Períodos indisponíveis. Execute a migration 003_periodos.sql no D1.",
+          },
           { status: 500 },
         );
       }
@@ -495,20 +729,39 @@ export default {
         const body = await request.json<{ codigo: string }>();
         const codigo = body.codigo?.trim().toUpperCase();
         if (!/^\d{4}-(1|2)$/.test(codigo || "")) {
-          return Response.json({ erro: "Período inválido. Use AAAA-1 ou AAAA-2." }, { status: 400 });
+          return Response.json(
+            { erro: "Período inválido. Use AAAA-1 ou AAAA-2." },
+            { status: 400 },
+          );
         }
 
-        const existente = await env.DB.prepare(`SELECT id FROM periodos WHERE codigo = ?`).bind(codigo).first();
-        if (existente) return Response.json({ erro: "Este período já existe." }, { status: 409 });
+        const existente = await env.DB.prepare(
+          `SELECT id FROM periodos WHERE codigo = ?`,
+        )
+          .bind(codigo)
+          .first();
+        if (existente)
+          return Response.json(
+            { erro: "Este período já existe." },
+            { status: 409 },
+          );
 
         const resultado = await env.DB.prepare(
           `INSERT INTO periodos (codigo, status) VALUES (?, 'ATIVO')`,
-        ).bind(codigo).run();
+        )
+          .bind(codigo)
+          .run();
 
-        return Response.json({ sucesso: true, id: resultado.meta.last_row_id, codigo }, { status: 201 });
+        return Response.json(
+          { sucesso: true, id: resultado.meta.last_row_id, codigo },
+          { status: 201 },
+        );
       } catch (erro) {
         console.error(erro);
-        return Response.json({ erro: "Não foi possível criar o período." }, { status: 500 });
+        return Response.json(
+          { erro: "Não foi possível criar o período." },
+          { status: 500 },
+        );
       }
     }
 
@@ -518,18 +771,40 @@ export default {
         const id = Number(rotaPeriodo[1]);
         const body = await request.json<{ status: "ATIVO" | "ARQUIVADO" }>();
         if (!["ATIVO", "ARQUIVADO"].includes(body.status)) {
-          return Response.json({ erro: "Status de período inválido." }, { status: 400 });
+          return Response.json(
+            { erro: "Status de período inválido." },
+            { status: 400 },
+          );
         }
-        const periodo = await env.DB.prepare(`SELECT id, codigo FROM periodos WHERE id = ?`).bind(id).first<{id:number; codigo:string}>();
-        if (!periodo) return Response.json({ erro: "Período não encontrado." }, { status: 404 });
-        await env.DB.prepare(`UPDATE periodos SET status = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`).bind(body.status, id).run();
-        return Response.json({ sucesso: true, id, codigo: periodo.codigo, status: body.status });
+        const periodo = await env.DB.prepare(
+          `SELECT id, codigo FROM periodos WHERE id = ?`,
+        )
+          .bind(id)
+          .first<{ id: number; codigo: string }>();
+        if (!periodo)
+          return Response.json(
+            { erro: "Período não encontrado." },
+            { status: 404 },
+          );
+        await env.DB.prepare(
+          `UPDATE periodos SET status = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`,
+        )
+          .bind(body.status, id)
+          .run();
+        return Response.json({
+          sucesso: true,
+          id,
+          codigo: periodo.codigo,
+          status: body.status,
+        });
       } catch (erro) {
         console.error(erro);
-        return Response.json({ erro: "Não foi possível alterar o período." }, { status: 500 });
+        return Response.json(
+          { erro: "Não foi possível alterar o período." },
+          { status: 500 },
+        );
       }
     }
-
 
     const rotaSheetsStatus = url.pathname.match(
       /^\/api\/periodos\/(\d+)\/google-sheets\/status$/,
@@ -540,7 +815,9 @@ export default {
 
       const config = await env.DB.prepare(
         `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
-      ).bind(periodoId).first<SheetsConfig>();
+      )
+        .bind(periodoId)
+        .first<SheetsConfig>();
 
       if (!config) {
         return Response.json({
@@ -578,21 +855,42 @@ export default {
       }
     }
 
-    const rotaSheetsConfig = url.pathname.match(/^\/api\/periodos\/(\d+)\/google-sheets$/);
+    const rotaSheetsConfig = url.pathname.match(
+      /^\/api\/periodos\/(\d+)\/google-sheets$/,
+    );
     if (rotaSheetsConfig && request.method === "GET") {
       const periodoId = Number(rotaSheetsConfig[1]);
-      const config = await env.DB.prepare(`SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`).bind(periodoId).first<SheetsConfig>();
+      const config = await env.DB.prepare(
+        `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+      )
+        .bind(periodoId)
+        .first<SheetsConfig>();
       return Response.json(config ?? null);
     }
 
     if (rotaSheetsConfig && request.method === "PUT") {
       try {
         const periodoId = Number(rotaSheetsConfig[1]);
-        const body = await request.json<Omit<SheetsConfig, "periodo_id"> & { spreadsheet_id: string }>();
+        const body = await request.json<
+          Omit<SheetsConfig, "periodo_id"> & { spreadsheet_id: string }
+        >();
         const spreadsheetId = extrairSpreadsheetId(body.spreadsheet_id || "");
-        const campos = [spreadsheetId, body.aba_base_face_fea, body.aba_base_fch_ead, body.aba_docs_face_fea, body.aba_docs_fch_ead, body.aba_cancelados_face_fea, body.aba_cancelados_fch_ead].map(normalizarTexto);
-        if (campos.some((campo) => !campo)) return Response.json({ erro: "Preencha a planilha e as seis abas da integração." }, { status: 400 });
-        await env.DB.prepare(`
+        const campos = [
+          spreadsheetId,
+          body.aba_base_face_fea,
+          body.aba_base_fch_ead,
+          body.aba_docs_face_fea,
+          body.aba_docs_fch_ead,
+          body.aba_cancelados_face_fea,
+          body.aba_cancelados_fch_ead,
+        ].map(normalizarTexto);
+        if (campos.some((campo) => !campo))
+          return Response.json(
+            { erro: "Preencha a planilha e as seis abas da integração." },
+            { status: 400 },
+          );
+        await env.DB.prepare(
+          `
           INSERT INTO google_sheets_periodos (
             periodo_id, spreadsheet_id, aba_base_face_fea, aba_base_fch_ead,
             aba_docs_face_fea, aba_docs_fch_ead, aba_cancelados_face_fea, aba_cancelados_fch_ead, atualizado_em
@@ -606,20 +904,32 @@ export default {
             aba_cancelados_face_fea = excluded.aba_cancelados_face_fea,
             aba_cancelados_fch_ead = excluded.aba_cancelados_fch_ead,
             atualizado_em = CURRENT_TIMESTAMP
-        `).bind(periodoId, ...campos).run();
+        `,
+        )
+          .bind(periodoId, ...campos)
+          .run();
         return Response.json({ sucesso: true, spreadsheet_id: spreadsheetId });
       } catch (erro) {
         console.error(erro);
-        return Response.json({ erro: "Não foi possível salvar a integração com Google Sheets." }, { status: 500 });
+        return Response.json(
+          { erro: "Não foi possível salvar a integração com Google Sheets." },
+          { status: 500 },
+        );
       }
     }
 
-    const rotaSheetsMapeamentos = url.pathname.match(/^\/api\/periodos\/(\d+)\/google-sheets\/mapeamentos$/);
+    const rotaSheetsMapeamentos = url.pathname.match(
+      /^\/api\/periodos\/(\d+)\/google-sheets\/mapeamentos$/,
+    );
     if (rotaSheetsMapeamentos && request.method === "GET") {
       const periodoId = Number(rotaSheetsMapeamentos[1]);
-      const dados = await env.DB.prepare(`
+      const dados = await env.DB.prepare(
+        `
         SELECT curso, unidade FROM google_sheets_mapeamentos WHERE periodo_id = ? ORDER BY curso
-      `).bind(periodoId).all<{ curso: string; unidade: string }>();
+      `,
+      )
+        .bind(periodoId)
+        .all<{ curso: string; unidade: string }>();
       return Response.json(dados.results);
     }
 
@@ -631,53 +941,144 @@ export default {
         const cursoChave = normalizarComparacao(curso);
         const unidade = normalizarComparacao(body.unidade);
         if (!curso || !["FACE", "FEA", "FCH", "EAD"].includes(unidade)) {
-          return Response.json({ erro: "Informe um curso e uma unidade válida." }, { status: 400 });
+          return Response.json(
+            { erro: "Informe um curso e uma unidade válida." },
+            { status: 400 },
+          );
         }
-        await env.DB.prepare(`
+        await env.DB.prepare(
+          `
           INSERT INTO google_sheets_mapeamentos (periodo_id, curso_chave, curso, unidade, atualizado_em)
           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
           ON CONFLICT(periodo_id, curso_chave) DO UPDATE SET
             curso = excluded.curso, unidade = excluded.unidade, atualizado_em = CURRENT_TIMESTAMP
-        `).bind(periodoId, cursoChave, curso, unidade).run();
+        `,
+        )
+          .bind(periodoId, cursoChave, curso, unidade)
+          .run();
         return Response.json({ sucesso: true, curso, unidade });
       } catch (erro) {
         console.error(erro);
-        return Response.json({ erro: "Não foi possível salvar o mapeamento de curso." }, { status: 500 });
+        return Response.json(
+          { erro: "Não foi possível salvar o mapeamento de curso." },
+          { status: 500 },
+        );
       }
     }
 
-    const rotaSheetsPrevia = url.pathname.match(/^\/api\/periodos\/(\d+)\/google-sheets\/previa$/);
+    const rotaSheetsPrevia = url.pathname.match(
+      /^\/api\/periodos\/(\d+)\/google-sheets\/previa$/,
+    );
     if (rotaSheetsPrevia && request.method === "POST") {
       try {
         const periodoId = Number(rotaSheetsPrevia[1]);
-        const config = await env.DB.prepare(`SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`).bind(periodoId).first<SheetsConfig>();
-        if (!config) return Response.json({ erro: "Configure a planilha deste período primeiro." }, { status: 409 });
+        const config = await env.DB.prepare(
+          `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+        )
+          .bind(periodoId)
+          .first<SheetsConfig>();
+        if (!config)
+          return Response.json(
+            { erro: "Configure a planilha deste período primeiro." },
+            { status: 409 },
+          );
         const ranges = await lerRangesGoogle(env, config);
-        const [baseFaceFea, baseFchEad, docsFaceFea, docsFchEad, cancelFaceFea, cancelFchEad] = ranges;
+        const [
+          baseFaceFea,
+          baseFchEad,
+          docsFaceFea,
+          docsFchEad,
+          cancelFaceFea,
+          cancelFchEad,
+        ] = ranges;
 
         type Origem = "FACE_FEA" | "FCH_EAD";
-        type LinhaBase = { ra: string; nome: string; curso: string; email_outro: string; email: string; contrato: boolean; origem: Origem };
-        const lerBase = (linhas: unknown[][], origem: Origem): LinhaBase[] => linhas.slice(1).map((l) => ({
-          contrato: normalizarComparacao(l[0]) === "ENTREGUE",
-          curso: normalizarTexto(l[1]), email_outro: normalizarTexto(l[2]), email: normalizarTexto(l[3]),
-          nome: normalizarTexto(l[4]), ra: normalizarTexto(l[5]), origem,
-        })).filter((a) => a.ra && a.nome && a.curso);
-        const bases = [...lerBase(baseFaceFea.linhas, "FACE_FEA"), ...lerBase(baseFchEad.linhas, "FCH_EAD")];
+        type LinhaBase = {
+          ra: string;
+          nome: string;
+          curso: string;
+          email_outro: string;
+          email: string;
+          contrato: boolean;
+          origem: Origem;
+        };
+        const lerBase = (linhas: unknown[][], origem: Origem): LinhaBase[] =>
+          linhas
+            .slice(1)
+            .map((l) => ({
+              contrato: normalizarComparacao(l[0]) === "ENTREGUE",
+              curso: normalizarTexto(l[1]),
+              email_outro: normalizarTexto(l[2]),
+              email: normalizarTexto(l[3]),
+              nome: normalizarTexto(l[4]),
+              ra: normalizarTexto(l[5]),
+              origem,
+            }))
+            .filter((a) => a.ra && a.nome && a.curso);
+        const bases = [
+          ...lerBase(baseFaceFea.linhas, "FACE_FEA"),
+          ...lerBase(baseFchEad.linhas, "FCH_EAD"),
+        ];
 
-        const lerDocs = (linhas: unknown[][]) => new Map(linhas.slice(1).map((l) => [normalizarTexto(l[0]), {
-          identidade: valorBooleano(l[2]), cpf: valorBooleano(l[3]), certidao: valorBooleano(l[4]), residencia: valorBooleano(l[5]),
-          titulo: valorBooleano(l[6]), ensino_medio: valorBooleano(l[7]), contrato: valorBooleano(l[8]),
-        }]).filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>);
-        const docs = new Map([...lerDocs(docsFaceFea.linhas), ...lerDocs(docsFchEad.linhas)]);
+        const lerDocs = (linhas: unknown[][]) =>
+          new Map(
+            linhas
+              .slice(1)
+              .map((l) => [
+                normalizarTexto(l[0]),
+                {
+                  identidade: valorBooleano(l[2]),
+                  cpf: valorBooleano(l[3]),
+                  certidao: valorBooleano(l[4]),
+                  residencia: valorBooleano(l[5]),
+                  titulo: valorBooleano(l[6]),
+                  ensino_medio: valorBooleano(l[7]),
+                  contrato: valorBooleano(l[8]),
+                },
+              ])
+              .filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>,
+          );
+        const docs = new Map([
+          ...lerDocs(docsFaceFea.linhas),
+          ...lerDocs(docsFchEad.linhas),
+        ]);
 
-        const lerCancelados = (linhas: unknown[][]) => new Set(linhas.slice(1).map((l) => normalizarTexto(l[5] ?? l[0])).filter(Boolean));
-        const cancelados = new Set([...lerCancelados(cancelFaceFea.linhas), ...lerCancelados(cancelFchEad.linhas)]);
+        const documentosMarcados = [...docs.values()].reduce(
+          (total, doc) =>
+            total +
+            [
+              doc.identidade,
+              doc.cpf,
+              doc.certidao,
+              doc.residencia,
+              doc.titulo,
+              doc.ensino_medio,
+              doc.contrato,
+            ].filter(Boolean).length,
+          0,
+        );
 
-        const atuais = await env.DB.prepare(`
+        const lerCancelados = (linhas: unknown[][]) =>
+          new Set(
+            linhas
+              .slice(1)
+              .map((l) => normalizarTexto(l[5] ?? l[0]))
+              .filter(Boolean),
+          );
+        const cancelados = new Set([
+          ...lerCancelados(cancelFaceFea.linhas),
+          ...lerCancelados(cancelFchEad.linhas),
+        ]);
+
+        const atuais = await env.DB.prepare(
+          `
           SELECT a.ra, a.nome, a.curso, a.unidade, a.email, a.email_outro, a.status,
                  d.identidade, d.cpf, d.certidao, d.residencia, d.titulo, d.ensino_medio, d.contrato
           FROM alunos a LEFT JOIN documentos d ON d.aluno_id = a.id WHERE a.periodo_id = ?
-        `).bind(periodoId).all<AlunoRow>();
+        `,
+        )
+          .bind(periodoId)
+          .all<AlunoRow>();
         const porRa = new Map(atuais.results.map((a) => [a.ra, a]));
         const cursoUnidades = new Map<string, Set<string>>();
         for (const a of atuais.results) {
@@ -685,83 +1086,176 @@ export default {
           if (!cursoUnidades.has(curso)) cursoUnidades.set(curso, new Set());
           cursoUnidades.get(curso)!.add(a.unidade);
         }
-        const mapeamentosSalvos = await env.DB.prepare(`
+        const mapeamentosSalvos = await env.DB.prepare(
+          `
           SELECT curso_chave, unidade FROM google_sheets_mapeamentos WHERE periodo_id = ?
-        `).bind(periodoId).all<{ curso_chave: string; unidade: string }>();
-        const unidadePorCurso = new Map(mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade]));
+        `,
+        )
+          .bind(periodoId)
+          .all<{ curso_chave: string; unidade: string }>();
+        const unidadePorCurso = new Map(
+          mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade]),
+        );
 
         const resolverUnidade = (a: LinhaBase) => {
-          const existente = porRa.get(a.ra); if (existente) return existente.unidade;
+          const existente = porRa.get(a.ra);
+          if (existente) return existente.unidade;
           const mapeada = unidadePorCurso.get(normalizarComparacao(a.curso));
           if (mapeada) return mapeada;
-          if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso)) return "EAD";
+          if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso))
+            return "EAD";
           if (a.origem === "FCH_EAD") return "FCH";
-          const conhecidas = [...(cursoUnidades.get(normalizarComparacao(a.curso)) ?? [])].filter((u) => u === "FACE" || u === "FEA");
+          const conhecidas = [
+            ...(cursoUnidades.get(normalizarComparacao(a.curso)) ?? []),
+          ].filter((u) => u === "FACE" || u === "FEA");
           return conhecidas.length === 1 ? conhecidas[0] : null;
         };
 
-        let novos = 0, cadastrais = 0, documentosAlterados = 0, cancelar = 0, jaCancelados = 0;
-        const semUnidade: Array<{ ra: string; nome: string; curso: string }> = [];
-        const detalhesNovos: Array<{ ra: string; nome: string; curso: string; unidade: string | null }> = [];
-        const detalhesCadastrais: Array<{ ra: string; nome: string; detalhe: string }> = [];
-        const detalhesDocumentos: Array<{ ra: string; nome: string; detalhe: string }> = [];
-        const detalhesCancelamentos: Array<{ ra: string; nome: string; unidade: string }> = [];
+        let novos = 0,
+          cadastrais = 0,
+          documentosAlterados = 0,
+          cancelar = 0,
+          jaCancelados = 0;
+        const semUnidade: Array<{ ra: string; nome: string; curso: string }> =
+          [];
+        const detalhesNovos: Array<{
+          ra: string;
+          nome: string;
+          curso: string;
+          unidade: string | null;
+        }> = [];
+        const detalhesCadastrais: Array<{
+          ra: string;
+          nome: string;
+          detalhe: string;
+        }> = [];
+        const detalhesDocumentos: Array<{
+          ra: string;
+          nome: string;
+          detalhe: string;
+        }> = [];
+        const detalhesCancelamentos: Array<{
+          ra: string;
+          nome: string;
+          unidade: string;
+        }> = [];
         for (const aluno of bases) {
           const atual = porRa.get(aluno.ra);
           const unidade = resolverUnidade(aluno);
-          if (!unidade) semUnidade.push({ ra: aluno.ra, nome: aluno.nome, curso: aluno.curso });
+          if (!unidade)
+            semUnidade.push({
+              ra: aluno.ra,
+              nome: aluno.nome,
+              curso: aluno.curso,
+            });
           if (!atual) {
             novos += 1;
-            detalhesNovos.push({ ra: aluno.ra, nome: aluno.nome, curso: aluno.curso, unidade });
+            detalhesNovos.push({
+              ra: aluno.ra,
+              nome: aluno.nome,
+              curso: aluno.curso,
+              unidade,
+            });
           } else {
             const campos = [
-              ["Nome", atual.nome, aluno.nome], ["Curso", atual.curso, aluno.curso],
-              ["E-mail", atual.email ?? "", aluno.email], ["E-mail alternativo", atual.email_outro ?? "", aluno.email_outro],
-            ].filter(([, antes, depois]) => normalizarComparacao(antes) !== normalizarComparacao(depois));
+              ["Nome", atual.nome, aluno.nome],
+              ["Curso", atual.curso, aluno.curso],
+              ["E-mail", atual.email ?? "", aluno.email],
+              [
+                "E-mail alternativo",
+                atual.email_outro ?? "",
+                aluno.email_outro,
+              ],
+            ].filter(
+              ([, antes, depois]) =>
+                normalizarComparacao(antes) !== normalizarComparacao(depois),
+            );
             if (campos.length) {
               cadastrais += 1;
-              detalhesCadastrais.push({ ra: aluno.ra, nome: aluno.nome, detalhe: campos.map(([campo]) => campo).join(", ") });
+              detalhesCadastrais.push({
+                ra: aluno.ra,
+                nome: aluno.nome,
+                detalhe: campos.map(([campo]) => campo).join(", "),
+              });
             }
           }
           const doc = docs.get(aluno.ra);
           if (atual && doc) {
             const pares = [
-              ["Identidade", Boolean(atual.identidade), doc.identidade], ["CPF", Boolean(atual.cpf), doc.cpf],
-              ["Certidão", Boolean(atual.certidao), doc.certidao], ["Residência", Boolean(atual.residencia), doc.residencia],
-              ["Título", Boolean(atual.titulo), doc.titulo], ["Ensino Médio", Boolean(atual.ensino_medio), doc.ensino_medio],
+              ["Identidade", Boolean(atual.identidade), doc.identidade],
+              ["CPF", Boolean(atual.cpf), doc.cpf],
+              ["Certidão", Boolean(atual.certidao), doc.certidao],
+              ["Residência", Boolean(atual.residencia), doc.residencia],
+              ["Título", Boolean(atual.titulo), doc.titulo],
+              ["Ensino Médio", Boolean(atual.ensino_medio), doc.ensino_medio],
               ["Contrato", Boolean(atual.contrato), doc.contrato],
             ] as Array<[string, boolean, boolean]>;
-            const diferentes = pares.filter(([, antes, depois]) => antes !== depois).map(([nome]) => nome);
+            const diferentes = pares
+              .filter(([, antes, depois]) => antes !== depois)
+              .map(([nome]) => nome);
             if (diferentes.length) {
               documentosAlterados += 1;
-              detalhesDocumentos.push({ ra: aluno.ra, nome: aluno.nome, detalhe: diferentes.join(", ") });
+              detalhesDocumentos.push({
+                ra: aluno.ra,
+                nome: aluno.nome,
+                detalhe: diferentes.join(", "),
+              });
             }
           }
         }
         for (const ra of cancelados) {
-          const atual = porRa.get(ra); if (!atual) continue;
+          const atual = porRa.get(ra);
+          if (!atual) continue;
           if (atual.status === "CANCELADO") jaCancelados += 1;
-          else { cancelar += 1; detalhesCancelamentos.push({ ra, nome: atual.nome, unidade: atual.unidade }); }
+          else {
+            cancelar += 1;
+            detalhesCancelamentos.push({
+              ra,
+              nome: atual.nome,
+              unidade: atual.unidade,
+            });
+          }
         }
-        const cursosPendentes = new Map<string, { curso: string; quantidade: number; alunos: Array<{ ra: string; nome: string }> }>();
+        const cursosPendentes = new Map<
+          string,
+          {
+            curso: string;
+            quantidade: number;
+            alunos: Array<{ ra: string; nome: string }>;
+          }
+        >();
         for (const item of semUnidade) {
           const chave = normalizarComparacao(item.curso);
-          const grupo = cursosPendentes.get(chave) ?? { curso: item.curso, quantidade: 0, alunos: [] };
+          const grupo = cursosPendentes.get(chave) ?? {
+            curso: item.curso,
+            quantidade: 0,
+            alunos: [],
+          };
           grupo.quantidade += 1;
           grupo.alunos.push({ ra: item.ra, nome: item.nome });
           cursosPendentes.set(chave, grupo);
         }
         return Response.json({
           sucesso: true,
-          planilha: { spreadsheet_id: config.spreadsheet_id, abas_lidas: ranges.map((r) => r.aba) },
+          planilha: {
+            spreadsheet_id: config.spreadsheet_id,
+            abas_lidas: ranges.map((r) => r.aba),
+          },
           encontrados: bases.length,
           documentos_encontrados: docs.size,
+          documentos_marcados: documentosMarcados,
           cancelados_encontrados: cancelados.size,
-          novos, alteracoes_cadastrais: cadastrais, documentos_alterados: documentosAlterados,
-          prontos_para_cancelar: cancelar, ja_cancelados: jaCancelados,
+          novos,
+          alteracoes_cadastrais: cadastrais,
+          documentos_alterados: documentosAlterados,
+          prontos_para_cancelar: cancelar,
+          ja_cancelados: jaCancelados,
           unidades_nao_resolvidas: semUnidade.length,
           detalhes_unidades: semUnidade,
-          cursos_pendentes: [...cursosPendentes.values()].sort((a, b) => b.quantidade - a.quantidade || a.curso.localeCompare(b.curso)),
+          cursos_pendentes: [...cursosPendentes.values()].sort(
+            (a, b) =>
+              b.quantidade - a.quantidade || a.curso.localeCompare(b.curso),
+          ),
           detalhes: {
             novos: detalhesNovos,
             cadastros: detalhesCadastrais,
@@ -772,7 +1266,15 @@ export default {
         });
       } catch (erro) {
         console.error(erro);
-        return Response.json({ erro: erro instanceof Error ? erro.message : "Não foi possível ler o Google Sheets." }, { status: 500 });
+        return Response.json(
+          {
+            erro:
+              erro instanceof Error
+                ? erro.message
+                : "Não foi possível ler o Google Sheets.",
+          },
+          { status: 500 },
+        );
       }
     }
 
@@ -792,7 +1294,9 @@ export default {
         const periodoId = Number(rotaSheetsSincronizar[1]);
         const config = await env.DB.prepare(
           `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
-        ).bind(periodoId).first<SheetsConfig>();
+        )
+          .bind(periodoId)
+          .first<SheetsConfig>();
 
         if (!config) {
           return Response.json(
@@ -802,24 +1306,42 @@ export default {
         }
 
         const ranges = await lerRangesGoogle(env, config);
-        const [baseFaceFea, baseFchEad, docsFaceFea, docsFchEad, cancelFaceFea, cancelFchEad] = ranges;
+        const [
+          baseFaceFea,
+          baseFchEad,
+          docsFaceFea,
+          docsFchEad,
+          cancelFaceFea,
+          cancelFchEad,
+        ] = ranges;
 
         type OrigemSync = "FACE_FEA" | "FCH_EAD";
         type LinhaBaseSync = {
-          ra: string; nome: string; curso: string; email_outro: string;
-          email: string; contrato: boolean; origem: OrigemSync;
+          ra: string;
+          nome: string;
+          curso: string;
+          email_outro: string;
+          email: string;
+          contrato: boolean;
+          origem: OrigemSync;
         };
 
-        const lerBaseSync = (linhas: unknown[][], origem: OrigemSync): LinhaBaseSync[] =>
-          linhas.slice(1).map((l) => ({
-            contrato: normalizarComparacao(l[0]) === "ENTREGUE",
-            curso: normalizarTexto(l[1]),
-            email_outro: normalizarTexto(l[2]),
-            email: normalizarTexto(l[3]),
-            nome: normalizarTexto(l[4]),
-            ra: normalizarTexto(l[5]),
-            origem,
-          })).filter((a) => a.ra && a.nome && a.curso);
+        const lerBaseSync = (
+          linhas: unknown[][],
+          origem: OrigemSync,
+        ): LinhaBaseSync[] =>
+          linhas
+            .slice(1)
+            .map((l) => ({
+              contrato: normalizarComparacao(l[0]) === "ENTREGUE",
+              curso: normalizarTexto(l[1]),
+              email_outro: normalizarTexto(l[2]),
+              email: normalizarTexto(l[3]),
+              nome: normalizarTexto(l[4]),
+              ra: normalizarTexto(l[5]),
+              origem,
+            }))
+            .filter((a) => a.ra && a.nome && a.curso);
 
         const bases = [
           ...lerBaseSync(baseFaceFea.linhas, "FACE_FEA"),
@@ -828,18 +1350,21 @@ export default {
 
         const lerDocsSync = (linhas: unknown[][]) =>
           new Map(
-            linhas.slice(1).map((l) => [
-              normalizarTexto(l[0]),
-              {
-                identidade: valorBooleano(l[2]),
-                cpf: valorBooleano(l[3]),
-                certidao: valorBooleano(l[4]),
-                residencia: valorBooleano(l[5]),
-                titulo: valorBooleano(l[6]),
-                ensino_medio: valorBooleano(l[7]),
-                contrato: valorBooleano(l[8]),
-              },
-            ]).filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>,
+            linhas
+              .slice(1)
+              .map((l) => [
+                normalizarTexto(l[0]),
+                {
+                  identidade: valorBooleano(l[2]),
+                  cpf: valorBooleano(l[3]),
+                  certidao: valorBooleano(l[4]),
+                  residencia: valorBooleano(l[5]),
+                  titulo: valorBooleano(l[6]),
+                  ensino_medio: valorBooleano(l[7]),
+                  contrato: valorBooleano(l[8]),
+                },
+              ])
+              .filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>,
           );
 
         const docs = new Map([
@@ -849,7 +1374,8 @@ export default {
 
         const lerCanceladosSync = (linhas: unknown[][]) =>
           new Set(
-            linhas.slice(1)
+            linhas
+              .slice(1)
               .map((l) => normalizarTexto(l[5] ?? l[0]))
               .filter(Boolean),
           );
@@ -859,13 +1385,17 @@ export default {
           ...lerCanceladosSync(cancelFchEad.linhas),
         ]);
 
-        const atuais = await env.DB.prepare(`
+        const atuais = await env.DB.prepare(
+          `
           SELECT a.id, a.ra, a.nome, a.curso, a.unidade, a.email, a.email_outro, a.status,
                  d.identidade, d.cpf, d.certidao, d.residencia, d.titulo, d.ensino_medio, d.contrato
           FROM alunos a
           LEFT JOIN documentos d ON d.aluno_id = a.id
           WHERE a.periodo_id = ?
-        `).bind(periodoId).all<AlunoRow & { id: number }>();
+        `,
+        )
+          .bind(periodoId)
+          .all<AlunoRow & { id: number }>();
 
         const porRa = new Map(atuais.results.map((a) => [a.ra, a]));
         const cursoUnidades = new Map<string, Set<string>>();
@@ -876,11 +1406,15 @@ export default {
           cursoUnidades.get(curso)!.add(a.unidade);
         }
 
-        const mapeamentosSalvos = await env.DB.prepare(`
+        const mapeamentosSalvos = await env.DB.prepare(
+          `
           SELECT curso_chave, unidade
           FROM google_sheets_mapeamentos
           WHERE periodo_id = ?
-        `).bind(periodoId).all<{ curso_chave: string; unidade: string }>();
+        `,
+        )
+          .bind(periodoId)
+          .all<{ curso_chave: string; unidade: string }>();
 
         const unidadePorCurso = new Map(
           mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade]),
@@ -893,7 +1427,8 @@ export default {
           const mapeada = unidadePorCurso.get(normalizarComparacao(a.curso));
           if (mapeada) return mapeada;
 
-          if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso)) return "EAD";
+          if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso))
+            return "EAD";
           if (a.origem === "FCH_EAD") return "FCH";
 
           const conhecidas = [
@@ -935,12 +1470,14 @@ export default {
             novos += 1;
 
             comandos.push(
-              env.DB.prepare(`
+              env.DB.prepare(
+                `
                 INSERT INTO alunos (
                   periodo_id, ra, nome, email, email_outro, curso, unidade, status
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, 'ATIVO')
-              `).bind(
+              `,
+              ).bind(
                 periodoId,
                 aluno.ra,
                 aluno.nome,
@@ -952,7 +1489,8 @@ export default {
             );
 
             comandos.push(
-              env.DB.prepare(`
+              env.DB.prepare(
+                `
                 INSERT INTO documentos (
                   aluno_id, identidade, cpf, certidao, residencia,
                   titulo, ensino_medio, contrato
@@ -960,14 +1498,15 @@ export default {
                 SELECT id, ?, ?, ?, ?, ?, ?, ?
                 FROM alunos
                 WHERE periodo_id = ? AND ra = ?
-              `).bind(
+              `,
+              ).bind(
                 doc?.identidade ? 1 : 0,
                 doc?.cpf ? 1 : 0,
                 doc?.certidao ? 1 : 0,
                 doc?.residencia ? 1 : 0,
                 doc?.titulo ? 1 : 0,
                 doc?.ensino_medio ? 1 : 0,
-                doc ? (doc.contrato ? 1 : 0) : (aluno.contrato ? 1 : 0),
+                doc ? (doc.contrato ? 1 : 0) : aluno.contrato ? 1 : 0,
                 periodoId,
                 aluno.ra,
               ),
@@ -977,20 +1516,26 @@ export default {
           }
 
           const cadastroMudou =
-            normalizarComparacao(atual.nome) !== normalizarComparacao(aluno.nome) ||
-            normalizarComparacao(atual.curso) !== normalizarComparacao(aluno.curso) ||
-            normalizarComparacao(atual.email ?? "") !== normalizarComparacao(aluno.email) ||
-            normalizarComparacao(atual.email_outro ?? "") !== normalizarComparacao(aluno.email_outro);
+            normalizarComparacao(atual.nome) !==
+              normalizarComparacao(aluno.nome) ||
+            normalizarComparacao(atual.curso) !==
+              normalizarComparacao(aluno.curso) ||
+            normalizarComparacao(atual.email ?? "") !==
+              normalizarComparacao(aluno.email) ||
+            normalizarComparacao(atual.email_outro ?? "") !==
+              normalizarComparacao(aluno.email_outro);
 
           if (cadastroMudou) {
             cadastros += 1;
             comandos.push(
-              env.DB.prepare(`
+              env.DB.prepare(
+                `
                 UPDATE alunos
                 SET nome = ?, email = ?, email_outro = ?, curso = ?,
                     atualizado_em = CURRENT_TIMESTAMP
                 WHERE id = ?
-              `).bind(
+              `,
+              ).bind(
                 aluno.nome,
                 aluno.email || null,
                 aluno.email_outro || null,
@@ -1013,7 +1558,8 @@ export default {
             if (docMudou) {
               documentosAlterados += 1;
               comandos.push(
-                env.DB.prepare(`
+                env.DB.prepare(
+                  `
                   INSERT INTO documentos (
                     aluno_id, identidade, cpf, certidao, residencia,
                     titulo, ensino_medio, contrato
@@ -1028,7 +1574,8 @@ export default {
                     ensino_medio = excluded.ensino_medio,
                     contrato = excluded.contrato,
                     atualizado_em = CURRENT_TIMESTAMP
-                `).bind(
+                `,
+                ).bind(
                   atual.id,
                   doc.identidade ? 1 : 0,
                   doc.cpf ? 1 : 0,
@@ -1049,11 +1596,13 @@ export default {
 
           cancelamentos += 1;
           comandos.push(
-            env.DB.prepare(`
+            env.DB.prepare(
+              `
               UPDATE alunos
               SET status = 'CANCELADO', atualizado_em = CURRENT_TIMESTAMP
               WHERE id = ?
-            `).bind(atual.id),
+            `,
+            ).bind(atual.id),
           );
         }
 
@@ -1065,14 +1614,17 @@ export default {
 
         const periodo = await env.DB.prepare(
           `SELECT codigo FROM periodos WHERE id = ?`,
-        ).bind(periodoId).first<{ codigo: string }>();
+        )
+          .bind(periodoId)
+          .first<{ codigo: string }>();
 
         const descricao =
           `Google Sheets sincronizado no período ${periodo?.codigo ?? periodoId}: ` +
           `${novos} novo(s), ${cadastros} cadastro(s), ` +
           `${documentosAlterados} documento(s) e ${cancelamentos} cancelamento(s).`;
 
-        await env.DB.prepare(`
+        await env.DB.prepare(
+          `
           INSERT INTO logs (
             acao,
             entidade,
@@ -1085,17 +1637,20 @@ export default {
             usuario_username
           )
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(
-          "SINCRONIZAR",
-          "GOOGLE_SHEETS",
-          descricao,
-          null,
-          null,
-          periodoId,
-          usuarioAtual?.id ?? null,
-          usuarioAtual?.nome ?? null,
-          usuarioAtual?.username ?? null,
-        ).run();
+        `,
+        )
+          .bind(
+            "SINCRONIZAR",
+            "GOOGLE_SHEETS",
+            descricao,
+            null,
+            null,
+            periodoId,
+            usuarioAtual?.id ?? null,
+            usuarioAtual?.nome ?? null,
+            usuarioAtual?.username ?? null,
+          )
+          .run();
 
         return Response.json({
           sucesso: true,
@@ -1103,7 +1658,8 @@ export default {
           alteracoes_cadastrais: cadastros,
           documentos_alterados: documentosAlterados,
           cancelamentos,
-          total_operacoes: novos + cadastros + documentosAlterados + cancelamentos,
+          total_operacoes:
+            novos + cadastros + documentosAlterados + cancelamentos,
         });
       } catch (erro) {
         console.error("Erro na sincronização Google Sheets:", erro);
@@ -1123,9 +1679,15 @@ export default {
       ? await obterPeriodoAtual(request, env, url)
       : null;
 
-    if (url.pathname.startsWith("/api/") && !url.pathname.startsWith("/api/periodos") && !periodoAtual) {
+    if (
+      url.pathname.startsWith("/api/") &&
+      !url.pathname.startsWith("/api/periodos") &&
+      !periodoAtual
+    ) {
       return Response.json(
-        { erro: "Nenhum período letivo disponível. Crie ou migre um período antes de continuar." },
+        {
+          erro: "Nenhum período letivo disponível. Crie ou migre um período antes de continuar.",
+        },
         { status: 409 },
       );
     }
@@ -1134,7 +1696,10 @@ export default {
     // FERRAMENTAS DE DESENVOLVIMENTO — LIMPEZA DE ALUNOS
     // =====================================================
 
-    if (url.pathname === "/api/dev/alunos-reset/status" && request.method === "GET") {
+    if (
+      url.pathname === "/api/dev/alunos-reset/status" &&
+      request.method === "GET"
+    ) {
       return Response.json({
         habilitado:
           ambienteDesenvolvimento(request, env) &&
@@ -1142,17 +1707,24 @@ export default {
       });
     }
 
-    if (url.pathname === "/api/dev/alunos-reset" && request.method === "DELETE") {
+    if (
+      url.pathname === "/api/dev/alunos-reset" &&
+      request.method === "DELETE"
+    ) {
       if (!ambienteDesenvolvimento(request, env)) {
         return Response.json(
-          { erro: "Ferramenta disponível somente no ambiente de desenvolvimento." },
+          {
+            erro: "Ferramenta disponível somente no ambiente de desenvolvimento.",
+          },
           { status: 403 },
         );
       }
 
       if (usuarioAtual?.perfil !== "ADMIN") {
         return Response.json(
-          { erro: "Apenas administradores podem usar ferramentas de desenvolvimento." },
+          {
+            erro: "Apenas administradores podem usar ferramentas de desenvolvimento.",
+          },
           { status: 403 },
         );
       }
@@ -1180,22 +1752,29 @@ export default {
           );
         }
 
-        const contagem = unidade === "TODOS"
-          ? await env.DB.prepare(
-              `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ?`,
-            ).bind(periodoAtual!.id).first<{ total: number }>()
-          : await env.DB.prepare(
-              `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ? AND unidade = ?`,
-            ).bind(periodoAtual!.id, unidade).first<{ total: number }>();
+        const contagem =
+          unidade === "TODOS"
+            ? await env.DB.prepare(
+                `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ?`,
+              )
+                .bind(periodoAtual!.id)
+                .first<{ total: number }>()
+            : await env.DB.prepare(
+                `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ? AND unidade = ?`,
+              )
+                .bind(periodoAtual!.id, unidade)
+                .first<{ total: number }>();
 
         if (unidade === "TODOS") {
-          await env.DB.prepare(
-            `DELETE FROM alunos WHERE periodo_id = ?`,
-          ).bind(periodoAtual!.id).run();
+          await env.DB.prepare(`DELETE FROM alunos WHERE periodo_id = ?`)
+            .bind(periodoAtual!.id)
+            .run();
         } else {
           await env.DB.prepare(
             `DELETE FROM alunos WHERE periodo_id = ? AND unidade = ?`,
-          ).bind(periodoAtual!.id, unidade).run();
+          )
+            .bind(periodoAtual!.id, unidade)
+            .run();
         }
 
         return Response.json({
@@ -1248,7 +1827,9 @@ export default {
       } catch (erro) {
         console.error(erro);
         return Response.json(
-          { erro: "LOG indisponível. Verifique se as migrations do LOG foram aplicadas no D1." },
+          {
+            erro: "LOG indisponível. Verifique se as migrations do LOG foram aplicadas no D1.",
+          },
           { status: 500 },
         );
       }
@@ -1268,8 +1849,15 @@ export default {
           unidade?: string;
         }>();
 
-        if (!body.acao?.trim() || !body.entidade?.trim() || !body.descricao?.trim()) {
-          return Response.json({ erro: "Dados insuficientes para registrar o LOG." }, { status: 400 });
+        if (
+          !body.acao?.trim() ||
+          !body.entidade?.trim() ||
+          !body.descricao?.trim()
+        ) {
+          return Response.json(
+            { erro: "Dados insuficientes para registrar o LOG." },
+            { status: 400 },
+          );
         }
 
         await env.DB.prepare(
@@ -1304,7 +1892,10 @@ export default {
         return Response.json({ sucesso: true }, { status: 201 });
       } catch (erro) {
         console.error(erro);
-        return Response.json({ erro: "Não foi possível registrar o LOG." }, { status: 500 });
+        return Response.json(
+          { erro: "Não foi possível registrar o LOG." },
+          { status: 500 },
+        );
       }
     }
 
@@ -1336,7 +1927,9 @@ export default {
           WHERE a.periodo_id = ?
           ORDER BY a.nome
         `,
-      ).bind(periodoAtual!.id).all<AlunoRow>();
+      )
+        .bind(periodoAtual!.id)
+        .all<AlunoRow>();
 
       return Response.json(resultado.results);
     }
@@ -2400,8 +2993,7 @@ export default {
 
         return Response.json(
           {
-            erro:
-              "Histórico indisponível. Execute a migration 001_comunicacoes.sql no D1.",
+            erro: "Histórico indisponível. Execute a migration 001_comunicacoes.sql no D1.",
           },
           {
             status: 500,
@@ -2490,8 +3082,7 @@ export default {
 
         return Response.json(
           {
-            erro:
-              "Não foi possível registrar a cobrança. Verifique se a migration 001_comunicacoes.sql foi executada.",
+            erro: "Não foi possível registrar a cobrança. Verifique se a migration 001_comunicacoes.sql foi executada.",
           },
           {
             status: 500,
