@@ -111,7 +111,7 @@ function Conferencia() {
   const [raSelecionado, setRaSelecionado] = useState("");
   const [busca, setBusca] = useState("");
 
-  const [unidadeSelecionada, setUnidadeSelecionada] = useState<Unidade>("FCH");
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<Unidade | "">("");
   const [status, setStatus] = useState<"salvo" | "pendente">("salvo");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
@@ -172,7 +172,7 @@ function Conferencia() {
 
   async function carregarAlunos(
     raParaSelecionar?: string,
-    unidadeFiltro: Unidade = unidadeSelecionada,
+    unidadeFiltro: Unidade | "" = unidadeSelecionada,
     statusFiltro: FiltroStatus = filtroStatus,
   ) {
     try {
@@ -206,8 +206,7 @@ function Conferencia() {
         }
       }
 
-      const primeiroDoFiltro = alunosConvertidos.find(pertenceAoFiltroAtual);
-      setRaSelecionado(primeiroDoFiltro?.ra ?? "");
+      setRaSelecionado("");
     } catch (erro) {
       console.error(erro);
       setErro("Não foi possível carregar os alunos.");
@@ -283,24 +282,6 @@ function Conferencia() {
       correspondeFiltroStatus(aluno),
   );
 
-  function selecionarPrimeiroDoFiltro(
-    unidade: Unidade,
-    filtro: FiltroStatus = filtroStatus,
-  ) {
-    const primeiro = alunosEmEdicao.find(
-      (aluno) =>
-        aluno.unidade === unidade &&
-        (filtro === "TODOS" || aluno.status === filtro),
-    );
-
-    if (primeiro) {
-      selecionarAluno(primeiro.ra);
-    } else {
-      setRaSelecionado("");
-      setStatus("salvo");
-    }
-  }
-
   const entregues = alunoSelecionado.documentos.filter(
     (documento) => documento.entregue,
   );
@@ -327,7 +308,7 @@ function Conferencia() {
 
   function abrirImportacao() {
     setModoImportacao("colar");
-    setUnidadeImportacao(unidadeSelecionada);
+    setUnidadeImportacao(unidadeSelecionada || "FCH");
     setTextoImportacao("");
     setArquivoImportacao("");
     setPreviaImportacao([]);
@@ -500,7 +481,7 @@ function Conferencia() {
 
   function abrirImportacaoCancelados() {
     setModoCancelados("colar");
-    setUnidadeCancelados(unidadeSelecionada);
+    setUnidadeCancelados(unidadeSelecionada || "FACE");
     setTextoCancelados("");
     setArquivoCancelados("");
     setPreviaCancelados(null);
@@ -1328,7 +1309,8 @@ function Conferencia() {
                   onClick={() => {
                     setFiltroStatus(filtro);
                     setBusca("");
-                    selecionarPrimeiroDoFiltro(unidadeSelecionada, filtro);
+                    setRaSelecionado("");
+                    setStatus("salvo");
                   }}
                 >
                   {filtro === "ATIVO"
@@ -1350,8 +1332,8 @@ function Conferencia() {
                 onClick={() => {
                   setUnidadeSelecionada(unidade);
                   setBusca("");
-
-                  selecionarPrimeiroDoFiltro(unidade);
+                  setRaSelecionado("");
+                  setStatus("salvo");
                 }}
               >
                 {unidade}
@@ -1568,10 +1550,17 @@ function Conferencia() {
             </footer>
           </article>
         ) : (
-          <article className="student-details">
-            <div style={{ padding: "32px" }}>
-              <h2>Nenhum aluno encontrado</h2>
-              <p>Não há alunos nesta unidade para o filtro selecionado.</p>
+          <article className="student-details student-details-empty">
+            <div>
+              <span className="empty-state-icon">✓</span>
+              <h2>Selecione um aluno</h2>
+              <p>
+                {!unidadeSelecionada
+                  ? "Para começar, selecione uma unidade e em seguida selecione um aluno. Ele aparecerá aqui."
+                  : alunosFiltrados.length > 0
+                    ? "Agora selecione um aluno da lista para visualizar e conferir os documentos."
+                    : "Não há alunos nesta unidade para o filtro selecionado."}
+              </p>
             </div>
           </article>
         )}
