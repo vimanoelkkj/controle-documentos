@@ -249,15 +249,62 @@ function cookieSessao(token: string, request: Request, maxAge = 60 * 60 * 12) {
   return `cd_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
 }
 
+class AuthStorageUnavailableError extends Error {
+  constructor(causa?: unknown) {
+    super("O banco de autenticação está temporariamente indisponível.");
+    this.name = "AuthStorageUnavailableError";
+    if (causa) console.error("Falha temporária no D1 durante autenticação:", causa);
+  }
+}
+
+function aguardar(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function usuarioDaRequisicao(request: Request, env: Env) {
   const token = obterCookie(request, "cd_session");
   if (!token) return null;
+
   const tokenHash = await hashToken(token);
-  return env.DB.prepare(`
-    SELECT u.id, u.nome, u.email, u.username, u.perfil, u.ativo
-    FROM sessoes s JOIN usuarios u ON u.id = s.usuario_id
-    WHERE s.token_hash = ? AND s.expira_em > CURRENT_TIMESTAMP AND u.ativo = 1
-  `).bind(tokenHash).first<UsuarioSessao>();
+
+  // O D1/Miniflare pode ocasionalmente responder com erro interno transitório.
+  // Uma nova tentativa curta evita transformar uma falha momentânea em logout/500.
+  for (let tentativa = 1; tentativa <= 2; tentativa += 1) {
+    try {
+      return await env.DB.prepare(`
+        SELECT u.id, u.nome, u.email, u.username, u.perfil, u.ativo
+        FROM sessoes s
+        JOIN usuarios u ON u.id = s.usuario_id
+        WHERE s.token_hash = ?
+          AND s.expira_em > CURRENT_TIMESTAMP
+          AND u.ativo = 1
+      `).bind(tokenHash).first<UsuarioSessao>();
+    } catch (erro) {
+      if (tentativa === 2) {
+        throw new AuthStorageUnavailableError(erro);
+      }
+
+      await aguardar(150);
+    }
+  }
+
+  return null;
+}
+
+function respostaAuthTemporariamenteIndisponivel() {
+  return Response.json(
+    {
+      erro: "Autenticação temporariamente indisponível. Tente novamente em alguns instantes.",
+      codigo: "AUTH_STORAGE_UNAVAILABLE",
+      temporario: true,
+    },
+    {
+      status: 503,
+      headers: {
+        "Retry-After": "2",
+      },
+    },
+  );
 }
 
 function podeEditar(usuario: UsuarioSessao) {
@@ -331,15 +378,44 @@ export default {
     }
 
     if (url.pathname === "/api/auth/me" && request.method === "GET") {
-      const usuario = await usuarioDaRequisicao(request, env);
-      if (!usuario) return Response.json({ erro: "Não autenticado." }, { status: 401 });
-      return Response.json({ usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, username: usuario.username, perfil: usuario.perfil } });
+      try {
+        const usuario = await usuarioDaRequisicao(request, env);
+        if (!usuario) return Response.json({ erro: "Não autenticado." }, { status: 401 });
+
+        return Response.json({
+          usuario: {
+            id: usuario.id,
+            nome: usuario.nome,
+            email: usuario.email,
+            username: usuario.username,
+            perfil: usuario.perfil,
+          },
+        });
+      } catch (erro) {
+        if (erro instanceof AuthStorageUnavailableError) {
+          return respostaAuthTemporariamenteIndisponivel();
+        }
+        throw erro;
+      }
     }
 
     let usuarioAtual: UsuarioSessao | null = null;
     if (url.pathname.startsWith("/api/")) {
-      usuarioAtual = await usuarioDaRequisicao(request, env);
-      if (!usuarioAtual) return Response.json({ erro: "Sessão expirada ou não autenticada." }, { status: 401 });
+      try {
+        usuarioAtual = await usuarioDaRequisicao(request, env);
+      } catch (erro) {
+        if (erro instanceof AuthStorageUnavailableError) {
+          return respostaAuthTemporariamenteIndisponivel();
+        }
+        throw erro;
+      }
+
+      if (!usuarioAtual) {
+        return Response.json(
+          { erro: "Sessão expirada ou não autenticada." },
+          { status: 401 },
+        );
+      }
 
       if (url.pathname === "/api/usuarios") {
         if (usuarioAtual.perfil !== "ADMIN") return Response.json({ erro: "Apenas administradores podem gerenciar usuários." }, { status: 403 });
@@ -697,6 +773,336 @@ export default {
       } catch (erro) {
         console.error(erro);
         return Response.json({ erro: erro instanceof Error ? erro.message : "Não foi possível ler o Google Sheets." }, { status: 500 });
+      }
+    }
+
+    const rotaSheetsSincronizar = url.pathname.match(
+      /^\/api\/periodos\/(\d+)\/google-sheets\/sincronizar$/,
+    );
+
+    if (rotaSheetsSincronizar && request.method === "POST") {
+      try {
+        if (!podeEditar(usuarioAtual!)) {
+          return Response.json(
+            { erro: "Seu perfil não permite sincronizar dados." },
+            { status: 403 },
+          );
+        }
+
+        const periodoId = Number(rotaSheetsSincronizar[1]);
+        const config = await env.DB.prepare(
+          `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+        ).bind(periodoId).first<SheetsConfig>();
+
+        if (!config) {
+          return Response.json(
+            { erro: "Configure a planilha deste período primeiro." },
+            { status: 409 },
+          );
+        }
+
+        const ranges = await lerRangesGoogle(env, config);
+        const [baseFaceFea, baseFchEad, docsFaceFea, docsFchEad, cancelFaceFea, cancelFchEad] = ranges;
+
+        type OrigemSync = "FACE_FEA" | "FCH_EAD";
+        type LinhaBaseSync = {
+          ra: string; nome: string; curso: string; email_outro: string;
+          email: string; contrato: boolean; origem: OrigemSync;
+        };
+
+        const lerBaseSync = (linhas: unknown[][], origem: OrigemSync): LinhaBaseSync[] =>
+          linhas.slice(1).map((l) => ({
+            contrato: normalizarComparacao(l[0]) === "ENTREGUE",
+            curso: normalizarTexto(l[1]),
+            email_outro: normalizarTexto(l[2]),
+            email: normalizarTexto(l[3]),
+            nome: normalizarTexto(l[4]),
+            ra: normalizarTexto(l[5]),
+            origem,
+          })).filter((a) => a.ra && a.nome && a.curso);
+
+        const bases = [
+          ...lerBaseSync(baseFaceFea.linhas, "FACE_FEA"),
+          ...lerBaseSync(baseFchEad.linhas, "FCH_EAD"),
+        ];
+
+        const lerDocsSync = (linhas: unknown[][]) =>
+          new Map(
+            linhas.slice(1).map((l) => [
+              normalizarTexto(l[0]),
+              {
+                identidade: valorBooleano(l[2]),
+                cpf: valorBooleano(l[3]),
+                certidao: valorBooleano(l[4]),
+                residencia: valorBooleano(l[5]),
+                titulo: valorBooleano(l[6]),
+                ensino_medio: valorBooleano(l[7]),
+                contrato: valorBooleano(l[8]),
+              },
+            ]).filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>,
+          );
+
+        const docs = new Map([
+          ...lerDocsSync(docsFaceFea.linhas),
+          ...lerDocsSync(docsFchEad.linhas),
+        ]);
+
+        const lerCanceladosSync = (linhas: unknown[][]) =>
+          new Set(
+            linhas.slice(1)
+              .map((l) => normalizarTexto(l[5] ?? l[0]))
+              .filter(Boolean),
+          );
+
+        const cancelados = new Set([
+          ...lerCanceladosSync(cancelFaceFea.linhas),
+          ...lerCanceladosSync(cancelFchEad.linhas),
+        ]);
+
+        const atuais = await env.DB.prepare(`
+          SELECT a.id, a.ra, a.nome, a.curso, a.unidade, a.email, a.email_outro, a.status,
+                 d.identidade, d.cpf, d.certidao, d.residencia, d.titulo, d.ensino_medio, d.contrato
+          FROM alunos a
+          LEFT JOIN documentos d ON d.aluno_id = a.id
+          WHERE a.periodo_id = ?
+        `).bind(periodoId).all<AlunoRow & { id: number }>();
+
+        const porRa = new Map(atuais.results.map((a) => [a.ra, a]));
+        const cursoUnidades = new Map<string, Set<string>>();
+
+        for (const a of atuais.results) {
+          const curso = normalizarComparacao(a.curso);
+          if (!cursoUnidades.has(curso)) cursoUnidades.set(curso, new Set());
+          cursoUnidades.get(curso)!.add(a.unidade);
+        }
+
+        const mapeamentosSalvos = await env.DB.prepare(`
+          SELECT curso_chave, unidade
+          FROM google_sheets_mapeamentos
+          WHERE periodo_id = ?
+        `).bind(periodoId).all<{ curso_chave: string; unidade: string }>();
+
+        const unidadePorCurso = new Map(
+          mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade]),
+        );
+
+        const resolverUnidadeSync = (a: LinhaBaseSync) => {
+          const existente = porRa.get(a.ra);
+          if (existente) return existente.unidade;
+
+          const mapeada = unidadePorCurso.get(normalizarComparacao(a.curso));
+          if (mapeada) return mapeada;
+
+          if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso)) return "EAD";
+          if (a.origem === "FCH_EAD") return "FCH";
+
+          const conhecidas = [
+            ...(cursoUnidades.get(normalizarComparacao(a.curso)) ?? []),
+          ].filter((u) => u === "FACE" || u === "FEA");
+
+          return conhecidas.length === 1 ? conhecidas[0] : null;
+        };
+
+        const resolvidos = bases.map((aluno) => ({
+          aluno,
+          unidade: resolverUnidadeSync(aluno),
+        }));
+
+        const semUnidade = resolvidos.filter((item) => !item.unidade);
+
+        if (semUnidade.length) {
+          return Response.json(
+            {
+              erro: `Sincronização bloqueada: ${semUnidade.length} aluno(s) ainda estão sem unidade definida.`,
+              unidades_nao_resolvidas: semUnidade.length,
+            },
+            { status: 409 },
+          );
+        }
+
+        let novos = 0;
+        let cadastros = 0;
+        let documentosAlterados = 0;
+        let cancelamentos = 0;
+
+        const comandos: D1PreparedStatement[] = [];
+
+        for (const { aluno, unidade } of resolvidos) {
+          const atual = porRa.get(aluno.ra);
+          const doc = docs.get(aluno.ra);
+
+          if (!atual) {
+            novos += 1;
+
+            comandos.push(
+              env.DB.prepare(`
+                INSERT INTO alunos (
+                  periodo_id, ra, nome, email, email_outro, curso, unidade, status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'ATIVO')
+              `).bind(
+                periodoId,
+                aluno.ra,
+                aluno.nome,
+                aluno.email || null,
+                aluno.email_outro || null,
+                aluno.curso,
+                unidade!,
+              ),
+            );
+
+            comandos.push(
+              env.DB.prepare(`
+                INSERT INTO documentos (
+                  aluno_id, identidade, cpf, certidao, residencia,
+                  titulo, ensino_medio, contrato
+                )
+                SELECT id, ?, ?, ?, ?, ?, ?, ?
+                FROM alunos
+                WHERE periodo_id = ? AND ra = ?
+              `).bind(
+                doc?.identidade ? 1 : 0,
+                doc?.cpf ? 1 : 0,
+                doc?.certidao ? 1 : 0,
+                doc?.residencia ? 1 : 0,
+                doc?.titulo ? 1 : 0,
+                doc?.ensino_medio ? 1 : 0,
+                doc ? (doc.contrato ? 1 : 0) : (aluno.contrato ? 1 : 0),
+                periodoId,
+                aluno.ra,
+              ),
+            );
+
+            continue;
+          }
+
+          const cadastroMudou =
+            normalizarComparacao(atual.nome) !== normalizarComparacao(aluno.nome) ||
+            normalizarComparacao(atual.curso) !== normalizarComparacao(aluno.curso) ||
+            normalizarComparacao(atual.email ?? "") !== normalizarComparacao(aluno.email) ||
+            normalizarComparacao(atual.email_outro ?? "") !== normalizarComparacao(aluno.email_outro);
+
+          if (cadastroMudou) {
+            cadastros += 1;
+            comandos.push(
+              env.DB.prepare(`
+                UPDATE alunos
+                SET nome = ?, email = ?, email_outro = ?, curso = ?,
+                    atualizado_em = CURRENT_TIMESTAMP
+                WHERE id = ?
+              `).bind(
+                aluno.nome,
+                aluno.email || null,
+                aluno.email_outro || null,
+                aluno.curso,
+                atual.id,
+              ),
+            );
+          }
+
+          if (doc) {
+            const docMudou =
+              Boolean(atual.identidade) !== doc.identidade ||
+              Boolean(atual.cpf) !== doc.cpf ||
+              Boolean(atual.certidao) !== doc.certidao ||
+              Boolean(atual.residencia) !== doc.residencia ||
+              Boolean(atual.titulo) !== doc.titulo ||
+              Boolean(atual.ensino_medio) !== doc.ensino_medio ||
+              Boolean(atual.contrato) !== doc.contrato;
+
+            if (docMudou) {
+              documentosAlterados += 1;
+              comandos.push(
+                env.DB.prepare(`
+                  INSERT INTO documentos (
+                    aluno_id, identidade, cpf, certidao, residencia,
+                    titulo, ensino_medio, contrato
+                  )
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                  ON CONFLICT(aluno_id) DO UPDATE SET
+                    identidade = excluded.identidade,
+                    cpf = excluded.cpf,
+                    certidao = excluded.certidao,
+                    residencia = excluded.residencia,
+                    titulo = excluded.titulo,
+                    ensino_medio = excluded.ensino_medio,
+                    contrato = excluded.contrato,
+                    atualizado_em = CURRENT_TIMESTAMP
+                `).bind(
+                  atual.id,
+                  doc.identidade ? 1 : 0,
+                  doc.cpf ? 1 : 0,
+                  doc.certidao ? 1 : 0,
+                  doc.residencia ? 1 : 0,
+                  doc.titulo ? 1 : 0,
+                  doc.ensino_medio ? 1 : 0,
+                  doc.contrato ? 1 : 0,
+                ),
+              );
+            }
+          }
+        }
+
+        for (const ra of cancelados) {
+          const atual = porRa.get(ra);
+          if (!atual || atual.status === "CANCELADO") continue;
+
+          cancelamentos += 1;
+          comandos.push(
+            env.DB.prepare(`
+              UPDATE alunos
+              SET status = 'CANCELADO', atualizado_em = CURRENT_TIMESTAMP
+              WHERE id = ?
+            `).bind(atual.id),
+          );
+        }
+
+        // D1 batch é atômico: se uma instrução falhar, o lote inteiro é revertido.
+        const TAMANHO_BATCH = 80;
+        for (let i = 0; i < comandos.length; i += TAMANHO_BATCH) {
+          await env.DB.batch(comandos.slice(i, i + TAMANHO_BATCH));
+        }
+
+        const periodo = await env.DB.prepare(
+          `SELECT codigo FROM periodos WHERE id = ?`,
+        ).bind(periodoId).first<{ codigo: string }>();
+
+        const descricao =
+          `Google Sheets sincronizado no período ${periodo?.codigo ?? periodoId}: ` +
+          `${novos} novo(s), ${cadastros} cadastro(s), ` +
+          `${documentosAlterados} documento(s) e ${cancelamentos} cancelamento(s).`;
+
+        await env.DB.prepare(`
+          INSERT INTO logs (acao, entidade, descricao, ra, unidade, periodo_id)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).bind(
+          "SINCRONIZAR",
+          "GOOGLE_SHEETS",
+          descricao,
+          null,
+          null,
+          periodoId,
+        ).run();
+
+        return Response.json({
+          sucesso: true,
+          novos,
+          alteracoes_cadastrais: cadastros,
+          documentos_alterados: documentosAlterados,
+          cancelamentos,
+          total_operacoes: novos + cadastros + documentosAlterados + cancelamentos,
+        });
+      } catch (erro) {
+        console.error("Erro na sincronização Google Sheets:", erro);
+        return Response.json(
+          {
+            erro:
+              erro instanceof Error
+                ? erro.message
+                : "Não foi possível sincronizar o Google Sheets.",
+          },
+          { status: 500 },
+        );
       }
     }
 

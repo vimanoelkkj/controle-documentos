@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 
 type AlunoApi = {
@@ -284,7 +285,10 @@ function Estatisticas() {
       <header className="statistics-hero">
         <div>
           <span className="statistics-eyebrow">ANÁLISE OPERACIONAL</span>
+          <div className="page-title-row">
+          <span className="page-title-icon"><AppIcon name="stats" size={22} /></span>
           <h1>Estatísticas documentais</h1>
+        </div>
           <p>
             Onde estão os gargalos, como os alunos se distribuem e quais grupos
             merecem prioridade na conferência.

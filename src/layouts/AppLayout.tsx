@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { PeriodoProvider, usePeriodo } from "../contexts/PeriodoContext";
 import { useAuth } from "../contexts/AuthContext";
 
-type SheetsEstado = "carregando" | "conectado" | "nao-conectado";
+type SheetsEstado = "carregando" | "conectado" | "nao-conectado" | "temporario";
 
 type SheetsStatus = {
   configurado: boolean;
@@ -42,6 +42,7 @@ function LayoutContent() {
   const [testandoSheets, setTestandoSheets] = useState(false);
   const [modalSheets, setModalSheets] = useState(false);
   const [modalSheetsSaindo, setModalSheetsSaindo] = useState(false);
+  const retrySheetsRef = useRef<number | null>(null);
 
   useEffect(() => {
     const navigation = performance.getEntriesByType(
@@ -57,6 +58,11 @@ function LayoutContent() {
   async function testarGoogleSheets(silencioso = false) {
     if (!periodoAtual) return;
 
+    if (retrySheetsRef.current !== null) {
+      window.clearTimeout(retrySheetsRef.current);
+      retrySheetsRef.current = null;
+    }
+
     if (!silencioso) setTestandoSheets(true);
 
     try {
@@ -64,7 +70,31 @@ function LayoutContent() {
         `/api/periodos/${periodoAtual.id}/google-sheets/status`,
       );
 
-      const dados = (await resposta.json()) as SheetsStatus;
+      const dados = (await resposta.json()) as SheetsStatus & {
+        codigo?: string;
+        temporario?: boolean;
+      };
+
+      if (resposta.status === 503 && dados.temporario) {
+        setSheetsStatus({
+          configurado: Boolean(dados.configurado),
+          conectado: false,
+          spreadsheet_id: dados.spreadsheet_id ?? null,
+          titulo: dados.titulo ?? null,
+          erro: dados.erro || "Serviço temporariamente indisponível.",
+        });
+
+        const retryAfter = Number(resposta.headers.get("Retry-After") || "2");
+        const atraso = Number.isFinite(retryAfter)
+          ? Math.max(1, retryAfter) * 1000
+          : 2000;
+
+        retrySheetsRef.current = window.setTimeout(() => {
+          void testarGoogleSheets(true);
+        }, atraso);
+
+        return;
+      }
 
       if (!resposta.ok) {
         throw new Error(
@@ -92,6 +122,13 @@ function LayoutContent() {
   useEffect(() => {
     setSheetsStatus(null);
     void testarGoogleSheets(true);
+
+    return () => {
+      if (retrySheetsRef.current !== null) {
+        window.clearTimeout(retrySheetsRef.current);
+        retrySheetsRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodoAtual?.id]);
 
@@ -133,12 +170,20 @@ function LayoutContent() {
     );
   }
 
+  const sheetsTemporariamenteIndisponivel =
+    Boolean(sheetsStatus?.erro) &&
+    /temporariamente indisponível|temporarily unavailable/i.test(
+      sheetsStatus?.erro || "",
+    );
+
   const sheetsEstado: SheetsEstado =
     sheetsStatus === null
       ? "carregando"
-      : sheetsStatus.conectado
-        ? "conectado"
-        : "nao-conectado";
+      : sheetsTemporariamenteIndisponivel
+        ? "temporario"
+        : sheetsStatus.conectado
+          ? "conectado"
+          : "nao-conectado";
 
   const conectado = sheetsEstado === "conectado";
 
@@ -159,7 +204,9 @@ function LayoutContent() {
 
           <button
             type="button"
-            className={`google-sheets-status google-sheets-status--${sheetsEstado}`}
+            className={`google-sheets-status google-sheets-status--${
+              sheetsEstado === "temporario" ? "carregando" : sheetsEstado
+            }`}
             onClick={abrirModalSheets}
             title="Abrir status da integração com Google Planilhas"
           >
@@ -170,9 +217,11 @@ function LayoutContent() {
               <small>
                 {sheetsEstado === "carregando"
                   ? "Verificando..."
-                  : conectado
-                    ? "Conectado"
-                    : "Não conectado"}
+                  : sheetsEstado === "temporario"
+                    ? "Tentando novamente..."
+                    : conectado
+                      ? "Conectado"
+                      : "Não conectado"}
               </small>
             </span>
 
@@ -262,19 +311,23 @@ function LayoutContent() {
                   <strong>
                     {sheetsStatus === null
                       ? "Verificando conexão..."
-                      : conectado
-                        ? "Conexão confirmada"
-                        : sheetsStatus.configurado
-                          ? "Configuração encontrada, mas sem conexão"
-                          : "Não conectado"}
+                      : sheetsEstado === "temporario"
+                        ? "Conexão temporariamente indisponível"
+                        : conectado
+                          ? "Conexão confirmada"
+                          : sheetsStatus.configurado
+                            ? "Configuração encontrada, mas sem conexão"
+                            : "Não conectado"}
                   </strong>
 
                   <small>
                     {conectado
                       ? "O sistema conseguiu acessar a planilha pelo Google Sheets."
-                      : sheetsStatus?.configurado
-                        ? "A configuração existe, mas o Google não confirmou o acesso."
-                        : "Nenhuma planilha está configurada para este período."}
+                      : sheetsEstado === "temporario"
+                        ? "O armazenamento de autenticação está instável. O sistema tentará novamente automaticamente."
+                        : sheetsStatus?.configurado
+                          ? "A configuração existe, mas o Google não confirmou o acesso."
+                          : "Nenhuma planilha está configurada para este período."}
                   </small>
                 </div>
               </div>
@@ -307,7 +360,11 @@ function LayoutContent() {
                 onClick={() => void testarGoogleSheets(false)}
                 disabled={testandoSheets || !sheetsStatus?.configurado}
               >
-                {testandoSheets ? "Testando..." : "↻ Testar conexão"}
+                {testandoSheets
+                  ? "Testando..."
+                  : sheetsEstado === "temporario"
+                    ? "↻ Tentar agora"
+                    : "↻ Testar conexão"}
               </button>
 
               <button

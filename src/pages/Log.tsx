@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 
 type RegistroLog = {
@@ -63,7 +64,10 @@ function Log() {
       <header className="page-header log-header">
         <div>
           <span>HISTÓRICO</span>
+          <div className="page-title-row">
+          <span className="page-title-icon"><AppIcon name="log" size={22} /></span>
           <h1>LOG</h1>
+        </div>
           <p>Registro cronológico das ações realizadas no sistema.</p>
         </div>
         <button type="button" className="log-refresh" onClick={carregarLog}>↻ Atualizar</button>

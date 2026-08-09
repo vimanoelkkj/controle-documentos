@@ -1,5 +1,8 @@
+import AppIcon from "../components/AppIcon";
 import {
   useEffect,
+  useLayoutEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type Dispatch,
@@ -151,6 +154,7 @@ function Conferencia() {
   const [modalExcluirAluno, setModalExcluirAluno] = useState(false);
   const [modalStatusAluno, setModalStatusAluno] = useState(false);
   const [modalSaindo, setModalSaindo] = useState<string | null>(null);
+  const [trocaAlunoPendente, setTrocaAlunoPendente] = useState<string | null>(null);
 
   const [novoAluno, setNovoAluno] = useState<FormAluno>(formularioVazio);
   const [alunoEdicao, setAlunoEdicao] = useState<FormAluno>(formularioVazio);
@@ -165,6 +169,10 @@ function Conferencia() {
 
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("ATIVO");
 
+  const painelListaRef = useRef<HTMLElement | null>(null);
+  const detalhesAlunoRef = useRef<HTMLElement | null>(null);
+  const conferenciaGridRef = useRef<HTMLDivElement | null>(null);
+
   const [modalImportarCancelados, setModalImportarCancelados] = useState(false);
   const [modoCancelados, setModoCancelados] = useState<"colar" | "csv">(
     "colar",
@@ -178,6 +186,51 @@ function Conferencia() {
     useState<ResultadoCancelados | null>(null);
   const [processandoCancelados, setProcessandoCancelados] = useState(false);
   const [erroCancelados, setErroCancelados] = useState("");
+
+  useLayoutEffect(() => {
+    const grid = conferenciaGridRef.current;
+    const painel = painelListaRef.current;
+    const detalhes = detalhesAlunoRef.current;
+
+    if (!grid || !painel || !detalhes) return;
+
+    const ajustarAltura = () => {
+      if (window.matchMedia("(max-width: 900px)").matches) {
+        painel.style.removeProperty("height");
+        detalhes.style.removeProperty("height");
+        return;
+      }
+
+      // Mantém uma pequena margem visual até o fim da viewport.
+      const margemInferior = 20;
+      const topo = Math.ceil(grid.getBoundingClientRect().top);
+      const alturaDisponivel = Math.max(
+        460,
+        window.innerHeight - topo - margemInferior,
+      );
+
+      painel.style.height = `${alturaDisponivel}px`;
+      detalhes.style.height = `${alturaDisponivel}px`;
+    };
+
+    ajustarAltura();
+
+    window.addEventListener("resize", ajustarAltura);
+
+    // Se algo acima do grid mudar de tamanho, recalcula sem depender
+    // apenas do resize da janela.
+    const observer = new ResizeObserver(ajustarAltura);
+    observer.observe(grid.parentElement ?? grid);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", ajustarAltura);
+      painel.style.removeProperty("height");
+      detalhes.style.removeProperty("height");
+    };
+  }, [carregando, raSelecionado, unidadeSelecionada, filtroStatus]);
+
+
 
   async function carregarAlunos(
     raParaSelecionar?: string,
@@ -891,7 +944,35 @@ function Conferencia() {
   }
 
   function selecionarAluno(ra: string) {
+    if (ra === raSelecionado) return;
+
+    if (temAlteracoes) {
+      setTrocaAlunoPendente(ra);
+      return;
+    }
+
     setRaSelecionado(ra);
+    setStatus("salvo");
+  }
+
+  function descartarAlteracoesETrocarAluno() {
+    if (!trocaAlunoPendente) return;
+
+    setAlunosEmEdicao((estadoAtual) =>
+      estadoAtual.map((aluno) =>
+        aluno.ra === raSelecionado
+          ? {
+              ...alunoSalvo,
+              documentos: alunoSalvo.documentos.map((documento) => ({
+                ...documento,
+              })),
+            }
+          : aluno,
+      ),
+    );
+
+    setRaSelecionado(trocaAlunoPendente);
+    setTrocaAlunoPendente(null);
     setStatus("salvo");
   }
 
@@ -1410,12 +1491,15 @@ function Conferencia() {
     <section className="conference-page">
       <header className="page-header">
         <span>FLUXO DE TRABALHO</span>
-        <h1>Conferência de documentos</h1>
+        <div className="page-title-row">
+          <span className="page-title-icon"><AppIcon name="check" size={22} /></span>
+          <h1>Conferência de documentos</h1>
+        </div>
         <p>Confira e atualize a documentação dos alunos.</p>
       </header>
 
-      <div className="conference-grid">
-        <aside className="student-panel">
+      <div ref={conferenciaGridRef} className="conference-grid">
+        <aside ref={painelListaRef} className="student-panel">
           <div className="student-panel-header">
             <div>
               <span>ALUNOS POR UNIDADE</span>
@@ -1546,6 +1630,7 @@ function Conferencia() {
 
         {temAlunoSelecionadoNoFiltro ? (
           <article
+            ref={detalhesAlunoRef}
             key={alunoSelecionado.ra}
             className="student-details student-details-animated"
           >
@@ -1705,7 +1790,7 @@ function Conferencia() {
             </footer>
           </article>
         ) : (
-          <article className="student-details student-details-empty">
+          <article ref={detalhesAlunoRef} className="student-details student-details-empty">
             <div>
               <span className="empty-state-icon">✓</span>
               <h2>Selecione um aluno</h2>
@@ -1720,6 +1805,47 @@ function Conferencia() {
           </article>
         )}
       </div>
+
+      {trocaAlunoPendente && (
+        <div className="modal-overlay">
+          <section
+            className="unsaved-student-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="unsaved-student-title"
+          >
+            <div className="unsaved-student-icon">!</div>
+
+            <span className="unsaved-student-eyebrow">ALTERAÇÕES NÃO SALVAS</span>
+
+            <h2 id="unsaved-student-title">Trocar de aluno?</h2>
+
+            <p>
+              Você modificou a documentação de{" "}
+              <strong>{alunoSelecionado.nome}</strong>. Se continuar, essas
+              alterações serão descartadas.
+            </p>
+
+            <div className="unsaved-student-actions">
+              <button
+                type="button"
+                className="unsaved-student-back"
+                onClick={() => setTrocaAlunoPendente(null)}
+              >
+                Voltar e salvar
+              </button>
+
+              <button
+                type="button"
+                className="unsaved-student-discard"
+                onClick={descartarAlteracoesETrocarAluno}
+              >
+                Descartar e continuar
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {modalAdicionarAluno && (
         <div

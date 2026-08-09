@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 
 type AlunoApi = {
@@ -210,7 +211,10 @@ function Dashboard() {
       <header className="dashboard-hero">
         <div>
           <span className="dashboard-eyebrow">VISÃO EXECUTIVA</span>
+          <div className="page-title-row">
+          <span className="page-title-icon"><AppIcon name="dashboard" size={22} /></span>
           <h1>Dashboard documental</h1>
+        </div>
           <p>
             Panorama da documentação ativa, pendências prioritárias e desempenho
             por unidade.

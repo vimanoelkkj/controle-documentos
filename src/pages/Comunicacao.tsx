@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type AlunoApi = {
@@ -492,7 +493,10 @@ ${textoEmail}`;
       <header className="communication-header">
         <div>
           <span className="communication-eyebrow">CENTRAL DE COMUNICAÇÃO</span>
+          <div className="page-title-row">
+          <span className="page-title-icon"><AppIcon name="mail" size={22} /></span>
           <h1>Cobrança de documentos</h1>
+        </div>
           <p>
             Grupos automáticos por combinação exata de pendências. Escolha um
             grupo, revise os alunos e copie os destinatários para o Outlook.

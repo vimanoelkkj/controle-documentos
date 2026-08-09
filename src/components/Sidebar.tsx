@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import AppIcon, { type AppIconName } from '../components/AppIcon'
 
-const items = [
-  { label: 'Dashboard', to: '/', icon: '▦' },
-  { label: 'Conferência', to: '/conferencia', icon: '✓' },
-  { label: 'Comunicação', to: '/comunicacao', icon: '✉' },
-  { label: 'Auditoria', to: '/auditoria', icon: '⌕' },
-  { label: 'Estatísticas', to: '/estatisticas', icon: '↗' },
-  { label: 'LOG', to: '/log', icon: '≡' },
-  { label: 'Períodos', to: '/periodos', icon: '◫' },
-  { label: 'Configurações', to: '/configuracoes', icon: '⚙' },
-  { label: 'Sobre', to: '/sobre', icon: 'ⓘ' },
+const items: { label: string; to: string; icon: AppIconName }[] = [
+  { label: 'Dashboard', to: '/', icon: 'dashboard' },
+  { label: 'Conferência', to: '/conferencia', icon: 'check' },
+  { label: 'Comunicação', to: '/comunicacao', icon: 'mail' },
+  { label: 'Auditoria', to: '/auditoria', icon: 'audit' },
+  { label: 'Estatísticas', to: '/estatisticas', icon: 'stats' },
+  { label: 'LOG', to: '/log', icon: 'log' },
+  { label: 'Períodos', to: '/periodos', icon: 'calendar' },
+  { label: 'Configurações', to: '/configuracoes', icon: 'settings' },
+  { label: 'Sobre', to: '/sobre', icon: 'info' },
 ]
 
 function Sidebar() {
@@ -30,7 +31,7 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="sidebar-brand-icon">CD</div>
+        <div className="sidebar-brand-icon"><AppIcon name="document" size={22} strokeWidth={1.9} /></div>
 
         <div className="sidebar-brand-copy">
           <strong>Controle de Documentos</strong>
@@ -48,7 +49,7 @@ function Sidebar() {
               `sidebar-link ${isActive ? 'active' : ''}`
             }
           >
-            <span className="sidebar-link-icon">{item.icon}</span>
+            <span className="sidebar-link-icon"><AppIcon name={item.icon} size={16} /></span>
             <span>{item.label}</span>
           </NavLink>
         ))}

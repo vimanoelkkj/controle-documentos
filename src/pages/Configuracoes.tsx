@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth, type Perfil } from "../contexts/AuthContext";
 
@@ -151,7 +152,10 @@ function Configuracoes() {
   return (
     <section className="settings-page">
       <span>SISTEMA</span>
-      <h1>Configurações</h1>
+      <div className="page-title-row">
+          <span className="page-title-icon"><AppIcon name="settings" size={22} /></span>
+          <h1>Configurações</h1>
+        </div>
       <p>Preferências, integrações e controle de acesso.</p>
 
       {!admin ? (

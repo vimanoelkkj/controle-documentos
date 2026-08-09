@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 import { usePeriodo } from "../contexts/PeriodoContext";
 
@@ -38,6 +39,14 @@ type SheetsPrevia = {
 
 type AbaPrevia = "novos" | "cadastros" | "documentos" | "cancelamentos" | "unidades";
 
+type SheetsResultadoSync = {
+  novos: number;
+  alteracoes_cadastrais: number;
+  documentos_alterados: number;
+  cancelamentos: number;
+  total_operacoes: number;
+};
+
 const configVazia: SheetsConfig = {
   spreadsheet_id: "",
   aba_base_face_fea: "FACE - FEA 2026 - 2",
@@ -61,7 +70,11 @@ function Periodos() {
   const [sheetsPrevia, setSheetsPrevia] = useState<SheetsPrevia | null>(null);
   const [abaPrevia, setAbaPrevia] = useState<AbaPrevia | null>(null);
   const [mapeamentos, setMapeamentos] = useState<Record<string, string>>({});
-  const [salvandoMapeamento, setSalvandoMapeamento] = useState("");
+  const [salvandoMapeamentos, setSalvandoMapeamentos] = useState(false);
+  const [mapeamentosSalvos, setMapeamentosSalvos] = useState<Record<string, string>>({});
+  const [modalSincronizar, setModalSincronizar] = useState(false);
+  const [sincronizandoSheets, setSincronizandoSheets] = useState(false);
+  const [resultadoSync, setResultadoSync] = useState<SheetsResultadoSync | null>(null);
 
   useEffect(() => {
     if (!periodoAtual) return;
@@ -69,7 +82,9 @@ function Periodos() {
     setSheetsPrevia(null);
     setAbaPrevia(null);
     setMapeamentos({});
+    setMapeamentosSalvos({});
     setSheetsErro("");
+    setModalSincronizar(false);
     fetch(`/api/periodos/${periodoAtual.id}/google-sheets`)
       .then(async (resposta) => {
         if (!resposta.ok) throw new Error("Não foi possível carregar a configuração do Google Sheets.");
@@ -116,22 +131,99 @@ function Periodos() {
     finally { setSheetsCarregando(false); }
   }
 
-  async function salvarMapeamento(curso: string) {
-    if (!periodoAtual) return;
-    const unidade = mapeamentos[curso];
-    if (!unidade) return;
+  const mapeamentosAlterados = useMemo(
+    () =>
+      Object.entries(mapeamentos).filter(
+        ([curso, unidade]) =>
+          Boolean(unidade) && unidade !== (mapeamentosSalvos[curso] || ""),
+      ),
+    [mapeamentos, mapeamentosSalvos],
+  );
+
+  async function salvarMapeamentos() {
+    if (!periodoAtual || !mapeamentosAlterados.length) return;
+
     try {
-      setSalvandoMapeamento(curso); setSheetsErro("");
-      const resposta = await fetch(`/api/periodos/${periodoAtual.id}/google-sheets/mapeamentos`, {
-        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ curso, unidade }),
-      });
-      const dados = await resposta.json() as { erro?: string };
-      if (!resposta.ok) throw new Error(dados.erro || "Não foi possível salvar o mapeamento.");
+      setSalvandoMapeamentos(true);
+      setSheetsErro("");
+
+      for (const [curso, unidade] of mapeamentosAlterados) {
+        const resposta = await fetch(
+          `/api/periodos/${periodoAtual.id}/google-sheets/mapeamentos`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ curso, unidade }),
+          },
+        );
+
+        const dados = await resposta.json() as { erro?: string };
+
+        if (!resposta.ok) {
+          throw new Error(
+            dados.erro || `Não foi possível salvar o mapeamento de ${curso}.`,
+          );
+        }
+      }
+
+      setMapeamentosSalvos((atual) => ({
+        ...atual,
+        ...Object.fromEntries(mapeamentosAlterados),
+      }));
+
       await gerarPreviaSheets();
       setAbaPrevia("unidades");
-    } catch (e) { setSheetsErro(e instanceof Error ? e.message : "Erro ao salvar mapeamento."); }
-    finally { setSalvandoMapeamento(""); }
+    } catch (e) {
+      setSheetsErro(
+        e instanceof Error ? e.message : "Erro ao salvar os mapeamentos.",
+      );
+    } finally {
+      setSalvandoMapeamentos(false);
+    }
   }
+
+  async function sincronizarSheets() {
+    if (!periodoAtual || !sheetsPrevia || sheetsPrevia.unidades_nao_resolvidas > 0) return;
+
+    try {
+      setSincronizandoSheets(true);
+      setSheetsErro("");
+
+      const resposta = await fetch(
+        `/api/periodos/${periodoAtual.id}/google-sheets/sincronizar`,
+        { method: "POST" },
+      );
+
+      const dados = await resposta.json() as SheetsResultadoSync & { erro?: string };
+
+      if (!resposta.ok) {
+        throw new Error(dados.erro || "Não foi possível sincronizar a planilha.");
+      }
+
+      setModalSincronizar(false);
+
+      // Atualiza os dados da própria página sem recarregar o navegador.
+      // O resumo só aparece depois que a prévia e os períodos terminarem de atualizar.
+      await gerarPreviaSheets();
+      await recarregarPeriodos();
+
+      setResultadoSync(dados);
+    } catch (e) {
+      setSheetsErro(
+        e instanceof Error ? e.message : "Erro ao sincronizar Google Sheets.",
+      );
+      setModalSincronizar(false);
+    } finally {
+      setSincronizandoSheets(false);
+    }
+  }
+
+  const totalOperacoesPrevia = sheetsPrevia
+    ? sheetsPrevia.novos +
+      sheetsPrevia.alteracoes_cadastrais +
+      sheetsPrevia.documentos_alterados +
+      sheetsPrevia.prontos_para_cancelar
+    : 0;
 
   const ativos = useMemo(() => periodos.filter((periodo) => periodo.status === "ATIVO"), [periodos]);
   const arquivados = useMemo(() => periodos.filter((periodo) => periodo.status === "ARQUIVADO"), [periodos]);
@@ -209,7 +301,10 @@ function Periodos() {
       <header className="period-hero">
         <div>
           <span className="period-eyebrow">GESTÃO ACADÊMICA</span>
+          <div className="page-title-row">
+          <span className="page-title-icon"><AppIcon name="calendar" size={22} /></span>
           <h1>Períodos letivos</h1>
+        </div>
           <p>Crie novos ciclos, alterne o contexto do sistema e arquive períodos antigos sem perder o acesso aos dados.</p>
         </div>
         <div className="period-current">
@@ -269,9 +364,52 @@ function Periodos() {
             {abaPrevia === "unidades" ? (
               sheetsPrevia.cursos_pendentes.length ? <div className="period-course-map">
                 {sheetsPrevia.cursos_pendentes.map((grupo) => <article key={grupo.curso}>
-                  <div className="period-course-info"><strong>{grupo.curso}</strong><span>{grupo.quantidade} aluno{grupo.quantidade === 1 ? "" : "s"} será{grupo.quantidade === 1 ? "" : "ão"} resolvido{grupo.quantidade === 1 ? "" : "s"}</span><small>{grupo.alunos.slice(0, 3).map((a) => a.nome).join(" · ")}{grupo.alunos.length > 3 ? ` · +${grupo.alunos.length - 3}` : ""}</small></div>
-                  <div className="period-course-actions"><select value={mapeamentos[grupo.curso] || ""} onChange={(e) => setMapeamentos((atual) => ({ ...atual, [grupo.curso]: e.target.value }))}><option value="">Selecionar unidade</option><option value="FACE">FACE</option><option value="FEA">FEA</option><option value="FCH">FCH</option><option value="EAD">EAD</option></select><button type="button" disabled={!mapeamentos[grupo.curso] || salvandoMapeamento === grupo.curso} onClick={() => salvarMapeamento(grupo.curso)}>{salvandoMapeamento === grupo.curso ? "Salvando..." : "Salvar"}</button></div>
+                  <div className="period-course-info">
+                    <strong>{grupo.curso}</strong>
+                    <span>{grupo.quantidade} aluno(s) será(ão) resolvido(s)</span>
+                    <small>{grupo.alunos.slice(0, 3).map((a) => a.nome).join(" · ")}{grupo.alunos.length > 3 ? ` · +${grupo.alunos.length - 3}` : ""}</small>
+                  </div>
+                  <div className="period-course-actions">
+                    <select
+                      value={mapeamentos[grupo.curso] || ""}
+                      onChange={(e) =>
+                        setMapeamentos((atual) => ({
+                          ...atual,
+                          [grupo.curso]: e.target.value,
+                        }))
+                      }
+                      disabled={salvandoMapeamentos}
+                    >
+                      <option value="">Selecionar unidade</option>
+                      <option value="FACE">FACE</option>
+                      <option value="FEA">FEA</option>
+                      <option value="FCH">FCH</option>
+                      <option value="EAD">EAD</option>
+                    </select>
+                  </div>
                 </article>)}
+                <div className="period-course-map-save">
+                  <div>
+                    <span>MAPEAMENTO DE UNIDADES</span>
+                    <strong>
+                      {mapeamentosAlterados.length
+                        ? `${mapeamentosAlterados.length} alteração(ões) pronta(s) para salvar`
+                        : "Nenhuma alteração para salvar"}
+                    </strong>
+                    <small>Ajuste todos os cursos acima e salve tudo de uma vez.</small>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={salvarMapeamentos}
+                    disabled={!mapeamentosAlterados.length || salvandoMapeamentos}
+                  >
+                    {salvandoMapeamentos
+                      ? "Salvando unidades..."
+                      : mapeamentosAlterados.length
+                        ? `Salvar ${mapeamentosAlterados.length} alteração(ões)`
+                        : "Salvar unidades"}
+                  </button>
+                </div>
               </div> : <div className="period-sheets-resolved">✓ Todas as unidades foram resolvidas.</div>
             ) : (
               <div className="period-preview-list">
@@ -283,7 +421,35 @@ function Periodos() {
             )}
           </div>}
           {sheetsPrevia.unidades_nao_resolvidas > 0 && <div className="period-sheets-warning"><strong>Atenção:</strong> existem {sheetsPrevia.unidades_nao_resolvidas} alunos sem unidade definida. Clique em <strong>Unidades a resolver</strong> e mapeie cada curso antes da sincronização.</div>}
-          {sheetsPrevia.unidades_nao_resolvidas === 0 && <div className="period-sheets-ready"><strong>✓ Unidades resolvidas.</strong> A prévia está pronta para a próxima etapa de sincronização.</div>}
+          {sheetsPrevia.unidades_nao_resolvidas === 0 && (
+            <>
+              <div className="period-sheets-ready">
+                <strong>✓ Unidades resolvidas.</strong> A prévia está pronta para sincronização.
+              </div>
+              <div className={`period-sheets-sync-bar ${totalOperacoesPrevia === 0 ? "is-synced" : ""}`}>
+                <div>
+                  <span>{totalOperacoesPrevia === 0 ? "TUDO SINCRONIZADO" : "APLICAR ALTERAÇÕES"}</span>
+                  <strong>
+                    {totalOperacoesPrevia === 0
+                      ? "✓ Nenhuma alteração encontrada"
+                      : `${totalOperacoesPrevia} operação(ões) pronta(s)`}
+                  </strong>
+                  <small>
+                    {totalOperacoesPrevia === 0
+                      ? "O Google Sheets e o sistema estão sem divergências."
+                      : "A planilha será lida novamente no momento da sincronização."}
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setResultadoSync(null); setModalSincronizar(true); }}
+                  disabled={sincronizandoSheets || totalOperacoesPrevia === 0}
+                >
+                  {totalOperacoesPrevia === 0 ? "Sem alterações" : "Sincronizar agora"}
+                </button>
+              </div>
+            </>
+          )}
         </div>}
       </section>
 
@@ -306,6 +472,59 @@ function Periodos() {
           </div>
         )}
       </section>
+
+      {resultadoSync && (
+        <div className="period-sheets-sync-result">
+          <div>
+            <span>ÚLTIMA SINCRONIZAÇÃO</span>
+            <strong>✓ Google Sheets aplicado ao sistema</strong>
+          </div>
+          <p>
+            {resultadoSync.novos} novo(s) · {resultadoSync.alteracoes_cadastrais} cadastro(s) · {resultadoSync.documentos_alterados} documento(s) · {resultadoSync.cancelamentos} cancelamento(s)
+          </p>
+          <button type="button" onClick={() => setResultadoSync(null)}>×</button>
+        </div>
+      )}
+
+      {modalSincronizar && sheetsPrevia && (
+        <div className="modal-overlay">
+          <section className="period-sync-confirm-modal" role="dialog" aria-modal="true">
+            <header>
+              <span>SINCRONIZAÇÃO</span>
+              <h2>Aplicar Google Sheets?</h2>
+              <p>
+                As diferenças da prévia serão gravadas no período <strong>{periodoAtual?.codigo}</strong>.
+                Antes de escrever, o servidor lerá a planilha novamente.
+              </p>
+            </header>
+
+            <div className="period-sync-confirm-grid">
+              <div><strong>{sheetsPrevia.novos}</strong><span>Novos</span></div>
+              <div><strong>{sheetsPrevia.alteracoes_cadastrais}</strong><span>Cadastros</span></div>
+              <div><strong>{sheetsPrevia.documentos_alterados}</strong><span>Documentos</span></div>
+              <div><strong>{sheetsPrevia.prontos_para_cancelar}</strong><span>Cancelamentos</span></div>
+            </div>
+
+            <div className="period-sync-confirm-note">
+              <strong>Importante:</strong> esta operação altera o banco do sistema e será registrada no LOG.
+            </div>
+
+            <footer>
+              <button
+                type="button"
+                className="period-sync-back-button"
+                onClick={() => setModalSincronizar(false)}
+                disabled={sincronizandoSheets}
+              >
+                Voltar
+              </button>
+              <button type="button" onClick={sincronizarSheets} disabled={sincronizandoSheets}>
+                {sincronizandoSheets ? "Sincronizando..." : "Confirmar sincronização"}
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
 
       {confirmacao && (
         <div className="modal-overlay" onMouseDown={() => !processando && setConfirmacao(null)}>
