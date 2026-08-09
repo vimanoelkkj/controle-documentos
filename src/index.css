@@ -415,6 +415,11 @@ a {
   border-top: 1px solid #253847;
 }
 
+/* Sem alunos renderizados, não deixa uma linha solta abaixo da pesquisa. */
+.student-list:empty {
+  border-top: 0;
+}
+
 .student-card {
   display: block;
 
@@ -4259,6 +4264,29 @@ html[data-theme="light"] .student-card.active {
   color: #12334a;
   border-color: #69add8;
   background: #dff1fc;
+}
+
+/* Ações mais suaves no modo claro. */
+html[data-theme="light"] .botao-importar-cancelados {
+  color: #a9443a;
+  border-color: #e7afa9;
+  background: #fff1f0;
+}
+
+html[data-theme="light"] .botao-importar-cancelados:hover {
+  border-color: #db9289;
+  background: #fde4e1;
+}
+
+html[data-theme="light"] .botao-novo-aluno {
+  color: #1f6f9f;
+  border-color: #9ac9e8;
+  background: #e7f3fb;
+}
+
+html[data-theme="light"] .botao-novo-aluno:hover {
+  border-color: #79b5dc;
+  background: #d8edf9;
 }
 
 html[data-theme="light"] .modal-formulario input::placeholder,
