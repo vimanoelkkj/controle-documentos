@@ -4,19 +4,35 @@
   "main": "./src/worker.ts",
   "compatibility_date": "2026-08-08",
 
-"assets": {
-  "directory": "./dist",
-  "binding": "ASSETS",
-  "not_found_handling": "single-page-application",
-  "run_worker_first": true
-},
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true,
+  },
 
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "controle-documentos-db",
       "database_id": "a3e879b8-f44b-4af0-9a1a-87c26979acc2",
-      "remote": true
-    }
-  ]
+      "remote": true,
+    },
+  ],
+
+  "env": {
+    "dev": {
+      "name": "controle-documentos-dev",
+      "workers_dev": true,
+
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "controle-documentos-dev-db",
+          "database_id": "460b588a-898f-4ec5-9423-c094976f5d26",
+          "remote": true,
+        },
+      ],
+    },
+  },
 }
