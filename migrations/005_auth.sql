@@ -1,0 +1,26 @@
+-- Autenticação, perfis e sessões
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  senha_hash TEXT NOT NULL,
+  senha_salt TEXT NOT NULL,
+  perfil TEXT NOT NULL DEFAULT 'VISUALIZADOR' CHECK (perfil IN ('ADMIN','EDITOR','VISUALIZADOR')),
+  ativo INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0,1)),
+  criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email);
+
+CREATE TABLE IF NOT EXISTS sessoes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id INTEGER NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expira_em TEXT NOT NULL,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_sessoes_usuario ON sessoes(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_sessoes_expira ON sessoes(expira_em);

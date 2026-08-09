@@ -193,9 +193,164 @@ async function obterPeriodoAtual(request: Request, env: Env, url: URL) {
   ).first<PeriodoRow>();
 }
 
+
+type PerfilUsuario = "ADMIN" | "EDITOR" | "VISUALIZADOR";
+type UsuarioSessao = { id: number; nome: string; email: string; username: string; perfil: PerfilUsuario; ativo: number };
+
+function bytesHex(bytes: Uint8Array) {
+  return Array.from(bytes).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function hexBytes(hex: string) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i += 1) bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  return bytes;
+}
+
+async function hashSenha(senha: string, saltHex?: string) {
+  const salt = saltHex ? hexBytes(saltHex) : crypto.getRandomValues(new Uint8Array(16));
+  const chave = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: 210000 }, chave, 256);
+  return { hash: bytesHex(new Uint8Array(bits)), salt: bytesHex(salt) };
+}
+
+async function hashToken(token: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return bytesHex(new Uint8Array(digest));
+}
+
+function cookieSessao(token: string, request: Request, maxAge = 60 * 60 * 12) {
+  const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
+  return `cd_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
+}
+
+async function usuarioDaRequisicao(request: Request, env: Env) {
+  const token = obterCookie(request, "cd_session");
+  if (!token) return null;
+  const tokenHash = await hashToken(token);
+  return env.DB.prepare(`
+    SELECT u.id, u.nome, u.email, u.username, u.perfil, u.ativo
+    FROM sessoes s JOIN usuarios u ON u.id = s.usuario_id
+    WHERE s.token_hash = ? AND s.expira_em > CURRENT_TIMESTAMP AND u.ativo = 1
+  `).bind(tokenHash).first<UsuarioSessao>();
+}
+
+function podeEditar(usuario: UsuarioSessao) {
+  return usuario.perfil === "ADMIN" || usuario.perfil === "EDITOR";
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // =====================================================
+    // AUTENTICAÇÃO E CONTROLE DE ACESSO
+    // =====================================================
+    if (url.pathname === "/api/auth/bootstrap" && request.method === "GET") {
+      try {
+        const total = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios`).first<{ total: number }>();
+        return Response.json({ necessario: Number(total?.total || 0) === 0 });
+      } catch {
+        return Response.json({ erro: "Autenticação indisponível. Execute a migration 005_auth.sql." }, { status: 500 });
+      }
+    }
+
+    if (url.pathname === "/api/auth/bootstrap" && request.method === "POST") {
+      const total = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios`).first<{ total: number }>();
+      if (Number(total?.total || 0) !== 0) return Response.json({ erro: "O administrador inicial já foi criado." }, { status: 409 });
+      const body = await request.json<{ nome?: string; email?: string; username?: string; senha?: string }>();
+      const nome = body.nome?.trim();
+      const email = body.email?.trim().toLowerCase();
+      const username = body.username?.trim().toLowerCase();
+      const senha = body.senha || "";
+      if (!nome || !email || !username || senha.length < 8) return Response.json({ erro: "Informe nome, usuário, e-mail e uma senha com pelo menos 8 caracteres." }, { status: 400 });
+      if (!/^[a-z0-9._-]{3,40}$/i.test(username)) return Response.json({ erro: "O nome de usuário deve ter de 3 a 40 caracteres e usar apenas letras, números, ponto, hífen ou underline." }, { status: 400 });
+      const cred = await hashSenha(senha);
+      try {
+        await env.DB.prepare(`INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, 'ADMIN', 1)`).bind(nome, email, username, cred.hash, cred.salt).run();
+      } catch {
+        return Response.json({ erro: "E-mail ou nome de usuário já cadastrado." }, { status: 409 });
+      }
+      return Response.json({ sucesso: true }, { status: 201 });
+    }
+
+    if (url.pathname === "/api/auth/login" && request.method === "POST") {
+      const body = await request.json<{ identificador?: string; email?: string; senha?: string }>();
+      const identificador = (body.identificador || body.email || "").trim().toLowerCase();
+      const senha = body.senha || "";
+      const usuario = identificador ? await env.DB.prepare(`SELECT id, nome, email, username, perfil, ativo, senha_hash, senha_salt FROM usuarios WHERE email = ? OR username = ? LIMIT 1`).bind(identificador, identificador).first<UsuarioSessao & { senha_hash: string; senha_salt: string }>() : null;
+      if (!usuario || !usuario.ativo) return Response.json({ erro: "Usuário/e-mail ou senha inválidos." }, { status: 401 });
+      const cred = await hashSenha(senha, usuario.senha_salt);
+      if (cred.hash !== usuario.senha_hash) return Response.json({ erro: "Usuário/e-mail ou senha inválidos." }, { status: 401 });
+      const token = bytesHex(crypto.getRandomValues(new Uint8Array(32)));
+      const tokenHash = await hashToken(token);
+      await env.DB.prepare(`DELETE FROM sessoes WHERE expira_em <= CURRENT_TIMESTAMP`).run();
+      await env.DB.prepare(`INSERT INTO sessoes (usuario_id, token_hash, expira_em) VALUES (?, ?, datetime('now', '+12 hours'))`).bind(usuario.id, tokenHash).run();
+      return Response.json({ usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, username: usuario.username, perfil: usuario.perfil } }, { headers: { "Set-Cookie": cookieSessao(token, request) } });
+    }
+
+    if (url.pathname === "/api/auth/logout" && request.method === "POST") {
+      const token = obterCookie(request, "cd_session");
+      if (token) await env.DB.prepare(`DELETE FROM sessoes WHERE token_hash = ?`).bind(await hashToken(token)).run();
+      return Response.json({ sucesso: true }, { headers: { "Set-Cookie": cookieSessao("", request, 0) } });
+    }
+
+    if (url.pathname === "/api/auth/me" && request.method === "GET") {
+      const usuario = await usuarioDaRequisicao(request, env);
+      if (!usuario) return Response.json({ erro: "Não autenticado." }, { status: 401 });
+      return Response.json({ usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, username: usuario.username, perfil: usuario.perfil } });
+    }
+
+    let usuarioAtual: UsuarioSessao | null = null;
+    if (url.pathname.startsWith("/api/")) {
+      usuarioAtual = await usuarioDaRequisicao(request, env);
+      if (!usuarioAtual) return Response.json({ erro: "Sessão expirada ou não autenticada." }, { status: 401 });
+
+      if (url.pathname === "/api/usuarios") {
+        if (usuarioAtual.perfil !== "ADMIN") return Response.json({ erro: "Apenas administradores podem gerenciar usuários." }, { status: 403 });
+        if (request.method === "GET") {
+          const usuarios = await env.DB.prepare(`SELECT id, nome, email, username, perfil, ativo, criado_em FROM usuarios ORDER BY nome`).all();
+          return Response.json(usuarios.results);
+        }
+        if (request.method === "POST") {
+          const body = await request.json<{ nome?: string; email?: string; username?: string; senha?: string; perfil?: PerfilUsuario }>();
+          const nome = body.nome?.trim();
+          const email = body.email?.trim().toLowerCase();
+          const username = body.username?.trim().toLowerCase();
+          const senha = body.senha || "";
+          const perfil = body.perfil;
+          if (!nome || !email || !username || senha.length < 8 || !perfil || !["ADMIN", "EDITOR", "VISUALIZADOR"].includes(perfil)) return Response.json({ erro: "Dados de usuário inválidos." }, { status: 400 });
+          if (!/^[a-z0-9._-]{3,40}$/i.test(username)) return Response.json({ erro: "Nome de usuário inválido." }, { status: 400 });
+          const cred = await hashSenha(senha);
+          try {
+            const result = await env.DB.prepare(`INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, ?, 1)`).bind(nome, email, username, cred.hash, cred.salt, perfil).run();
+            return Response.json({ sucesso: true, id: result.meta.last_row_id }, { status: 201 });
+          } catch { return Response.json({ erro: "E-mail ou nome de usuário já cadastrado." }, { status: 409 }); }
+        }
+      }
+
+      const rotaUsuario = url.pathname.match(/^\/api\/usuarios\/(\d+)$/);
+      if (rotaUsuario && request.method === "PUT") {
+        if (usuarioAtual.perfil !== "ADMIN") return Response.json({ erro: "Apenas administradores podem gerenciar usuários." }, { status: 403 });
+        const id = Number(rotaUsuario[1]); const body = await request.json<{ nome?: string; perfil?: PerfilUsuario; ativo?: boolean; senha?: string }>();
+        if (id === usuarioAtual.id && body.ativo === false) return Response.json({ erro: "Você não pode desativar seu próprio usuário." }, { status: 400 });
+        if (body.perfil && !["ADMIN", "EDITOR", "VISUALIZADOR"].includes(body.perfil)) return Response.json({ erro: "Perfil inválido." }, { status: 400 });
+        const atual = await env.DB.prepare(`SELECT nome, perfil, ativo FROM usuarios WHERE id = ?`).bind(id).first<{ nome: string; perfil: PerfilUsuario; ativo: number }>();
+        if (!atual) return Response.json({ erro: "Usuário não encontrado." }, { status: 404 });
+        const nome = body.nome?.trim() || atual.nome; const perfil = body.perfil || atual.perfil; const ativo = body.ativo === undefined ? atual.ativo : (body.ativo ? 1 : 0);
+        await env.DB.prepare(`UPDATE usuarios SET nome = ?, perfil = ?, ativo = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`).bind(nome, perfil, ativo, id).run();
+        if (body.senha) {
+          if (body.senha.length < 8) return Response.json({ erro: "A nova senha deve ter pelo menos 8 caracteres." }, { status: 400 });
+          const cred = await hashSenha(body.senha); await env.DB.prepare(`UPDATE usuarios SET senha_hash = ?, senha_salt = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`).bind(cred.hash, cred.salt, id).run();
+          await env.DB.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`).bind(id).run();
+        }
+        return Response.json({ sucesso: true });
+      }
+
+      if (!["GET", "HEAD", "OPTIONS"].includes(request.method) && !podeEditar(usuarioAtual)) {
+        return Response.json({ erro: "Seu perfil é somente visualização." }, { status: 403 });
+      }
+    }
 
     // =====================================================
     // PERÍODOS LETIVOS

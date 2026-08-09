@@ -10,11 +10,15 @@ import Log from "./pages/Log";
 import Configuracoes from "./pages/Configuracoes";
 import Sobre from "./pages/Sobre";
 import Periodos from "./pages/Periodos";
+import Login from "./pages/Login";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
+function Rotas() {
+  const { usuario, carregando } = useAuth();
+  if (carregando) return <div className="auth-boot">Carregando sessão...</div>;
+  return <Routes>
+        <Route path="/login" element={<Login />} />
+        {usuario ? <>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/conferencia" element={<Conferencia />} />
@@ -28,9 +32,11 @@ function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
+        </> : <Route path="*" element={<Navigate to="/login" replace />} />}
       </Routes>
-    </BrowserRouter>
-  );
+}
+
+function App() { return <BrowserRouter><AuthProvider><Rotas /></AuthProvider></BrowserRouter>;
 }
 
 export default App;

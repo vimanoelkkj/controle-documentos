@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 const items = [
   { label: 'Dashboard', to: '/', icon: '▦' },
@@ -14,6 +15,8 @@ const items = [
 ]
 
 function Sidebar() {
+  const { usuario, logout } = useAuth()
+  const navigate = useNavigate()
   const [tema, setTema] = useState<'dark' | 'light'>(() => {
     const salvo = localStorage.getItem('tema')
     return salvo === 'light' ? 'light' : 'dark'
@@ -52,13 +55,37 @@ function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <button
-          type="button"
-          className="theme-button"
-          onClick={() => setTema((atual) => (atual === 'dark' ? 'light' : 'dark'))}
-        >
-          {tema === 'dark' ? '☀ Modo claro' : '☾ Modo escuro'}
-        </button>
+        {usuario && (
+          <div className="sidebar-user">
+            <div className="sidebar-user-avatar">{usuario.nome.slice(0, 1).toUpperCase()}</div>
+            <div className="sidebar-user-copy">
+              <strong>{usuario.nome}</strong>
+              <span>{usuario.perfil}</span>
+            </div>
+          </div>
+        )}
+
+        <div className="sidebar-footer-actions">
+          <button
+            type="button"
+            className="theme-button"
+            onClick={() => setTema((atual) => (atual === 'dark' ? 'light' : 'dark'))}
+          >
+            <span aria-hidden="true">{tema === 'dark' ? '☀' : '☾'}</span>
+            {tema === 'dark' ? 'Modo claro' : 'Modo escuro'}
+          </button>
+          <button
+            type="button"
+            className="logout-button"
+            onClick={async () => {
+              await logout()
+              navigate('/login', { replace: true })
+            }}
+          >
+            <span aria-hidden="true">↪</span>
+            Sair
+          </button>
+        </div>
       </div>
     </aside>
   )
