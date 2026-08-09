@@ -245,6 +245,8 @@ function Conferencia() {
   const painelListaRef = useRef<HTMLElement | null>(null);
   const detalhesAlunoRef = useRef<HTMLElement | null>(null);
   const conferenciaGridRef = useRef<HTMLDivElement | null>(null);
+  const buscaAlunoRef = useRef<HTMLInputElement | null>(null);
+  const listaAlunosRef = useRef<HTMLDivElement | null>(null);
 
   const [modalImportarCancelados, setModalImportarCancelados] = useState(false);
   const [modoCancelados, setModoCancelados] = useState<"colar" | "csv">(
@@ -353,6 +355,100 @@ function Conferencia() {
   useEffect(() => {
     carregarAlunos();
   }, []);
+
+  useEffect(() => {
+    function atalhosConferencia(event: KeyboardEvent) {
+      const algumModalAberto = Boolean(
+        modalAdicionarAluno ||
+          modalImportarAlunos ||
+          sucessoImportacao ||
+          modalNovoAluno ||
+          modalEditarAluno ||
+          modalExcluirAluno ||
+          modalStatusAluno ||
+          modalImportarCancelados ||
+          trocaAlunoPendente,
+      );
+
+      if (algumModalAberto) return;
+
+      const tecla = event.key.toLowerCase();
+
+      if ((event.ctrlKey || event.metaKey) && tecla === "f") {
+        event.preventDefault();
+        buscaAlunoRef.current?.focus();
+        buscaAlunoRef.current?.select();
+        return;
+      }
+
+      if ((event.ctrlKey || event.metaKey) && tecla === "s") {
+        event.preventDefault();
+
+        if (temAlteracoes && temAlunoSelecionadoNoFiltro) {
+          void salvarAlteracoes();
+        }
+
+        return;
+      }
+
+      if (event.key === "Escape" && busca) {
+        event.preventDefault();
+        setBusca("");
+        buscaAlunoRef.current?.focus();
+        return;
+      }
+
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+
+      const alvo = event.target as HTMLElement | null;
+      const estaDigitando =
+        alvo instanceof HTMLInputElement ||
+        alvo instanceof HTMLTextAreaElement ||
+        alvo instanceof HTMLSelectElement ||
+        alvo?.isContentEditable;
+
+      // Na busca, as setas também percorrem os resultados. Nos demais campos,
+      // preserva o comportamento normal de edição.
+      if (estaDigitando && alvo !== buscaAlunoRef.current) return;
+
+      const botoes = Array.from(
+        listaAlunosRef.current?.querySelectorAll<HTMLButtonElement>(
+          ".student-card",
+        ) ?? [],
+      );
+
+      if (botoes.length === 0) return;
+
+      event.preventDefault();
+
+      const indiceAtual = botoes.findIndex(
+        (botao) => botao === document.activeElement,
+      );
+      const indiceSelecionado = botoes.findIndex(
+        (botao) => botao.dataset.ra === raSelecionado,
+      );
+      const base = indiceAtual >= 0 ? indiceAtual : indiceSelecionado;
+
+      let proximoIndice: number;
+
+      if (event.key === "ArrowDown") {
+        proximoIndice = base < 0 ? 0 : Math.min(base + 1, botoes.length - 1);
+      } else {
+        proximoIndice =
+          base < 0 ? botoes.length - 1 : Math.max(base - 1, 0);
+      }
+
+      botoes[proximoIndice]?.focus();
+      botoes[proximoIndice]?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }
+
+    window.addEventListener("keydown", atalhosConferencia);
+
+    return () => window.removeEventListener("keydown", atalhosConferencia);
+  });
 
   async function registrarLog(
     acao: string,
@@ -1745,6 +1841,7 @@ function Conferencia() {
           )}
 
           <input
+            ref={buscaAlunoRef}
             className="student-search"
             type="search"
             placeholder="Pesquisar nome, RA, curso ou e-mail..."
@@ -1766,7 +1863,7 @@ function Conferencia() {
             </div>
           )}
 
-          <div className="student-list">
+          <div ref={listaAlunosRef} className="student-list">
             {alunosFiltrados.map((aluno) => {
               const entreguesAluno = aluno.documentos.filter(
                 (documento) => documento.entregue,
@@ -1776,6 +1873,7 @@ function Conferencia() {
                 <button
                   key={aluno.ra}
                   type="button"
+                  data-ra={aluno.ra}
                   className={`student-card ${
                     aluno.ra === raSelecionado ? "active" : ""
                   } ${aluno.status === "CANCELADO" ? "cancelled" : ""}`}
