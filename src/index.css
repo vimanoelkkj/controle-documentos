@@ -4456,3 +4456,241 @@ html[data-theme="light"] .dashboard-state {
   border-color: #d5e0e8;
   background: #ffffff;
 }
+
+/* =========================================================
+   MODO CLARO — CONFERÊNCIA E ESTATÍSTICAS
+   ========================================================= */
+html[data-theme="light"] .student-details-header,
+html[data-theme="light"] .conference-actions,
+html[data-theme="light"] .statistics-card-header,
+html[data-theme="light"] .statistics-document-row,
+html[data-theme="light"] .statistics-course-row,
+html[data-theme="light"] .statistics-unit-row {
+  border-color: #dbe5eb;
+}
+
+html[data-theme="light"] .student-tags span {
+  color: #4f6a7a;
+  border-color: #cbd9e2;
+  background: #f3f8fb;
+}
+
+html[data-theme="light"] .student-progress span {
+  color: #a9443a;
+  border-color: #edb7b0;
+  background: #fff0ee;
+}
+
+html[data-theme="light"] .document-progress-label,
+html[data-theme="light"] .document-card span,
+html[data-theme="light"] .summary-number span {
+  color: #667f90;
+}
+
+html[data-theme="light"] .document-card {
+  color: #20313d;
+  border-color: #cfdae2;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .document-card:hover {
+  border-color: #8fbdd8;
+  background: #f1f8fc;
+}
+
+html[data-theme="light"] .document-card strong {
+  color: #1c2f3b;
+}
+
+html[data-theme="light"] .document-card.delivered {
+  border-color: #a7d9b5;
+  background: #edf9f0;
+}
+
+html[data-theme="light"] .document-card.delivered strong {
+  color: #24633a;
+}
+
+html[data-theme="light"] .document-card.delivered span {
+  color: #4e7f5e;
+}
+
+html[data-theme="light"] .summary-card {
+  color: #20313d;
+  border-color: #d5e0e8;
+  background: #fbfdfe;
+}
+
+html[data-theme="light"] .summary-card li {
+  color: #435b69;
+  border-color: #dce5eb;
+  background: #f6f9fb;
+}
+
+html[data-theme="light"] .summary-number strong {
+  color: #b88708;
+}
+
+html[data-theme="light"] .conference-actions {
+  background: #f8fafc;
+}
+
+html[data-theme="light"] .conference-actions > span {
+  color: #647c8b;
+}
+
+html[data-theme="light"] .conference-actions > span.saved {
+  color: #2f8c50;
+}
+
+html[data-theme="light"] .student-edit-button {
+  color: #23678f;
+  border-color: #b9d4e4;
+  background: #eef7fc;
+}
+
+html[data-theme="light"] .student-edit-button:hover {
+  color: #174e70;
+  border-color: #8bbdd9;
+  background: #dff1fb;
+}
+
+html[data-theme="light"] .student-delete-button {
+  color: #a9443a;
+  border-color: #e7afa9;
+  background: #fff1f0;
+}
+
+html[data-theme="light"] .student-delete-button:hover {
+  color: #8f342c;
+  border-color: #db9289;
+  background: #fde4e1;
+}
+
+html[data-theme="light"] .secondary-action {
+  color: #516b7b;
+  border-color: #cad8e1;
+  background: #f3f7f9;
+}
+
+html[data-theme="light"] .primary-action {
+  color: #ffffff;
+  border-color: #4d9ac8;
+  background: #3d91c2;
+}
+
+/* Estatísticas: todos os componentes internos também precisam sair da paleta escura. */
+html[data-theme="light"] .statistics-hero {
+  color: #20313d;
+  border-color: #d5e0e8;
+  background: linear-gradient(135deg, #ffffff 0%, #f2f8fc 100%);
+  box-shadow: 0 12px 32px rgba(37, 61, 77, 0.08);
+}
+
+html[data-theme="light"] .statistics-hero h1 {
+  color: #14232d;
+}
+
+html[data-theme="light"] .statistics-eyebrow,
+html[data-theme="light"] .statistics-card-header span,
+html[data-theme="light"] .statistics-kpi > span,
+html[data-theme="light"] .statistics-unit-filter > span {
+  color: #5d7c90;
+}
+
+html[data-theme="light"] .statistics-hero p,
+html[data-theme="light"] .statistics-card-header small,
+html[data-theme="light"] .statistics-kpi small,
+html[data-theme="light"] .statistics-histogram-column small,
+html[data-theme="light"] .statistics-document-title small,
+html[data-theme="light"] .statistics-document-meter small,
+html[data-theme="light"] .statistics-combination-count small,
+html[data-theme="light"] .statistics-course-name small {
+  color: #6b8291;
+}
+
+html[data-theme="light"] .statistics-unit-filter select {
+  color: #20313d;
+  border-color: #bfd2df;
+  background: #ffffff;
+  color-scheme: light;
+}
+
+html[data-theme="light"] .statistics-unit-filter select option {
+  color: #20313d;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .statistics-kpi strong,
+html[data-theme="light"] .statistics-histogram-value,
+html[data-theme="light"] .statistics-histogram-column strong,
+html[data-theme="light"] .statistics-document-title strong,
+html[data-theme="light"] .statistics-document-meter strong,
+html[data-theme="light"] .statistics-combination-count strong,
+html[data-theme="light"] .statistics-course-name strong,
+html[data-theme="light"] .statistics-course-progress strong,
+html[data-theme="light"] .statistics-unit-progress-cell b,
+html[data-theme="light"] .statistics-unit-row > strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .statistics-kpi.progress strong { color: #7457ba; }
+html[data-theme="light"] .statistics-kpi.complete strong { color: #3e9c61; }
+html[data-theme="light"] .statistics-kpi.critical strong { color: #d94f4f; }
+
+html[data-theme="light"] .statistics-histogram-track,
+html[data-theme="light"] .statistics-document-meter > div,
+html[data-theme="light"] .statistics-combination-track,
+html[data-theme="light"] .statistics-course-progress > div,
+html[data-theme="light"] .statistics-mini-progress {
+  background: #e5edf2;
+}
+
+html[data-theme="light"] .statistics-document-title > span {
+  color: #52758a;
+  border-color: #cfdae2;
+  background: #f3f8fb;
+}
+
+html[data-theme="light"] .statistics-document-title > span.priority {
+  color: #9a760f;
+  border-color: #e7d28e;
+  background: #fff9e8;
+}
+
+html[data-theme="light"] .statistics-combination-row {
+  color: #20313d;
+  border-color: #d8e2e9;
+  background: #f8fbfd;
+}
+
+html[data-theme="light"] .statistics-combination-number {
+  color: #688397;
+}
+
+html[data-theme="light"] .statistics-combination-tags span {
+  color: #49697c;
+  border-color: #cedce5;
+  background: #f1f7fa;
+}
+
+html[data-theme="light"] .statistics-unit-head {
+  color: #607d8e;
+}
+
+html[data-theme="light"] .statistics-unit-row {
+  color: #536d7c;
+}
+
+html[data-theme="light"] .statistics-unit-row .complete { color: #3e9c61; }
+html[data-theme="light"] .statistics-unit-row .critical { color: #d94f4f; }
+
+html[data-theme="light"] .statistics-state,
+html[data-theme="light"] .statistics-empty {
+  color: #607888;
+}
+
+html[data-theme="light"] .statistics-state {
+  border-color: #d5e0e8;
+  background: #ffffff;
+}
