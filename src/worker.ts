@@ -3,6 +3,7 @@
 interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
+  GOOGLE_SERVICE_ACCOUNT_JSON?: string;
 }
 
 type AlunoRow = {
@@ -42,6 +43,121 @@ type DocumentosBody = {
   contrato: boolean;
 };
 
+
+
+
+type SheetsConfig = {
+  periodo_id: number;
+  spreadsheet_id: string;
+  aba_base_face_fea: string;
+  aba_base_fch_ead: string;
+  aba_docs_face_fea: string;
+  aba_docs_fch_ead: string;
+  aba_cancelados_face_fea: string;
+  aba_cancelados_fch_ead: string;
+  atualizado_em?: string;
+};
+
+type GoogleServiceAccount = {
+  client_email: string;
+  private_key: string;
+  token_uri?: string;
+};
+
+function base64Url(valor: ArrayBuffer | string) {
+  const bytes = typeof valor === "string" ? new TextEncoder().encode(valor) : new Uint8Array(valor);
+  let binario = "";
+  for (const byte of bytes) binario += String.fromCharCode(byte);
+  return btoa(binario).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+
+function pemParaArrayBuffer(pem: string) {
+  const base64 = pem.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g, "");
+  const binario = atob(base64);
+  const bytes = new Uint8Array(binario.length);
+  for (let i = 0; i < binario.length; i += 1) bytes[i] = binario.charCodeAt(i);
+  return bytes.buffer;
+}
+
+async function obterTokenGoogle(env: Env) {
+  if (!env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON não configurado no Worker.");
+  }
+  const conta = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT_JSON) as GoogleServiceAccount;
+  const agora = Math.floor(Date.now() / 1000);
+  const header = base64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const payload = base64Url(JSON.stringify({
+    iss: conta.client_email,
+    scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
+    aud: conta.token_uri || "https://oauth2.googleapis.com/token",
+    iat: agora,
+    exp: agora + 3600,
+  }));
+  const chave = await crypto.subtle.importKey(
+    "pkcs8",
+    pemParaArrayBuffer(conta.private_key),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const assinatura = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    chave,
+    new TextEncoder().encode(`${header}.${payload}`),
+  );
+  const jwt = `${header}.${payload}.${base64Url(assinatura)}`;
+  const resposta = await fetch(conta.token_uri || "https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }),
+  });
+  if (!resposta.ok) throw new Error(`Falha na autenticação Google (${resposta.status}).`);
+  const dados = await resposta.json<{ access_token: string }>();
+  return dados.access_token;
+}
+
+function extrairSpreadsheetId(valor: string) {
+  const limpo = valor.trim();
+  const match = limpo.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  return match?.[1] || limpo;
+}
+
+function normalizarTexto(valor: unknown) {
+  return String(valor ?? "").trim();
+}
+
+function normalizarComparacao(valor: unknown) {
+  return normalizarTexto(valor).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+}
+
+function valorBooleano(valor: unknown) {
+  if (typeof valor === "boolean") return valor;
+  return ["TRUE", "VERDADEIRO", "1", "SIM", "X"].includes(normalizarComparacao(valor));
+}
+
+async function lerRangesGoogle(env: Env, config: SheetsConfig) {
+  const token = await obterTokenGoogle(env);
+  const abas = [
+    config.aba_base_face_fea,
+    config.aba_base_fch_ead,
+    config.aba_docs_face_fea,
+    config.aba_docs_fch_ead,
+    config.aba_cancelados_face_fea,
+    config.aba_cancelados_fch_ead,
+  ];
+  const params = new URLSearchParams();
+  for (const aba of abas) params.append("ranges", `'${aba.replace(/'/g, "''")}'!A:K`);
+  params.set("majorDimension", "ROWS");
+  params.set("valueRenderOption", "UNFORMATTED_VALUE");
+  const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(config.spreadsheet_id)}/values:batchGet?${params}`;
+  const resposta = await fetch(endpoint, { headers: { Authorization: `Bearer ${token}` } });
+  if (!resposta.ok) {
+    const detalhe = await resposta.text();
+    throw new Error(`Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`);
+  }
+  const dados = await resposta.json<{ valueRanges?: Array<{ values?: unknown[][] }> }>();
+  return abas.map((aba, indice) => ({ aba, linhas: dados.valueRanges?.[indice]?.values ?? [] }));
+}
 
 type PeriodoRow = {
   id: number;
@@ -145,6 +261,129 @@ export default {
       } catch (erro) {
         console.error(erro);
         return Response.json({ erro: "Não foi possível alterar o período." }, { status: 500 });
+      }
+    }
+
+
+    const rotaSheetsConfig = url.pathname.match(/^\/api\/periodos\/(\d+)\/google-sheets$/);
+    if (rotaSheetsConfig && request.method === "GET") {
+      const periodoId = Number(rotaSheetsConfig[1]);
+      const config = await env.DB.prepare(`SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`).bind(periodoId).first<SheetsConfig>();
+      return Response.json(config ?? null);
+    }
+
+    if (rotaSheetsConfig && request.method === "PUT") {
+      try {
+        const periodoId = Number(rotaSheetsConfig[1]);
+        const body = await request.json<Omit<SheetsConfig, "periodo_id"> & { spreadsheet_id: string }>();
+        const spreadsheetId = extrairSpreadsheetId(body.spreadsheet_id || "");
+        const campos = [spreadsheetId, body.aba_base_face_fea, body.aba_base_fch_ead, body.aba_docs_face_fea, body.aba_docs_fch_ead, body.aba_cancelados_face_fea, body.aba_cancelados_fch_ead].map(normalizarTexto);
+        if (campos.some((campo) => !campo)) return Response.json({ erro: "Preencha a planilha e as seis abas da integração." }, { status: 400 });
+        await env.DB.prepare(`
+          INSERT INTO google_sheets_periodos (
+            periodo_id, spreadsheet_id, aba_base_face_fea, aba_base_fch_ead,
+            aba_docs_face_fea, aba_docs_fch_ead, aba_cancelados_face_fea, aba_cancelados_fch_ead, atualizado_em
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+          ON CONFLICT(periodo_id) DO UPDATE SET
+            spreadsheet_id = excluded.spreadsheet_id,
+            aba_base_face_fea = excluded.aba_base_face_fea,
+            aba_base_fch_ead = excluded.aba_base_fch_ead,
+            aba_docs_face_fea = excluded.aba_docs_face_fea,
+            aba_docs_fch_ead = excluded.aba_docs_fch_ead,
+            aba_cancelados_face_fea = excluded.aba_cancelados_face_fea,
+            aba_cancelados_fch_ead = excluded.aba_cancelados_fch_ead,
+            atualizado_em = CURRENT_TIMESTAMP
+        `).bind(periodoId, ...campos).run();
+        return Response.json({ sucesso: true, spreadsheet_id: spreadsheetId });
+      } catch (erro) {
+        console.error(erro);
+        return Response.json({ erro: "Não foi possível salvar a integração com Google Sheets." }, { status: 500 });
+      }
+    }
+
+    const rotaSheetsPrevia = url.pathname.match(/^\/api\/periodos\/(\d+)\/google-sheets\/previa$/);
+    if (rotaSheetsPrevia && request.method === "POST") {
+      try {
+        const periodoId = Number(rotaSheetsPrevia[1]);
+        const config = await env.DB.prepare(`SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`).bind(periodoId).first<SheetsConfig>();
+        if (!config) return Response.json({ erro: "Configure a planilha deste período primeiro." }, { status: 409 });
+        const ranges = await lerRangesGoogle(env, config);
+        const [baseFaceFea, baseFchEad, docsFaceFea, docsFchEad, cancelFaceFea, cancelFchEad] = ranges;
+
+        type Origem = "FACE_FEA" | "FCH_EAD";
+        type LinhaBase = { ra: string; nome: string; curso: string; email_outro: string; email: string; contrato: boolean; origem: Origem };
+        const lerBase = (linhas: unknown[][], origem: Origem): LinhaBase[] => linhas.slice(1).map((l) => ({
+          contrato: normalizarComparacao(l[0]) === "ENTREGUE",
+          curso: normalizarTexto(l[1]), email_outro: normalizarTexto(l[2]), email: normalizarTexto(l[3]),
+          nome: normalizarTexto(l[4]), ra: normalizarTexto(l[5]), origem,
+        })).filter((a) => a.ra && a.nome && a.curso);
+        const bases = [...lerBase(baseFaceFea.linhas, "FACE_FEA"), ...lerBase(baseFchEad.linhas, "FCH_EAD")];
+
+        const lerDocs = (linhas: unknown[][]) => new Map(linhas.slice(1).map((l) => [normalizarTexto(l[0]), {
+          identidade: valorBooleano(l[2]), cpf: valorBooleano(l[3]), certidao: valorBooleano(l[4]), residencia: valorBooleano(l[5]),
+          titulo: valorBooleano(l[6]), ensino_medio: valorBooleano(l[7]), contrato: valorBooleano(l[8]),
+        }]).filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>);
+        const docs = new Map([...lerDocs(docsFaceFea.linhas), ...lerDocs(docsFchEad.linhas)]);
+
+        const lerCancelados = (linhas: unknown[][]) => new Set(linhas.slice(1).map((l) => normalizarTexto(l[5] ?? l[0])).filter(Boolean));
+        const cancelados = new Set([...lerCancelados(cancelFaceFea.linhas), ...lerCancelados(cancelFchEad.linhas)]);
+
+        const atuais = await env.DB.prepare(`
+          SELECT a.ra, a.nome, a.curso, a.unidade, a.email, a.email_outro, a.status,
+                 d.identidade, d.cpf, d.certidao, d.residencia, d.titulo, d.ensino_medio, d.contrato
+          FROM alunos a LEFT JOIN documentos d ON d.aluno_id = a.id WHERE a.periodo_id = ?
+        `).bind(periodoId).all<AlunoRow>();
+        const porRa = new Map(atuais.results.map((a) => [a.ra, a]));
+        const cursoUnidades = new Map<string, Set<string>>();
+        for (const a of atuais.results) {
+          const curso = normalizarComparacao(a.curso);
+          if (!cursoUnidades.has(curso)) cursoUnidades.set(curso, new Set());
+          cursoUnidades.get(curso)!.add(a.unidade);
+        }
+        const resolverUnidade = (a: LinhaBase) => {
+          const existente = porRa.get(a.ra); if (existente) return existente.unidade;
+          if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso)) return "EAD";
+          if (a.origem === "FCH_EAD") return "FCH";
+          const conhecidas = [...(cursoUnidades.get(normalizarComparacao(a.curso)) ?? [])].filter((u) => u === "FACE" || u === "FEA");
+          return conhecidas.length === 1 ? conhecidas[0] : null;
+        };
+
+        let novos = 0, cadastrais = 0, documentosAlterados = 0, cancelar = 0, jaCancelados = 0;
+        const semUnidade: Array<{ ra: string; nome: string; curso: string }> = [];
+        const amostra: Array<{ ra: string; nome: string; tipo: string; detalhe: string }> = [];
+        for (const aluno of bases) {
+          const atual = porRa.get(aluno.ra);
+          const unidade = resolverUnidade(aluno);
+          if (!unidade) semUnidade.push({ ra: aluno.ra, nome: aluno.nome, curso: aluno.curso });
+          if (!atual) { novos += 1; if (amostra.length < 20) amostra.push({ ra: aluno.ra, nome: aluno.nome, tipo: "NOVO", detalhe: unidade || "Unidade não resolvida" }); }
+          else if ([atual.nome, atual.curso, atual.email ?? "", atual.email_outro ?? ""].map(normalizarComparacao).join("|") !== [aluno.nome, aluno.curso, aluno.email, aluno.email_outro].map(normalizarComparacao).join("|")) {
+            cadastrais += 1; if (amostra.length < 20) amostra.push({ ra: aluno.ra, nome: aluno.nome, tipo: "CADASTRO", detalhe: "Dados cadastrais diferentes" });
+          }
+          const doc = docs.get(aluno.ra);
+          if (atual && doc && ([atual.identidade, atual.cpf, atual.certidao, atual.residencia, atual.titulo, atual.ensino_medio, atual.contrato].map(Boolean).join("|") !== [doc.identidade, doc.cpf, doc.certidao, doc.residencia, doc.titulo, doc.ensino_medio, doc.contrato].join("|"))) {
+            documentosAlterados += 1; if (amostra.length < 20) amostra.push({ ra: aluno.ra, nome: aluno.nome, tipo: "DOCUMENTOS", detalhe: "Checkboxes diferentes" });
+          }
+        }
+        for (const ra of cancelados) {
+          const atual = porRa.get(ra); if (!atual) continue;
+          if (atual.status === "CANCELADO") jaCancelados += 1; else cancelar += 1;
+        }
+        return Response.json({
+          sucesso: true,
+          planilha: { spreadsheet_id: config.spreadsheet_id, abas_lidas: ranges.map((r) => r.aba) },
+          encontrados: bases.length,
+          documentos_encontrados: docs.size,
+          cancelados_encontrados: cancelados.size,
+          novos, alteracoes_cadastrais: cadastrais, documentos_alterados: documentosAlterados,
+          prontos_para_cancelar: cancelar, ja_cancelados: jaCancelados,
+          unidades_nao_resolvidas: semUnidade.length,
+          detalhes_unidades: semUnidade.slice(0, 50),
+          amostra,
+          modo: "PREVIA_SOMENTE_LEITURA",
+        });
+      } catch (erro) {
+        console.error(erro);
+        return Response.json({ erro: erro instanceof Error ? erro.message : "Não foi possível ler o Google Sheets." }, { status: 500 });
       }
     }
 
