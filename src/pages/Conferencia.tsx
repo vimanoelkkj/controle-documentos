@@ -47,6 +47,15 @@ type FormAluno = {
   unidade: string;
   email: string;
   email_outro: string;
+  documentos: {
+    identidade: boolean;
+    cpf: boolean;
+    certidao: boolean;
+    residencia: boolean;
+    titulo: boolean;
+    ensino_medio: boolean;
+    contrato: boolean;
+  };
 };
 
 function clonarAlunos(alunos: Aluno[]): Aluno[] {
@@ -86,6 +95,15 @@ const formularioVazio: FormAluno = {
   unidade: "FCH",
   email: "",
   email_outro: "",
+  documentos: {
+    identidade: false,
+    cpf: false,
+    certidao: false,
+    residencia: false,
+    titulo: false,
+    ensino_medio: false,
+    contrato: false,
+  },
 };
 
 function Conferencia() {
@@ -1136,6 +1154,7 @@ function Conferencia() {
       unidade: alunoSelecionado.unidade,
       email: alunoSelecionado.email ?? "",
       email_outro: alunoSelecionado.email_outro ?? "",
+      documentos: { ...formularioVazio.documentos },
     });
 
     setModalEditarAluno(true);
@@ -1617,7 +1636,7 @@ function Conferencia() {
               </button>
             </div>
 
-            <FormularioAluno dados={novoAluno} setDados={setNovoAluno} />
+            <FormularioAluno dados={novoAluno} setDados={setNovoAluno} mostrarDocumentos />
 
             {erroCadastro && <div className="modal-erro">{erroCadastro}</div>}
 
@@ -2571,9 +2590,14 @@ type ResultadoImportacao = {
 type FormularioAlunoProps = {
   dados: FormAluno;
   setDados: Dispatch<SetStateAction<FormAluno>>;
+  mostrarDocumentos?: boolean;
 };
 
-function FormularioAluno({ dados, setDados }: FormularioAlunoProps) {
+function FormularioAluno({
+  dados,
+  setDados,
+  mostrarDocumentos = false,
+}: FormularioAlunoProps) {
   return (
     <div className="modal-formulario">
       <label>
@@ -2665,6 +2689,45 @@ function FormularioAluno({ dados, setDados }: FormularioAlunoProps) {
           placeholder="aluno@email.com"
         />
       </label>
+
+      {mostrarDocumentos && (
+        <fieldset className="cadastro-documentos">
+          <legend>Documentos já entregues</legend>
+          <p>Marque somente o que já estiver conferido no cadastro inicial.</p>
+          <div className="cadastro-documentos-grid">
+            {[
+              ["identidade", "Identidade"],
+              ["cpf", "CPF"],
+              ["certidao", "Certidão de Registro Civil"],
+              ["residencia", "Comprovante de Residência"],
+              ["titulo", "Título de Eleitor"],
+              ["ensino_medio", "Histórico do Ensino Médio"],
+              ["contrato", "Contrato"],
+            ].map(([campo, nome]) => {
+              const chave = campo as keyof FormAluno["documentos"];
+
+              return (
+                <label className="cadastro-documento-check" key={campo}>
+                  <input
+                    type="checkbox"
+                    checked={dados.documentos[chave]}
+                    onChange={(event) =>
+                      setDados({
+                        ...dados,
+                        documentos: {
+                          ...dados.documentos,
+                          [chave]: event.target.checked,
+                        },
+                      })
+                    }
+                  />
+                  <span>{nome}</span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
     </div>
   );
 }

@@ -29,6 +29,7 @@ type DadosAluno = {
   unidade: string;
   email?: string;
   email_outro?: string;
+  documentos?: DocumentosBody;
 };
 
 type DocumentosBody = {
@@ -147,6 +148,8 @@ export default {
 
         const alunoId = resultado.meta.last_row_id;
 
+        const documentos = body.documentos;
+
         await env.DB.prepare(
           `
             INSERT INTO documentos (
@@ -159,10 +162,19 @@ export default {
               ensino_medio,
               contrato
             )
-            VALUES (?, 0, 0, 0, 0, 0, 0, 0)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           `,
         )
-          .bind(alunoId)
+          .bind(
+            alunoId,
+            documentos?.identidade ? 1 : 0,
+            documentos?.cpf ? 1 : 0,
+            documentos?.certidao ? 1 : 0,
+            documentos?.residencia ? 1 : 0,
+            documentos?.titulo ? 1 : 0,
+            documentos?.ensino_medio ? 1 : 0,
+            documentos?.contrato ? 1 : 0,
+          )
           .run();
 
         return Response.json(
