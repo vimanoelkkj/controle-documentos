@@ -9,6 +9,7 @@ import Estatisticas from "./pages/Estatisticas";
 import Log from "./pages/Log";
 import Configuracoes from "./pages/Configuracoes";
 import Sobre from "./pages/Sobre";
+import Periodos from "./pages/Periodos";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/estatisticas" element={<Estatisticas />} />
           <Route path="/log" element={<Log />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/periodos" element={<Periodos />} />
           <Route path="/sobre" element={<Sobre />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />

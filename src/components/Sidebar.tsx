@@ -8,6 +8,7 @@ const items = [
   { label: 'Auditoria', to: '/auditoria', icon: '⌕' },
   { label: 'Estatísticas', to: '/estatisticas', icon: '↗' },
   { label: 'LOG', to: '/log', icon: '≡' },
+  { label: 'Períodos', to: '/periodos', icon: '◫' },
   { label: 'Configurações', to: '/configuracoes', icon: '⚙' },
   { label: 'Sobre', to: '/sobre', icon: 'ⓘ' },
 ]
