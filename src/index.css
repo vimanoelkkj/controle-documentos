@@ -5789,3 +5789,37 @@ html[data-theme="light"] .period-sheets-metrics > div { border-color: #d9e5eb; b
 html[data-theme="light"] .period-sheets-metrics strong { color: #294454; }
 html[data-theme="light"] .period-sheets-metrics .warning, html[data-theme="light"] .period-sheets-warning { border-color: #ead6ae; color: #806226; background: #fff9ec; }
 @media (max-width: 850px) { .period-sheets-grid { grid-template-columns: 1fr; } .period-sheets-metrics { grid-template-columns: 1fr 1fr; } }
+
+/* Google Sheets - detalhes da prévia e mapeamento curso/unidade */
+.period-sheets-metrics > button { display: grid; gap: 2px; padding: 10px; border: 1px solid #233b49; border-radius: 9px; color: inherit; text-align: left; background: #0a151c; cursor: pointer; }
+.period-sheets-metrics > button:hover, .period-sheets-metrics > button.active { border-color: #4f9dcc; background: #102432; }
+.period-sheets-metrics > button.warning { border-color: #755d35; background: #241f15; }
+.period-sheets-metrics > button small { margin-top: 5px; color: #5f9fc5; font-size: 8px; font-weight: 800; }
+.period-sheets-detail { margin-top: 12px; overflow: hidden; border: 1px solid #294150; border-radius: 10px; background: #09131a; }
+.period-sheets-detail-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 12px; border-bottom: 1px solid #223947; }
+.period-sheets-detail-head span { color: #5f9fc5; font-size: 8px; font-weight: 900; letter-spacing: .08em; }
+.period-sheets-detail-head h4 { margin: 2px 0 0; color: #e6f0f5; font-size: 12px; }
+.period-sheets-detail-head > button { border: 0; color: #8299a7; background: transparent; font-size: 18px; cursor: pointer; }
+.period-preview-list, .period-course-map { max-height: 430px; overflow: auto; }
+.period-preview-list article, .period-course-map article { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 12px; border-bottom: 1px solid #182b36; }
+.period-preview-list article:last-child, .period-course-map article:last-child { border-bottom: 0; }
+.period-preview-list article > div, .period-course-info { display: grid; gap: 2px; min-width: 0; }
+.period-preview-list strong, .period-course-info strong { color: #dce8ee; font-size: 10px; }
+.period-preview-list span, .period-course-info span, .period-course-info small { color: #6f8999; font-size: 8px; }
+.period-preview-list p { margin: 0; color: #8da2af; font-size: 9px; text-align: right; }
+.period-course-actions { display: flex; flex: 0 0 auto; gap: 7px; }
+.period-course-actions select { min-width: 150px; border: 1px solid #294150; border-radius: 7px; padding: 7px 9px; color: #dce7ed; background: #0d1b24; }
+.period-course-actions button { border: 1px solid #3e8dbd; border-radius: 7px; padding: 0 11px; color: #e8f5fc; background: #176896; font-weight: 800; cursor: pointer; }
+.period-course-actions button:disabled { opacity: .45; cursor: default; }
+.period-sheets-resolved, .period-sheets-ready { padding: 14px; color: #78cba7; font-size: 10px; text-align: center; }
+.period-sheets-ready { margin-top: 12px; border: 1px solid #2f6652; border-radius: 8px; background: #10251e; }
+html[data-theme="light"] .period-sheets-metrics > button { border-color: #d9e5eb; background: #f8fbfc; }
+html[data-theme="light"] .period-sheets-metrics > button:hover, html[data-theme="light"] .period-sheets-metrics > button.active { border-color: #72b7df; background: #eef8fd; }
+html[data-theme="light"] .period-sheets-metrics > button.warning { border-color: #ead6ae; background: #fff9ec; }
+html[data-theme="light"] .period-sheets-detail { border-color: #d5e2e9; background: #fff; }
+html[data-theme="light"] .period-sheets-detail-head, html[data-theme="light"] .period-preview-list article, html[data-theme="light"] .period-course-map article { border-color: #e1e9ee; }
+html[data-theme="light"] .period-sheets-detail-head h4, html[data-theme="light"] .period-preview-list strong, html[data-theme="light"] .period-course-info strong { color: #294454; }
+html[data-theme="light"] .period-preview-list span, html[data-theme="light"] .period-course-info span, html[data-theme="light"] .period-course-info small, html[data-theme="light"] .period-preview-list p { color: #718694; }
+html[data-theme="light"] .period-course-actions select { border-color: #cbd9e1; color: #294454; background: #f8fbfc; }
+html[data-theme="light"] .period-sheets-ready { border-color: #b9ddcf; color: #34785e; background: #eff9f5; }
+@media (max-width: 700px) { .period-preview-list article, .period-course-map article { align-items: stretch; flex-direction: column; } .period-course-actions { width: 100%; } .period-course-actions select { flex: 1; } }

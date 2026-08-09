@@ -26,8 +26,17 @@ type SheetsPrevia = {
   ja_cancelados: number;
   unidades_nao_resolvidas: number;
   detalhes_unidades: Array<{ ra: string; nome: string; curso: string }>;
+  cursos_pendentes: Array<{ curso: string; quantidade: number; alunos: Array<{ ra: string; nome: string }> }>;
+  detalhes: {
+    novos: Array<{ ra: string; nome: string; curso: string; unidade: string | null }>;
+    cadastros: Array<{ ra: string; nome: string; detalhe: string }>;
+    documentos: Array<{ ra: string; nome: string; detalhe: string }>;
+    cancelamentos: Array<{ ra: string; nome: string; unidade: string }>;
+  };
   modo: string;
 };
+
+type AbaPrevia = "novos" | "cadastros" | "documentos" | "cancelamentos" | "unidades";
 
 const configVazia: SheetsConfig = {
   spreadsheet_id: "",
@@ -50,11 +59,16 @@ function Periodos() {
   const [sheetsCarregando, setSheetsCarregando] = useState(false);
   const [sheetsErro, setSheetsErro] = useState("");
   const [sheetsPrevia, setSheetsPrevia] = useState<SheetsPrevia | null>(null);
+  const [abaPrevia, setAbaPrevia] = useState<AbaPrevia | null>(null);
+  const [mapeamentos, setMapeamentos] = useState<Record<string, string>>({});
+  const [salvandoMapeamento, setSalvandoMapeamento] = useState("");
 
   useEffect(() => {
     if (!periodoAtual) return;
     let ativo = true;
     setSheetsPrevia(null);
+    setAbaPrevia(null);
+    setMapeamentos({});
     setSheetsErro("");
     fetch(`/api/periodos/${periodoAtual.id}/google-sheets`)
       .then(async (resposta) => {
@@ -100,6 +114,23 @@ function Periodos() {
       setSheetsPrevia(dados);
     } catch (e) { setSheetsErro(e instanceof Error ? e.message : "Erro ao ler Google Sheets."); }
     finally { setSheetsCarregando(false); }
+  }
+
+  async function salvarMapeamento(curso: string) {
+    if (!periodoAtual) return;
+    const unidade = mapeamentos[curso];
+    if (!unidade) return;
+    try {
+      setSalvandoMapeamento(curso); setSheetsErro("");
+      const resposta = await fetch(`/api/periodos/${periodoAtual.id}/google-sheets/mapeamentos`, {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ curso, unidade }),
+      });
+      const dados = await resposta.json() as { erro?: string };
+      if (!resposta.ok) throw new Error(dados.erro || "Não foi possível salvar o mapeamento.");
+      await gerarPreviaSheets();
+      setAbaPrevia("unidades");
+    } catch (e) { setSheetsErro(e instanceof Error ? e.message : "Erro ao salvar mapeamento."); }
+    finally { setSalvandoMapeamento(""); }
   }
 
   const ativos = useMemo(() => periodos.filter((periodo) => periodo.status === "ATIVO"), [periodos]);
@@ -220,9 +251,39 @@ function Periodos() {
         {sheetsPrevia && <div className="period-sheets-preview">
           <div className="period-sheets-preview-title"><div><span>PRÉVIA · SOMENTE LEITURA</span><h3>{sheetsPrevia.encontrados} alunos encontrados</h3></div><strong>✓ NADA ALTERADO</strong></div>
           <div className="period-sheets-metrics">
-            <div><strong>{sheetsPrevia.novos}</strong><span>Novos alunos</span></div><div><strong>{sheetsPrevia.alteracoes_cadastrais}</strong><span>Cadastros diferentes</span></div><div><strong>{sheetsPrevia.documentos_alterados}</strong><span>Documentos diferentes</span></div><div><strong>{sheetsPrevia.prontos_para_cancelar}</strong><span>Cancelamentos</span></div><div className={sheetsPrevia.unidades_nao_resolvidas ? "warning" : ""}><strong>{sheetsPrevia.unidades_nao_resolvidas}</strong><span>Unidades a resolver</span></div>
+            {([
+              ["novos", sheetsPrevia.novos, "Novos alunos"],
+              ["cadastros", sheetsPrevia.alteracoes_cadastrais, "Cadastros diferentes"],
+              ["documentos", sheetsPrevia.documentos_alterados, "Documentos diferentes"],
+              ["cancelamentos", sheetsPrevia.prontos_para_cancelar, "Cancelamentos"],
+              ["unidades", sheetsPrevia.unidades_nao_resolvidas, "Unidades a resolver"],
+            ] as Array<[AbaPrevia, number, string]>).map(([aba, valor, rotulo]) => (
+              <button type="button" key={aba} className={`${aba === "unidades" && valor ? "warning" : ""} ${abaPrevia === aba ? "active" : ""}`} onClick={() => setAbaPrevia(abaPrevia === aba ? null : aba)}>
+                <strong>{valor}</strong><span>{rotulo}</span><small>Ver detalhes</small>
+              </button>
+            ))}
           </div>
-          {sheetsPrevia.unidades_nao_resolvidas > 0 && <div className="period-sheets-warning"><strong>Atenção:</strong> a planilha junta FACE/FEA. Para alunos novos cujo curso ainda não existe no sistema, não é seguro adivinhar a unidade. A próxima etapa vai permitir mapear esses casos antes de sincronizar.</div>}
+
+          {abaPrevia && <div className="period-sheets-detail">
+            <div className="period-sheets-detail-head"><div><span>CONFERÊNCIA</span><h4>{abaPrevia === "unidades" ? "Mapear cursos por unidade" : "Detalhes da prévia"}</h4></div><button type="button" onClick={() => setAbaPrevia(null)}>×</button></div>
+            {abaPrevia === "unidades" ? (
+              sheetsPrevia.cursos_pendentes.length ? <div className="period-course-map">
+                {sheetsPrevia.cursos_pendentes.map((grupo) => <article key={grupo.curso}>
+                  <div className="period-course-info"><strong>{grupo.curso}</strong><span>{grupo.quantidade} aluno{grupo.quantidade === 1 ? "" : "s"} será{grupo.quantidade === 1 ? "" : "ão"} resolvido{grupo.quantidade === 1 ? "" : "s"}</span><small>{grupo.alunos.slice(0, 3).map((a) => a.nome).join(" · ")}{grupo.alunos.length > 3 ? ` · +${grupo.alunos.length - 3}` : ""}</small></div>
+                  <div className="period-course-actions"><select value={mapeamentos[grupo.curso] || ""} onChange={(e) => setMapeamentos((atual) => ({ ...atual, [grupo.curso]: e.target.value }))}><option value="">Selecionar unidade</option><option value="FACE">FACE</option><option value="FEA">FEA</option><option value="FCH">FCH</option><option value="EAD">EAD</option></select><button type="button" disabled={!mapeamentos[grupo.curso] || salvandoMapeamento === grupo.curso} onClick={() => salvarMapeamento(grupo.curso)}>{salvandoMapeamento === grupo.curso ? "Salvando..." : "Salvar"}</button></div>
+                </article>)}
+              </div> : <div className="period-sheets-resolved">✓ Todas as unidades foram resolvidas.</div>
+            ) : (
+              <div className="period-preview-list">
+                {(abaPrevia === "novos" ? sheetsPrevia.detalhes.novos : abaPrevia === "cadastros" ? sheetsPrevia.detalhes.cadastros : abaPrevia === "documentos" ? sheetsPrevia.detalhes.documentos : sheetsPrevia.detalhes.cancelamentos).map((item) => (
+                  <article key={`${abaPrevia}-${item.ra}`}><div><strong>{item.nome}</strong><span>RA {item.ra}</span></div><p>{"curso" in item ? `${item.curso} · ${item.unidade || "Unidade pendente"}` : "detalhe" in item ? item.detalhe : `Unidade ${item.unidade}`}</p></article>
+                ))}
+                {((abaPrevia === "novos" && !sheetsPrevia.detalhes.novos.length) || (abaPrevia === "cadastros" && !sheetsPrevia.detalhes.cadastros.length) || (abaPrevia === "documentos" && !sheetsPrevia.detalhes.documentos.length) || (abaPrevia === "cancelamentos" && !sheetsPrevia.detalhes.cancelamentos.length)) && <div className="period-sheets-resolved">Nenhuma divergência nesta categoria.</div>}
+              </div>
+            )}
+          </div>}
+          {sheetsPrevia.unidades_nao_resolvidas > 0 && <div className="period-sheets-warning"><strong>Atenção:</strong> existem {sheetsPrevia.unidades_nao_resolvidas} alunos sem unidade definida. Clique em <strong>Unidades a resolver</strong> e mapeie cada curso antes da sincronização.</div>}
+          {sheetsPrevia.unidades_nao_resolvidas === 0 && <div className="period-sheets-ready"><strong>✓ Unidades resolvidas.</strong> A prévia está pronta para a próxima etapa de sincronização.</div>}
         </div>}
       </section>
 

@@ -301,6 +301,38 @@ export default {
       }
     }
 
+    const rotaSheetsMapeamentos = url.pathname.match(/^\/api\/periodos\/(\d+)\/google-sheets\/mapeamentos$/);
+    if (rotaSheetsMapeamentos && request.method === "GET") {
+      const periodoId = Number(rotaSheetsMapeamentos[1]);
+      const dados = await env.DB.prepare(`
+        SELECT curso, unidade FROM google_sheets_mapeamentos WHERE periodo_id = ? ORDER BY curso
+      `).bind(periodoId).all<{ curso: string; unidade: string }>();
+      return Response.json(dados.results);
+    }
+
+    if (rotaSheetsMapeamentos && request.method === "PUT") {
+      try {
+        const periodoId = Number(rotaSheetsMapeamentos[1]);
+        const body = await request.json<{ curso?: string; unidade?: string }>();
+        const curso = normalizarTexto(body.curso);
+        const cursoChave = normalizarComparacao(curso);
+        const unidade = normalizarComparacao(body.unidade);
+        if (!curso || !["FACE", "FEA", "FCH", "EAD"].includes(unidade)) {
+          return Response.json({ erro: "Informe um curso e uma unidade válida." }, { status: 400 });
+        }
+        await env.DB.prepare(`
+          INSERT INTO google_sheets_mapeamentos (periodo_id, curso_chave, curso, unidade, atualizado_em)
+          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+          ON CONFLICT(periodo_id, curso_chave) DO UPDATE SET
+            curso = excluded.curso, unidade = excluded.unidade, atualizado_em = CURRENT_TIMESTAMP
+        `).bind(periodoId, cursoChave, curso, unidade).run();
+        return Response.json({ sucesso: true, curso, unidade });
+      } catch (erro) {
+        console.error(erro);
+        return Response.json({ erro: "Não foi possível salvar o mapeamento de curso." }, { status: 500 });
+      }
+    }
+
     const rotaSheetsPrevia = url.pathname.match(/^\/api\/periodos\/(\d+)\/google-sheets\/previa$/);
     if (rotaSheetsPrevia && request.method === "POST") {
       try {
@@ -340,8 +372,15 @@ export default {
           if (!cursoUnidades.has(curso)) cursoUnidades.set(curso, new Set());
           cursoUnidades.get(curso)!.add(a.unidade);
         }
+        const mapeamentosSalvos = await env.DB.prepare(`
+          SELECT curso_chave, unidade FROM google_sheets_mapeamentos WHERE periodo_id = ?
+        `).bind(periodoId).all<{ curso_chave: string; unidade: string }>();
+        const unidadePorCurso = new Map(mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade]));
+
         const resolverUnidade = (a: LinhaBase) => {
           const existente = porRa.get(a.ra); if (existente) return existente.unidade;
+          const mapeada = unidadePorCurso.get(normalizarComparacao(a.curso));
+          if (mapeada) return mapeada;
           if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso)) return "EAD";
           if (a.origem === "FCH_EAD") return "FCH";
           const conhecidas = [...(cursoUnidades.get(normalizarComparacao(a.curso)) ?? [])].filter((u) => u === "FACE" || u === "FEA");
@@ -350,23 +389,54 @@ export default {
 
         let novos = 0, cadastrais = 0, documentosAlterados = 0, cancelar = 0, jaCancelados = 0;
         const semUnidade: Array<{ ra: string; nome: string; curso: string }> = [];
-        const amostra: Array<{ ra: string; nome: string; tipo: string; detalhe: string }> = [];
+        const detalhesNovos: Array<{ ra: string; nome: string; curso: string; unidade: string | null }> = [];
+        const detalhesCadastrais: Array<{ ra: string; nome: string; detalhe: string }> = [];
+        const detalhesDocumentos: Array<{ ra: string; nome: string; detalhe: string }> = [];
+        const detalhesCancelamentos: Array<{ ra: string; nome: string; unidade: string }> = [];
         for (const aluno of bases) {
           const atual = porRa.get(aluno.ra);
           const unidade = resolverUnidade(aluno);
           if (!unidade) semUnidade.push({ ra: aluno.ra, nome: aluno.nome, curso: aluno.curso });
-          if (!atual) { novos += 1; if (amostra.length < 20) amostra.push({ ra: aluno.ra, nome: aluno.nome, tipo: "NOVO", detalhe: unidade || "Unidade não resolvida" }); }
-          else if ([atual.nome, atual.curso, atual.email ?? "", atual.email_outro ?? ""].map(normalizarComparacao).join("|") !== [aluno.nome, aluno.curso, aluno.email, aluno.email_outro].map(normalizarComparacao).join("|")) {
-            cadastrais += 1; if (amostra.length < 20) amostra.push({ ra: aluno.ra, nome: aluno.nome, tipo: "CADASTRO", detalhe: "Dados cadastrais diferentes" });
+          if (!atual) {
+            novos += 1;
+            detalhesNovos.push({ ra: aluno.ra, nome: aluno.nome, curso: aluno.curso, unidade });
+          } else {
+            const campos = [
+              ["Nome", atual.nome, aluno.nome], ["Curso", atual.curso, aluno.curso],
+              ["E-mail", atual.email ?? "", aluno.email], ["E-mail alternativo", atual.email_outro ?? "", aluno.email_outro],
+            ].filter(([, antes, depois]) => normalizarComparacao(antes) !== normalizarComparacao(depois));
+            if (campos.length) {
+              cadastrais += 1;
+              detalhesCadastrais.push({ ra: aluno.ra, nome: aluno.nome, detalhe: campos.map(([campo]) => campo).join(", ") });
+            }
           }
           const doc = docs.get(aluno.ra);
-          if (atual && doc && ([atual.identidade, atual.cpf, atual.certidao, atual.residencia, atual.titulo, atual.ensino_medio, atual.contrato].map(Boolean).join("|") !== [doc.identidade, doc.cpf, doc.certidao, doc.residencia, doc.titulo, doc.ensino_medio, doc.contrato].join("|"))) {
-            documentosAlterados += 1; if (amostra.length < 20) amostra.push({ ra: aluno.ra, nome: aluno.nome, tipo: "DOCUMENTOS", detalhe: "Checkboxes diferentes" });
+          if (atual && doc) {
+            const pares = [
+              ["Identidade", Boolean(atual.identidade), doc.identidade], ["CPF", Boolean(atual.cpf), doc.cpf],
+              ["Certidão", Boolean(atual.certidao), doc.certidao], ["Residência", Boolean(atual.residencia), doc.residencia],
+              ["Título", Boolean(atual.titulo), doc.titulo], ["Ensino Médio", Boolean(atual.ensino_medio), doc.ensino_medio],
+              ["Contrato", Boolean(atual.contrato), doc.contrato],
+            ] as Array<[string, boolean, boolean]>;
+            const diferentes = pares.filter(([, antes, depois]) => antes !== depois).map(([nome]) => nome);
+            if (diferentes.length) {
+              documentosAlterados += 1;
+              detalhesDocumentos.push({ ra: aluno.ra, nome: aluno.nome, detalhe: diferentes.join(", ") });
+            }
           }
         }
         for (const ra of cancelados) {
           const atual = porRa.get(ra); if (!atual) continue;
-          if (atual.status === "CANCELADO") jaCancelados += 1; else cancelar += 1;
+          if (atual.status === "CANCELADO") jaCancelados += 1;
+          else { cancelar += 1; detalhesCancelamentos.push({ ra, nome: atual.nome, unidade: atual.unidade }); }
+        }
+        const cursosPendentes = new Map<string, { curso: string; quantidade: number; alunos: Array<{ ra: string; nome: string }> }>();
+        for (const item of semUnidade) {
+          const chave = normalizarComparacao(item.curso);
+          const grupo = cursosPendentes.get(chave) ?? { curso: item.curso, quantidade: 0, alunos: [] };
+          grupo.quantidade += 1;
+          grupo.alunos.push({ ra: item.ra, nome: item.nome });
+          cursosPendentes.set(chave, grupo);
         }
         return Response.json({
           sucesso: true,
@@ -377,8 +447,14 @@ export default {
           novos, alteracoes_cadastrais: cadastrais, documentos_alterados: documentosAlterados,
           prontos_para_cancelar: cancelar, ja_cancelados: jaCancelados,
           unidades_nao_resolvidas: semUnidade.length,
-          detalhes_unidades: semUnidade.slice(0, 50),
-          amostra,
+          detalhes_unidades: semUnidade,
+          cursos_pendentes: [...cursosPendentes.values()].sort((a, b) => b.quantidade - a.quantidade || a.curso.localeCompare(b.curso)),
+          detalhes: {
+            novos: detalhesNovos,
+            cadastros: detalhesCadastrais,
+            documentos: detalhesDocumentos,
+            cancelamentos: detalhesCancelamentos,
+          },
           modo: "PREVIA_SOMENTE_LEITURA",
         });
       } catch (erro) {
