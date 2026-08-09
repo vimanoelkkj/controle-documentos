@@ -60,6 +60,15 @@ type FormAluno = {
   };
 };
 
+function normalizarBusca(valor: string | null | undefined) {
+  return (valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function clonarAlunos(alunos: Aluno[]): Aluno[] {
   return alunos.map((aluno) => ({
     ...aluno,
@@ -413,7 +422,7 @@ function Conferencia() {
     alunosSalvos[0] ??
     alunoVazio;
 
-  const termo = busca.trim().toLowerCase();
+  const termo = normalizarBusca(busca);
 
   const correspondeFiltroStatus = (aluno: Aluno) =>
     filtroStatus === "TODOS" || aluno.status === filtroStatus;
@@ -463,13 +472,23 @@ function Conferencia() {
   const alunosFiltrados = alunosEmEdicao.filter((aluno) => {
     const pertenceUnidade = unidadeSelecionada
       ? aluno.unidade === unidadeSelecionada
-      : temFiltroDashboard;
+      : true;
     const pertenceStatus = correspondeFiltroStatus(aluno);
     const pertenceDashboard = alunoCorrespondeFiltroDashboard(aluno);
 
-    const correspondeBusca =
-      !termo ||
-      `${aluno.nome} ${aluno.ra} ${aluno.curso}`.toLowerCase().includes(termo);
+    const textoBuscaAluno = normalizarBusca(
+      [
+        aluno.nome,
+        aluno.ra,
+        aluno.curso,
+        aluno.email,
+        aluno.email_outro,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+
+    const correspondeBusca = !termo || textoBuscaAluno.includes(termo);
 
     return (
       pertenceUnidade &&
@@ -488,7 +507,7 @@ function Conferencia() {
       aluno.ra === raSelecionado &&
       (unidadeSelecionada
         ? aluno.unidade === unidadeSelecionada
-        : temFiltroDashboard) &&
+        : true) &&
       correspondeFiltroStatus(aluno) &&
       alunoCorrespondeFiltroDashboard(aluno),
   );
@@ -1676,7 +1695,6 @@ function Conferencia() {
                   className={filtroStatus === filtro ? "active" : ""}
                   onClick={() => {
                     setFiltroStatus(filtro);
-                    setBusca("");
                     setRaSelecionado("");
                     setStatus("salvo");
                   }}
@@ -1729,10 +1747,24 @@ function Conferencia() {
           <input
             className="student-search"
             type="search"
-            placeholder="Pesquisar aluno..."
+            placeholder="Pesquisar nome, RA, curso ou e-mail..."
             value={busca}
             onChange={(event) => setBusca(event.target.value)}
           />
+
+          {busca.trim() && (
+            <div className="student-search-result">
+              <strong>{alunosFiltrados.length}</strong>
+              <span>
+                {alunosFiltrados.length === 1
+                  ? "aluno encontrado"
+                  : "alunos encontrados"}
+              </span>
+              <button type="button" onClick={() => setBusca("")}>
+                × Limpar busca
+              </button>
+            </div>
+          )}
 
           <div className="student-list">
             {alunosFiltrados.map((aluno) => {
