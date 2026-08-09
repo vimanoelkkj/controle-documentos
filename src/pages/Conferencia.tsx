@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type Dispatch,
@@ -150,6 +151,33 @@ function Conferencia() {
     useState<ResultadoCancelados | null>(null);
   const [processandoCancelados, setProcessandoCancelados] = useState(false);
   const [erroCancelados, setErroCancelados] = useState("");
+
+  const detalhesRef = useRef<HTMLElement | null>(null);
+  const [alturaMaximaPainel, setAlturaMaximaPainel] = useState<number | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const elemento = detalhesRef.current;
+    if (!elemento) return;
+
+    const atualizarAltura = () => {
+      setAlturaMaximaPainel(
+        Math.ceil(elemento.getBoundingClientRect().height),
+      );
+    };
+
+    atualizarAltura();
+
+    const observer = new ResizeObserver(atualizarAltura);
+    observer.observe(elemento);
+    window.addEventListener("resize", atualizarAltura);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", atualizarAltura);
+    };
+  }, [raSelecionado, unidadeSelecionada, filtroStatus]);
 
   async function carregarAlunos(raParaSelecionar?: string) {
     try {
@@ -1256,7 +1284,14 @@ function Conferencia() {
       </header>
 
       <div className="conference-grid">
-        <aside className="student-panel">
+        <aside
+          className="student-panel"
+          style={
+            alturaMaximaPainel
+              ? { maxHeight: `${alturaMaximaPainel}px` }
+              : undefined
+          }
+        >
           <div className="student-panel-header">
             <div>
               <span>ALUNOS POR UNIDADE</span>
@@ -1396,7 +1431,7 @@ function Conferencia() {
         </aside>
 
         {temAlunoSelecionadoNoFiltro ? (
-          <article className="student-details">
+          <article ref={detalhesRef} className="student-details">
             <header className="student-details-header">
               <div className="student-avatar">{iniciais}</div>
 
@@ -1553,7 +1588,7 @@ function Conferencia() {
             </footer>
           </article>
         ) : (
-          <article className="student-details">
+          <article ref={detalhesRef} className="student-details">
             <div style={{ padding: "32px" }}>
               <h2>Nenhum aluno encontrado</h2>
               <p>Não há alunos nesta unidade para o filtro selecionado.</p>
