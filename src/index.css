@@ -4140,3 +4140,150 @@ a {
   .statistics-histogram-track { height: 130px; }
   .statistics-course-row { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   MODO CLARO
+   ========================================================= */
+html[data-theme="light"] {
+  color-scheme: light;
+  background: #f4f7fa;
+}
+
+html[data-theme="light"] body,
+html[data-theme="light"] .app-layout {
+  color: #17232d;
+  background: #f4f7fa;
+}
+
+html[data-theme="light"] .sidebar {
+  border-color: #d5e0e8;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .sidebar-brand,
+html[data-theme="light"] .modal-cabecalho,
+html[data-theme="light"] .modal-acoes,
+html[data-theme="light"] .conference-actions {
+  border-color: #d8e2e9;
+}
+
+html[data-theme="light"] .sidebar-brand-copy span,
+html[data-theme="light"] .sidebar-link,
+html[data-theme="light"] .page-header p,
+html[data-theme="light"] .modal-cabecalho p,
+html[data-theme="light"] .student-card-main span,
+html[data-theme="light"] .student-details-empty p {
+  color: #667b8a;
+}
+
+html[data-theme="light"] .sidebar-link:hover {
+  color: #10202b;
+  background: #eef5f9;
+}
+
+html[data-theme="light"] .sidebar-link.active {
+  color: #10202b;
+  border-color: #9ac9e8;
+  background: #dceffc;
+}
+
+html[data-theme="light"] .theme-button,
+html[data-theme="light"] .icon-button,
+html[data-theme="light"] .botao-atualizar-alunos,
+html[data-theme="light"] .secondary-action,
+html[data-theme="light"] .modal-fechar {
+  color: #23678f;
+  border-color: #bfd2df;
+  background: #f1f7fa;
+}
+
+html[data-theme="light"] .app-content h1,
+html[data-theme="light"] .student-panel-header h2,
+html[data-theme="light"] .student-details h2,
+html[data-theme="light"] .student-details h3,
+html[data-theme="light"] .modal-cabecalho h2,
+html[data-theme="light"] .dashboard-card h2,
+html[data-theme="light"] .statistics-card h2,
+html[data-theme="light"] .communication-page h2,
+html[data-theme="light"] .communication-page h3 {
+  color: #14232d;
+}
+
+html[data-theme="light"] .student-panel,
+html[data-theme="light"] .student-details,
+html[data-theme="light"] .dashboard-card,
+html[data-theme="light"] .dashboard-kpi,
+html[data-theme="light"] .dashboard-units-card,
+html[data-theme="light"] .dashboard-status-card,
+html[data-theme="light"] .dashboard-pendencias-card,
+html[data-theme="light"] .statistics-card,
+html[data-theme="light"] .statistics-kpi,
+html[data-theme="light"] .communication-students-card,
+html[data-theme="light"] .communication-detail,
+html[data-theme="light"] .communication-summary,
+html[data-theme="light"] .communication-preview,
+html[data-theme="light"] .communication-history,
+html[data-theme="light"] .modal-novo-aluno,
+html[data-theme="light"] .modal-importacao,
+html[data-theme="light"] .modal-excluir-aluno {
+  color: #20313d;
+  border-color: #d5e0e8;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(37, 61, 77, 0.08);
+}
+
+html[data-theme="light"] .status-tabs button,
+html[data-theme="light"] .unit-tabs button,
+html[data-theme="light"] .student-card,
+html[data-theme="light"] .student-search,
+html[data-theme="light"] .modal-formulario input,
+html[data-theme="light"] .modal-formulario select,
+html[data-theme="light"] .importacao-unidade select,
+html[data-theme="light"] .importacao-tabs button,
+html[data-theme="light"] .adicionar-aluno-opcoes button,
+html[data-theme="light"] .communication-search,
+html[data-theme="light"] .communication-student,
+html[data-theme="light"] .communication-email-body,
+html[data-theme="light"] .communication-email-body li,
+html[data-theme="light"] .cadastro-documentos,
+html[data-theme="light"] .modal-formulario .cadastro-documento-check {
+  color: #263946;
+  border-color: #cfdae2;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .status-tabs button.active,
+html[data-theme="light"] .unit-tabs button.active,
+html[data-theme="light"] .importacao-tabs button.active,
+html[data-theme="light"] .student-card.active {
+  color: #12334a;
+  border-color: #69add8;
+  background: #dff1fc;
+}
+
+html[data-theme="light"] .modal-formulario input::placeholder,
+html[data-theme="light"] .student-search::placeholder {
+  color: #8799a5;
+}
+
+html[data-theme="light"] .importacao-unidade select {
+  color-scheme: light;
+}
+
+html[data-theme="light"] .importacao-unidade select option {
+  color: #263946;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .modal-acoes {
+  background: #f8fafc;
+}
+
+html[data-theme="light"] .progress-track,
+html[data-theme="light"] .dashboard-bar-track,
+html[data-theme="light"] .statistics-document-meter,
+html[data-theme="light"] .statistics-combination-track,
+html[data-theme="light"] .statistics-course-progress,
+html[data-theme="light"] .statistics-histogram-track {
+  background: #e5edf2;
+}

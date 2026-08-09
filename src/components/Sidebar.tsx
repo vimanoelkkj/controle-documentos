@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
 const items = [
@@ -12,6 +13,16 @@ const items = [
 ]
 
 function Sidebar() {
+  const [tema, setTema] = useState<'dark' | 'light'>(() => {
+    const salvo = localStorage.getItem('tema')
+    return salvo === 'light' ? 'light' : 'dark'
+  })
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = tema
+    localStorage.setItem('tema', tema)
+  }, [tema])
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -40,8 +51,12 @@ function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <button type="button" className="theme-button">
-          ☀ Modo claro
+        <button
+          type="button"
+          className="theme-button"
+          onClick={() => setTema((atual) => (atual === 'dark' ? 'light' : 'dark'))}
+        >
+          {tema === 'dark' ? '☀ Modo claro' : '☾ Modo escuro'}
         </button>
       </div>
     </aside>
