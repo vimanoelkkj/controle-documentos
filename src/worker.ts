@@ -47,6 +47,76 @@ export default {
     const url = new URL(request.url);
 
     // =====================================================
+    // GET /api/log
+    // =====================================================
+
+    if (url.pathname === "/api/log" && request.method === "GET") {
+      try {
+        const limiteSolicitado = Number(url.searchParams.get("limit") || "200");
+        const limite = Math.max(1, Math.min(500, limiteSolicitado));
+
+        const resultado = await env.DB.prepare(
+          `
+            SELECT id, criado_em, acao, entidade, descricao, ra, unidade
+            FROM logs
+            ORDER BY id DESC
+            LIMIT ?
+          `,
+        )
+          .bind(limite)
+          .all();
+
+        return Response.json(resultado.results);
+      } catch (erro) {
+        console.error(erro);
+        return Response.json(
+          { erro: "LOG indisponível. Execute a migration 002_log.sql no D1." },
+          { status: 500 },
+        );
+      }
+    }
+
+    // =====================================================
+    // POST /api/log
+    // =====================================================
+
+    if (url.pathname === "/api/log" && request.method === "POST") {
+      try {
+        const body = await request.json<{
+          acao: string;
+          entidade: string;
+          descricao: string;
+          ra?: string;
+          unidade?: string;
+        }>();
+
+        if (!body.acao?.trim() || !body.entidade?.trim() || !body.descricao?.trim()) {
+          return Response.json({ erro: "Dados insuficientes para registrar o LOG." }, { status: 400 });
+        }
+
+        await env.DB.prepare(
+          `
+            INSERT INTO logs (acao, entidade, descricao, ra, unidade)
+            VALUES (?, ?, ?, ?, ?)
+          `,
+        )
+          .bind(
+            body.acao.trim(),
+            body.entidade.trim(),
+            body.descricao.trim(),
+            body.ra?.trim() || null,
+            body.unidade?.trim() || null,
+          )
+          .run();
+
+        return Response.json({ sucesso: true }, { status: 201 });
+      } catch (erro) {
+        console.error(erro);
+        return Response.json({ erro: "Não foi possível registrar o LOG." }, { status: 500 });
+      }
+    }
+
+    // =====================================================
     // GET /api/alunos
     // =====================================================
 

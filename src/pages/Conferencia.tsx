@@ -219,6 +219,30 @@ function Conferencia() {
     carregarAlunos();
   }, []);
 
+  async function registrarLog(
+    acao: string,
+    descricao: string,
+    ra?: string,
+    unidade?: string,
+  ) {
+    try {
+      await fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          acao,
+          entidade: "ALUNO",
+          descricao,
+          ra,
+          unidade,
+        }),
+      });
+    } catch (erro) {
+      console.error("Não foi possível registrar o LOG.", erro);
+    }
+  }
+
+
   if (carregando) {
     return (
       <section className="conference-page">
@@ -465,6 +489,13 @@ function Conferencia() {
 
       setResultadoImportacao(dados);
 
+      await registrarLog(
+        "IMPORTAÇÃO",
+        `${alunos.length} aluno(s) sincronizado(s) pela importação.`,
+        undefined,
+        unidadeImportacao,
+      );
+
       setUnidadeSelecionada(unidadeImportacao);
 
       await carregarAlunos(undefined, unidadeImportacao, filtroStatus);
@@ -659,6 +690,13 @@ function Conferencia() {
 
       setResultadoCancelados(dados);
 
+      await registrarLog(
+        "CANCELAMENTO EM LOTE",
+        `${ras.length} matrícula(s) processada(s) pela lista de cancelados.`,
+        undefined,
+        unidadeCancelados,
+      );
+
       setUnidadeSelecionada(unidadeCancelados);
       setFiltroStatus("CANCELADO");
 
@@ -760,6 +798,12 @@ function Conferencia() {
       );
 
       setStatus("salvo");
+      await registrarLog(
+        "DOCUMENTOS",
+        `Documentação de ${alunoSelecionado.nome} atualizada.`,
+        alunoSelecionado.ra,
+        alunoSelecionado.unidade,
+      );
     } catch (erro) {
       console.error(erro);
       alert("Não foi possível salvar as alterações.");
@@ -807,6 +851,13 @@ function Conferencia() {
       }
 
       const raCadastrado = novoAluno.ra.trim();
+
+      await registrarLog(
+        "CADASTRO",
+        `${novoAluno.nome.trim()} cadastrado no sistema.`,
+        raCadastrado,
+        novoAluno.unidade,
+      );
 
       setNovoAluno(formularioVazio);
       setModalNovoAluno(false);
@@ -1158,6 +1209,13 @@ function Conferencia() {
 
       const novoRa = alunoEdicao.ra.trim();
 
+      await registrarLog(
+        "EDIÇÃO",
+        `Dados cadastrais de ${alunoEdicao.nome.trim()} atualizados.`,
+        novoRa,
+        alunoEdicao.unidade,
+      );
+
       setModalEditarAluno(false);
 
       await carregarAlunos(novoRa);
@@ -1204,6 +1262,13 @@ function Conferencia() {
 
       setModalStatusAluno(false);
 
+      await registrarLog(
+        novoStatus === "CANCELADO" ? "CANCELAMENTO" : "REATIVAÇÃO",
+        `${alunoSelecionado.nome} teve a matrícula ${novoStatus === "CANCELADO" ? "cancelada" : "reativada"}.`,
+        alunoSelecionado.ra,
+        alunoSelecionado.unidade,
+      );
+
       const unidadeDoAluno = alunoSelecionado.unidade as Unidade;
 
       setFiltroStatus(novoStatus);
@@ -1244,6 +1309,13 @@ function Conferencia() {
       }
 
       setModalExcluirAluno(false);
+
+      await registrarLog(
+        "EXCLUSÃO",
+        `${alunoSelecionado.nome} excluído do sistema.`,
+        alunoSelecionado.ra,
+        alunoSelecionado.unidade,
+      );
 
       await carregarAlunos();
     } catch (erro) {
