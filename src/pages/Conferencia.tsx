@@ -661,7 +661,7 @@ function Conferencia() {
     return true;
   };
 
-  const alunosFiltrados = alunosEmEdicao
+  const alunosFiltrados = alunosSalvos
     .filter((aluno) => {
       const pertenceUnidade = unidadeSelecionada
         ? aluno.unidade === unidadeSelecionada
@@ -690,7 +690,7 @@ function Conferencia() {
       }),
     );
 
-  const temAlunoSelecionadoNoFiltro = alunosEmEdicao.some(
+  const temAlunoSelecionadoNoFiltro = alunosSalvos.some(
     (aluno) =>
       aluno.ra === raSelecionado &&
       (unidadeSelecionada ? aluno.unidade === unidadeSelecionada : true) &&
