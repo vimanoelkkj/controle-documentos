@@ -1285,7 +1285,16 @@ function Conferencia() {
           <div className="student-panel-header">
             <div>
               <span>ALUNOS POR UNIDADE</span>
-              <h2>Lista de conferência</h2>
+              <div className="student-panel-title-row">
+                <h2>Lista de conferência</h2>
+                <button
+                  type="button"
+                  className="botao-atualizar-alunos"
+                  onClick={() => carregarAlunos(raSelecionado)}
+                >
+                  ↻ Atualizar
+                </button>
+              </div>
             </div>
 
             <div className="student-panel-actions">
@@ -1306,14 +1315,6 @@ function Conferencia() {
                 + Adicionar alunos
               </button>
 
-              <button
-                type="button"
-                className="icon-button"
-                onClick={() => carregarAlunos(raSelecionado)}
-                title="Atualizar alunos"
-              >
-                ↻
-              </button>
             </div>
           </div>
 

@@ -305,6 +305,28 @@ a {
   font-size: 18px;
 }
 
+.student-panel-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.botao-atualizar-alunos {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #2a4254;
+  border-radius: 8px;
+  color: #75c7ff;
+  background: #152633;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.botao-atualizar-alunos:hover {
+  background: #1b3344;
+}
+
 .icon-button {
   width: 36px;
   height: 36px;
