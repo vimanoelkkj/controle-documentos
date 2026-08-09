@@ -1182,12 +1182,19 @@ export default {
               ([, antes, depois]) =>
                 normalizarComparacao(antes) !== normalizarComparacao(depois),
             );
+
             if (campos.length) {
               cadastrais += 1;
+
               detalhesCadastrais.push({
                 ra: aluno.ra,
                 nome: aluno.nome,
-                detalhe: campos.map(([campo]) => campo).join(", "),
+                detalhe: campos
+                  .map(
+                    ([campo, antes, depois]) =>
+                      `${campo}: ${antes || "—"} → ${depois || "—"}`,
+                  )
+                  .join("\n"),
               });
             }
           }
@@ -1202,15 +1209,24 @@ export default {
               ["Ensino Médio", Boolean(atual.ensino_medio), doc.ensino_medio],
               ["Contrato", Boolean(atual.contrato), doc.contrato],
             ] as Array<[string, boolean, boolean]>;
-            const diferentes = pares
-              .filter(([, antes, depois]) => antes !== depois)
-              .map(([nome]) => nome);
+            const diferentes = pares.filter(
+              ([, antes, depois]) => antes !== depois,
+            );
+
             if (diferentes.length) {
               documentosAlterados += 1;
+
               detalhesDocumentos.push({
                 ra: aluno.ra,
                 nome: aluno.nome,
-                detalhe: diferentes.join(", "),
+                detalhe: diferentes
+                  .map(
+                    ([nome, antes, depois]) =>
+                      `${nome}: ${antes ? "Entregue" : "Pendente"} → ${
+                        depois ? "Entregue" : "Pendente"
+                      }`,
+                  )
+                  .join("\n"),
               });
             }
           }

@@ -99,6 +99,7 @@ function Periodos() {
   const [resultadoSync, setResultadoSync] =
     useState<SheetsResultadoSync | null>(null);
   const [modalSucessoSync, setModalSucessoSync] = useState(false);
+  const [mostrarAlteracoesSync, setMostrarAlteracoesSync] = useState(false);
 
   useEffect(() => {
     if (!periodoAtual) return;
@@ -550,8 +551,8 @@ function Periodos() {
                   ],
                   [
                     "documentos",
-                    sheetsPrevia.documentos_marcados,
-                    "Documentos marcados",
+                    sheetsPrevia.documentos_alterados,
+                    "Documentos diferentes",
                   ],
                   [
                     "cancelamentos",
@@ -704,13 +705,24 @@ function Periodos() {
                           <strong>{item.nome}</strong>
                           <span>RA {item.ra}</span>
                         </div>
-                        <p>
-                          {"curso" in item
-                            ? `${item.curso} · ${item.unidade || "Unidade pendente"}`
-                            : "detalhe" in item
-                              ? item.detalhe
-                              : `Unidade ${item.unidade}`}
-                        </p>
+                        {"curso" in item ? (
+                          <p>{`${item.curso} · ${item.unidade || "Unidade pendente"}`}</p>
+                        ) : "detalhe" in item ? (
+                          <div className="period-preview-change">
+                            {item.detalhe.split("\n").map((linha) => {
+                              const [campo, alteracao] = linha.split(": ");
+
+                              return (
+                                <div key={linha}>
+                                  <strong>{campo}</strong>
+                                  <span>{alteracao}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p>{`Unidade ${item.unidade}`}</p>
+                        )}
                       </article>
                     ))}
                     {((abaPrevia === "novos" &&
@@ -739,9 +751,22 @@ function Periodos() {
             )}
             {sheetsPrevia.unidades_nao_resolvidas === 0 && (
               <>
-                <div className="period-sheets-ready">
-                  <strong>✓ Unidades resolvidas.</strong> A prévia está pronta
-                  para sincronização.
+                <div
+                  className={`period-sheets-ready ${
+                    totalOperacoesPrevia === 0 ? "is-synced" : ""
+                  }`}
+                >
+                  {totalOperacoesPrevia === 0 ? (
+                    <>
+                      <strong>✓ Tudo sincronizado.</strong> Nenhuma divergência
+                      encontrada.
+                    </>
+                  ) : (
+                    <>
+                      <strong>✓ Unidades resolvidas.</strong> A prévia está
+                      pronta para sincronização.
+                    </>
+                  )}
                 </div>
                 <div
                   className={`period-sheets-sync-bar ${totalOperacoesPrevia === 0 ? "is-synced" : ""}`}
@@ -921,25 +946,85 @@ function Periodos() {
             </header>
 
             <div className="period-sync-confirm-grid">
-              <div>
+              <div className="period-sync-confirm-metric">
                 <strong>{sheetsPrevia.novos}</strong>
                 <span>Novos</span>
               </div>
-              <div>
+
+              <div className="period-sync-confirm-metric">
                 <strong>{sheetsPrevia.alteracoes_cadastrais}</strong>
                 <span>Cadastros</span>
               </div>
-              <div>
-                <strong>{sheetsPrevia.documentos_marcados}</strong>
-                <span>Docs marcados</span>
-                <small>
-                  {sheetsPrevia.documentos_alterados} serão alterados
-                </small>
+
+              <div className="period-sync-confirm-metric">
+                <strong>{sheetsPrevia.documentos_alterados}</strong>
+                <span>Documentos</span>
               </div>
-              <div>
+
+              <div className="period-sync-confirm-metric">
                 <strong>{sheetsPrevia.prontos_para_cancelar}</strong>
                 <span>Cancelamentos</span>
               </div>
+            </div>
+
+            <div className="period-sync-confirm-details">
+              <button
+                type="button"
+                className="period-sync-confirm-details-toggle"
+                onClick={() => setMostrarAlteracoesSync((atual) => !atual)}
+              >
+                {mostrarAlteracoesSync
+                  ? "Ocultar alterações"
+                  : "Ver alterações"}
+              </button>
+
+              {mostrarAlteracoesSync && (
+                <div className="period-sync-confirm-details-content">
+                  {sheetsPrevia.detalhes.cadastros.map((item) => (
+                    <article key={`cadastro-${item.ra}`}>
+                      <div>
+                        <strong>{item.nome}</strong>
+                        <small>RA {item.ra}</small>
+                      </div>
+
+                      <div className="period-preview-change">
+                        {item.detalhe.split("\n").map((linha) => {
+                          const [campo, alteracao] = linha.split(": ");
+
+                          return (
+                            <div key={linha}>
+                              <strong>{campo}</strong>
+                              <span>{alteracao}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </article>
+                  ))}
+
+                  {sheetsPrevia.detalhes.documentos.map((item) => (
+                    <article key={`documento-${item.ra}`}>
+                      <div>
+                        <strong>{item.nome}</strong>
+                        <small>RA {item.ra}</small>
+                      </div>
+
+                      <div className="period-preview-change">
+                        {item.detalhe.split("\n").map((linha) => {
+                          const [campo, alteracao] = linha.split(": ");
+
+                          return (
+                            <div key={linha}>
+                              <strong>{campo}</strong>
+                              <span>{alteracao}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="period-sync-confirm-note">
