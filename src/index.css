@@ -1607,6 +1607,15 @@ a {
   cursor: pointer;
 }
 
+.importacao-unidade select {
+  color-scheme: dark;
+}
+
+.importacao-unidade select option {
+  color: #eef5f9;
+  background: #0b171f;
+}
+
 .importacao-unidade select:focus {
   border-color: #58b7f4;
   box-shadow: 0 0 0 3px rgba(88, 183, 244, 0.1);
