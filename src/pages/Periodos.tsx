@@ -1,9 +1,43 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePeriodo } from "../contexts/PeriodoContext";
 
 function normalizarCodigo(valor: string) {
   return valor.trim().toUpperCase().replace(/\s+/g, "");
 }
+
+type SheetsConfig = {
+  spreadsheet_id: string;
+  aba_base_face_fea: string;
+  aba_base_fch_ead: string;
+  aba_docs_face_fea: string;
+  aba_docs_fch_ead: string;
+  aba_cancelados_face_fea: string;
+  aba_cancelados_fch_ead: string;
+};
+
+type SheetsPrevia = {
+  encontrados: number;
+  documentos_encontrados: number;
+  cancelados_encontrados: number;
+  novos: number;
+  alteracoes_cadastrais: number;
+  documentos_alterados: number;
+  prontos_para_cancelar: number;
+  ja_cancelados: number;
+  unidades_nao_resolvidas: number;
+  detalhes_unidades: Array<{ ra: string; nome: string; curso: string }>;
+  modo: string;
+};
+
+const configVazia: SheetsConfig = {
+  spreadsheet_id: "",
+  aba_base_face_fea: "FACE - FEA 2026 - 2",
+  aba_base_fch_ead: "FCH - EAD 2026 - 2",
+  aba_docs_face_fea: "CONTROLE DE DOCUMENTOS FACE FEA",
+  aba_docs_fch_ead: "CONTROLE DE DOCUMENTOS FCH EAD",
+  aba_cancelados_face_fea: "CANCELADOS FACE - FEA 2026-2",
+  aba_cancelados_fch_ead: "CANCELADOS FCH - EAD 2026-2",
+};
 
 function Periodos() {
   const { periodos, periodoAtual, selecionarPeriodo, recarregarPeriodos } = usePeriodo();
@@ -11,6 +45,62 @@ function Periodos() {
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
   const [confirmacao, setConfirmacao] = useState<{ id: number; codigo: string; status: "ATIVO" | "ARQUIVADO" } | null>(null);
+  const [sheetsConfig, setSheetsConfig] = useState<SheetsConfig>(configVazia);
+  const [sheetsSalvo, setSheetsSalvo] = useState(false);
+  const [sheetsCarregando, setSheetsCarregando] = useState(false);
+  const [sheetsErro, setSheetsErro] = useState("");
+  const [sheetsPrevia, setSheetsPrevia] = useState<SheetsPrevia | null>(null);
+
+  useEffect(() => {
+    if (!periodoAtual) return;
+    let ativo = true;
+    setSheetsPrevia(null);
+    setSheetsErro("");
+    fetch(`/api/periodos/${periodoAtual.id}/google-sheets`)
+      .then(async (resposta) => {
+        if (!resposta.ok) throw new Error("Não foi possível carregar a configuração do Google Sheets.");
+        return resposta.json() as Promise<SheetsConfig | null>;
+      })
+      .then((config) => {
+        if (!ativo) return;
+        setSheetsConfig(config ?? { ...configVazia,
+          aba_base_face_fea: `FACE - FEA ${periodoAtual.codigo.replace("-", " - ")}`,
+          aba_base_fch_ead: `FCH - EAD ${periodoAtual.codigo.replace("-", " - ")}`,
+          aba_cancelados_face_fea: `CANCELADOS FACE - FEA ${periodoAtual.codigo}`,
+          aba_cancelados_fch_ead: `CANCELADOS FCH - EAD ${periodoAtual.codigo}`,
+        });
+        setSheetsSalvo(Boolean(config));
+      })
+      .catch((e) => ativo && setSheetsErro(e instanceof Error ? e.message : "Erro ao carregar integração."));
+    return () => { ativo = false; };
+  }, [periodoAtual]);
+
+  async function salvarSheets() {
+    if (!periodoAtual) return;
+    try {
+      setSheetsCarregando(true); setSheetsErro(""); setSheetsPrevia(null);
+      const resposta = await fetch(`/api/periodos/${periodoAtual.id}/google-sheets`, {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sheetsConfig),
+      });
+      const dados = await resposta.json() as { erro?: string; spreadsheet_id?: string };
+      if (!resposta.ok) throw new Error(dados.erro || "Não foi possível salvar a integração.");
+      setSheetsConfig((atual) => ({ ...atual, spreadsheet_id: dados.spreadsheet_id || atual.spreadsheet_id }));
+      setSheetsSalvo(true);
+    } catch (e) { setSheetsErro(e instanceof Error ? e.message : "Erro ao salvar integração."); }
+    finally { setSheetsCarregando(false); }
+  }
+
+  async function gerarPreviaSheets() {
+    if (!periodoAtual) return;
+    try {
+      setSheetsCarregando(true); setSheetsErro(""); setSheetsPrevia(null);
+      const resposta = await fetch(`/api/periodos/${periodoAtual.id}/google-sheets/previa`, { method: "POST" });
+      const dados = await resposta.json() as SheetsPrevia & { erro?: string };
+      if (!resposta.ok) throw new Error(dados.erro || "Não foi possível ler a planilha.");
+      setSheetsPrevia(dados);
+    } catch (e) { setSheetsErro(e instanceof Error ? e.message : "Erro ao ler Google Sheets."); }
+    finally { setSheetsCarregando(false); }
+  }
 
   const ativos = useMemo(() => periodos.filter((periodo) => periodo.status === "ATIVO"), [periodos]);
   const arquivados = useMemo(() => periodos.filter((periodo) => periodo.status === "ARQUIVADO"), [periodos]);
@@ -108,6 +198,32 @@ function Periodos() {
           <input value={novoCodigo} onChange={(e) => setNovoCodigo(e.target.value)} placeholder="2027-1" maxLength={6} />
           <button type="button" onClick={criarPeriodo} disabled={processando}>+ Criar período</button>
         </div>
+      </section>
+
+      <section className="period-sheets-card">
+        <div className="period-sheets-heading">
+          <div><span>INTEGRAÇÃO</span><h2>Google Sheets</h2><p>Leitura segura da planilha vinculada ao período <strong>{periodoAtual?.codigo ?? "—"}</strong>. A prévia não altera o sistema nem a planilha.</p></div>
+          <span className={`period-sheets-status ${sheetsSalvo ? "connected" : ""}`}>{sheetsSalvo ? "CONFIGURADO" : "NÃO CONFIGURADO"}</span>
+        </div>
+        <label className="period-sheets-main"><span>Link ou ID da planilha</span><input value={sheetsConfig.spreadsheet_id} onChange={(e) => setSheetsConfig({ ...sheetsConfig, spreadsheet_id: e.target.value })} placeholder="https://docs.google.com/spreadsheets/d/..." /></label>
+        <div className="period-sheets-grid">
+          {([
+            ["Base FACE / FEA", "aba_base_face_fea"], ["Base FCH / EAD", "aba_base_fch_ead"],
+            ["Documentos FACE / FEA", "aba_docs_face_fea"], ["Documentos FCH / EAD", "aba_docs_fch_ead"],
+            ["Cancelados FACE / FEA", "aba_cancelados_face_fea"], ["Cancelados FCH / EAD", "aba_cancelados_fch_ead"],
+          ] as Array<[string, keyof SheetsConfig]>).map(([rotulo, campo]) => (
+            <label key={campo}><span>{rotulo}</span><input value={sheetsConfig[campo]} onChange={(e) => setSheetsConfig({ ...sheetsConfig, [campo]: e.target.value })} /></label>
+          ))}
+        </div>
+        {sheetsErro && <div className="period-sheets-error">{sheetsErro}</div>}
+        <div className="period-sheets-actions"><button type="button" className="secondary" onClick={salvarSheets} disabled={sheetsCarregando || !periodoAtual}>{sheetsCarregando ? "Aguarde..." : "Salvar configuração"}</button><button type="button" onClick={gerarPreviaSheets} disabled={sheetsCarregando || !sheetsSalvo}>{sheetsCarregando ? "Lendo..." : "Ler planilha e gerar prévia"}</button></div>
+        {sheetsPrevia && <div className="period-sheets-preview">
+          <div className="period-sheets-preview-title"><div><span>PRÉVIA · SOMENTE LEITURA</span><h3>{sheetsPrevia.encontrados} alunos encontrados</h3></div><strong>✓ NADA ALTERADO</strong></div>
+          <div className="period-sheets-metrics">
+            <div><strong>{sheetsPrevia.novos}</strong><span>Novos alunos</span></div><div><strong>{sheetsPrevia.alteracoes_cadastrais}</strong><span>Cadastros diferentes</span></div><div><strong>{sheetsPrevia.documentos_alterados}</strong><span>Documentos diferentes</span></div><div><strong>{sheetsPrevia.prontos_para_cancelar}</strong><span>Cancelamentos</span></div><div className={sheetsPrevia.unidades_nao_resolvidas ? "warning" : ""}><strong>{sheetsPrevia.unidades_nao_resolvidas}</strong><span>Unidades a resolver</span></div>
+          </div>
+          {sheetsPrevia.unidades_nao_resolvidas > 0 && <div className="period-sheets-warning"><strong>Atenção:</strong> a planilha junta FACE/FEA. Para alunos novos cujo curso ainda não existe no sistema, não é seguro adivinhar a unidade. A próxima etapa vai permitir mapear esses casos antes de sincronizar.</div>}
+        </div>}
       </section>
 
       {erro && <div className="period-error">{erro}</div>}

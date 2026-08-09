@@ -5747,3 +5747,45 @@ html[data-theme="light"] .period-confirm-modal .modal-cabecalho p {
 html[data-theme="light"] .period-confirm-modal .modal-cabecalho p strong {
   color: #1c2d3a;
 }
+
+/* =========================================================
+   GOOGLE SHEETS · PERÍODOS
+   ========================================================= */
+.period-sheets-card { margin-top: 14px; padding: 18px; border: 1px solid #223947; border-radius: 13px; background: #0c1821; }
+.period-sheets-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 15px; }
+.period-sheets-heading span, .period-sheets-card label > span { color: #6f8b9d; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.period-sheets-heading h2 { margin: 3px 0 4px; color: #e9f1f5; font-size: 17px; }
+.period-sheets-heading p { margin: 0; color: #78909f; font-size: 10px; }
+.period-sheets-status { flex: 0 0 auto; padding: 6px 8px; border: 1px solid #40515c; border-radius: 7px; background: #15232c; }
+.period-sheets-status.connected { border-color: #2f6652; color: #83d5b1; background: #10251e; }
+.period-sheets-main, .period-sheets-grid label { display: grid; gap: 6px; }
+.period-sheets-card input { width: 100%; box-sizing: border-box; border: 1px solid #294150; border-radius: 8px; padding: 10px 11px; color: #dce7ed; background: #0a141b; outline: none; }
+.period-sheets-card input:focus { border-color: #4f9dcc; }
+.period-sheets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 11px; }
+.period-sheets-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.period-sheets-actions button { min-height: 34px; padding: 0 12px; border: 1px solid #3e8dbd; border-radius: 8px; color: #e8f5fc; background: #176896; font-weight: 800; cursor: pointer; }
+.period-sheets-actions button.secondary { border-color: #425766; color: #b8c8d2; background: #172630; }
+.period-sheets-actions button:disabled { opacity: .5; cursor: default; }
+.period-sheets-error, .period-sheets-warning { margin-top: 12px; padding: 10px 12px; border: 1px solid #6c4549; border-radius: 8px; color: #efb1b5; background: #29191c; font-size: 10px; }
+.period-sheets-preview { margin-top: 15px; padding-top: 15px; border-top: 1px solid #223947; }
+.period-sheets-preview-title { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+.period-sheets-preview-title span { color: #5f9fc5; font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+.period-sheets-preview-title h3 { margin: 3px 0 0; color: #e6f0f5; font-size: 15px; }
+.period-sheets-preview-title > strong { color: #75c7a4; font-size: 9px; }
+.period-sheets-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.period-sheets-metrics > div { display: grid; gap: 2px; padding: 10px; border: 1px solid #233b49; border-radius: 9px; background: #0a151c; }
+.period-sheets-metrics strong { color: #dceaf1; font-size: 18px; }
+.period-sheets-metrics span { color: #708a9a; font-size: 9px; }
+.period-sheets-metrics .warning { border-color: #755d35; background: #241f15; }
+.period-sheets-warning { border-color: #755d35; color: #d9bf8b; background: #241f15; }
+html[data-theme="light"] .period-sheets-card { border-color: #d7e3ea; background: #fff; }
+html[data-theme="light"] .period-sheets-heading h2, html[data-theme="light"] .period-sheets-preview-title h3 { color: #203746; }
+html[data-theme="light"] .period-sheets-heading p, html[data-theme="light"] .period-sheets-card label > span { color: #718694; }
+html[data-theme="light"] .period-sheets-card input { border-color: #cbd9e1; color: #263e4c; background: #f8fbfc; }
+html[data-theme="light"] .period-sheets-status { border-color: #d1dde4; color: #667d8b; background: #f5f8fa; }
+html[data-theme="light"] .period-sheets-status.connected { border-color: #b9ddcf; color: #34785e; background: #eff9f5; }
+html[data-theme="light"] .period-sheets-preview { border-top-color: #dbe6ec; }
+html[data-theme="light"] .period-sheets-metrics > div { border-color: #d9e5eb; background: #f8fbfc; }
+html[data-theme="light"] .period-sheets-metrics strong { color: #294454; }
+html[data-theme="light"] .period-sheets-metrics .warning, html[data-theme="light"] .period-sheets-warning { border-color: #ead6ae; color: #806226; background: #fff9ec; }
+@media (max-width: 850px) { .period-sheets-grid { grid-template-columns: 1fr; } .period-sheets-metrics { grid-template-columns: 1fr 1fr; } }
