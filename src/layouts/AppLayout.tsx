@@ -12,7 +12,11 @@ function AppLayout() {
     if (navigation?.type === 'reload' && location.pathname !== '/') {
       navigate('/', { replace: true })
     }
-  }, [location.pathname, navigate])
+    // Executa apenas na montagem inicial. Se dependesse de location.pathname,
+    // a entrada de performance continuaria marcada como reload e qualquer
+    // clique no menu seria redirecionado de volta ao Dashboard.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="app-layout">
