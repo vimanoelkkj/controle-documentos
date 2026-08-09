@@ -160,6 +160,8 @@ function Conferencia() {
     },
   );
   const [status, setStatus] = useState<"salvo" | "pendente">("salvo");
+  const [salvando, setSalvando] = useState(false);
+  const [erroSalvamento, setErroSalvamento] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
@@ -1113,6 +1115,7 @@ function Conferencia() {
     );
 
     setStatus("pendente");
+    setErroSalvamento("");
   }
 
   function restaurarAlteracoes() {
@@ -1130,9 +1133,15 @@ function Conferencia() {
     );
 
     setStatus("salvo");
+    setErroSalvamento("");
   }
 
   async function salvarAlteracoes() {
+    if (salvando || !temAlteracoes) return;
+
+    setSalvando(true);
+    setErroSalvamento("");
+
     try {
       const mapaDocumentos = Object.fromEntries(
         alunoSelecionado.documentos.map((documento) => [
@@ -1186,7 +1195,9 @@ function Conferencia() {
       );
     } catch (erro) {
       console.error(erro);
-      alert("Não foi possível salvar as alterações.");
+      setErroSalvamento("Não foi possível salvar. Suas alterações continuam nesta tela.");
+    } finally {
+      setSalvando(false);
     }
   }
 
@@ -2037,20 +2048,47 @@ function Conferencia() {
               </aside>
             </div>
 
-            <footer className="conference-actions">
-              <span className={temAlteracoes ? "pending" : "saved"}>
-                {temAlteracoes
-                  ? "● Alterações pendentes"
-                  : status === "salvo"
-                    ? "✓ Alterações salvas"
-                    : "Nenhuma alteração"}
+            <footer
+              className={`conference-actions ${erroSalvamento ? "conference-actions-error" : ""}`}
+              style={
+                erroSalvamento
+                  ? {
+                      background: "rgba(220, 53, 69, 0.10)",
+                      borderTopColor: "rgba(220, 53, 69, 0.45)",
+                      boxShadow: "inset 4px 0 0 #dc3545",
+                    }
+                  : undefined
+              }
+            >
+              <span
+                className={
+                  erroSalvamento
+                    ? "save-feedback error"
+                    : salvando
+                      ? "save-feedback saving"
+                      : temAlteracoes
+                        ? "pending"
+                        : "saved"
+                }
+                role="status"
+                aria-live="polite"
+              >
+                {erroSalvamento
+                  ? `✕ ${erroSalvamento}`
+                  : salvando
+                    ? "↻ Salvando alterações..."
+                    : temAlteracoes
+                      ? "● Alterações pendentes"
+                      : status === "salvo"
+                        ? "✓ Alterações salvas"
+                        : "Nenhuma alteração"}
               </span>
 
               <div>
                 <button
                   type="button"
                   className="secondary-action"
-                  disabled={!temAlteracoes}
+                  disabled={!temAlteracoes || salvando}
                   onClick={restaurarAlteracoes}
                 >
                   Restaurar
@@ -2059,10 +2097,10 @@ function Conferencia() {
                 <button
                   type="button"
                   className="primary-action"
-                  disabled={!temAlteracoes}
+                  disabled={!temAlteracoes || salvando}
                   onClick={salvarAlteracoes}
                 >
-                  Salvar alterações
+                  {salvando ? "Salvando..." : "Salvar alterações"}
                 </button>
               </div>
             </footer>
