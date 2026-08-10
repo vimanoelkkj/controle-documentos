@@ -5888,7 +5888,7 @@ html[data-theme="light"] .period-confirm-modal .modal-cabecalho p strong {
 }
 .period-sheets-metrics {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
@@ -9216,7 +9216,7 @@ html[data-theme="light"] .google-sheets-modal-actions {
 
 .period-sync-confirm-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px;
   padding: 18px 22px 10px;
 }
@@ -10634,7 +10634,7 @@ html[data-theme="light"] .student-search-result button:hover {
 }
 
 .sheets-sync-success-resumo {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .sheets-sync-success-total {
@@ -10860,4 +10860,53 @@ html[data-theme="light"] .sheets-sync-success-total {
 .period-sync-confirm-note {
   margin-left: 22px;
   margin-right: 22px;
+}
+
+.period-sync-confirm-modal footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.period-sync-confirm-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.period-sync-confirm-modal footer .period-sync-confirm-note {
+  width: fit-content;
+  margin: 0;
+  padding: 8px 12px;
+}
+
+.period-sync-confirm-details {
+  margin-bottom: 14px;
+}
+
+html[data-theme="light"] .period-sync-confirm-details-content {
+  border-color: #d7e3ea;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .period-sync-confirm-details-content article {
+  border-bottom-color: #e1e9ee;
+}
+
+html[data-theme="light"] .period-sync-confirm-details-content article strong {
+  color: #294454;
+}
+
+html[data-theme="light"] .period-sync-confirm-details-content article span,
+html[data-theme="light"] .period-sync-confirm-details-content article small {
+  color: #718694;
+}
+
+html[data-theme="light"]
+  .period-sync-confirm-details-content
+  .period-preview-change
+  span {
+  color: #718694;
 }

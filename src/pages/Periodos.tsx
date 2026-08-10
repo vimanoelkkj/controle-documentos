@@ -25,6 +25,8 @@ type SheetsPrevia = {
   alteracoes_cadastrais: number;
   documentos_alterados: number;
   prontos_para_cancelar: number;
+  prontos_para_reativar: number;
+  prontos_para_remover: number;
   ja_cancelados: number;
   unidades_nao_resolvidas: number;
   detalhes_unidades: Array<{ ra: string; nome: string; curso: string }>;
@@ -43,6 +45,8 @@ type SheetsPrevia = {
     cadastros: Array<{ ra: string; nome: string; detalhe: string }>;
     documentos: Array<{ ra: string; nome: string; detalhe: string }>;
     cancelamentos: Array<{ ra: string; nome: string; unidade: string }>;
+    reativacoes: Array<{ ra: string; nome: string; unidade: string }>;
+    remocoes: Array<{ ra: string; nome: string; unidade: string }>;
   };
   modo: string;
 };
@@ -52,14 +56,18 @@ type AbaPrevia =
   | "cadastros"
   | "documentos"
   | "cancelamentos"
-  | "unidades";
+  | "reativacoes"
+  | "unidades"
+  | "remocoes";
 
 type SheetsResultadoSync = {
   novos: number;
   alteracoes_cadastrais: number;
   documentos_alterados: number;
   cancelamentos: number;
+  reativacoes: number;
   total_operacoes: number;
+  remocoes: number;
 };
 
 const configVazia: SheetsConfig = {
@@ -310,7 +318,9 @@ function Periodos() {
     ? sheetsPrevia.novos +
       sheetsPrevia.alteracoes_cadastrais +
       sheetsPrevia.documentos_alterados +
-      sheetsPrevia.prontos_para_cancelar -
+      sheetsPrevia.prontos_para_cancelar +
+      sheetsPrevia.prontos_para_reativar +
+      sheetsPrevia.prontos_para_remover +
       novosJaCancelados
     : 0;
 
@@ -560,6 +570,12 @@ function Periodos() {
                     "Cancelamentos",
                   ],
                   [
+                    "reativacoes",
+                    sheetsPrevia.prontos_para_reativar,
+                    "Reativações",
+                  ],
+                  ["remocoes", sheetsPrevia.prontos_para_remover, "Remoções"],
+                  [
                     "unidades",
                     sheetsPrevia.unidades_nao_resolvidas,
                     "Unidades a resolver",
@@ -698,7 +714,11 @@ function Periodos() {
                         ? sheetsPrevia.detalhes.cadastros
                         : abaPrevia === "documentos"
                           ? sheetsPrevia.detalhes.documentos
-                          : sheetsPrevia.detalhes.cancelamentos
+                          : abaPrevia === "reativacoes"
+                            ? sheetsPrevia.detalhes.reativacoes
+                            : abaPrevia === "remocoes"
+                              ? sheetsPrevia.detalhes.remocoes
+                              : sheetsPrevia.detalhes.cancelamentos
                     ).map((item) => (
                       <article key={`${abaPrevia}-${item.ra}`}>
                         <div>
@@ -719,6 +739,15 @@ function Periodos() {
                                 </div>
                               );
                             })}
+                          </div>
+                        ) : abaPrevia === "reativacoes" ? (
+                          <div className="period-preview-change">
+                            <div>
+                              <strong>Reativação</strong>
+                              <span>
+                                Cancelado → Ativo · Unidade {item.unidade}
+                              </span>
+                            </div>
                           </div>
                         ) : (
                           <p>{`Unidade ${item.unidade}`}</p>
@@ -857,7 +886,8 @@ function Periodos() {
             {resultadoSync.novos} novo(s) ·{" "}
             {resultadoSync.alteracoes_cadastrais} cadastro(s) ·{" "}
             {resultadoSync.documentos_alterados} documento(s) ·{" "}
-            {resultadoSync.cancelamentos} cancelamento(s)
+            {resultadoSync.cancelamentos} cancelamento(s) ·{" "}
+            {resultadoSync.reativacoes} reativação(ões)
           </p>
           <button type="button" onClick={() => setResultadoSync(null)}>
             ×
@@ -905,6 +935,16 @@ function Periodos() {
                 <div>
                   <strong>{resultadoSync.cancelamentos}</strong>
                   <span>cancelamentos</span>
+                </div>
+
+                <div>
+                  <strong>{resultadoSync.reativacoes}</strong>
+                  <span>reativações</span>
+                </div>
+
+                <div>
+                  <strong>{resultadoSync.remocoes}</strong>
+                  <span>remoções</span>
                 </div>
               </div>
 
@@ -965,6 +1005,16 @@ function Periodos() {
                 <strong>{sheetsPrevia.prontos_para_cancelar}</strong>
                 <span>Cancelamentos</span>
               </div>
+
+              <div className="period-sync-confirm-metric">
+                <strong>{sheetsPrevia.prontos_para_reativar}</strong>
+                <span>Reativações</span>
+              </div>
+
+              <div className="period-sync-confirm-metric">
+                <strong>{sheetsPrevia.prontos_para_remover}</strong>
+                <span>Remoções</span>
+              </div>
             </div>
 
             <div className="period-sync-confirm-details">
@@ -980,6 +1030,23 @@ function Periodos() {
 
               {mostrarAlteracoesSync && (
                 <div className="period-sync-confirm-details-content">
+                  {sheetsPrevia.detalhes.novos.map((item) => (
+                    <article key={`novo-${item.ra}`}>
+                      <div>
+                        <strong>{item.nome}</strong>
+                        <span>RA {item.ra}</span>
+                      </div>
+
+                      <div className="period-preview-change">
+                        <div>
+                          <strong>Novo aluno</strong>
+                          <span>
+                            {item.curso} · {item.unidade || "Unidade pendente"}
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                   {sheetsPrevia.detalhes.cadastros.map((item) => (
                     <article key={`cadastro-${item.ra}`}>
                       <div>
@@ -1023,16 +1090,69 @@ function Periodos() {
                       </div>
                     </article>
                   ))}
+                  {sheetsPrevia.detalhes.cancelamentos.map((item) => (
+                    <article key={`cancelamento-${item.ra}`}>
+                      <div>
+                        <strong>{item.nome}</strong>
+                        <span>RA {item.ra}</span>
+                      </div>
+
+                      <div className="period-preview-change">
+                        <div>
+                          <strong>Cancelamento</strong>
+                          <span>
+                            Ativo → Cancelado · Unidade {item.unidade}
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+
+                  {sheetsPrevia.detalhes.reativacoes.map((item) => (
+                    <article key={`reativacao-${item.ra}`}>
+                      <div>
+                        <strong>{item.nome}</strong>
+                        <small>RA {item.ra}</small>
+                      </div>
+
+                      <div className="period-preview-change">
+                        <div>
+                          <strong>Reativação</strong>
+                          <span>
+                            Cancelado → Ativo · Unidade {item.unidade}
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                  {sheetsPrevia.detalhes.remocoes.map((item) => (
+                    <article key={`remocao-${item.ra}`}>
+                      <div>
+                        <strong>{item.nome}</strong>
+                        <small>RA {item.ra}</small>
+                      </div>
+
+                      <div className="period-preview-change">
+                        <div>
+                          <strong>Remoção</strong>
+                          <span>
+                            Ausente da planilha · Unidade {item.unidade}
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               )}
             </div>
 
-            <div className="period-sync-confirm-note">
-              <strong>Importante:</strong> esta operação altera o banco do
-              sistema e será registrada no LOG.
-            </div>
-
             <footer>
+              <div className="period-sync-confirm-note">
+                <strong>Importante:</strong> esta operação altera o banco do
+                sistema e será registrada no LOG.
+              </div>
+
+              <div className="period-sync-confirm-buttons"></div>
               <button
                 type="button"
                 className="period-sync-back-button"

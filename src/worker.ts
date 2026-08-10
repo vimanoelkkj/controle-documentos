@@ -1098,8 +1098,6 @@ export default {
         );
 
         const resolverUnidade = (a: LinhaBase) => {
-          const existente = porRa.get(a.ra);
-          if (existente) return existente.unidade;
           const mapeada = unidadePorCurso.get(normalizarComparacao(a.curso));
           if (mapeada) return mapeada;
           if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso))
@@ -1115,7 +1113,16 @@ export default {
           cadastrais = 0,
           documentosAlterados = 0,
           cancelar = 0,
-          jaCancelados = 0;
+          reativar = 0,
+          jaCancelados = 0,
+          remover = 0;
+
+        const detalhesRemocoes: Array<{
+          ra: string;
+          nome: string;
+          unidade: string;
+        }> = [];
+
         const semUnidade: Array<{ ra: string; nome: string; curso: string }> =
           [];
         const detalhesNovos: Array<{
@@ -1139,6 +1146,12 @@ export default {
           nome: string;
           unidade: string;
         }> = [];
+        const detalhesReativacoes: Array<{
+          ra: string;
+          nome: string;
+          unidade: string;
+        }> = [];
+
         for (const aluno of bases) {
           const atual = porRa.get(aluno.ra);
           const unidade = resolverUnidade(aluno);
@@ -1169,10 +1182,21 @@ export default {
               });
             }
           } else {
+            if (atual.status === "CANCELADO" && !cancelados.has(aluno.ra)) {
+              reativar += 1;
+
+              detalhesReativacoes.push({
+                ra: aluno.ra,
+                nome: aluno.nome,
+                unidade: atual.unidade,
+              });
+            }
+
             const campos = [
               ["Nome", atual.nome, aluno.nome],
               ["Curso", atual.curso, aluno.curso],
               ["E-mail", atual.email ?? "", aluno.email],
+              ["Unidade", atual.unidade ?? "", unidade ?? ""],
               [
                 "E-mail alternativo",
                 atual.email_outro ?? "",
@@ -1249,6 +1273,22 @@ export default {
             });
           }
         }
+        const rasAtivosNaPlanilha = new Set(bases.map((aluno) => aluno.ra));
+
+        for (const [ra, atual] of porRa) {
+          const estaNaBaseAtiva = rasAtivosNaPlanilha.has(ra);
+          const estaNosCancelados = cancelados.has(ra);
+
+          if (!estaNaBaseAtiva && !estaNosCancelados) {
+            remover += 1;
+
+            detalhesRemocoes.push({
+              ra,
+              nome: atual.nome,
+              unidade: atual.unidade,
+            });
+          }
+        }
         const cursosPendentes = new Map<
           string,
           {
@@ -1282,6 +1322,8 @@ export default {
           alteracoes_cadastrais: cadastrais,
           documentos_alterados: documentosAlterados,
           prontos_para_cancelar: cancelar,
+          prontos_para_reativar: reativar,
+          prontos_para_remover: remover,
           ja_cancelados: jaCancelados,
           unidades_nao_resolvidas: semUnidade.length,
           detalhes_unidades: semUnidade,
@@ -1294,6 +1336,8 @@ export default {
             cadastros: detalhesCadastrais,
             documentos: detalhesDocumentos,
             cancelamentos: detalhesCancelamentos,
+            reativacoes: detalhesReativacoes,
+            remocoes: detalhesRemocoes,
           },
           modo: "PREVIA_SOMENTE_LEITURA",
         });
@@ -1454,14 +1498,12 @@ export default {
         );
 
         const resolverUnidadeSync = (a: LinhaBaseSync) => {
-          const existente = porRa.get(a.ra);
-          if (existente) return existente.unidade;
-
           const mapeada = unidadePorCurso.get(normalizarComparacao(a.curso));
           if (mapeada) return mapeada;
 
           if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso))
             return "EAD";
+
           if (a.origem === "FCH_EAD") return "FCH";
 
           const conhecidas = [
@@ -1492,6 +1534,8 @@ export default {
         let cadastros = 0;
         let documentosAlterados = 0;
         let cancelamentos = 0;
+        let reativacoes = 0;
+        let remocoes = 0;
 
         const comandos: D1PreparedStatement[] = [];
 
@@ -1556,12 +1600,26 @@ export default {
 
             continue;
           }
+          if (atual.status === "CANCELADO" && !cancelados.has(aluno.ra)) {
+            reativacoes += 1;
 
+            comandos.push(
+              env.DB.prepare(
+                `
+      UPDATE alunos
+      SET status = 'ATIVO', atualizado_em = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `,
+              ).bind(atual.id),
+            );
+          }
           const cadastroMudou =
             normalizarComparacao(atual.nome) !==
               normalizarComparacao(aluno.nome) ||
             normalizarComparacao(atual.curso) !==
               normalizarComparacao(aluno.curso) ||
+            normalizarComparacao(atual.unidade ?? "") !==
+              normalizarComparacao(unidade ?? "") ||
             normalizarComparacao(atual.email ?? "") !==
               normalizarComparacao(aluno.email) ||
             normalizarComparacao(atual.email_outro ?? "") !==
@@ -1569,19 +1627,25 @@ export default {
 
           if (cadastroMudou) {
             cadastros += 1;
+
             comandos.push(
               env.DB.prepare(
                 `
-                UPDATE alunos
-                SET nome = ?, email = ?, email_outro = ?, curso = ?,
-                    atualizado_em = CURRENT_TIMESTAMP
-                WHERE id = ?
-              `,
+      UPDATE alunos
+      SET nome = ?,
+          email = ?,
+          email_outro = ?,
+          curso = ?,
+          unidade = ?,
+          atualizado_em = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `,
               ).bind(
                 aluno.nome,
                 aluno.email || null,
                 aluno.email_outro || null,
                 aluno.curso,
+                unidade!,
                 atual.id,
               ),
             );
@@ -1648,6 +1712,26 @@ export default {
           );
         }
 
+        const rasAtivosNaPlanilha = new Set(bases.map((aluno) => aluno.ra));
+
+        for (const atual of atuais.results) {
+          const estaNaBaseAtiva = rasAtivosNaPlanilha.has(atual.ra);
+          const estaNosCancelados = cancelados.has(atual.ra);
+
+          if (!estaNaBaseAtiva && !estaNosCancelados) {
+            remocoes += 1;
+
+            comandos.push(
+              env.DB.prepare(
+                `
+        DELETE FROM alunos
+        WHERE id = ?
+      `,
+              ).bind(atual.id),
+            );
+          }
+        }
+
         // D1 batch é atômico: se uma instrução falhar, o lote inteiro é revertido.
         const TAMANHO_BATCH = 80;
         for (let i = 0; i < comandos.length; i += TAMANHO_BATCH) {
@@ -1663,7 +1747,8 @@ export default {
         const descricao =
           `Google Sheets sincronizado no período ${periodo?.codigo ?? periodoId}: ` +
           `${novos} novo(s), ${cadastros} cadastro(s), ` +
-          `${documentosAlterados} documento(s) e ${cancelamentos} cancelamento(s).`;
+          `${documentosAlterados} documento(s), ${cancelamentos} cancelamento(s), ` +
+          `${reativacoes} reativação(ões) e ${remocoes} remoção(ões).`;
 
         await env.DB.prepare(
           `
@@ -1704,11 +1789,15 @@ export default {
           alteracoes_cadastrais: cadastros,
           documentos_alterados: documentosAlterados,
           cancelamentos,
+          reativacoes,
+          remocoes,
           total_operacoes:
             novos +
             cadastros +
             documentosAlterados +
-            cancelamentos -
+            cancelamentos +
+            reativacoes +
+            remocoes -
             novosCancelados,
         });
       } catch (erro) {
