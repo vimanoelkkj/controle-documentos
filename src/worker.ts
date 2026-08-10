@@ -286,7 +286,7 @@ async function hashSenha(senha: string, saltHex?: string) {
     ["deriveBits"],
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt, iterations: 210000 },
+    { name: "PBKDF2", hash: "SHA-256", salt, iterations: 100000 },
     chave,
     256,
   );
