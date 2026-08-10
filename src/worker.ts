@@ -1223,7 +1223,13 @@ export default {
             }
           }
           const doc = docs.get(aluno.ra);
-          if (atual && doc) {
+
+          const mudouUnidade =
+            atual &&
+            normalizarComparacao(atual.unidade) !==
+              normalizarComparacao(unidade);
+
+          if (atual && doc && !mudouUnidade) {
             const pares = [
               ["Identidade", Boolean(atual.identidade), doc.identidade],
               ["CPF", Boolean(atual.cpf), doc.cpf],
@@ -1651,7 +1657,11 @@ export default {
             );
           }
 
-          if (doc) {
+          const mudouUnidade =
+            normalizarComparacao(atual.unidade) !==
+            normalizarComparacao(unidade);
+
+          if (doc && !mudouUnidade) {
             const docMudou =
               Boolean(atual.identidade) !== doc.identidade ||
               Boolean(atual.cpf) !== doc.cpf ||
