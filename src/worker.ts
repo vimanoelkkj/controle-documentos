@@ -860,12 +860,41 @@ export default {
     );
     if (rotaSheetsConfig && request.method === "GET") {
       const periodoId = Number(rotaSheetsConfig[1]);
-      const config = await env.DB.prepare(
-        `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
-      )
-        .bind(periodoId)
-        .first<SheetsConfig>();
-      return Response.json(config ?? null);
+      let ultimoErro: unknown = null;
+
+      for (let tentativa = 1; tentativa <= 3; tentativa += 1) {
+        try {
+          const config = await env.DB.prepare(
+            `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+          )
+            .bind(periodoId)
+            .first<SheetsConfig>();
+
+          return Response.json(config ?? null);
+        } catch (erro) {
+          ultimoErro = erro;
+          console.warn(
+            `Falha temporária ao ler configuração do Google Sheets (tentativa ${tentativa}/3).`,
+            erro,
+          );
+
+          if (tentativa < 3) {
+            await aguardar(tentativa * 200);
+          }
+        }
+      }
+
+      console.error(
+        "D1 indisponível ao carregar configuração do Google Sheets.",
+        ultimoErro,
+      );
+      return Response.json(
+        {
+          erro: "Configuração do Google Sheets temporariamente indisponível.",
+          codigo: "SHEETS_CONFIG_STORAGE_UNAVAILABLE",
+        },
+        { status: 503 },
+      );
     }
 
     if (rotaSheetsConfig && request.method === "PUT") {

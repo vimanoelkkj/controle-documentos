@@ -51,6 +51,12 @@ type SheetsPrevia = {
   modo: string;
 };
 
+type SheetsStatus =
+  | "carregando"
+  | "configurado"
+  | "nao_configurado"
+  | "indisponivel";
+
 type AbaPrevia =
   | "novos"
   | "cadastros"
@@ -92,7 +98,8 @@ function Periodos() {
     status: "ATIVO" | "ARQUIVADO";
   } | null>(null);
   const [sheetsConfig, setSheetsConfig] = useState<SheetsConfig>(configVazia);
-  const [sheetsSalvo, setSheetsSalvo] = useState(false);
+  const [sheetsStatus, setSheetsStatus] = useState<SheetsStatus>("carregando");
+  const sheetsSalvo = sheetsStatus === "configurado";
   const [sheetsCarregando, setSheetsCarregando] = useState(false);
   const [sheetsErro, setSheetsErro] = useState("");
   const [sheetsPrevia, setSheetsPrevia] = useState<SheetsPrevia | null>(null);
@@ -117,36 +124,58 @@ function Periodos() {
     setMapeamentos({});
     setMapeamentosSalvos({});
     setSheetsErro("");
+    setSheetsStatus("carregando");
     setModalSincronizar(false);
     setModalSucessoSync(false);
-    fetch(`/api/periodos/${periodoAtual.id}/google-sheets`)
-      .then(async (resposta) => {
-        if (!resposta.ok)
-          throw new Error(
-            "Não foi possível carregar a configuração do Google Sheets.",
+
+    const carregarConfiguracao = async () => {
+      let ultimoErro: unknown = null;
+
+      for (let tentativa = 1; tentativa <= 2; tentativa += 1) {
+        try {
+          const resposta = await fetch(
+            `/api/periodos/${periodoAtual.id}/google-sheets`,
           );
-        return resposta.json() as Promise<SheetsConfig | null>;
-      })
-      .then((config) => {
-        if (!ativo) return;
-        setSheetsConfig(
-          config ?? {
-            ...configVazia,
-            aba_base_face_fea: `FACE - FEA ${periodoAtual.codigo.replace("-", " - ")}`,
-            aba_base_fch_ead: `FCH - EAD ${periodoAtual.codigo.replace("-", " - ")}`,
-            aba_cancelados_face_fea: `CANCELADOS FACE - FEA ${periodoAtual.codigo}`,
-            aba_cancelados_fch_ead: `CANCELADOS FCH - EAD ${periodoAtual.codigo}`,
-          },
-        );
-        setSheetsSalvo(Boolean(config));
-      })
-      .catch(
-        (e) =>
-          ativo &&
-          setSheetsErro(
-            e instanceof Error ? e.message : "Erro ao carregar integração.",
-          ),
+
+          if (!resposta.ok) {
+            throw new Error(
+              "Não foi possível carregar a configuração do Google Sheets.",
+            );
+          }
+
+          const config = (await resposta.json()) as SheetsConfig | null;
+          if (!ativo) return;
+
+          setSheetsConfig(
+            config ?? {
+              ...configVazia,
+              aba_base_face_fea: `FACE - FEA ${periodoAtual.codigo.replace("-", " - ")}`,
+              aba_base_fch_ead: `FCH - EAD ${periodoAtual.codigo.replace("-", " - ")}`,
+              aba_cancelados_face_fea: `CANCELADOS FACE - FEA ${periodoAtual.codigo}`,
+              aba_cancelados_fch_ead: `CANCELADOS FCH - EAD ${periodoAtual.codigo}`,
+            },
+          );
+          setSheetsStatus(config ? "configurado" : "nao_configurado");
+          return;
+        } catch (erro) {
+          ultimoErro = erro;
+          if (tentativa < 2) {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+          }
+        }
+      }
+
+      if (!ativo) return;
+      setSheetsStatus("indisponivel");
+      setSheetsErro(
+        ultimoErro instanceof Error
+          ? `${ultimoErro.message} Tente novamente em alguns instantes.`
+          : "Google Sheets temporariamente indisponível. Tente novamente em alguns instantes.",
       );
+    };
+
+    void carregarConfiguracao();
+
     return () => {
       ativo = false;
     };
@@ -176,7 +205,7 @@ function Periodos() {
         ...atual,
         spreadsheet_id: dados.spreadsheet_id || atual.spreadsheet_id,
       }));
-      setSheetsSalvo(true);
+      setSheetsStatus("configurado");
     } catch (e) {
       setSheetsErro(
         e instanceof Error ? e.message : "Erro ao salvar integração.",
@@ -483,9 +512,15 @@ function Periodos() {
             </p>
           </div>
           <span
-            className={`period-sheets-status ${sheetsSalvo ? "connected" : ""}`}
+            className={`period-sheets-status ${sheetsStatus === "configurado" ? "connected" : ""}`}
           >
-            {sheetsSalvo ? "CONFIGURADO" : "NÃO CONFIGURADO"}
+            {sheetsStatus === "carregando"
+              ? "CARREGANDO..."
+              : sheetsStatus === "configurado"
+                ? "CONFIGURADO"
+                : sheetsStatus === "indisponivel"
+                  ? "INDISPONÍVEL"
+                  : "NÃO CONFIGURADO"}
           </span>
         </div>
         <label className="period-sheets-main">
