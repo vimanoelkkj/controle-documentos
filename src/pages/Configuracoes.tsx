@@ -26,6 +26,12 @@ function Configuracoes() {
   const [perfil, setPerfil] = useState<Perfil>("VISUALIZADOR");
   const [erro, setErro] = useState("");
 
+  const [usuarioSenha, setUsuarioSenha] = useState<UsuarioLista | null>(null);
+  const [novaSenha, setNovaSenha] = useState("");
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+  const [salvandoSenha, setSalvandoSenha] = useState(false);
+  const [erroSenha, setErroSenha] = useState("");
+
   const [devHabilitado, setDevHabilitado] = useState(false);
   const [unidadeDev, setUnidadeDev] = useState<UnidadeDev>("FCH");
   const [confirmacaoDev, setConfirmacaoDev] = useState("");
@@ -191,10 +197,10 @@ function Configuracoes() {
                     type="button"
                     className="settings-password-button"
                     onClick={() => {
-                      const nova = window.prompt(
-                        `Nova senha para ${u.nome} (mínimo 8 caracteres):`,
-                      );
-                      if (nova) void alterar(u.id, { senha: nova });
+                      setUsuarioSenha(u);
+                      setNovaSenha("");
+                      setMostrarNovaSenha(false);
+                      setErroSenha("");
                     }}
                   >
                     ⌁ Senha
@@ -372,6 +378,116 @@ function Configuracoes() {
             </section>
           )}
         </>
+      )}
+
+      {usuarioSenha && (
+        <div className="modal-overlay">
+          <div className="modal-novo-aluno settings-password-modal">
+            <div className="modal-cabecalho">
+              <div>
+                <span className="modal-eyebrow">SEGURANÇA</span>
+                <h2>Redefinir senha</h2>
+                <p>
+                  Defina uma nova senha para <strong>{usuarioSenha.nome}</strong>.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="modal-fechar"
+                onClick={() => setUsuarioSenha(null)}
+                disabled={salvandoSenha}
+                aria-label="Fechar"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="settings-password-modal-content">
+              <label>
+                Nova senha
+
+                <div className="settings-password-field">
+                  <input
+                    type={mostrarNovaSenha ? "text" : "password"}
+                    value={novaSenha}
+                    onChange={(e) => {
+                      setNovaSenha(e.target.value);
+                      setErroSenha("");
+                    }}
+                    minLength={8}
+                    autoFocus
+                    disabled={salvandoSenha}
+                    placeholder="Mínimo de 8 caracteres"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setMostrarNovaSenha((valor) => !valor)}
+                    disabled={salvandoSenha}
+                  >
+                    {mostrarNovaSenha ? "Ocultar" : "Mostrar"}
+                  </button>
+                </div>
+              </label>
+
+              {erroSenha && <div className="modal-erro">{erroSenha}</div>}
+            </div>
+
+            <div className="modal-acoes">
+              <button
+                type="button"
+                className="botao-cancelar"
+                onClick={() => setUsuarioSenha(null)}
+                disabled={salvandoSenha}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className="botao-cadastrar"
+                disabled={salvandoSenha || novaSenha.length < 8}
+                onClick={async () => {
+                  if (novaSenha.length < 8) {
+                    setErroSenha("A senha deve ter pelo menos 8 caracteres.");
+                    return;
+                  }
+
+                  setSalvandoSenha(true);
+                  setErroSenha("");
+
+                  try {
+                    const r = await fetch(`/api/usuarios/${usuarioSenha.id}`, {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ senha: novaSenha }),
+                    });
+
+                    const d = (await r.json()) as { erro?: string };
+
+                    if (!r.ok) {
+                      setErroSenha(
+                        d.erro || "Não foi possível alterar a senha.",
+                      );
+                      return;
+                    }
+
+                    setUsuarioSenha(null);
+                    setNovaSenha("");
+                    void carregar();
+                  } catch {
+                    setErroSenha("Não foi possível alterar a senha.");
+                  } finally {
+                    setSalvandoSenha(false);
+                  }
+                }}
+              >
+                {salvandoSenha ? "Salvando..." : "Salvar nova senha"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

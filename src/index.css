@@ -12114,3 +12114,83 @@ html[data-theme="light"] .period-preview-status-arrow {
     max-height: calc(100vh - 360px);
   }
 }
+
+.settings-password-modal {
+  width: min(520px, 100%);
+}
+
+.settings-password-modal-content {
+  padding: 22px 24px;
+}
+
+.settings-password-modal-content label {
+  display: grid;
+  gap: 8px;
+  color: #9fb1bf;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.settings-password-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.settings-password-field input {
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
+
+  border: 1px solid #2d4353;
+  border-radius: 9px;
+  outline: none;
+
+  color: #eef5f9;
+  background: #0b171f;
+}
+
+.settings-password-field input:focus {
+  border-color: #58b7f4;
+  box-shadow: 0 0 0 3px rgba(88, 183, 244, 0.1);
+}
+
+.settings-password-field button {
+  padding: 0 14px;
+
+  border: 1px solid #304858;
+  border-radius: 9px;
+
+  color: #9ed8ff;
+  background: #172631;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+html[data-theme="light"] .settings-password-field input {
+  color: #263946;
+  background: #ffffff;
+  border-color: #cbdde7;
+}
+
+html[data-theme="light"] .settings-password-field input::placeholder {
+  color: #8296a5;
+}
+
+html[data-theme="light"] .settings-password-field input:focus {
+  border-color: #58aee3;
+  box-shadow: 0 0 0 3px rgba(88, 174, 227, 0.12);
+}
+
+html[data-theme="light"] .settings-password-field button {
+  color: #347da8;
+  background: #f5fafc;
+  border-color: #cbdde7;
+}
+
+html[data-theme="light"] .settings-password-field button:hover:not(:disabled) {
+  background: #eaf4f9;
+}
