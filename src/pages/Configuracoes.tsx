@@ -1,6 +1,7 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth, type Perfil } from "../contexts/AuthContext";
+import AppSelect from "../components/AppSelect";
 
 type UsuarioLista = {
   id: number;
@@ -199,14 +200,16 @@ function Configuracoes() {
                     ⌁ Senha
                   </button>
 
-                  <select
+                  <AppSelect
                     value={u.perfil}
-                    onChange={(e) => alterar(u.id, { perfil: e.target.value })}
-                  >
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="EDITOR">EDITOR</option>
-                    <option value="VISUALIZADOR">VISUALIZADOR</option>
-                  </select>
+                    onChange={(valor) => alterar(u.id, { perfil: valor })}
+                    ariaLabel={`Perfil de ${u.nome}`}
+                    options={[
+                      { value: "ADMIN", label: "ADMIN" },
+                      { value: "EDITOR", label: "EDITOR" },
+                      { value: "VISUALIZADOR", label: "VISUALIZADOR" },
+                    ]}
+                  />
 
                   <button
                     type="button"
@@ -280,14 +283,16 @@ function Configuracoes() {
 
             <label>
               Perfil
-              <select
+              <AppSelect
                 value={perfil}
-                onChange={(e) => setPerfil(e.target.value as Perfil)}
-              >
-                <option value="VISUALIZADOR">Visualizador</option>
-                <option value="EDITOR">Editor</option>
-                <option value="ADMIN">Administrador</option>
-              </select>
+                onChange={(valor) => setPerfil(valor as Perfil)}
+                ariaLabel="Perfil do novo usuário"
+                options={[
+                  { value: "VISUALIZADOR", label: "Visualizador" },
+                  { value: "EDITOR", label: "Editor" },
+                  { value: "ADMIN", label: "Administrador" },
+                ]}
+              />
             </label>
 
             {erro && <div className="login-error">{erro}</div>}
@@ -313,21 +318,23 @@ function Configuracoes() {
                 <div className="settings-dev-fields">
                   <label>
                     Alunos a remover
-                    <select
+                    <AppSelect
                       value={unidadeDev}
-                      onChange={(e) => {
-                        setUnidadeDev(e.target.value as UnidadeDev);
+                      onChange={(valor) => {
+                        setUnidadeDev(valor as UnidadeDev);
                         setConfirmacaoDev("");
                         setMensagemDev("");
                       }}
                       disabled={limpandoDev}
-                    >
-                      <option value="FACE">FACE</option>
-                      <option value="FEA">FEA</option>
-                      <option value="FCH">FCH</option>
-                      <option value="EAD">EAD</option>
-                      <option value="TODOS">TODOS OS ALUNOS</option>
-                    </select>
+                      ariaLabel="Alunos a remover"
+                      options={[
+                        { value: "FACE", label: "FACE" },
+                        { value: "FEA", label: "FEA" },
+                        { value: "FCH", label: "FCH" },
+                        { value: "EAD", label: "EAD" },
+                        { value: "TODOS", label: "TODOS OS ALUNOS" },
+                      ]}
+                    />
                   </label>
 
                   <label>

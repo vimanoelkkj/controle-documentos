@@ -1,5 +1,6 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
+import AppSelect from "../components/AppSelect";
 
 type AlunoApi = {
   ra: string;
@@ -295,17 +296,18 @@ function Estatisticas() {
           </p>
         </div>
 
-        <label className="statistics-unit-filter">
+        <div className="statistics-unit-filter">
           <span>RECORTE</span>
-          <select value={unidade} onChange={(e) => setUnidade(e.target.value)}>
-            <option value="GERAL">Geral — todas as unidades</option>
-            {unidades.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </label>
+          <AppSelect
+            value={unidade}
+            onChange={setUnidade}
+            ariaLabel="Recorte por unidade"
+            options={[
+              { value: "GERAL", label: "Geral — todas as unidades" },
+              ...unidades.map((item) => ({ value: item, label: item })),
+            ]}
+          />
+        </div>
       </header>
 
       <div className="statistics-kpis">

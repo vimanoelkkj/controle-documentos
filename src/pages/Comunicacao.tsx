@@ -1,5 +1,6 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
+import AppSelect from "../components/AppSelect";
 
 type AlunoApi = {
   ra: string;
@@ -512,14 +513,15 @@ ${textoEmail}`;
       <div className="communication-toolbar">
         <label>
           Unidade
-          <select value={unidade} onChange={(e) => setUnidade(e.target.value)}>
-            <option value="TODAS">Todas as unidades</option>
-            {unidades.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+          <AppSelect
+            value={unidade}
+            onChange={setUnidade}
+            ariaLabel="Filtrar comunicação por unidade"
+            options={[
+              { value: "TODAS", label: "Todas as unidades" },
+              ...unidades.map((item) => ({ value: item, label: item })),
+            ]}
+          />
         </label>
 
         <label className="communication-search">

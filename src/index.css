@@ -603,19 +603,6 @@ a {
   line-height: 1;
 }
 
-.student-progress span {
-  padding: 4px 8px;
-
-  border: 1px solid #854638;
-  border-radius: 999px;
-
-  color: #ffb6a7;
-  background: #49251f;
-
-  font-size: 11px;
-  font-weight: 800;
-}
-
 .document-progress {
   padding: 17px 22px;
 }
@@ -1509,20 +1496,6 @@ a {
   color: #55b9ff;
   font-size: 32px;
   line-height: 1;
-  font-weight: 800;
-}
-
-.student-progress span {
-  margin-top: 7px;
-  padding: 4px 8px;
-
-  border: 1px solid #914636;
-  border-radius: 999px;
-
-  color: #ffc0ae;
-  background: #51261f;
-
-  font-size: 11px;
   font-weight: 800;
 }
 
@@ -4460,7 +4433,9 @@ html[data-theme="light"] .modal-excluir-aluno {
 }
 
 html[data-theme="light"] .status-tabs button,
-html[data-theme="light"] .unit-tabs button,
+html[data-theme="light"] .unit-tabs button {
+  color: #58778a;
+}
 html[data-theme="light"] .student-card,
 html[data-theme="light"] .student-search,
 html[data-theme="light"] .modal-formulario input,
@@ -4480,7 +4455,12 @@ html[data-theme="light"] .modal-formulario .cadastro-documento-check {
 }
 
 html[data-theme="light"] .status-tabs button.active,
-html[data-theme="light"] .unit-tabs button.active,
+html[data-theme="light"] .unit-tabs button.active {
+  color: #17658f;
+}
+html[data-theme="light"] .unit-tabs button strong {
+  color: #263946;
+}
 html[data-theme="light"] .importacao-tabs button.active,
 html[data-theme="light"] .student-card.active {
   color: #12334a;
@@ -4838,12 +4818,6 @@ html[data-theme="light"] .student-tags span {
   color: #4f6a7a;
   border-color: #cbd9e2;
   background: #f3f8fb;
-}
-
-html[data-theme="light"] .student-progress span {
-  color: #a9443a;
-  border-color: #edb7b0;
-  background: #fff0ee;
 }
 
 html[data-theme="light"] .document-progress-label,
@@ -5313,6 +5287,8 @@ html[data-theme="light"] .communication-empty {
    PERÍODOS LETIVOS
    ========================================================= */
 .app-main-column {
+  padding-left: 12px;
+  padding-right: 12px;
   min-width: 0;
   flex: 1;
 }
@@ -11440,4 +11416,490 @@ html[data-theme="light"] .summary-check {
 
 html[data-theme="light"] .summary-complete span {
   color: #3f6f4f;
+}
+
+.student-progress-value--critico {
+  color: #ff6f6f;
+}
+
+.student-progress-value--parcial {
+  color: #ffd65b;
+}
+
+.student-progress-value--completo {
+  color: #6fe094;
+}
+
+html[data-theme="light"] .student-progress-value--critico {
+  color: #b43d3d;
+}
+
+html[data-theme="light"] .student-progress-value--parcial {
+  color: #a87b00;
+}
+
+html[data-theme="light"] .student-progress-value--completo {
+  color: #2f8c50;
+}
+
+/* Porcentagem acompanha o estado documental */
+
+.student-progress-percent--critico {
+  color: #ff6f6f;
+}
+
+.student-progress-percent--parcial {
+  color: #ffd65b;
+}
+
+.student-progress-percent--completo {
+  color: #6fe094;
+}
+
+/* Tema claro */
+
+html[data-theme="light"] .student-progress-percent--critico {
+  color: #b43d3d;
+}
+
+html[data-theme="light"] .student-progress-percent--parcial {
+  color: #a87b00;
+}
+
+html[data-theme="light"] .student-progress-percent--completo {
+  color: #2f8c50;
+}
+
+/* Tema claro */
+
+/* =========================================================
+   CONFERÊNCIA — STATUS DOCUMENTAL NO CABEÇALHO
+   Estrutura comum + cores por estado.
+   ========================================================= */
+
+.student-progress-status {
+  margin-top: 7px;
+  padding: 4px 8px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.student-progress-status--critico {
+  color: #ff6f6f;
+  border-color: #a94336;
+  background: #3b1f1b;
+}
+
+.student-progress-status--parcial {
+  color: #ffd65b;
+  border-color: #8f6b16;
+  background: #2d2715;
+}
+
+.student-progress-status--completo {
+  color: #6fe094;
+  border-color: #2f7d46;
+  background: #17351f;
+}
+
+html[data-theme="light"] .student-progress-status--critico {
+  color: #b43d3d;
+  border-color: #f0aaa3;
+  background: #fff0ee;
+}
+
+html[data-theme="light"] .student-progress-status--parcial {
+  color: #a87b00;
+  border-color: #e4c568;
+  background: #fff9e5;
+}
+
+html[data-theme="light"] .student-progress-status--completo {
+  color: #2f8c50;
+  border-color: #91d5a5;
+  background: #edf9f0;
+}
+
+html[data-theme="light"] .student-details-empty .empty-state-icon {
+  color: #2b8fc5;
+  border-color: #b7d9ec;
+  background: #eef8fd;
+}
+
+html[data-theme="light"] .unit-tabs button {
+  color: #58778a;
+  border-color: #c9dce8;
+  background: #f9fcfe;
+}
+
+html[data-theme="light"] .unit-tabs button:hover {
+  color: #263946;
+  border-color: #9fc9e2;
+  background: #eef7fc;
+}
+
+html[data-theme="light"] .unit-tabs button.active {
+  color: #17658f;
+  border-color: #69add8;
+  background: #dff1fc;
+}
+
+html[data-theme="light"] .unit-tabs button strong {
+  color: #263946;
+  background: #e8f1f6;
+}
+
+/* Correções finais — modo claro da Conferência */
+
+html[data-theme="light"] .status-tabs button {
+  color: #58778a;
+  border-color: #c9dce8;
+  background: #f9fcfe;
+}
+
+html[data-theme="light"] .status-tabs button:hover {
+  color: #263946;
+  border-color: #9fc9e2;
+  background: #eef7fc;
+}
+
+html[data-theme="light"] .status-tabs button.active {
+  color: #17658f;
+  border-color: #69add8;
+  background: #dff1fc;
+}
+
+html[data-theme="light"] .student-card-footer span {
+  color: #17658f;
+  border-color: #b7d9ec;
+  background: #eef8fd;
+}
+
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
+.period-dropdown {
+  position: relative;
+  min-width: 190px;
+}
+
+.period-dropdown-trigger {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  border: 1px solid #294554;
+  border-radius: 8px;
+  color: #edf5fa;
+  background: #0b1821;
+  font: inherit;
+  cursor: pointer;
+}
+
+.period-dropdown-trigger:hover {
+  border-color: #3f718d;
+  background: #10212c;
+}
+
+.period-dropdown-chevron {
+  transition: transform 0.15s ease;
+}
+
+.period-dropdown-chevron.open {
+  transform: rotate(180deg);
+}
+
+.period-dropdown-menu {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #294554;
+  border-radius: 9px;
+  background: #0b1821;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.period-dropdown-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 6px;
+  color: #dce9f1;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.period-dropdown-option:hover {
+  background: #162b38;
+}
+
+.period-dropdown-option.selected {
+  color: #ffffff;
+  background: #203846;
+}
+
+.period-dropdown-option small {
+  color: #8299a8;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* modo claro */
+
+html[data-theme="light"] .period-dropdown-trigger {
+  color: #263946;
+  border-color: #c6d7e2;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .period-dropdown-trigger:hover {
+  border-color: #8fbdd8;
+  background: #f4f9fc;
+}
+
+html[data-theme="light"] .period-dropdown-menu {
+  border-color: #cbdbe5;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(37, 61, 77, 0.14);
+}
+
+html[data-theme="light"] .period-dropdown-option {
+  color: #304652;
+}
+
+html[data-theme="light"] .period-dropdown-option:hover {
+  background: #eef7fc;
+}
+
+html[data-theme="light"] .period-dropdown-option.selected {
+  color: #17658f;
+  background: #dff1fc;
+}
+
+html[data-theme="light"] .period-dropdown-option small {
+  color: #758b99;
+}
+
+/* =========================================================
+   SELECT PADRÃO — mesmo visual do seletor de períodos
+   ========================================================= */
+.app-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-select-trigger {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  border: 1px solid #294554;
+  border-radius: 8px;
+  color: #edf5fa;
+  background: #0b1821;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-select-trigger:hover:not(:disabled),
+.app-select-trigger:focus-visible {
+  border-color: #3f718d;
+  background: #10212c;
+  outline: none;
+}
+
+.app-select-trigger:focus-visible {
+  box-shadow: 0 0 0 3px rgba(74, 169, 223, 0.1);
+}
+
+.app-select-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.app-select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-select-chevron {
+  flex: 0 0 auto;
+  transition: transform 0.15s ease;
+}
+
+.app-select-chevron.open {
+  transform: rotate(180deg);
+}
+
+.app-select-menu {
+  max-height: min(320px, calc(100vh - 24px));
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid #294554;
+  border-radius: 9px;
+  background: #0b1821;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.app-select-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 6px;
+  color: #dce9f1;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-select-option:hover,
+.app-select-option.active {
+  background: #162b38;
+}
+
+.app-select-option.selected {
+  color: #ffffff;
+  background: #203846;
+}
+
+.app-select-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.app-select-option small {
+  flex: 0 0 auto;
+  color: #8299a8;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+html[data-theme="light"] .app-select-trigger {
+  color: #263946;
+  border-color: #c6d7e2;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .app-select-trigger:hover:not(:disabled),
+html[data-theme="light"] .app-select-trigger:focus-visible {
+  border-color: #8fbdd8;
+  background: #f4f9fc;
+}
+
+html[data-theme="light"] .app-select-menu {
+  border-color: #cbdbe5;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(37, 61, 77, 0.14);
+}
+
+html[data-theme="light"] .app-select-option {
+  color: #304652;
+}
+
+html[data-theme="light"] .app-select-option:hover,
+html[data-theme="light"] .app-select-option.active {
+  background: #eef7fc;
+}
+
+html[data-theme="light"] .app-select-option.selected {
+  color: #17658f;
+  background: #dff1fc;
+}
+
+html[data-theme="light"] .app-select-option small {
+  color: #758b99;
+}
+
+/* Ajustes de largura nos contextos que antes dependiam do <select> nativo. */
+.period-toolbar-select .app-select {
+  min-width: 190px;
+}
+
+.dashboard-unit-filter .app-select,
+.statistics-unit-filter .app-select {
+  min-width: 230px;
+}
+
+.communication-toolbar label:first-child .app-select {
+  min-width: 180px;
+}
+
+.period-course-actions .app-select {
+  min-width: 150px;
+}
+
+.settings-user-actions .app-select {
+  width: auto;
+  min-width: 140px;
+  font-size: 11px;
+}
+
+.settings-user-form .app-select,
+.importacao-unidade .app-select {
+  width: 100%;
+}
+
+/* =========================================================
+   LOGIN — neutraliza o amarelo do autofill do navegador
+   ========================================================= */
+.login-form input:-webkit-autofill,
+.login-form input:-webkit-autofill:hover,
+.login-form input:-webkit-autofill:focus,
+.login-form input:-webkit-autofill:active {
+  -webkit-text-fill-color: #dce7ee;
+  caret-color: #dce7ee;
+  box-shadow: 0 0 0 1000px #07121a inset !important;
+  border-color: #29404f;
+}
+
+html[data-theme="light"] .login-form input:-webkit-autofill,
+html[data-theme="light"] .login-form input:-webkit-autofill:hover,
+html[data-theme="light"] .login-form input:-webkit-autofill:focus,
+html[data-theme="light"] .login-form input:-webkit-autofill:active {
+  -webkit-text-fill-color: #20313d;
+  caret-color: #20313d;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  border-color: #cbd9e2;
+}
+
+
+/* Firefox/implementações que expõem o pseudo-seletor padrão de autofill. */
+.login-form input:autofill {
+  color: #dce7ee;
+  background: #07121a;
+  box-shadow: 0 0 0 1000px #07121a inset !important;
+}
+
+html[data-theme="light"] .login-form input:autofill {
+  color: #20313d;
+  background: #ffffff;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
 }

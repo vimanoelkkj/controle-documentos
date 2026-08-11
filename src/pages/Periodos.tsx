@@ -1,6 +1,7 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 import { usePeriodo } from "../contexts/PeriodoContext";
+import AppSelect from "../components/AppSelect";
 
 function normalizarCodigo(valor: string) {
   return valor.trim().toUpperCase().replace(/\s+/g, "");
@@ -689,22 +690,24 @@ function Periodos() {
                             </small>
                           </div>
                           <div className="period-course-actions">
-                            <select
+                            <AppSelect
                               value={mapeamentos[grupo.curso] || ""}
-                              onChange={(e) =>
+                              onChange={(valor) =>
                                 setMapeamentos((atual) => ({
                                   ...atual,
-                                  [grupo.curso]: e.target.value,
+                                  [grupo.curso]: valor,
                                 }))
                               }
                               disabled={salvandoMapeamentos}
-                            >
-                              <option value="">Selecionar unidade</option>
-                              <option value="FACE">FACE</option>
-                              <option value="FEA">FEA</option>
-                              <option value="FCH">FCH</option>
-                              <option value="EAD">EAD</option>
-                            </select>
+                              ariaLabel={`Mapear ${grupo.curso} para uma unidade`}
+                              options={[
+                                { value: "", label: "Selecionar unidade" },
+                                { value: "FACE", label: "FACE" },
+                                { value: "FEA", label: "FEA" },
+                                { value: "FCH", label: "FCH" },
+                                { value: "EAD", label: "EAD" },
+                              ]}
+                            />
                           </div>
                         </article>
                       ))}

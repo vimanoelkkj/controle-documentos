@@ -1,5 +1,6 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
+import AppSelect from "../components/AppSelect";
 
 type AlunoApi = {
   ra: string;
@@ -61,13 +62,17 @@ function Dashboard() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [unidade, setUnidade] = useState("GERAL");
-  const [pendenciasSelecionadas, setPendenciasSelecionadas] = useState<DocumentoCampo[]>([]);
+  const [pendenciasSelecionadas, setPendenciasSelecionadas] = useState<
+    DocumentoCampo[]
+  >([]);
 
-  function abrirConferencia(filtros: {
-    unidade?: string;
-    docStatus?: StatusDocumental;
-    pendencias?: DocumentoCampo[];
-  } = {}) {
+  function abrirConferencia(
+    filtros: {
+      unidade?: string;
+      docStatus?: StatusDocumental;
+      pendencias?: DocumentoCampo[];
+    } = {},
+  ) {
     const params = new URLSearchParams();
     params.set("status", "ATIVO");
 
@@ -205,9 +210,9 @@ function Dashboard() {
     const selecionadas = new Set(pendenciasSelecionadas);
 
     return base.filter((aluno) => {
-      const pendenciasDoAluno = DOCUMENTOS
-        .filter((doc) => aluno[doc.campo] !== 1)
-        .map((doc) => doc.campo);
+      const pendenciasDoAluno = DOCUMENTOS.filter(
+        (doc) => aluno[doc.campo] !== 1,
+      ).map((doc) => doc.campo);
 
       return (
         pendenciasDoAluno.length === selecionadas.size &&
@@ -268,26 +273,29 @@ function Dashboard() {
         <div>
           <span className="dashboard-eyebrow">VISÃO EXECUTIVA</span>
           <div className="page-title-row">
-          <span className="page-title-icon"><AppIcon name="dashboard" size={22} /></span>
-          <h1>Dashboard documental</h1>
-        </div>
+            <span className="page-title-icon">
+              <AppIcon name="dashboard" size={22} />
+            </span>
+            <h1>Dashboard documental</h1>
+          </div>
           <p>
             Panorama da documentação ativa, pendências prioritárias e desempenho
             por unidade.
           </p>
         </div>
 
-        <label className="dashboard-unit-filter">
+        <div className="dashboard-unit-filter">
           <span>VISUALIZAÇÃO</span>
-          <select value={unidade} onChange={(e) => setUnidade(e.target.value)}>
-            <option value="GERAL">Geral — todas as unidades</option>
-            {unidades.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </label>
+          <AppSelect
+            value={unidade}
+            onChange={setUnidade}
+            ariaLabel="Visualização por unidade"
+            options={[
+              { value: "GERAL", label: "Geral — todas as unidades" },
+              ...unidades.map((item) => ({ value: item, label: item })),
+            ]}
+          />
+        </div>
       </header>
 
       <div className="dashboard-kpis">
@@ -298,9 +306,7 @@ function Dashboard() {
         >
           <span>ALUNOS ATIVOS</span>
           <strong>{total.toLocaleString("pt-BR")}</strong>
-          <small>
-            {unidade === "GERAL" ? "Todas as unidades" : unidade}
-          </small>
+          <small>{unidade === "GERAL" ? "Todas as unidades" : unidade}</small>
         </button>
 
         <button
@@ -414,7 +420,7 @@ function Dashboard() {
               >
                 <span className="dashboard-dot critical" />
                 <p>
-                  <strong>{resumo.critico}</strong>
+                  <strong>{resumo.critico.toLocaleString("pt-BR")}</strong>
                   <span>Críticos</span>
                 </p>
               </button>
@@ -443,7 +449,9 @@ function Dashboard() {
                 <button
                   type="button"
                   className={`dashboard-bar-row dashboard-nav-bar ${
-                    pendenciasSelecionadas.includes(item.campo) ? "selected" : ""
+                    pendenciasSelecionadas.includes(item.campo)
+                      ? "selected"
+                      : ""
                   }`}
                   key={item.campo}
                   aria-pressed={pendenciasSelecionadas.includes(item.campo)}
@@ -475,10 +483,12 @@ function Dashboard() {
               <div>
                 <span>PENDÊNCIAS SELECIONADAS</span>
                 <strong>
-                  {quantidadePendenciasExatas.toLocaleString("pt-BR")} aluno(s) encontrado(s)
+                  {quantidadePendenciasExatas.toLocaleString("pt-BR")} aluno(s)
+                  encontrado(s)
                 </strong>
                 <small>
-                  {pendenciasSelecionadas.length} documento(s) selecionado(s) · correspondência exata
+                  {pendenciasSelecionadas.length} documento(s) selecionado(s) ·
+                  correspondência exata
                 </small>
               </div>
 

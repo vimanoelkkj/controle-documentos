@@ -1,5 +1,6 @@
 import AppIcon from "../components/AppIcon";
 import "./HistoricoAluno.css";
+import AppSelect from "../components/AppSelect";
 import {
   useEffect,
   useLayoutEffect,
@@ -1929,7 +1930,7 @@ function Conferencia() {
           </div>
 
           <div className="unit-tabs">
-            {(["FACE", "FEA", "FCH", "EAD"] as Unidade[]).map((unidade) => (
+            {(["EAD", "FACE", "FCH", "FEA"] as Unidade[]).map((unidade) => (
               <button
                 key={unidade}
                 type="button"
@@ -2090,12 +2091,18 @@ function Conferencia() {
               </div>
 
               <div className="student-progress">
-                <strong>{percentual}%</strong>
+                <strong
+                  className={`student-progress-percent student-progress-percent--${statusResumo.toLowerCase()}`}
+                >
+                  {percentual}%
+                </strong>
 
-                <span>
-                  {percentual === 100
+                <span
+                  className={`student-progress-status student-progress-status--${statusResumo.toLowerCase()}`}
+                >
+                  {statusResumo === "COMPLETO"
                     ? "COMPLETO"
-                    : percentual >= 50
+                    : statusResumo === "PARCIAL"
                       ? "PARCIAL"
                       : "CRÍTICO"}
                 </span>
@@ -2724,20 +2731,21 @@ function Conferencia() {
                     <label className="importacao-unidade">
                       <span>Unidade de destino</span>
 
-                      <select
+                      <AppSelect
                         value={unidadeImportacao}
-                        onChange={(event) => {
-                          setUnidadeImportacao(event.target.value as Unidade);
-
+                        onChange={(valor) => {
+                          setUnidadeImportacao(valor as Unidade);
                           setPreviaImportacao([]);
                         }}
                         disabled={importando}
-                      >
-                        <option value="FACE">FACE</option>
-                        <option value="FEA">FEA</option>
-                        <option value="FCH">FCH</option>
-                        <option value="EAD">EAD</option>
-                      </select>
+                        ariaLabel="Unidade de destino"
+                        options={[
+                          { value: "FACE", label: "FACE" },
+                          { value: "FEA", label: "FEA" },
+                          { value: "FCH", label: "FCH" },
+                          { value: "EAD", label: "EAD" },
+                        ]}
+                      />
                     </label>
 
                     <div className="importacao-tabs">
@@ -3134,19 +3142,21 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
                   <label className="importacao-unidade">
                     <span>Unidade da lista</span>
 
-                    <select
+                    <AppSelect
                       value={unidadeCancelados}
-                      onChange={(event) => {
-                        setUnidadeCancelados(event.target.value as Unidade);
+                      onChange={(valor) => {
+                        setUnidadeCancelados(valor as Unidade);
                         setPreviaCancelados(null);
                       }}
                       disabled={processandoCancelados}
-                    >
-                      <option value="FACE">FACE</option>
-                      <option value="FEA">FEA</option>
-                      <option value="FCH">FCH</option>
-                      <option value="EAD">EAD</option>
-                    </select>
+                      ariaLabel="Unidade da lista"
+                      options={[
+                        { value: "FACE", label: "FACE" },
+                        { value: "FEA", label: "FEA" },
+                        { value: "FCH", label: "FCH" },
+                        { value: "EAD", label: "EAD" },
+                      ]}
+                    />
                   </label>
 
                   <div className="importacao-tabs">
@@ -3675,20 +3685,22 @@ function FormularioAluno({
 
       <label>
         Unidade *
-        <select
+        <AppSelect
           value={dados.unidade}
-          onChange={(event) =>
+          onChange={(valor) =>
             setDados({
               ...dados,
-              unidade: event.target.value,
+              unidade: valor,
             })
           }
-        >
-          <option value="FACE">FACE</option>
-          <option value="FEA">FEA</option>
-          <option value="FCH">FCH</option>
-          <option value="EAD">EAD</option>
-        </select>
+          ariaLabel="Unidade do aluno"
+          options={[
+            { value: "FACE", label: "FACE" },
+            { value: "FEA", label: "FEA" },
+            { value: "FCH", label: "FCH" },
+            { value: "EAD", label: "EAD" },
+          ]}
+        />
       </label>
 
       <label>

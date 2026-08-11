@@ -42,17 +42,33 @@ function LayoutContent() {
   const [testandoSheets, setTestandoSheets] = useState(false);
   const [modalSheets, setModalSheets] = useState(false);
   const [modalSheetsSaindo, setModalSheetsSaindo] = useState(false);
+  const [periodDropdownAberto, setPeriodDropdownAberto] = useState(false);
+  const periodDropdownRef = useRef<HTMLDivElement | null>(null);
   const retrySheetsRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const navigation = performance.getEntriesByType(
-      "navigation",
-    )[0] as PerformanceNavigationTiming | undefined;
+    const navigation = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
 
     if (navigation?.type === "reload" && location.pathname !== "/") {
       navigate("/", { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    function fecharSeClicarFora(event: MouseEvent) {
+      if (
+        periodDropdownRef.current &&
+        !periodDropdownRef.current.contains(event.target as Node)
+      ) {
+        setPeriodDropdownAberto(false);
+      }
+    }
+
+    document.addEventListener("mousedown", fecharSeClicarFora);
+    return () => document.removeEventListener("mousedown", fecharSeClicarFora);
   }, []);
 
   async function testarGoogleSheets(silencioso = false) {
@@ -165,7 +181,9 @@ function LayoutContent() {
       <div className="period-boot error">
         <strong>Não foi possível iniciar os períodos letivos.</strong>
         <span>{erro || "Nenhum período cadastrado."}</span>
-        <small>Execute a migration 003_periodos.sql no D1 DEV e recarregue.</small>
+        <small>
+          Execute a migration 003_periodos.sql no D1 DEV e recarregue.
+        </small>
       </div>
     );
   }
@@ -236,21 +254,58 @@ function LayoutContent() {
             </div>
           )}
 
-          <label className="period-toolbar-select">
+          <div className="period-toolbar-select">
             <span>Trocar período</span>
 
-            <select
-              value={periodoAtual.codigo}
-              onChange={(event) => selecionarPeriodo(event.target.value)}
-            >
-              {periodos.map((periodo) => (
-                <option value={periodo.codigo} key={periodo.id}>
-                  {periodo.codigo}
-                  {periodo.status === "ARQUIVADO" ? " · arquivado" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
+            <div className="period-dropdown" ref={periodDropdownRef}>
+              <button
+                type="button"
+                className="period-dropdown-trigger"
+                aria-haspopup="listbox"
+                aria-expanded={periodDropdownAberto}
+                onClick={() => setPeriodDropdownAberto((aberto) => !aberto)}
+              >
+                <span>{periodoAtual.codigo}</span>
+                <span
+                  className={`period-dropdown-chevron ${
+                    periodDropdownAberto ? "open" : ""
+                  }`}
+                  aria-hidden="true"
+                >
+                  ▾
+                </span>
+              </button>
+
+              {periodDropdownAberto && (
+                <div className="period-dropdown-menu" role="listbox">
+                  {periodos.map((periodo) => {
+                    const selecionado = periodo.codigo === periodoAtual.codigo;
+
+                    return (
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={selecionado}
+                        className={`period-dropdown-option ${
+                          selecionado ? "selected" : ""
+                        }`}
+                        key={periodo.id}
+                        onClick={() => {
+                          setPeriodDropdownAberto(false);
+                          if (!selecionado) selecionarPeriodo(periodo.codigo);
+                        }}
+                      >
+                        <span>{periodo.codigo}</span>
+                        {periodo.status === "ARQUIVADO" && (
+                          <small>arquivado</small>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </header>
 
         {periodoAtual.status === "ARQUIVADO" && (
@@ -274,7 +329,11 @@ function LayoutContent() {
             if (event.currentTarget === event.target) fecharModalSheets();
           }}
         >
-          <section className="google-sheets-modal" role="dialog" aria-modal="true">
+          <section
+            className="google-sheets-modal"
+            role="dialog"
+            aria-modal="true"
+          >
             <header className="google-sheets-modal-head">
               <div
                 className={`google-sheets-modal-icon ${
