@@ -9174,7 +9174,10 @@ html[data-theme="light"] .google-sheets-modal-actions {
 }
 
 .period-sync-confirm-modal {
-  width: min(520px, calc(100vw - 32px));
+  width: min(920px, calc(100vw - 32px));
+  max-height: min(820px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid #2b4553;
   border-radius: 16px;
@@ -10696,11 +10699,6 @@ html[data-theme="light"] .sheets-sync-success-total {
   margin-top: 8px;
 }
 
-.period-preview-change > div {
-  display: grid;
-  gap: 2px;
-}
-
 .period-preview-change strong {
   font-size: 12px;
 }
@@ -10717,11 +10715,6 @@ html[data-theme="light"] .sheets-sync-success-total {
 .period-preview-change {
   width: 100%;
   margin-top: 10px;
-}
-
-.period-preview-change > div {
-  display: grid;
-  gap: 3px;
 }
 
 .period-preview-change strong {
@@ -10742,10 +10735,6 @@ html[data-theme="light"] .sheets-sync-success-total {
 
 .period-preview-change {
   margin-top: 0;
-}
-
-.period-preview-change > div {
-  gap: 4px;
 }
 
 .period-sync-confirm-metric span {
@@ -10786,7 +10775,7 @@ html[data-theme="light"] .sheets-sync-success-total {
 .period-sync-confirm-details-content {
   display: grid;
   gap: 8px;
-  max-height: 260px;
+  max-height: min(380px, 42vh);
   overflow-y: auto;
   padding: 10px;
   border: 1px solid #294250;
@@ -10794,9 +10783,14 @@ html[data-theme="light"] .sheets-sync-success-total {
   background: #0a151c;
 }
 
+.period-sync-confirm-modal > header,
+.period-sync-confirm-modal > footer {
+  flex-shrink: 0;
+}
+
 .period-sync-confirm-details-content article {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   align-items: start;
   gap: 24px;
   padding: 12px 10px;
@@ -12037,4 +12031,73 @@ html[data-theme="light"] .settings-dev-delete:hover:not(:disabled) {
 
 .settings-dev-fields label {
   align-content: end;
+}
+
+.period-preview-documents {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.period-preview-document-change {
+  display: grid;
+  grid-template-columns: 110px auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.period-preview-document-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.period-preview-status-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.period-preview-status-icon.is-delivered {
+  color: #6fe094;
+  border-color: #2f7d46;
+  background: #17351f;
+}
+
+.period-preview-status-icon.is-pending {
+  color: #ff8f84;
+  border-color: #7d403a;
+  background: #311a18;
+}
+
+.period-preview-status-arrow {
+  color: #78909d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+html[data-theme="light"] .period-preview-status-icon.is-delivered {
+  color: #2f8c50;
+  border-color: #91d5a5;
+  background: #edf9f0;
+}
+
+html[data-theme="light"] .period-preview-status-icon.is-pending {
+  color: #c9362b;
+  border-color: #e9a59c;
+  background: #fff0ee;
+}
+
+html[data-theme="light"] .period-preview-status-arrow {
+  color: #718694;
 }

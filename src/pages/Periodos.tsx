@@ -118,6 +118,21 @@ function Periodos() {
   const [mostrarAlteracoesSync, setMostrarAlteracoesSync] = useState(false);
 
   useEffect(() => {
+    const temModalAberto =
+      modalSincronizar || modalSucessoSync || confirmacao !== null;
+
+    if (!temModalAberto) return;
+
+    const overflowAnterior = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+    };
+  }, [modalSincronizar, modalSucessoSync, confirmacao]);
+
+  useEffect(() => {
     if (!periodoAtual) return;
     let ativo = true;
     setSheetsPrevia(null);
@@ -1114,14 +1129,50 @@ function Periodos() {
                         <small>RA {item.ra}</small>
                       </div>
 
-                      <div className="period-preview-change">
+                      <div className="period-preview-change period-preview-documents">
                         {item.detalhe.split("\n").map((linha) => {
-                          const [campo, alteracao] = linha.split(": ");
+                          const [campo, alteracao = ""] = linha.split(": ");
+
+                          const [origem = "", destino = ""] = alteracao
+                            .split("→")
+                            .map((valor) => valor.trim());
+
+                          const statusClass = (valor: string) =>
+                            valor.toLowerCase() === "entregue"
+                              ? "is-delivered"
+                              : "is-pending";
+
+                          const statusSymbol = (valor: string) =>
+                            valor.toLowerCase() === "entregue" ? "✓" : "✕";
 
                           return (
-                            <div key={linha}>
+                            <div
+                              className="period-preview-document-change"
+                              key={linha}
+                            >
                               <strong>{campo}</strong>
-                              <span>{alteracao}</span>
+
+                              <span className="period-preview-document-status">
+                                <span
+                                  className={`period-preview-status-icon ${statusClass(origem)}`}
+                                  title={origem}
+                                  aria-label={origem}
+                                >
+                                  {statusSymbol(origem)}
+                                </span>
+
+                                <span className="period-preview-status-arrow">
+                                  →
+                                </span>
+
+                                <span
+                                  className={`period-preview-status-icon ${statusClass(destino)}`}
+                                  title={destino}
+                                  aria-label={destino}
+                                >
+                                  {statusSymbol(destino)}
+                                </span>
+                              </span>
                             </div>
                           );
                         })}
