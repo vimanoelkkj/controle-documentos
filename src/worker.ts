@@ -1217,14 +1217,19 @@ export default {
         );
 
         const resolverUnidade = (a: LinhaBase) => {
-          const mapeada = unidadePorCurso.get(normalizarComparacao(a.curso));
+          const cursoChave = normalizarComparacao(a.curso);
+        
+          const mapeada = unidadePorCurso.get(cursoChave);
           if (mapeada) return mapeada;
-          if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso))
-            return "EAD";
-          if (a.origem === "FCH_EAD") return "FCH";
+        
+          if (a.origem === "FCH_EAD") {
+            return null;
+          }
+        
           const conhecidas = [
-            ...(cursoUnidades.get(normalizarComparacao(a.curso)) ?? []),
+            ...(cursoUnidades.get(cursoChave) ?? []),
           ].filter((u) => u === "FACE" || u === "FEA");
+        
           return conhecidas.length === 1 ? conhecidas[0] : null;
         };
 
@@ -1623,18 +1628,19 @@ export default {
         );
 
         const resolverUnidadeSync = (a: LinhaBaseSync) => {
-          const mapeada = unidadePorCurso.get(normalizarComparacao(a.curso));
+          const cursoChave = normalizarComparacao(a.curso);
+        
+          const mapeada = unidadePorCurso.get(cursoChave);
           if (mapeada) return mapeada;
-
-          if (a.origem === "FCH_EAD" && /EAD|E\.A\.D/i.test(a.curso))
-            return "EAD";
-
-          if (a.origem === "FCH_EAD") return "FCH";
-
+        
+          if (a.origem === "FCH_EAD") {
+            return null;
+          }
+        
           const conhecidas = [
-            ...(cursoUnidades.get(normalizarComparacao(a.curso)) ?? []),
+            ...(cursoUnidades.get(cursoChave) ?? []),
           ].filter((u) => u === "FACE" || u === "FEA");
-
+        
           return conhecidas.length === 1 ? conhecidas[0] : null;
         };
 

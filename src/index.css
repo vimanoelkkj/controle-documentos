@@ -10699,6 +10699,13 @@ html[data-theme="light"] .sheets-sync-success-total {
   margin-top: 8px;
 }
 
+.period-preview-change > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .period-preview-change strong {
   font-size: 12px;
 }
