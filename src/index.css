@@ -11890,7 +11890,6 @@ html[data-theme="light"] .login-form input:-webkit-autofill:active {
   border-color: #cbd9e2;
 }
 
-
 /* Firefox/implementações que expõem o pseudo-seletor padrão de autofill. */
 .login-form input:autofill {
   color: #dce7ee;
@@ -11902,4 +11901,12 @@ html[data-theme="light"] .login-form input:autofill {
   color: #20313d;
   background: #ffffff;
   box-shadow: 0 0 0 1000px #ffffff inset !important;
+}
+
+.settings-user-form .app-select {
+  min-width: 190px;
+}
+
+.settings-user-form .app-select-trigger {
+  min-width: 180px;
 }
