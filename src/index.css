@@ -5528,18 +5528,25 @@ html[data-theme="light"] .communication-empty {
   font-size: 11px;
 }
 .period-status {
-  padding: 3px 6px;
+  padding: 3px 7px;
+  border: 1px solid;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 900;
 }
+
+/* ATIVO — mesma paleta verde do restante do sistema */
 .period-status.ativo {
-  color: #8ddaa5;
-  background: #14281b;
+  color: #6fe094;
+  border-color: #2f7d46;
+  background: #17351f;
 }
+
+/* ARQUIVADO — mesma paleta do status PARCIAL */
 .period-status.arquivado {
-  color: #b4a473;
-  background: #292515;
+  color: #ffd65b;
+  border-color: #8f6b16;
+  background: #2d2715;
 }
 .period-actions {
   display: flex;
@@ -6234,7 +6241,7 @@ html[data-theme="light"] .period-sheets-ready {
   border-radius: 9px;
   padding: 12px 16px;
   background: #3d9ed6;
-  color: #061019;
+  color: #ffffff;
   font-weight: 900;
   cursor: pointer;
 }
@@ -7323,6 +7330,10 @@ html[data-theme="light"] .adicionar-aluno-opcoes span {
 .communication-group-card:hover,
 .adicionar-aluno-opcoes button:hover {
   transform: translateY(-2px);
+}
+
+.student-card:hover {
+  transform: none;
 }
 
 .document-card:hover,
@@ -10785,10 +10796,10 @@ html[data-theme="light"] .sheets-sync-success-total {
 
 .period-sync-confirm-details-content article {
   display: grid;
-  grid-template-columns: minmax(150px, auto) 1fr;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
   align-items: start;
-  gap: 18px;
-  padding: 10px;
+  gap: 24px;
+  padding: 12px 10px;
   border-bottom: 1px solid #20333f;
 }
 
@@ -10897,6 +10908,30 @@ html[data-theme="light"]
   .period-preview-change
   span {
   color: #718694;
+}
+
+html[data-theme="light"] .period-sheets-actions button.secondary,
+html[data-theme="light"] .period-actions button:not(.danger-soft),
+html[data-theme="light"] .period-actions button.secondary,
+html[data-theme="light"] .period-sync-confirm-details-toggle,
+html[data-theme="light"] .period-sync-back-button {
+  border-color: #bfd7e4;
+  color: #23485e;
+  background: #eef7fb;
+}
+
+html[data-theme="light"]
+  .period-sheets-actions
+  button.secondary:hover:not(:disabled),
+html[data-theme="light"]
+  .period-actions
+  button:not(.danger-soft):hover:not(:disabled),
+html[data-theme="light"] .period-actions button.secondary:hover:not(:disabled),
+html[data-theme="light"] .period-sync-confirm-details-toggle:hover,
+html[data-theme="light"] .period-sync-back-button:hover:not(:disabled) {
+  border-color: #94bdd2;
+  color: #17394d;
+  background: #dfeff6;
 }
 
 /* =========================================================
@@ -11909,4 +11944,97 @@ html[data-theme="light"] .login-form input:autofill {
 
 .settings-user-form .app-select-trigger {
   min-width: 180px;
+}
+
+@media (max-width: 720px) {
+  .period-sync-confirm-details-content article {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+html[data-theme="light"] .period-create-form button {
+  border-color: #bfd7e4;
+  color: #23485e;
+  background: #eef7fb;
+}
+
+html[data-theme="light"] .period-create-form button:hover:not(:disabled) {
+  border-color: #94bdd2;
+  color: #17394d;
+  background: #dfeff6;
+}
+
+html[data-theme="light"] .period-status.ativo {
+  color: #2f8c50;
+  border-color: #91d5a5;
+  background: #edf9f0;
+}
+
+html[data-theme="light"] .period-status.arquivado {
+  color: #a87b00;
+  border-color: #e4c568;
+  background: #fff9e5;
+}
+
+html[data-theme="light"] .settings-user-form > button {
+  border: 1px solid #4d9ac8;
+  color: #ffffff;
+  background: #3d91c2;
+}
+
+html[data-theme="light"] .settings-user-form > button:hover:not(:disabled) {
+  border-color: #3d89b7;
+  background: #337fae;
+}
+
+html[data-theme="light"] .settings-dev-tools {
+  border-color: #f0b6b0;
+  background: #fff5f4;
+}
+
+html[data-theme="light"] .settings-dev-tools-head {
+  border-bottom-color: #efd0cc;
+}
+
+html[data-theme="light"] .settings-dev-tools-head > strong {
+  border-color: #e3655a;
+  color: #c9362b;
+  background: #fffafa;
+}
+
+html[data-theme="light"] .settings-dev-fields label strong {
+  color: #c9362b;
+}
+
+html[data-theme="light"] .settings-dev-fields select,
+html[data-theme="light"] .settings-dev-fields input {
+  border-color: #e5b8b1;
+  color: #263b48;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .settings-dev-fields select:focus,
+html[data-theme="light"] .settings-dev-fields input:focus {
+  border-color: #d9655a;
+  box-shadow: 0 0 0 3px rgba(201, 54, 43, 0.08);
+}
+
+html[data-theme="light"] .settings-dev-delete {
+  border-color: #d95d52;
+  color: #ffffff;
+  background: #b83d33;
+}
+
+html[data-theme="light"] .settings-dev-delete:hover:not(:disabled) {
+  border-color: #c3473d;
+  background: #a9342b;
+}
+
+.settings-dev-fields {
+  align-items: stretch;
+}
+
+.settings-dev-fields label {
+  align-content: end;
 }

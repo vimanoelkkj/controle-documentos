@@ -1190,24 +1190,26 @@ function Periodos() {
                 sistema e será registrada no LOG.
               </div>
 
-              <div className="period-sync-confirm-buttons"></div>
-              <button
-                type="button"
-                className="period-sync-back-button"
-                onClick={() => setModalSincronizar(false)}
-                disabled={sincronizandoSheets}
-              >
-                Voltar
-              </button>
-              <button
-                type="button"
-                onClick={sincronizarSheets}
-                disabled={sincronizandoSheets}
-              >
-                {sincronizandoSheets
-                  ? "Sincronizando..."
-                  : "Confirmar sincronização"}
-              </button>
+              <div className="period-sync-confirm-buttons">
+                <button
+                  type="button"
+                  className="period-sync-back-button"
+                  onClick={() => setModalSincronizar(false)}
+                  disabled={sincronizandoSheets}
+                >
+                  Voltar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={sincronizarSheets}
+                  disabled={sincronizandoSheets}
+                >
+                  {sincronizandoSheets
+                    ? "Sincronizando..."
+                    : "Confirmar sincronização"}
+                </button>
+              </div>
             </footer>
           </section>
         </div>
