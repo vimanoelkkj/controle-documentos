@@ -299,7 +299,7 @@ function Conferencia() {
     if (!grid || !painel || !detalhes) return;
 
     const ajustarAltura = () => {
-      if (window.matchMedia("(max-width: 900px)").matches) {
+      if (window.matchMedia("(max-width: 1100px)").matches) {
         painel.style.removeProperty("height");
         detalhes.style.removeProperty("height");
         return;
@@ -725,6 +725,8 @@ function Conferencia() {
   const pendentes = alunoSelecionado.documentos.filter(
     (documento) => !documento.entregue,
   );
+
+  const statusResumo = statusDocumentalAluno(alunoSelecionado);
 
   const percentual = Math.round(
     (entregues.length / alunoSelecionado.documentos.length) * 100,
@@ -2150,19 +2152,34 @@ function Conferencia() {
                 </div>
               </div>
 
-              <aside className="summary-card">
+              <aside
+                className={`summary-card summary-card--${statusResumo.toLowerCase()}`}
+              >
                 <span>RESUMO</span>
 
-                <div className="summary-number">
-                  <strong>{pendentes.length}</strong>
-                  <span>Pendências</span>
-                </div>
+                {statusResumo === "COMPLETO" ? (
+                  <div className="summary-complete">
+                    <strong className="summary-check">✓</strong>
+                    <span>Documentação Entregue</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="summary-number">
+                      <strong>{pendentes.length}</strong>
+                      <span>
+                        {statusResumo === "PARCIAL"
+                          ? "Pendências restantes"
+                          : "Pendências críticas"}
+                      </span>
+                    </div>
 
-                <ul>
-                  {pendentes.map((documento) => (
-                    <li key={documento.nome}>{documento.nome}</li>
-                  ))}
-                </ul>
+                    <ul>
+                      {pendentes.map((documento) => (
+                        <li key={documento.nome}>{documento.nome}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </aside>
             </div>
 
