@@ -38,7 +38,9 @@ function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          bootstrap ? { nome, email, username, senha } : { identificador: email, senha },
+          bootstrap
+            ? { nome, email, username, senha }
+            : { identificador: email, senha },
         ),
       });
       const d = (await r.json()) as { erro?: string };
@@ -77,20 +79,46 @@ function Login() {
           {bootstrap && (
             <label>
               <span>Nome completo</span>
-              <input autoFocus autoComplete="name" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome" required />
+              <input
+                autoFocus
+                autoComplete="name"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Seu nome"
+                required
+              />
             </label>
           )}
 
           {bootstrap && (
             <label>
               <span>Nome de usuário</span>
-              <input autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="ex.: vitormanoel" minLength={3} required />
+              <input
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="ex.: vitormanoel"
+                minLength={3}
+                required
+              />
             </label>
           )}
 
           <label>
             <span>{bootstrap ? "E-mail" : "E-mail ou usuário"}</span>
-            <input type="text" autoFocus={!bootstrap} autoComplete={bootstrap ? "email" : "username"} value={email} onChange={(e) => setEmail(e.target.value)} placeholder={bootstrap ? "nome@exemplo.com" : "seu.usuario ou nome@exemplo.com"} required />
+            <input
+              type="text"
+              autoFocus={!bootstrap}
+              autoComplete={bootstrap ? "email" : "username"}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={
+                bootstrap
+                  ? "nome@exemplo.com"
+                  : "seu.usuario ou nome@exemplo.com"
+              }
+              required
+            />
           </label>
 
           <label>
@@ -105,23 +133,41 @@ function Login() {
                 minLength={8}
                 required
               />
-              <button type="button" className="login-password-toggle" onClick={() => setMostrarSenha((atual) => !atual)}>
+              <button
+                type="button"
+                className="login-password-toggle"
+                onClick={() => setMostrarSenha((atual) => !atual)}
+              >
                 {mostrarSenha ? "Ocultar" : "Mostrar"}
               </button>
             </div>
           </label>
 
-          {erro && <div className="login-error" role="alert">{erro}</div>}
+          {erro && (
+            <div className="login-error" role="alert">
+              {erro}
+            </div>
+          )}
 
           <button className="login-submit" type="submit" disabled={enviando}>
-            <span>{enviando ? "Aguarde..." : bootstrap ? "Criar administrador" : "Entrar"}</span>
+            <span>
+              {enviando
+                ? "Aguarde..."
+                : bootstrap
+                  ? "Criar administrador"
+                  : "Entrar"}
+            </span>
             {!enviando && <span aria-hidden="true">→</span>}
           </button>
         </form>
 
         <footer className="login-footer">
           <span className="login-security-dot" aria-hidden="true" />
-          <small>{bootstrap ? "Use uma senha com pelo menos 8 caracteres." : "Sessão protegida com duração de até 12 horas."}</small>
+          <small>
+            {bootstrap
+              ? "Use uma senha com pelo menos 8 caracteres."
+              : "Por segurança, a sessão é encerrada após 1 hora de inatividade."}
+          </small>
         </footer>
       </main>
     </div>

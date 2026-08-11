@@ -301,9 +301,18 @@ async function hashToken(token: string) {
   return bytesHex(new Uint8Array(digest));
 }
 
-function cookieSessao(token: string, request: Request, maxAge = 60 * 60 * 12) {
+const DURACAO_SESSAO_SEGUNDOS = 60 * 60;
+
+function cookieSessao(
+  token: string,
+  request: Request,
+  maxAge = DURACAO_SESSAO_SEGUNDOS,
+) {
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
-  return `cd_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
+
+  return `cd_session=${encodeURIComponent(
+    token,
+  )}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
 }
 
 class AuthStorageUnavailableError extends Error {
@@ -461,38 +470,60 @@ export default {
         email?: string;
         senha?: string;
       }>();
+
       const identificador = (body.identificador || body.email || "")
         .trim()
         .toLowerCase();
+
       const senha = body.senha || "";
+
       const usuario = identificador
         ? await env.DB.prepare(
-            `SELECT id, nome, email, username, perfil, ativo, senha_hash, senha_salt FROM usuarios WHERE email = ? OR username = ? LIMIT 1`,
+            `SELECT id, nome, email, username, perfil, ativo, senha_hash, senha_salt
+         FROM usuarios
+         WHERE email = ? OR username = ?
+         LIMIT 1`,
           )
             .bind(identificador, identificador)
             .first<UsuarioSessao & { senha_hash: string; senha_salt: string }>()
         : null;
-      if (!usuario || !usuario.ativo)
+
+      if (!usuario || !usuario.ativo) {
         return Response.json(
           { erro: "Usuário/e-mail ou senha inválidos." },
           { status: 401 },
         );
+      }
+
       const cred = await hashSenha(senha, usuario.senha_salt);
-      if (cred.hash !== usuario.senha_hash)
+
+      if (cred.hash !== usuario.senha_hash) {
         return Response.json(
           { erro: "Usuário/e-mail ou senha inválidos." },
           { status: 401 },
         );
+      }
+
       const token = bytesHex(crypto.getRandomValues(new Uint8Array(32)));
+
       const tokenHash = await hashToken(token);
+
       await env.DB.prepare(
-        `DELETE FROM sessoes WHERE expira_em <= CURRENT_TIMESTAMP`,
+        `DELETE FROM sessoes
+     WHERE expira_em <= CURRENT_TIMESTAMP`,
       ).run();
+
       await env.DB.prepare(
-        `INSERT INTO sessoes (usuario_id, token_hash, expira_em) VALUES (?, ?, datetime('now', '+12 hours'))`,
+        `INSERT INTO sessoes (
+      usuario_id,
+      token_hash,
+      expira_em
+    )
+    VALUES (?, ?, datetime('now', '+1 hour'))`,
       )
         .bind(usuario.id, tokenHash)
         .run();
+
       return Response.json(
         {
           usuario: {
@@ -503,19 +534,78 @@ export default {
             perfil: usuario.perfil,
           },
         },
-        { headers: { "Set-Cookie": cookieSessao(token, request) } },
+        {
+          headers: {
+            "Set-Cookie": cookieSessao(token, request),
+          },
+        },
       );
+    }
+
+    if (url.pathname === "/api/auth/atividade" && request.method === "POST") {
+      try {
+        const token = obterCookie(request, "cd_session");
+
+        if (!token) {
+          return Response.json({ erro: "Não autenticado." }, { status: 401 });
+        }
+
+        const tokenHash = await hashToken(token);
+
+        const resultado = await env.DB.prepare(
+          `UPDATE sessoes
+       SET expira_em = datetime('now', '+1 hour')
+       WHERE token_hash = ?
+         AND expira_em > CURRENT_TIMESTAMP`,
+        )
+          .bind(tokenHash)
+          .run();
+
+        if (!resultado.meta.changes) {
+          return Response.json(
+            { erro: "Sessão expirada." },
+            {
+              status: 401,
+              headers: {
+                "Set-Cookie": cookieSessao("", request, 0),
+              },
+            },
+          );
+        }
+
+        return Response.json(
+          { sucesso: true },
+          {
+            headers: {
+              "Set-Cookie": cookieSessao(token, request),
+            },
+          },
+        );
+      } catch (erro) {
+        if (erro instanceof AuthStorageUnavailableError) {
+          return respostaAuthTemporariamenteIndisponivel();
+        }
+
+        throw erro;
+      }
     }
 
     if (url.pathname === "/api/auth/logout" && request.method === "POST") {
       const token = obterCookie(request, "cd_session");
-      if (token)
+
+      if (token) {
         await env.DB.prepare(`DELETE FROM sessoes WHERE token_hash = ?`)
           .bind(await hashToken(token))
           .run();
+      }
+
       return Response.json(
         { sucesso: true },
-        { headers: { "Set-Cookie": cookieSessao("", request, 0) } },
+        {
+          headers: {
+            "Set-Cookie": cookieSessao("", request, 0),
+          },
+        },
       );
     }
 
