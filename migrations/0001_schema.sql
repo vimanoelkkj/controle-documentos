@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS alunos (
     curso TEXT NOT NULL,
     unidade TEXT NOT NULL,
 
+    status TEXT NOT NULL DEFAULT 'ATIVO'
+        CHECK (status IN ('ATIVO', 'CANCELADO')),
+
     criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

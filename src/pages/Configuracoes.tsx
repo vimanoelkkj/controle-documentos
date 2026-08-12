@@ -158,12 +158,16 @@ function Configuracoes() {
 
   return (
     <section className="settings-page">
-      <span>SISTEMA</span>
-      <div className="page-title-row">
+      <header className="settings-header">
+        <div>
+          <span>SISTEMA</span>
+          <div className="page-title-row">
           <span className="page-title-icon"><AppIcon name="settings" size={22} /></span>
           <h1>Configurações</h1>
+          </div>
+          <p>Preferências, integrações e controle de acesso.</p>
         </div>
-      <p>Preferências, integrações e controle de acesso.</p>
+      </header>
 
       {!admin ? (
         <div className="settings-readonly">

@@ -27,3 +27,6 @@ dist-ssr
 .wrangler/
 
 .dev.vars*
+
+# Backups D1 contêm dados pessoais e credenciais derivadas.
+backups/

@@ -261,6 +261,44 @@ type UsuarioSessao = {
   ativo: number;
 };
 
+type EventoAuditoria = {
+  acao: string;
+  entidade: string;
+  descricao: string;
+  ra?: string | null;
+  unidade?: string | null;
+};
+
+async function registrarAuditoria(
+  env: Env,
+  usuario: UsuarioSessao | null,
+  periodoId: number | null,
+  evento: EventoAuditoria,
+) {
+  try {
+    await env.DB.prepare(
+      `INSERT INTO logs (
+        acao, entidade, descricao, ra, unidade, periodo_id,
+        usuario_id, usuario_nome, usuario_username
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(
+        evento.acao,
+        evento.entidade,
+        evento.descricao,
+        evento.ra || null,
+        evento.unidade || null,
+        periodoId,
+        usuario?.id ?? null,
+        usuario?.nome ?? null,
+        usuario?.username ?? null,
+      )
+      .run();
+  } catch (erro) {
+    console.error("Falha ao registrar auditoria:", erro);
+  }
+}
+
 function bytesHex(bytes: Uint8Array) {
   return Array.from(bytes)
     .map((byte) => byte.toString(16).padStart(2, "0"))
@@ -699,6 +737,12 @@ export default {
             )
               .bind(nome, email, username, cred.hash, cred.salt, perfil)
               .run();
+            const periodoAuditoria = await obterPeriodoAtual(request, env, url);
+            await registrarAuditoria(env, usuarioAtual, periodoAuditoria?.id ?? null, {
+              acao: "CRIAR",
+              entidade: "USUARIO",
+              descricao: `Usuário ${nome} (@${username}) criado com perfil ${perfil}.`,
+            });
             return Response.json(
               { sucesso: true, id: result.meta.last_row_id },
               { status: 201 },
@@ -771,6 +815,18 @@ export default {
             .bind(id)
             .run();
         }
+        const alteracoes = [
+          nome !== atual.nome ? `nome: ${atual.nome} → ${nome}` : null,
+          perfil !== atual.perfil ? `perfil: ${atual.perfil} → ${perfil}` : null,
+          ativo !== atual.ativo ? `status: ${atual.ativo ? "ativo" : "inativo"} → ${ativo ? "ativo" : "inativo"}` : null,
+          body.senha ? "senha redefinida e sessões encerradas" : null,
+        ].filter(Boolean);
+        const periodoAuditoria = await obterPeriodoAtual(request, env, url);
+        await registrarAuditoria(env, usuarioAtual, periodoAuditoria?.id ?? null, {
+          acao: body.senha && alteracoes.length === 1 ? "REDEFINIR_SENHA" : "EDITAR",
+          entidade: "USUARIO",
+          descricao: `Usuário ${atual.nome} atualizado: ${alteracoes.join("; ") || "sem mudanças efetivas"}.`,
+        });
         return Response.json({ sucesso: true });
       }
 
@@ -842,6 +898,12 @@ export default {
           .bind(codigo)
           .run();
 
+        await registrarAuditoria(env, usuarioAtual, Number(resultado.meta.last_row_id), {
+          acao: "CRIAR",
+          entidade: "PERIODO",
+          descricao: `Período letivo ${codigo} criado.`,
+        });
+
         return Response.json(
           { sucesso: true, id: resultado.meta.last_row_id, codigo },
           { status: 201 },
@@ -881,6 +943,11 @@ export default {
         )
           .bind(body.status, id)
           .run();
+        await registrarAuditoria(env, usuarioAtual, id, {
+          acao: body.status === "ARQUIVADO" ? "ARQUIVAR" : "REATIVAR",
+          entidade: "PERIODO",
+          descricao: `Período ${periodo.codigo} alterado para ${body.status}.`,
+        });
         return Response.json({
           sucesso: true,
           id,
@@ -1027,6 +1094,11 @@ export default {
         )
           .bind(periodoId, ...campos)
           .run();
+        await registrarAuditoria(env, usuarioAtual, periodoId, {
+          acao: "CONFIGURAR",
+          entidade: "GOOGLE_SHEETS",
+          descricao: "Configuração da planilha e nomes das abas atualizados.",
+        });
         return Response.json({ sucesso: true, spreadsheet_id: spreadsheetId });
       } catch (erro) {
         console.error(erro);
@@ -1075,6 +1147,12 @@ export default {
         )
           .bind(periodoId, cursoChave, curso, unidade)
           .run();
+        await registrarAuditoria(env, usuarioAtual, periodoId, {
+          acao: "MAPEAR_UNIDADE",
+          entidade: "GOOGLE_SHEETS",
+          descricao: `Curso ${curso} mapeado para a unidade ${unidade}.`,
+          unidade,
+        });
         return Response.json({ sucesso: true, curso, unidade });
       } catch (erro) {
         console.error(erro);
@@ -2074,9 +2152,27 @@ export default {
       try {
         const limiteSolicitado = Number(url.searchParams.get("limit") || "200");
         const limite = Math.max(1, Math.min(500, limiteSolicitado));
+        const escopoGlobal = url.searchParams.get("scope") === "all";
 
         const resultado = await env.DB.prepare(
-          `
+          escopoGlobal ? `
+            SELECT
+              l.id,
+              l.criado_em,
+              l.acao,
+              l.entidade,
+              l.descricao,
+              l.ra,
+              l.unidade,
+              l.usuario_id,
+              l.usuario_nome,
+              l.usuario_username,
+              p.codigo AS periodo_codigo
+            FROM logs l
+            LEFT JOIN periodos p ON p.id = l.periodo_id
+            ORDER BY l.id DESC
+            LIMIT ?
+          ` : `
             SELECT
               id,
               criado_em,
@@ -2094,7 +2190,7 @@ export default {
             LIMIT ?
           `,
         )
-          .bind(periodoAtual!.id, limite)
+          .bind(...(escopoGlobal ? [limite] : [periodoAtual!.id, limite]))
           .all();
 
         return Response.json(resultado.results);

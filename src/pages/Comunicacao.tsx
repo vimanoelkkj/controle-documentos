@@ -699,19 +699,22 @@ ${textoEmail}`;
               <div className="communication-content-grid">
                 <section ref={emailCardRef} className="communication-email-card">
                   <div className="communication-email-settings">
-                    <label>
-                      Data limite
+                    <label className="communication-deadline-field">
+                      <span>Data limite <small>DD/MM</small></span>
                       <input
                         value={prazo}
                         onChange={(e) => setPrazo(e.target.value)}
                         placeholder="01/07"
+                        inputMode="numeric"
+                        maxLength={5}
                       />
                     </label>
-                    <label>
-                      Assunto
+                    <label className="communication-subject-field">
+                      <span>Assunto <small>do e-mail</small></span>
                       <input
                         value={assunto}
                         onChange={(e) => setAssunto(e.target.value)}
+                        placeholder="Ex.: Documentação pendente — Matrícula"
                       />
                     </label>
                     <div className="communication-copy-stack">
