@@ -37,13 +37,21 @@ function Configuracoes() {
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
   const [salvandoSenha, setSalvandoSenha] = useState(false);
   const [erroSenha, setErroSenha] = useState("");
+  const [usuarioExcluir, setUsuarioExcluir] = useState<UsuarioLista | null>(
+    null
+  );
+  const [confirmacaoExcluir, setConfirmacaoExcluir] = useState("");
+  const [excluindoUsuario, setExcluindoUsuario] = useState(false);
+  const [erroExcluir, setErroExcluir] = useState("");
 
   const [devHabilitado, setDevHabilitado] = useState(false);
   const [unidadeDev, setUnidadeDev] = useState<UnidadeDev>("FCH");
   const [confirmacaoDev, setConfirmacaoDev] = useState("");
   const [limpandoDev, setLimpandoDev] = useState(false);
   const [mensagemDev, setMensagemDev] = useState("");
-  const [backupConfigurado, setBackupConfigurado] = useState<boolean | null>(null);
+  const [backupConfigurado, setBackupConfigurado] = useState<boolean | null>(
+    null
+  );
   const [gerandoBackup, setGerandoBackup] = useState(false);
   const [erroBackup, setErroBackup] = useState("");
   const [backupGerado, setBackupGerado] = useState<BackupGerado | null>(null);
@@ -158,6 +166,43 @@ function Configuracoes() {
     void carregar();
   }
 
+  async function excluirUsuario() {
+    if (!usuarioExcluir) return;
+
+    if (confirmacaoExcluir.trim().toUpperCase() !== "EXCLUIR") {
+      return;
+    }
+
+    setExcluindoUsuario(true);
+    setErroExcluir("");
+
+    try {
+      const r = await fetch(`/api/usuarios/${usuarioExcluir.id}`, {
+        method: "DELETE",
+      });
+
+      const d = (await r.json()) as {
+        erro?: string;
+        sucesso?: boolean;
+      };
+
+      if (!r.ok) {
+        setErroExcluir(d.erro || "Não foi possível excluir o usuário.");
+        return;
+      }
+
+      setUsuarioExcluir(null);
+      setConfirmacaoExcluir("");
+      setErroExcluir("");
+
+      await carregar();
+    } catch {
+      setErroExcluir("Não foi possível excluir o usuário.");
+    } finally {
+      setExcluindoUsuario(false);
+    }
+  }
+
   const confirmacaoEsperada =
     unidadeDev === "TODOS" ? "LIMPAR TODOS" : `LIMPAR ${unidadeDev}`;
 
@@ -192,11 +237,13 @@ function Configuracoes() {
       setMensagemDev(
         `✓ ${d.removidos ?? 0} aluno(s) removido(s) de ${
           d.unidade === "TODOS" ? "todas as unidades" : d.unidade
-        } no período ${d.periodo ?? "atual"}.`,
+        } no período ${d.periodo ?? "atual"}.`
       );
       setConfirmacaoDev("");
     } catch {
-      setMensagemDev("Não foi possível acessar a ferramenta de desenvolvimento.");
+      setMensagemDev(
+        "Não foi possível acessar a ferramenta de desenvolvimento."
+      );
     } finally {
       setLimpandoDev(false);
     }
@@ -208,8 +255,10 @@ function Configuracoes() {
         <div>
           <span>SISTEMA</span>
           <div className="page-title-row">
-          <span className="page-title-icon"><AppIcon name="settings" size={22} /></span>
-          <h1>Configurações</h1>
+            <span className="page-title-icon">
+              <AppIcon name="settings" size={22} />
+            </span>
+            <h1>Configurações</h1>
           </div>
           <p>Preferências, integrações e controle de acesso.</p>
         </div>
@@ -276,6 +325,19 @@ function Configuracoes() {
                   >
                     <span aria-hidden="true">{u.ativo ? "⊘" : "↻"}</span>
                     {u.ativo ? "Desativar" : "Reativar"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="settings-user-delete"
+                    onClick={() => {
+                      setUsuarioExcluir(u);
+                      setConfirmacaoExcluir("");
+                      setErroExcluir("");
+                    }}
+                  >
+                    <span aria-hidden="true">×</span>
+                    Excluir
                   </button>
                 </div>
               </article>
@@ -367,7 +429,8 @@ function Configuracoes() {
                   <h2>Backup do banco</h2>
                   <p>
                     Gere uma cópia SQL completa do D1 para guardar fora do
-                    repositório. O arquivo contém dados pessoais e hashes de senha.
+                    repositório. O arquivo contém dados pessoais e hashes de
+                    senha.
                   </p>
                 </div>
               </div>
@@ -376,8 +439,8 @@ function Configuracoes() {
                 {backupConfigurado === null
                   ? "VERIFICANDO"
                   : backupConfigurado
-                    ? "CONFIGURADO"
-                    : "PENDENTE"}
+                  ? "CONFIGURADO"
+                  : "PENDENTE"}
               </strong>
             </div>
 
@@ -387,11 +450,11 @@ function Configuracoes() {
                   <AppIcon name="audit" size={18} />
                 </span>
                 <div>
-                <strong>Exportação manual segura</strong>
-                <span>
-                  A Cloudflare pode deixar o banco indisponível por alguns instantes
-                  durante a exportação.
-                </span>
+                  <strong>Exportação manual segura</strong>
+                  <span>
+                    A Cloudflare pode deixar o banco indisponível por alguns
+                    instantes durante a exportação.
+                  </span>
                 </div>
               </div>
               <button
@@ -408,7 +471,8 @@ function Configuracoes() {
                 <AppIcon name="info" size={16} />
                 <span>
                   <strong>Configuração necessária</strong>
-                  Adicione as três credenciais protegidas no Worker para habilitar o botão.
+                  Adicione as três credenciais protegidas no Worker para
+                  habilitar o botão.
                 </span>
               </div>
             )}
@@ -422,7 +486,8 @@ function Configuracoes() {
                 <div>
                   <strong>✓ Backup pronto</strong>
                   <span>
-                    {backupGerado.arquivo} · link válido por 1 hora · use Ctrl+S para salvar
+                    {backupGerado.arquivo} · link válido por 1 hora · use Ctrl+S
+                    para salvar
                   </span>
                 </div>
                 <a
@@ -497,8 +562,8 @@ function Configuracoes() {
                   {limpandoDev
                     ? "Limpando..."
                     : unidadeDev === "TODOS"
-                      ? "☢ Limpar todos os alunos"
-                      : `⊘ Limpar alunos da ${unidadeDev}`}
+                    ? "☢ Limpar todos os alunos"
+                    : `⊘ Limpar alunos da ${unidadeDev}`}
                 </button>
               </div>
 
@@ -518,7 +583,8 @@ function Configuracoes() {
                 <span className="modal-eyebrow">SEGURANÇA</span>
                 <h2>Redefinir senha</h2>
                 <p>
-                  Defina uma nova senha para <strong>{usuarioSenha.nome}</strong>.
+                  Defina uma nova senha para{" "}
+                  <strong>{usuarioSenha.nome}</strong>.
                 </p>
               </div>
 
@@ -536,7 +602,6 @@ function Configuracoes() {
             <div className="settings-password-modal-content">
               <label>
                 Nova senha
-
                 <div className="settings-password-field">
                   <input
                     type={mostrarNovaSenha ? "text" : "password"}
@@ -598,7 +663,7 @@ function Configuracoes() {
 
                     if (!r.ok) {
                       setErroSenha(
-                        d.erro || "Não foi possível alterar a senha.",
+                        d.erro || "Não foi possível alterar a senha."
                       );
                       return;
                     }
@@ -614,6 +679,104 @@ function Configuracoes() {
                 }}
               >
                 {salvandoSenha ? "Salvando..." : "Salvar nova senha"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {usuarioExcluir && (
+        <div className="modal-overlay">
+          <div className="modal-novo-aluno settings-delete-user-modal">
+            <div className="modal-cabecalho">
+              <div>
+                <span className="modal-eyebrow">CONTROLE DE ACESSO</span>
+                <h2>Excluir usuário</h2>
+
+                <p>
+                  Você está prestes a excluir permanentemente{" "}
+                  <strong>{usuarioExcluir.nome}</strong>.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="modal-fechar"
+                onClick={() => setUsuarioExcluir(null)}
+                disabled={excluindoUsuario}
+                aria-label="Fechar"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="settings-delete-user-content">
+              <div className="settings-delete-user-target">
+                <div className="sidebar-user-avatar">
+                  {usuarioExcluir.nome[0]}
+                </div>
+
+                <div>
+                  <strong>{usuarioExcluir.nome}</strong>
+                  <span>
+                    @{usuarioExcluir.username} · {usuarioExcluir.email}
+                  </span>
+                </div>
+              </div>
+
+              <div className="settings-delete-user-warning">
+                <strong>Esta ação não poderá ser desfeita.</strong>
+
+                <span>
+                  O acesso será removido e todas as sessões desse usuário serão
+                  encerradas. Os registros históricos de auditoria serão
+                  preservados.
+                </span>
+              </div>
+
+              <div className="settings-delete-user-confirm">
+                <div className="settings-delete-user-confirm-copy">
+                  <strong>Confirmação de segurança</strong>
+                  <span>
+                    Digite <b>EXCLUIR</b> abaixo para confirmar a exclusão.
+                  </span>
+                </div>
+
+                <input
+                  value={confirmacaoExcluir}
+                  onChange={(e) => {
+                    setConfirmacaoExcluir(e.target.value);
+                    setErroExcluir("");
+                  }}
+                  placeholder="Digite EXCLUIR"
+                  autoComplete="off"
+                  autoFocus
+                  disabled={excluindoUsuario}
+                />
+              </div>
+
+              {erroExcluir && <div className="modal-erro">{erroExcluir}</div>}
+            </div>
+
+            <div className="modal-acoes">
+              <button
+                type="button"
+                className="botao-cancelar"
+                onClick={() => setUsuarioExcluir(null)}
+                disabled={excluindoUsuario}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className="settings-delete-user-confirm-button"
+                disabled={
+                  excluindoUsuario ||
+                  confirmacaoExcluir.trim().toUpperCase() !== "EXCLUIR"
+                }
+                onClick={() => void excluirUsuario()}
+              >
+                {excluindoUsuario ? "Excluindo..." : "Excluir permanentemente"}
               </button>
             </div>
           </div>

@@ -81,7 +81,7 @@ function base64Url(valor: ArrayBuffer | string) {
 function pemParaArrayBuffer(pem: string) {
   const base64 = pem.replace(
     /-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g,
-    "",
+    ""
   );
   const binario = atob(base64);
   const bytes = new Uint8Array(binario.length);
@@ -94,7 +94,7 @@ async function obterTokenGoogle(env: Env) {
     throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON não configurado no Worker.");
   }
   const conta = JSON.parse(
-    env.GOOGLE_SERVICE_ACCOUNT_JSON,
+    env.GOOGLE_SERVICE_ACCOUNT_JSON
   ) as GoogleServiceAccount;
   const agora = Math.floor(Date.now() / 1000);
   const header = base64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
@@ -105,19 +105,19 @@ async function obterTokenGoogle(env: Env) {
       aud: conta.token_uri || "https://oauth2.googleapis.com/token",
       iat: agora,
       exp: agora + 3600,
-    }),
+    })
   );
   const chave = await crypto.subtle.importKey(
     "pkcs8",
     pemParaArrayBuffer(conta.private_key),
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
     false,
-    ["sign"],
+    ["sign"]
   );
   const assinatura = await crypto.subtle.sign(
     "RSASSA-PKCS1-v1_5",
     chave,
-    new TextEncoder().encode(`${header}.${payload}`),
+    new TextEncoder().encode(`${header}.${payload}`)
   );
   const jwt = `${header}.${payload}.${base64Url(assinatura)}`;
   const resposta = await fetch(
@@ -129,7 +129,7 @@ async function obterTokenGoogle(env: Env) {
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
         assertion: jwt,
       }),
-    },
+    }
   );
   if (!resposta.ok)
     throw new Error(`Falha na autenticação Google (${resposta.status}).`);
@@ -157,7 +157,7 @@ function normalizarComparacao(valor: unknown) {
 function valorBooleano(valor: unknown) {
   if (typeof valor === "boolean") return valor;
   return ["TRUE", "VERDADEIRO", "1", "SIM", "X"].includes(
-    normalizarComparacao(valor),
+    normalizarComparacao(valor)
   );
 }
 
@@ -165,8 +165,9 @@ async function testarConexaoGoogleSheets(env: Env, config: SheetsConfig) {
   const token = await obterTokenGoogle(env);
 
   const endpoint =
-    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(config.spreadsheet_id)}` +
-    `?fields=spreadsheetId,properties.title`;
+    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(
+      config.spreadsheet_id
+    )}` + `?fields=spreadsheetId,properties.title`;
 
   const resposta = await fetch(endpoint, {
     headers: { Authorization: `Bearer ${token}` },
@@ -175,7 +176,7 @@ async function testarConexaoGoogleSheets(env: Env, config: SheetsConfig) {
   if (!resposta.ok) {
     const detalhe = await resposta.text();
     throw new Error(
-      `Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`,
+      `Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`
     );
   }
 
@@ -200,14 +201,16 @@ async function lerRangesGoogle(env: Env, config: SheetsConfig) {
     params.append("ranges", `'${aba.replace(/'/g, "''")}'!A:K`);
   params.set("majorDimension", "ROWS");
   params.set("valueRenderOption", "UNFORMATTED_VALUE");
-  const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(config.spreadsheet_id)}/values:batchGet?${params}`;
+  const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(
+    config.spreadsheet_id
+  )}/values:batchGet?${params}`;
   const resposta = await fetch(endpoint, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!resposta.ok) {
     const detalhe = await resposta.text();
     throw new Error(
-      `Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`,
+      `Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`
     );
   }
   const dados = await resposta.json<{
@@ -242,7 +245,7 @@ async function obterPeriodoAtual(request: Request, env: Env, url: URL) {
 
   if (codigo) {
     const periodo = await env.DB.prepare(
-      `SELECT id, codigo, status, criado_em, atualizado_em FROM periodos WHERE codigo = ?`,
+      `SELECT id, codigo, status, criado_em, atualizado_em FROM periodos WHERE codigo = ?`
     )
       .bind(codigo)
       .first<PeriodoRow>();
@@ -250,7 +253,7 @@ async function obterPeriodoAtual(request: Request, env: Env, url: URL) {
   }
 
   return env.DB.prepare(
-    `SELECT id, codigo, status, criado_em, atualizado_em FROM periodos ORDER BY CASE status WHEN 'ATIVO' THEN 0 ELSE 1 END, id DESC LIMIT 1`,
+    `SELECT id, codigo, status, criado_em, atualizado_em FROM periodos ORDER BY CASE status WHEN 'ATIVO' THEN 0 ELSE 1 END, id DESC LIMIT 1`
   ).first<PeriodoRow>();
 }
 
@@ -276,14 +279,14 @@ async function registrarAuditoria(
   env: Env,
   usuario: UsuarioSessao | null,
   periodoId: number | null,
-  evento: EventoAuditoria,
+  evento: EventoAuditoria
 ) {
   try {
     await env.DB.prepare(
       `INSERT INTO logs (
         acao, entidade, descricao, ra, unidade, periodo_id,
         usuario_id, usuario_nome, usuario_username
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
       .bind(
         evento.acao,
@@ -294,7 +297,7 @@ async function registrarAuditoria(
         periodoId,
         usuario?.id ?? null,
         usuario?.nome ?? null,
-        usuario?.username ?? null,
+        usuario?.username ?? null
       )
       .run();
   } catch (erro) {
@@ -308,7 +311,7 @@ async function registrarPendenciaGoogleSheets(
   periodoId: number,
   ra: string,
   operacao: "ATUALIZAR" | "REMOVER" = "ATUALIZAR",
-  motivo = "ATUALIZAÇÃO",
+  motivo = "ATUALIZAÇÃO"
 ) {
   let payload: string | null = null;
 
@@ -321,7 +324,7 @@ async function registrarPendenciaGoogleSheets(
       FROM alunos a
       LEFT JOIN documentos d ON d.aluno_id = a.id
       WHERE a.periodo_id = ? AND a.ra = ?
-    `,
+    `
     )
       .bind(periodoId, ra)
       .first<AlunoRow>();
@@ -352,7 +355,7 @@ async function registrarPendenciaGoogleSheets(
         ELSE google_sheets_pendencias.motivos || '|' || excluded.motivos
       END,
       atualizado_em = CURRENT_TIMESTAMP
-  `,
+  `
   )
     .bind(
       periodoId,
@@ -362,7 +365,7 @@ async function registrarPendenciaGoogleSheets(
       usuario?.id ?? null,
       usuario?.nome ?? null,
       usuario?.username ?? null,
-      motivo,
+      motivo
     )
     .run();
 }
@@ -389,12 +392,12 @@ async function hashSenha(senha: string, saltHex?: string) {
     new TextEncoder().encode(senha),
     "PBKDF2",
     false,
-    ["deriveBits"],
+    ["deriveBits"]
   );
   const bits = await crypto.subtle.deriveBits(
     { name: "PBKDF2", hash: "SHA-256", salt, iterations: 100000 },
     chave,
-    256,
+    256
   );
   return { hash: bytesHex(new Uint8Array(bits)), salt: bytesHex(salt) };
 }
@@ -402,7 +405,7 @@ async function hashSenha(senha: string, saltHex?: string) {
 async function hashToken(token: string) {
   const digest = await crypto.subtle.digest(
     "SHA-256",
-    new TextEncoder().encode(token),
+    new TextEncoder().encode(token)
   );
   return bytesHex(new Uint8Array(digest));
 }
@@ -412,12 +415,12 @@ const DURACAO_SESSAO_SEGUNDOS = 60 * 60;
 function cookieSessao(
   token: string,
   request: Request,
-  maxAge = DURACAO_SESSAO_SEGUNDOS,
+  maxAge = DURACAO_SESSAO_SEGUNDOS
 ) {
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
 
   return `cd_session=${encodeURIComponent(
-    token,
+    token
   )}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
 }
 
@@ -460,8 +463,9 @@ async function solicitarExportacaoD1(env: Env) {
   }
 
   const endpoint =
-    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}` +
-    `/d1/database/${encodeURIComponent(databaseId)}/export`;
+    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(
+      accountId
+    )}` + `/d1/database/${encodeURIComponent(databaseId)}/export`;
   const headers = {
     Authorization: `Bearer ${apiToken}`,
     "Content-Type": "application/json",
@@ -479,10 +483,14 @@ async function solicitarExportacaoD1(env: Env) {
       }),
     });
 
-    const dados = (await resposta.json()) as RespostaCloudflare<EstadoExportacaoD1>;
+    const dados =
+      (await resposta.json()) as RespostaCloudflare<EstadoExportacaoD1>;
 
     if (!resposta.ok || !dados.success || !dados.result) {
-      const detalhe = dados.errors?.map((erro) => erro.message).filter(Boolean).join("; ");
+      const detalhe = dados.errors
+        ?.map((erro) => erro.message)
+        .filter(Boolean)
+        .join("; ");
       throw new Error(detalhe || "A Cloudflare recusou a exportacao do D1.");
     }
 
@@ -496,18 +504,24 @@ async function solicitarExportacaoD1(env: Env) {
       const arquivo = dados.result.result?.filename;
       const downloadUrl = dados.result.result?.signed_url;
       if (!arquivo || !downloadUrl)
-        throw new Error("A exportacao terminou sem fornecer o arquivo para download.");
+        throw new Error(
+          "A exportacao terminou sem fornecer o arquivo para download."
+        );
 
       return { arquivo, downloadUrl };
     }
 
     if (!bookmark)
-      throw new Error("A Cloudflare nao forneceu o identificador da exportacao.");
+      throw new Error(
+        "A Cloudflare nao forneceu o identificador da exportacao."
+      );
 
     await aguardar(1000);
   }
 
-  throw new Error("O backup demorou mais que o esperado. Tente novamente em instantes.");
+  throw new Error(
+    "O backup demorou mais que o esperado. Tente novamente em instantes."
+  );
 }
 
 async function usuarioDaRequisicao(request: Request, env: Env) {
@@ -528,7 +542,7 @@ async function usuarioDaRequisicao(request: Request, env: Env) {
         WHERE s.token_hash = ?
           AND s.expira_em > CURRENT_TIMESTAMP
           AND u.ativo = 1
-      `,
+      `
       )
         .bind(tokenHash)
         .first<UsuarioSessao>();
@@ -556,7 +570,7 @@ function respostaAuthTemporariamenteIndisponivel() {
       headers: {
         "Retry-After": "2",
       },
-    },
+    }
   );
 }
 
@@ -584,7 +598,7 @@ export default {
     if (url.pathname === "/api/auth/bootstrap" && request.method === "GET") {
       try {
         const total = await env.DB.prepare(
-          `SELECT COUNT(*) AS total FROM usuarios`,
+          `SELECT COUNT(*) AS total FROM usuarios`
         ).first<{ total: number }>();
         return Response.json({ necessario: Number(total?.total || 0) === 0 });
       } catch {
@@ -592,19 +606,19 @@ export default {
           {
             erro: "Autenticação indisponível. Execute a migration 005_auth.sql.",
           },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
 
     if (url.pathname === "/api/auth/bootstrap" && request.method === "POST") {
       const total = await env.DB.prepare(
-        `SELECT COUNT(*) AS total FROM usuarios`,
+        `SELECT COUNT(*) AS total FROM usuarios`
       ).first<{ total: number }>();
       if (Number(total?.total || 0) !== 0)
         return Response.json(
           { erro: "O administrador inicial já foi criado." },
-          { status: 409 },
+          { status: 409 }
         );
       const body = await request.json<{
         nome?: string;
@@ -621,26 +635,26 @@ export default {
           {
             erro: "Informe nome, usuário, e-mail e uma senha com pelo menos 8 caracteres.",
           },
-          { status: 400 },
+          { status: 400 }
         );
       if (!/^[a-z0-9._-]{3,40}$/i.test(username))
         return Response.json(
           {
             erro: "O nome de usuário deve ter de 3 a 40 caracteres e usar apenas letras, números, ponto, hífen ou underline.",
           },
-          { status: 400 },
+          { status: 400 }
         );
       const cred = await hashSenha(senha);
       try {
         await env.DB.prepare(
-          `INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, 'ADMIN', 1)`,
+          `INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, 'ADMIN', 1)`
         )
           .bind(nome, email, username, cred.hash, cred.salt)
           .run();
       } catch {
         return Response.json(
           { erro: "E-mail ou nome de usuário já cadastrado." },
-          { status: 409 },
+          { status: 409 }
         );
       }
       return Response.json({ sucesso: true }, { status: 201 });
@@ -664,7 +678,7 @@ export default {
             `SELECT id, nome, email, username, perfil, ativo, senha_hash, senha_salt
          FROM usuarios
          WHERE email = ? OR username = ?
-         LIMIT 1`,
+         LIMIT 1`
           )
             .bind(identificador, identificador)
             .first<UsuarioSessao & { senha_hash: string; senha_salt: string }>()
@@ -673,7 +687,7 @@ export default {
       if (!usuario || !usuario.ativo) {
         return Response.json(
           { erro: "Usuário/e-mail ou senha inválidos." },
-          { status: 401 },
+          { status: 401 }
         );
       }
 
@@ -682,7 +696,7 @@ export default {
       if (cred.hash !== usuario.senha_hash) {
         return Response.json(
           { erro: "Usuário/e-mail ou senha inválidos." },
-          { status: 401 },
+          { status: 401 }
         );
       }
 
@@ -692,7 +706,7 @@ export default {
 
       await env.DB.prepare(
         `DELETE FROM sessoes
-     WHERE expira_em <= CURRENT_TIMESTAMP`,
+     WHERE expira_em <= CURRENT_TIMESTAMP`
       ).run();
 
       await env.DB.prepare(
@@ -701,7 +715,7 @@ export default {
       token_hash,
       expira_em
     )
-    VALUES (?, ?, datetime('now', '+1 hour'))`,
+    VALUES (?, ?, datetime('now', '+1 hour'))`
       )
         .bind(usuario.id, tokenHash)
         .run();
@@ -720,7 +734,7 @@ export default {
           headers: {
             "Set-Cookie": cookieSessao(token, request),
           },
-        },
+        }
       );
     }
 
@@ -738,7 +752,7 @@ export default {
           `UPDATE sessoes
        SET expira_em = datetime('now', '+1 hour')
        WHERE token_hash = ?
-         AND expira_em > CURRENT_TIMESTAMP`,
+         AND expira_em > CURRENT_TIMESTAMP`
         )
           .bind(tokenHash)
           .run();
@@ -751,7 +765,7 @@ export default {
               headers: {
                 "Set-Cookie": cookieSessao("", request, 0),
               },
-            },
+            }
           );
         }
 
@@ -761,7 +775,7 @@ export default {
             headers: {
               "Set-Cookie": cookieSessao(token, request),
             },
-          },
+          }
         );
       } catch (erro) {
         if (erro instanceof AuthStorageUnavailableError) {
@@ -787,7 +801,7 @@ export default {
           headers: {
             "Set-Cookie": cookieSessao("", request, 0),
           },
-        },
+        }
       );
     }
 
@@ -828,7 +842,7 @@ export default {
       if (!usuarioAtual) {
         return Response.json(
           { erro: "Sessão expirada ou não autenticada." },
-          { status: 401 },
+          { status: 401 }
         );
       }
 
@@ -836,11 +850,11 @@ export default {
         if (usuarioAtual.perfil !== "ADMIN")
           return Response.json(
             { erro: "Apenas administradores podem gerenciar usuários." },
-            { status: 403 },
+            { status: 403 }
           );
         if (request.method === "GET") {
           const usuarios = await env.DB.prepare(
-            `SELECT id, nome, email, username, perfil, ativo, criado_em FROM usuarios ORDER BY nome`,
+            `SELECT id, nome, email, username, perfil, ativo, criado_em FROM usuarios ORDER BY nome`
           ).all();
           return Response.json(usuarios.results);
         }
@@ -867,111 +881,299 @@ export default {
           )
             return Response.json(
               { erro: "Dados de usuário inválidos." },
-              { status: 400 },
+              { status: 400 }
             );
           if (!/^[a-z0-9._-]{3,40}$/i.test(username))
             return Response.json(
               { erro: "Nome de usuário inválido." },
-              { status: 400 },
+              { status: 400 }
             );
           const cred = await hashSenha(senha);
           try {
             const result = await env.DB.prepare(
-              `INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, ?, 1)`,
+              `INSERT INTO usuarios (nome, email, username, senha_hash, senha_salt, perfil, ativo) VALUES (?, ?, ?, ?, ?, ?, 1)`
             )
               .bind(nome, email, username, cred.hash, cred.salt, perfil)
               .run();
             const periodoAuditoria = await obterPeriodoAtual(request, env, url);
-            await registrarAuditoria(env, usuarioAtual, periodoAuditoria?.id ?? null, {
-              acao: "CRIAR",
-              entidade: "USUARIO",
-              descricao: `Usuário ${nome} (@${username}) criado com perfil ${perfil}.`,
-            });
+            await registrarAuditoria(
+              env,
+              usuarioAtual,
+              periodoAuditoria?.id ?? null,
+              {
+                acao: "CRIAR",
+                entidade: "USUARIO",
+                descricao: `Usuário ${nome} (@${username}) criado com perfil ${perfil}.`,
+              }
+            );
             return Response.json(
               { sucesso: true, id: result.meta.last_row_id },
-              { status: 201 },
+              { status: 201 }
             );
           } catch {
             return Response.json(
               { erro: "E-mail ou nome de usuário já cadastrado." },
-              { status: 409 },
+              { status: 409 }
             );
           }
         }
       }
 
       const rotaUsuario = url.pathname.match(/^\/api\/usuarios\/(\d+)$/);
+
       if (rotaUsuario && request.method === "PUT") {
-        if (usuarioAtual.perfil !== "ADMIN")
+        if (usuarioAtual.perfil !== "ADMIN") {
           return Response.json(
             { erro: "Apenas administradores podem gerenciar usuários." },
-            { status: 403 },
+            { status: 403 }
           );
+        }
+
         const id = Number(rotaUsuario[1]);
+
         const body = await request.json<{
           nome?: string;
           perfil?: PerfilUsuario;
           ativo?: boolean;
           senha?: string;
         }>();
-        if (id === usuarioAtual.id && body.ativo === false)
+
+        if (id === usuarioAtual.id && body.ativo === false) {
           return Response.json(
             { erro: "Você não pode desativar seu próprio usuário." },
-            { status: 400 },
+            { status: 400 }
           );
+        }
+
         if (
           body.perfil &&
           !["ADMIN", "EDITOR", "VISUALIZADOR"].includes(body.perfil)
-        )
+        ) {
           return Response.json({ erro: "Perfil inválido." }, { status: 400 });
+        }
+
+        if (body.senha && body.senha.length < 8) {
+          return Response.json(
+            { erro: "A nova senha deve ter pelo menos 8 caracteres." },
+            { status: 400 }
+          );
+        }
+
         const atual = await env.DB.prepare(
-          `SELECT nome, perfil, ativo FROM usuarios WHERE id = ?`,
+          `
+            SELECT id, nome, username, perfil, ativo
+            FROM usuarios
+            WHERE id = ?
+          `
         )
           .bind(id)
-          .first<{ nome: string; perfil: PerfilUsuario; ativo: number }>();
-        if (!atual)
+          .first<{
+            id: number;
+            nome: string;
+            username: string;
+            perfil: PerfilUsuario;
+            ativo: number;
+          }>();
+
+        if (!atual) {
           return Response.json(
             { erro: "Usuário não encontrado." },
-            { status: 404 },
+            { status: 404 }
           );
+        }
+
         const nome = body.nome?.trim() || atual.nome;
         const perfil = body.perfil || atual.perfil;
         const ativo =
           body.ativo === undefined ? atual.ativo : body.ativo ? 1 : 0;
+
+        const deixaDeSerAdminAtivo =
+          atual.perfil === "ADMIN" &&
+          atual.ativo === 1 &&
+          (perfil !== "ADMIN" || ativo === 0);
+
+        if (deixaDeSerAdminAtivo) {
+          const outrosAdmins = await env.DB.prepare(
+            `
+              SELECT COUNT(*) AS total
+              FROM usuarios
+              WHERE perfil = 'ADMIN'
+                AND ativo = 1
+                AND id <> ?
+            `
+          )
+            .bind(id)
+            .first<{ total: number }>();
+
+          if (Number(outrosAdmins?.total || 0) === 0) {
+            return Response.json(
+              {
+                erro: "Não é possível desativar ou remover o perfil do último administrador ativo.",
+              },
+              { status: 409 }
+            );
+          }
+        }
+
         await env.DB.prepare(
-          `UPDATE usuarios SET nome = ?, perfil = ?, ativo = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`,
+          `
+            UPDATE usuarios
+            SET nome = ?,
+                perfil = ?,
+                ativo = ?,
+                atualizado_em = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `
         )
           .bind(nome, perfil, ativo, id)
           .run();
+
         if (body.senha) {
-          if (body.senha.length < 8)
-            return Response.json(
-              { erro: "A nova senha deve ter pelo menos 8 caracteres." },
-              { status: 400 },
-            );
           const cred = await hashSenha(body.senha);
+
           await env.DB.prepare(
-            `UPDATE usuarios SET senha_hash = ?, senha_salt = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`,
+            `
+              UPDATE usuarios
+              SET senha_hash = ?,
+                  senha_salt = ?,
+                  atualizado_em = CURRENT_TIMESTAMP
+              WHERE id = ?
+            `
           )
             .bind(cred.hash, cred.salt, id)
             .run();
+
           await env.DB.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`)
             .bind(id)
             .run();
         }
+
+        if (atual.ativo === 1 && ativo === 0) {
+          await env.DB.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`)
+            .bind(id)
+            .run();
+        }
+
         const alteracoes = [
           nome !== atual.nome ? `nome: ${atual.nome} → ${nome}` : null,
-          perfil !== atual.perfil ? `perfil: ${atual.perfil} → ${perfil}` : null,
-          ativo !== atual.ativo ? `status: ${atual.ativo ? "ativo" : "inativo"} → ${ativo ? "ativo" : "inativo"}` : null,
+
+          perfil !== atual.perfil
+            ? `perfil: ${atual.perfil} → ${perfil}`
+            : null,
+
+          ativo !== atual.ativo
+            ? `status: ${atual.ativo ? "ativo" : "inativo"} → ${
+                ativo ? "ativo" : "inativo"
+              }`
+            : null,
+
           body.senha ? "senha redefinida e sessões encerradas" : null,
         ].filter(Boolean);
+
         const periodoAuditoria = await obterPeriodoAtual(request, env, url);
-        await registrarAuditoria(env, usuarioAtual, periodoAuditoria?.id ?? null, {
-          acao: body.senha && alteracoes.length === 1 ? "REDEFINIR_SENHA" : "EDITAR",
-          entidade: "USUARIO",
-          descricao: `Usuário ${atual.nome} atualizado: ${alteracoes.join("; ") || "sem mudanças efetivas"}.`,
-        });
+
+        await registrarAuditoria(
+          env,
+          usuarioAtual,
+          periodoAuditoria?.id ?? null,
+          {
+            acao:
+              body.senha && alteracoes.length === 1
+                ? "REDEFINIR_SENHA"
+                : "EDITAR",
+            entidade: "USUARIO",
+            descricao: `Usuário ${atual.nome} atualizado: ${
+              alteracoes.join("; ") || "sem mudanças efetivas"
+            }.`,
+          }
+        );
+
         return Response.json({ sucesso: true });
+      }
+
+      if (rotaUsuario && request.method === "DELETE") {
+        if (usuarioAtual.perfil !== "ADMIN") {
+          return Response.json(
+            { erro: "Apenas administradores podem gerenciar usuários." },
+            { status: 403 }
+          );
+        }
+
+        const id = Number(rotaUsuario[1]);
+
+        if (id === usuarioAtual.id) {
+          return Response.json(
+            { erro: "Você não pode excluir seu próprio usuário." },
+            { status: 400 }
+          );
+        }
+
+        const usuarioExcluir = await env.DB.prepare(
+          `
+            SELECT id, nome, username, perfil, ativo
+            FROM usuarios
+            WHERE id = ?
+          `
+        )
+          .bind(id)
+          .first<{
+            id: number;
+            nome: string;
+            username: string;
+            perfil: PerfilUsuario;
+            ativo: number;
+          }>();
+
+        if (!usuarioExcluir) {
+          return Response.json(
+            { erro: "Usuário não encontrado." },
+            { status: 404 }
+          );
+        }
+
+        if (usuarioExcluir.perfil === "ADMIN" && usuarioExcluir.ativo === 1) {
+          const outrosAdmins = await env.DB.prepare(
+            `
+              SELECT COUNT(*) AS total
+              FROM usuarios
+              WHERE perfil = 'ADMIN'
+                AND ativo = 1
+                AND id <> ?
+            `
+          )
+            .bind(id)
+            .first<{ total: number }>();
+
+          if (Number(outrosAdmins?.total || 0) === 0) {
+            return Response.json(
+              {
+                erro: "Não é possível excluir o último administrador ativo.",
+              },
+              { status: 409 }
+            );
+          }
+        }
+
+        const periodoAuditoria = await obterPeriodoAtual(request, env, url);
+
+        await registrarAuditoria(
+          env,
+          usuarioAtual,
+          periodoAuditoria?.id ?? null,
+          {
+            acao: "EXCLUIR",
+            entidade: "USUARIO",
+            descricao: `Usuário ${usuarioExcluir.nome} (@${usuarioExcluir.username}) excluído.`,
+          }
+        );
+
+        await env.DB.prepare(`DELETE FROM usuarios WHERE id = ?`)
+          .bind(id)
+          .run();
+
+        return Response.json({
+          sucesso: true,
+        });
       }
 
       if (
@@ -980,7 +1182,7 @@ export default {
       ) {
         return Response.json(
           { erro: "Seu perfil é somente visualização." },
-          { status: 403 },
+          { status: 403 }
         );
       }
     }
@@ -1000,7 +1202,7 @@ export default {
             LEFT JOIN alunos a ON a.periodo_id = p.id
             GROUP BY p.id
             ORDER BY p.codigo DESC
-          `,
+          `
         ).all<PeriodoRow & { total_alunos: number }>();
         return Response.json(resultado.results);
       } catch (erro) {
@@ -1009,7 +1211,7 @@ export default {
           {
             erro: "Períodos indisponíveis. Execute a migration 003_periodos.sql no D1.",
           },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -1021,42 +1223,47 @@ export default {
         if (!/^\d{4}-(1|2)$/.test(codigo || "")) {
           return Response.json(
             { erro: "Período inválido. Use AAAA-1 ou AAAA-2." },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
         const existente = await env.DB.prepare(
-          `SELECT id FROM periodos WHERE codigo = ?`,
+          `SELECT id FROM periodos WHERE codigo = ?`
         )
           .bind(codigo)
           .first();
         if (existente)
           return Response.json(
             { erro: "Este período já existe." },
-            { status: 409 },
+            { status: 409 }
           );
 
         const resultado = await env.DB.prepare(
-          `INSERT INTO periodos (codigo, status) VALUES (?, 'ATIVO')`,
+          `INSERT INTO periodos (codigo, status) VALUES (?, 'ATIVO')`
         )
           .bind(codigo)
           .run();
 
-        await registrarAuditoria(env, usuarioAtual, Number(resultado.meta.last_row_id), {
-          acao: "CRIAR",
-          entidade: "PERIODO",
-          descricao: `Período letivo ${codigo} criado.`,
-        });
+        await registrarAuditoria(
+          env,
+          usuarioAtual,
+          Number(resultado.meta.last_row_id),
+          {
+            acao: "CRIAR",
+            entidade: "PERIODO",
+            descricao: `Período letivo ${codigo} criado.`,
+          }
+        );
 
         return Response.json(
           { sucesso: true, id: resultado.meta.last_row_id, codigo },
-          { status: 201 },
+          { status: 201 }
         );
       } catch (erro) {
         console.error(erro);
         return Response.json(
           { erro: "Não foi possível criar o período." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -1069,21 +1276,21 @@ export default {
         if (!["ATIVO", "ARQUIVADO"].includes(body.status)) {
           return Response.json(
             { erro: "Status de período inválido." },
-            { status: 400 },
+            { status: 400 }
           );
         }
         const periodo = await env.DB.prepare(
-          `SELECT id, codigo FROM periodos WHERE id = ?`,
+          `SELECT id, codigo FROM periodos WHERE id = ?`
         )
           .bind(id)
           .first<{ id: number; codigo: string }>();
         if (!periodo)
           return Response.json(
             { erro: "Período não encontrado." },
-            { status: 404 },
+            { status: 404 }
           );
         await env.DB.prepare(
-          `UPDATE periodos SET status = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`,
+          `UPDATE periodos SET status = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`
         )
           .bind(body.status, id)
           .run();
@@ -1102,20 +1309,20 @@ export default {
         console.error(erro);
         return Response.json(
           { erro: "Não foi possível alterar o período." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
 
     const rotaSheetsStatus = url.pathname.match(
-      /^\/api\/periodos\/(\d+)\/google-sheets\/status$/,
+      /^\/api\/periodos\/(\d+)\/google-sheets\/status$/
     );
 
     if (rotaSheetsStatus && request.method === "GET") {
       const periodoId = Number(rotaSheetsStatus[1]);
 
       const config = await env.DB.prepare(
-        `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+        `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`
       )
         .bind(periodoId)
         .first<SheetsConfig>();
@@ -1157,7 +1364,7 @@ export default {
     }
 
     const rotaSheetsConfig = url.pathname.match(
-      /^\/api\/periodos\/(\d+)\/google-sheets$/,
+      /^\/api\/periodos\/(\d+)\/google-sheets$/
     );
     if (rotaSheetsConfig && request.method === "GET") {
       const periodoId = Number(rotaSheetsConfig[1]);
@@ -1166,7 +1373,7 @@ export default {
       for (let tentativa = 1; tentativa <= 3; tentativa += 1) {
         try {
           const config = await env.DB.prepare(
-            `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+            `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`
           )
             .bind(periodoId)
             .first<SheetsConfig>();
@@ -1176,7 +1383,7 @@ export default {
           ultimoErro = erro;
           console.warn(
             `Falha temporária ao ler configuração do Google Sheets (tentativa ${tentativa}/3).`,
-            erro,
+            erro
           );
 
           if (tentativa < 3) {
@@ -1187,14 +1394,14 @@ export default {
 
       console.error(
         "D1 indisponível ao carregar configuração do Google Sheets.",
-        ultimoErro,
+        ultimoErro
       );
       return Response.json(
         {
           erro: "Configuração do Google Sheets temporariamente indisponível.",
           codigo: "SHEETS_CONFIG_STORAGE_UNAVAILABLE",
         },
-        { status: 503 },
+        { status: 503 }
       );
     }
 
@@ -1217,7 +1424,7 @@ export default {
         if (campos.some((campo) => !campo))
           return Response.json(
             { erro: "Preencha a planilha e as seis abas da integração." },
-            { status: 400 },
+            { status: 400 }
           );
         await env.DB.prepare(
           `
@@ -1234,7 +1441,7 @@ export default {
             aba_cancelados_face_fea = excluded.aba_cancelados_face_fea,
             aba_cancelados_fch_ead = excluded.aba_cancelados_fch_ead,
             atualizado_em = CURRENT_TIMESTAMP
-        `,
+        `
         )
           .bind(periodoId, ...campos)
           .run();
@@ -1248,20 +1455,20 @@ export default {
         console.error(erro);
         return Response.json(
           { erro: "Não foi possível salvar a integração com Google Sheets." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
 
     const rotaSheetsMapeamentos = url.pathname.match(
-      /^\/api\/periodos\/(\d+)\/google-sheets\/mapeamentos$/,
+      /^\/api\/periodos\/(\d+)\/google-sheets\/mapeamentos$/
     );
     if (rotaSheetsMapeamentos && request.method === "GET") {
       const periodoId = Number(rotaSheetsMapeamentos[1]);
       const dados = await env.DB.prepare(
         `
         SELECT curso, unidade FROM google_sheets_mapeamentos WHERE periodo_id = ? ORDER BY curso
-      `,
+      `
       )
         .bind(periodoId)
         .all<{ curso: string; unidade: string }>();
@@ -1278,7 +1485,7 @@ export default {
         if (!curso || !["FACE", "FEA", "FCH", "EAD"].includes(unidade)) {
           return Response.json(
             { erro: "Informe um curso e uma unidade válida." },
-            { status: 400 },
+            { status: 400 }
           );
         }
         await env.DB.prepare(
@@ -1287,7 +1494,7 @@ export default {
           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
           ON CONFLICT(periodo_id, curso_chave) DO UPDATE SET
             curso = excluded.curso, unidade = excluded.unidade, atualizado_em = CURRENT_TIMESTAMP
-        `,
+        `
         )
           .bind(periodoId, cursoChave, curso, unidade)
           .run();
@@ -1302,26 +1509,26 @@ export default {
         console.error(erro);
         return Response.json(
           { erro: "Não foi possível salvar o mapeamento de curso." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
 
     const rotaSheetsPrevia = url.pathname.match(
-      /^\/api\/periodos\/(\d+)\/google-sheets\/previa$/,
+      /^\/api\/periodos\/(\d+)\/google-sheets\/previa$/
     );
     if (rotaSheetsPrevia && request.method === "POST") {
       try {
         const periodoId = Number(rotaSheetsPrevia[1]);
         const config = await env.DB.prepare(
-          `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+          `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`
         )
           .bind(periodoId)
           .first<SheetsConfig>();
         if (!config)
           return Response.json(
             { erro: "Configure a planilha deste período primeiro." },
-            { status: 409 },
+            { status: 409 }
           );
         const ranges = await lerRangesGoogle(env, config);
         const [
@@ -1377,7 +1584,7 @@ export default {
                   contrato: valorBooleano(l[8]),
                 },
               ])
-              .filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>,
+              .filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>
           );
         const docs = new Map([
           ...lerDocs(docsFaceFea.linhas),
@@ -1396,7 +1603,7 @@ export default {
               doc.ensino_medio,
               doc.contrato,
             ].filter(Boolean).length,
-          0,
+          0
         );
 
         const lerCancelados = (linhas: unknown[][]) =>
@@ -1404,7 +1611,7 @@ export default {
             linhas
               .slice(1)
               .map((l) => normalizarTexto(l[5] ?? l[0]))
-              .filter(Boolean),
+              .filter(Boolean)
           );
         const cancelados = new Set([
           ...lerCancelados(cancelFaceFea.linhas),
@@ -1416,7 +1623,7 @@ export default {
           SELECT a.ra, a.nome, a.curso, a.unidade, a.email, a.email_outro, a.status,
                  d.identidade, d.cpf, d.certidao, d.residencia, d.titulo, d.ensino_medio, d.contrato
           FROM alunos a LEFT JOIN documentos d ON d.aluno_id = a.id WHERE a.periodo_id = ?
-        `,
+        `
         )
           .bind(periodoId)
           .all<AlunoRow>();
@@ -1430,28 +1637,28 @@ export default {
         const mapeamentosSalvos = await env.DB.prepare(
           `
           SELECT curso_chave, unidade FROM google_sheets_mapeamentos WHERE periodo_id = ?
-        `,
+        `
         )
           .bind(periodoId)
           .all<{ curso_chave: string; unidade: string }>();
         const unidadePorCurso = new Map(
-          mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade]),
+          mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade])
         );
 
         const resolverUnidade = (a: LinhaBase) => {
           const cursoChave = normalizarComparacao(a.curso);
-        
+
           const mapeada = unidadePorCurso.get(cursoChave);
           if (mapeada) return mapeada;
-        
+
           if (a.origem === "FCH_EAD") {
             return null;
           }
-        
-          const conhecidas = [
-            ...(cursoUnidades.get(cursoChave) ?? []),
-          ].filter((u) => u === "FACE" || u === "FEA");
-        
+
+          const conhecidas = [...(cursoUnidades.get(cursoChave) ?? [])].filter(
+            (u) => u === "FACE" || u === "FEA"
+          );
+
           return conhecidas.length === 1 ? conhecidas[0] : null;
         };
 
@@ -1550,7 +1757,7 @@ export default {
               ],
             ].filter(
               ([, antes, depois]) =>
-                normalizarComparacao(antes) !== normalizarComparacao(depois),
+                normalizarComparacao(antes) !== normalizarComparacao(depois)
             );
 
             if (campos.length) {
@@ -1562,7 +1769,7 @@ export default {
                 detalhe: campos
                   .map(
                     ([campo, antes, depois]) =>
-                      `${campo}: ${antes || "—"} → ${depois || "—"}`,
+                      `${campo}: ${antes || "—"} → ${depois || "—"}`
                   )
                   .join("\n"),
               });
@@ -1586,7 +1793,7 @@ export default {
               ["Contrato", Boolean(atual.contrato), doc.contrato],
             ] as Array<[string, boolean, boolean]>;
             const diferentes = pares.filter(
-              ([, antes, depois]) => antes !== depois,
+              ([, antes, depois]) => antes !== depois
             );
 
             if (diferentes.length) {
@@ -1600,7 +1807,7 @@ export default {
                     ([nome, antes, depois]) =>
                       `${nome}: ${antes ? "Entregue" : "Pendente"} → ${
                         depois ? "Entregue" : "Pendente"
-                      }`,
+                      }`
                   )
                   .join("\n"),
               });
@@ -1681,7 +1888,7 @@ export default {
           detalhes_unidades: semUnidade,
           cursos_pendentes: [...cursosPendentes.values()].sort(
             (a, b) =>
-              b.quantidade - a.quantidade || a.curso.localeCompare(b.curso),
+              b.quantidade - a.quantidade || a.curso.localeCompare(b.curso)
           ),
           detalhes: {
             novos: detalhesNovos,
@@ -1702,13 +1909,13 @@ export default {
                 ? erro.message
                 : "Não foi possível ler o Google Sheets.",
           },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
 
     const rotaSheetsSincronizar = url.pathname.match(
-      /^\/api\/periodos\/(\d+)\/google-sheets\/sincronizar$/,
+      /^\/api\/periodos\/(\d+)\/google-sheets\/sincronizar$/
     );
 
     if (rotaSheetsSincronizar && request.method === "POST") {
@@ -1716,13 +1923,13 @@ export default {
         if (!podeEditar(usuarioAtual!)) {
           return Response.json(
             { erro: "Seu perfil não permite sincronizar dados." },
-            { status: 403 },
+            { status: 403 }
           );
         }
 
         const periodoId = Number(rotaSheetsSincronizar[1]);
         const config = await env.DB.prepare(
-          `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`,
+          `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`
         )
           .bind(periodoId)
           .first<SheetsConfig>();
@@ -1730,7 +1937,7 @@ export default {
         if (!config) {
           return Response.json(
             { erro: "Configure a planilha deste período primeiro." },
-            { status: 409 },
+            { status: 409 }
           );
         }
 
@@ -1757,7 +1964,7 @@ export default {
 
         const lerBaseSync = (
           linhas: unknown[][],
-          origem: OrigemSync,
+          origem: OrigemSync
         ): LinhaBaseSync[] =>
           linhas
             .slice(1)
@@ -1793,7 +2000,7 @@ export default {
                   contrato: valorBooleano(l[8]),
                 },
               ])
-              .filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>,
+              .filter(([ra]) => Boolean(ra)) as Array<[string, DocumentosBody]>
           );
 
         const docs = new Map([
@@ -1806,7 +2013,7 @@ export default {
             linhas
               .slice(1)
               .map((l) => normalizarTexto(l[5] ?? l[0]))
-              .filter(Boolean),
+              .filter(Boolean)
           );
 
         const cancelados = new Set([
@@ -1821,7 +2028,7 @@ export default {
           FROM alunos a
           LEFT JOIN documentos d ON d.aluno_id = a.id
           WHERE a.periodo_id = ?
-        `,
+        `
         )
           .bind(periodoId)
           .all<AlunoRow & { id: number }>();
@@ -1840,29 +2047,29 @@ export default {
           SELECT curso_chave, unidade
           FROM google_sheets_mapeamentos
           WHERE periodo_id = ?
-        `,
+        `
         )
           .bind(periodoId)
           .all<{ curso_chave: string; unidade: string }>();
 
         const unidadePorCurso = new Map(
-          mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade]),
+          mapeamentosSalvos.results.map((m) => [m.curso_chave, m.unidade])
         );
 
         const resolverUnidadeSync = (a: LinhaBaseSync) => {
           const cursoChave = normalizarComparacao(a.curso);
-        
+
           const mapeada = unidadePorCurso.get(cursoChave);
           if (mapeada) return mapeada;
-        
+
           if (a.origem === "FCH_EAD") {
             return null;
           }
-        
-          const conhecidas = [
-            ...(cursoUnidades.get(cursoChave) ?? []),
-          ].filter((u) => u === "FACE" || u === "FEA");
-        
+
+          const conhecidas = [...(cursoUnidades.get(cursoChave) ?? [])].filter(
+            (u) => u === "FACE" || u === "FEA"
+          );
+
           return conhecidas.length === 1 ? conhecidas[0] : null;
         };
 
@@ -1879,7 +2086,7 @@ export default {
               erro: `Sincronização bloqueada: ${semUnidade.length} aluno(s) ainda estão sem unidade definida.`,
               unidades_nao_resolvidas: semUnidade.length,
             },
-            { status: 409 },
+            { status: 409 }
           );
         }
 
@@ -1914,7 +2121,7 @@ export default {
         periodo_id, ra, nome, email, email_outro, curso, unidade, status
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `,
+    `
               ).bind(
                 periodoId,
                 aluno.ra,
@@ -1923,8 +2130,8 @@ export default {
                 aluno.email_outro || null,
                 aluno.curso,
                 unidade!,
-                statusInicial,
-              ),
+                statusInicial
+              )
             );
 
             comandos.push(
@@ -1937,7 +2144,7 @@ export default {
                 SELECT id, ?, ?, ?, ?, ?, ?, ?
                 FROM alunos
                 WHERE periodo_id = ? AND ra = ?
-              `,
+              `
               ).bind(
                 doc?.identidade ? 1 : 0,
                 doc?.cpf ? 1 : 0,
@@ -1947,8 +2154,8 @@ export default {
                 doc?.ensino_medio ? 1 : 0,
                 doc ? (doc.contrato ? 1 : 0) : aluno.contrato ? 1 : 0,
                 periodoId,
-                aluno.ra,
-              ),
+                aluno.ra
+              )
             );
 
             continue;
@@ -1962,8 +2169,8 @@ export default {
       UPDATE alunos
       SET status = 'ATIVO', atualizado_em = CURRENT_TIMESTAMP
       WHERE id = ?
-    `,
-              ).bind(atual.id),
+    `
+              ).bind(atual.id)
             );
           }
           const cadastroMudou =
@@ -1992,15 +2199,15 @@ export default {
           unidade = ?,
           atualizado_em = CURRENT_TIMESTAMP
       WHERE id = ?
-    `,
+    `
               ).bind(
                 aluno.nome,
                 aluno.email || null,
                 aluno.email_outro || null,
                 aluno.curso,
                 unidade!,
-                atual.id,
-              ),
+                atual.id
+              )
             );
           }
 
@@ -2037,7 +2244,7 @@ export default {
                     ensino_medio = excluded.ensino_medio,
                     contrato = excluded.contrato,
                     atualizado_em = CURRENT_TIMESTAMP
-                `,
+                `
                 ).bind(
                   atual.id,
                   doc.identidade ? 1 : 0,
@@ -2046,8 +2253,8 @@ export default {
                   doc.residencia ? 1 : 0,
                   doc.titulo ? 1 : 0,
                   doc.ensino_medio ? 1 : 0,
-                  doc.contrato ? 1 : 0,
-                ),
+                  doc.contrato ? 1 : 0
+                )
               );
             }
           }
@@ -2064,8 +2271,8 @@ export default {
               UPDATE alunos
               SET status = 'CANCELADO', atualizado_em = CURRENT_TIMESTAMP
               WHERE id = ?
-            `,
-            ).bind(atual.id),
+            `
+            ).bind(atual.id)
           );
         }
 
@@ -2083,8 +2290,8 @@ export default {
                 `
         DELETE FROM alunos
         WHERE id = ?
-      `,
-              ).bind(atual.id),
+      `
+              ).bind(atual.id)
             );
           }
         }
@@ -2096,13 +2303,15 @@ export default {
         }
 
         const periodo = await env.DB.prepare(
-          `SELECT codigo FROM periodos WHERE id = ?`,
+          `SELECT codigo FROM periodos WHERE id = ?`
         )
           .bind(periodoId)
           .first<{ codigo: string }>();
 
         const descricao =
-          `Google Sheets sincronizado no período ${periodo?.codigo ?? periodoId}: ` +
+          `Google Sheets sincronizado no período ${
+            periodo?.codigo ?? periodoId
+          }: ` +
           `${novos} novo(s), ${cadastros} cadastro(s), ` +
           `${documentosAlterados} documento(s), ${cancelamentos} cancelamento(s), ` +
           `${reativacoes} reativação(ões) e ${remocoes} remoção(ões).`;
@@ -2121,7 +2330,7 @@ export default {
             usuario_username
           )
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,
+        `
         )
           .bind(
             "SINCRONIZAR",
@@ -2132,12 +2341,12 @@ export default {
             periodoId,
             usuarioAtual?.id ?? null,
             usuarioAtual?.nome ?? null,
-            usuarioAtual?.username ?? null,
+            usuarioAtual?.username ?? null
           )
           .run();
 
         const novosCancelados = resolvidos.filter(
-          ({ aluno }) => !porRa.has(aluno.ra) && cancelados.has(aluno.ra),
+          ({ aluno }) => !porRa.has(aluno.ra) && cancelados.has(aluno.ra)
         ).length;
 
         return Response.json({
@@ -2166,23 +2375,26 @@ export default {
                 ? erro.message
                 : "Não foi possível sincronizar o Google Sheets.",
           },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
 
-    if (url.pathname === "/api/admin/backup/status" && request.method === "GET") {
+    if (
+      url.pathname === "/api/admin/backup/status" &&
+      request.method === "GET"
+    ) {
       if (usuarioAtual?.perfil !== "ADMIN")
         return Response.json(
           { erro: "Apenas administradores podem acessar o backup." },
-          { status: 403 },
+          { status: 403 }
         );
 
       return Response.json({
         configurado: Boolean(
           env.CLOUDFLARE_ACCOUNT_ID?.trim() &&
             env.CLOUDFLARE_API_TOKEN?.trim() &&
-            env.D1_DATABASE_ID?.trim(),
+            env.D1_DATABASE_ID?.trim()
         ),
       });
     }
@@ -2191,16 +2403,22 @@ export default {
       if (usuarioAtual?.perfil !== "ADMIN")
         return Response.json(
           { erro: "Apenas administradores podem gerar backups." },
-          { status: 403 },
+          { status: 403 }
         );
 
       try {
         const periodoAuditoria = await obterPeriodoAtual(request, env, url);
-        await registrarAuditoria(env, usuarioAtual, periodoAuditoria?.id ?? null, {
-          acao: "BACKUP",
-          entidade: "BANCO_D1",
-          descricao: "Exportacao manual do banco D1 solicitada pelo painel administrativo.",
-        });
+        await registrarAuditoria(
+          env,
+          usuarioAtual,
+          periodoAuditoria?.id ?? null,
+          {
+            acao: "BACKUP",
+            entidade: "BANCO_D1",
+            descricao:
+              "Exportacao manual do banco D1 solicitada pelo painel administrativo.",
+          }
+        );
 
         const exportacao = await solicitarExportacaoD1(env);
         return Response.json({
@@ -2218,7 +2436,7 @@ export default {
                 ? erro.message
                 : "Nao foi possivel gerar o backup do D1.",
           },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -2236,7 +2454,7 @@ export default {
         {
           erro: "Nenhum período letivo disponível. Crie ou migre um período antes de continuar.",
         },
-        { status: 409 },
+        { status: 409 }
       );
     }
 
@@ -2264,7 +2482,7 @@ export default {
           {
             erro: "Ferramenta disponível somente no ambiente de desenvolvimento.",
           },
-          { status: 403 },
+          { status: 403 }
         );
       }
 
@@ -2273,7 +2491,7 @@ export default {
           {
             erro: "Apenas administradores podem usar ferramentas de desenvolvimento.",
           },
-          { status: 403 },
+          { status: 403 }
         );
       }
 
@@ -2296,19 +2514,19 @@ export default {
         if (body.confirmacao?.trim().toUpperCase() !== confirmacaoEsperada) {
           return Response.json(
             { erro: `Digite "${confirmacaoEsperada}" para confirmar.` },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
         const contagem =
           unidade === "TODOS"
             ? await env.DB.prepare(
-                `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ?`,
+                `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ?`
               )
                 .bind(periodoAtual!.id)
                 .first<{ total: number }>()
             : await env.DB.prepare(
-                `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ? AND unidade = ?`,
+                `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ? AND unidade = ?`
               )
                 .bind(periodoAtual!.id, unidade)
                 .first<{ total: number }>();
@@ -2319,7 +2537,7 @@ export default {
             .run();
         } else {
           await env.DB.prepare(
-            `DELETE FROM alunos WHERE periodo_id = ? AND unidade = ?`,
+            `DELETE FROM alunos WHERE periodo_id = ? AND unidade = ?`
           )
             .bind(periodoAtual!.id, unidade)
             .run();
@@ -2335,7 +2553,7 @@ export default {
         console.error(erro);
         return Response.json(
           { erro: "Não foi possível limpar os alunos de desenvolvimento." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -2346,7 +2564,7 @@ export default {
     // =====================================================
 
     const rotaSheetsPendencias = url.pathname.match(
-      /^\/api\/periodos\/(\d+)\/google-sheets\/pendencias$/,
+      /^\/api\/periodos\/(\d+)\/google-sheets\/pendencias$/
     );
 
     if (rotaSheetsPendencias && request.method === "GET") {
@@ -2360,7 +2578,7 @@ export default {
           FROM google_sheets_pendencias
           WHERE periodo_id = ? AND status <> 'CONCLUIDA'
           ORDER BY atualizado_em DESC, id DESC
-        `,
+        `
         )
           .bind(periodoId)
           .all<{
@@ -2422,17 +2640,22 @@ export default {
         return Response.json({
           modo: "PREVIA_SOMENTE_LEITURA",
           total: pendencias.length,
-          atualizar: pendencias.filter((item) => item.operacao === "ATUALIZAR").length,
-          remover: pendencias.filter((item) => item.operacao === "REMOVER").length,
-          conflitos: pendencias.filter((item) => item.status === "CONFLITO").length,
+          atualizar: pendencias.filter((item) => item.operacao === "ATUALIZAR")
+            .length,
+          remover: pendencias.filter((item) => item.operacao === "REMOVER")
+            .length,
+          conflitos: pendencias.filter((item) => item.status === "CONFLITO")
+            .length,
           erros: pendencias.filter((item) => item.status === "ERRO").length,
           pendencias,
         });
       } catch (erro) {
         console.error("Falha ao listar pendencias do Google Sheets:", erro);
         return Response.json(
-          { erro: "A caixa de saída ainda não está disponível. Aplique a migration 008." },
-          { status: 500 },
+          {
+            erro: "A caixa de saída ainda não está disponível. Aplique a migration 008.",
+          },
+          { status: 500 }
         );
       }
     }
@@ -2448,7 +2671,8 @@ export default {
         const escopoGlobal = url.searchParams.get("scope") === "all";
 
         const resultado = await env.DB.prepare(
-          escopoGlobal ? `
+          escopoGlobal
+            ? `
             SELECT
               l.id,
               l.criado_em,
@@ -2465,7 +2689,8 @@ export default {
             LEFT JOIN periodos p ON p.id = l.periodo_id
             ORDER BY l.id DESC
             LIMIT ?
-          ` : `
+          `
+            : `
             SELECT
               id,
               criado_em,
@@ -2481,7 +2706,7 @@ export default {
             WHERE periodo_id = ?
             ORDER BY id DESC
             LIMIT ?
-          `,
+          `
         )
           .bind(...(escopoGlobal ? [limite] : [periodoAtual!.id, limite]))
           .all();
@@ -2493,7 +2718,7 @@ export default {
           {
             erro: "LOG indisponível. Verifique se as migrations do LOG foram aplicadas no D1.",
           },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -2519,7 +2744,7 @@ export default {
         ) {
           return Response.json(
             { erro: "Dados insuficientes para registrar o LOG." },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
@@ -2537,7 +2762,7 @@ export default {
               usuario_username
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `,
+          `
         )
           .bind(
             body.acao.trim(),
@@ -2548,7 +2773,7 @@ export default {
             periodoAtual!.id,
             usuarioAtual?.id ?? null,
             usuarioAtual?.nome ?? null,
-            usuarioAtual?.username ?? null,
+            usuarioAtual?.username ?? null
           )
           .run();
 
@@ -2557,7 +2782,7 @@ export default {
         console.error(erro);
         return Response.json(
           { erro: "Não foi possível registrar o LOG." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -2589,7 +2814,7 @@ export default {
             ON d.aluno_id = a.id
           WHERE a.periodo_id = ?
           ORDER BY a.nome
-        `,
+        `
       )
         .bind(periodoAtual!.id)
         .all<AlunoRow>();
@@ -2617,7 +2842,7 @@ export default {
             },
             {
               status: 400,
-            },
+            }
           );
         }
 
@@ -2626,7 +2851,7 @@ export default {
             SELECT id
             FROM alunos
             WHERE periodo_id = ? AND ra = ?
-          `,
+          `
         )
           .bind(periodoAtual!.id, ra)
           .first<{ id: number }>();
@@ -2638,7 +2863,7 @@ export default {
             },
             {
               status: 409,
-            },
+            }
           );
         }
 
@@ -2654,7 +2879,7 @@ export default {
               unidade
             )
             VALUES (?, ?, ?, ?, ?, ?, ?)
-          `,
+          `
         )
           .bind(
             periodoAtual!.id,
@@ -2663,7 +2888,7 @@ export default {
             body.email?.trim() || null,
             body.email_outro?.trim() || null,
             curso,
-            unidade,
+            unidade
           )
           .run();
 
@@ -2684,7 +2909,7 @@ export default {
               contrato
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `,
+          `
         )
           .bind(
             alunoId,
@@ -2694,7 +2919,7 @@ export default {
             documentos?.residencia ? 1 : 0,
             documentos?.titulo ? 1 : 0,
             documentos?.ensino_medio ? 1 : 0,
-            documentos?.contrato ? 1 : 0,
+            documentos?.contrato ? 1 : 0
           )
           .run();
 
@@ -2704,7 +2929,7 @@ export default {
           periodoAtual!.id,
           ra,
           "ATUALIZAR",
-          "NOVO ALUNO",
+          "NOVO ALUNO"
         );
 
         return Response.json(
@@ -2715,7 +2940,7 @@ export default {
           },
           {
             status: 201,
-          },
+          }
         );
       } catch (erro) {
         console.error(erro);
@@ -2726,7 +2951,7 @@ export default {
           },
           {
             status: 500,
-          },
+          }
         );
       }
     }
@@ -2772,7 +2997,7 @@ export default {
         if (!Array.isArray(body.alunos) || body.alunos.length === 0) {
           return Response.json(
             { erro: "Nenhum aluno foi enviado para sincronização." },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
@@ -2811,7 +3036,7 @@ export default {
           })
           .filter(
             (
-              aluno,
+              aluno
             ): aluno is {
               ra: string;
               nome: string;
@@ -2819,7 +3044,7 @@ export default {
               email: string | null;
               email_outro: string | null;
               contrato: boolean;
-            } => aluno !== null,
+            } => aluno !== null
           );
 
         const rasDoLote = new Set<string>();
@@ -2873,7 +3098,7 @@ export default {
                 status
               FROM alunos
               WHERE periodo_id = ? AND ra IN (${placeholders})
-            `,
+            `
           )
             .bind(periodoAtual!.id, ...lote.map((aluno) => aluno.ra))
             .all<AlunoExistenteImportacao>();
@@ -2889,7 +3114,7 @@ export default {
         const novos = unicos.filter((aluno) => !existentesPorRa.has(aluno.ra));
 
         const existentes = unicos.filter((aluno) =>
-          existentesPorRa.has(aluno.ra),
+          existentesPorRa.has(aluno.ra)
         );
 
         const alterados = existentes.filter((aluno) => {
@@ -2908,7 +3133,7 @@ export default {
         const alteradosRa = new Set(alterados.map((aluno) => aluno.ra));
 
         const semAlteracoes = existentes.filter(
-          (aluno) => !alteradosRa.has(aluno.ra),
+          (aluno) => !alteradosRa.has(aluno.ra)
         );
 
         // Novos: cadastra aluno e cria o controle documental.
@@ -2932,7 +3157,7 @@ export default {
                     unidade
                   )
                   VALUES (?, ?, ?, ?, ?, ?, ?)
-                `,
+                `
               ).bind(
                 periodoAtual!.id,
                 aluno.ra,
@@ -2940,8 +3165,8 @@ export default {
                 aluno.email,
                 aluno.email_outro,
                 aluno.curso,
-                body.unidade,
-              ),
+                body.unidade
+              )
             );
 
             comandos.push(
@@ -2968,8 +3193,8 @@ export default {
                     ?
                   FROM alunos
                   WHERE periodo_id = ? AND ra = ?
-                `,
-              ).bind(aluno.contrato ? 1 : 0, periodoAtual!.id, aluno.ra),
+                `
+              ).bind(aluno.contrato ? 1 : 0, periodoAtual!.id, aluno.ra)
             );
           }
 
@@ -2997,7 +3222,7 @@ export default {
                   status = 'ATIVO',
                   atualizado_em = CURRENT_TIMESTAMP
                 WHERE periodo_id = ? AND ra = ?
-              `,
+              `
             ).bind(
               aluno.nome,
               aluno.email,
@@ -3005,8 +3230,8 @@ export default {
               aluno.curso,
               body.unidade,
               periodoAtual!.id,
-              aluno.ra,
-            ),
+              aluno.ra
+            )
           );
 
           await env.DB.batch(comandos);
@@ -3019,7 +3244,7 @@ export default {
             periodoAtual!.id,
             aluno.ra,
             "ATUALIZAR",
-            novos.includes(aluno) ? "NOVO ALUNO" : "CADASTRO",
+            novos.includes(aluno) ? "NOVO ALUNO" : "CADASTRO"
           );
         }
 
@@ -3044,7 +3269,7 @@ export default {
 
         return Response.json(
           { erro: "Não foi possível sincronizar os alunos." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -3072,13 +3297,13 @@ export default {
         if (!Array.isArray(body.ras) || body.ras.length === 0) {
           return Response.json(
             { erro: "Nenhum RA foi enviado." },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
         const ras = [
           ...new Set(
-            body.ras.map((ra) => String(ra ?? "").trim()).filter(Boolean),
+            body.ras.map((ra) => String(ra ?? "").trim()).filter(Boolean)
           ),
         ];
 
@@ -3102,7 +3327,7 @@ export default {
             SELECT ra, nome, curso, unidade, status
             FROM alunos
             WHERE periodo_id = ? AND ra IN (${placeholders})
-          `,
+          `
           )
             .bind(periodoAtual!.id, ...lote)
             .all<AlunoCancelamento>();
@@ -3136,16 +3361,16 @@ export default {
           sucesso: true,
           recebidos: ras.length,
           prontos_para_cancelar: alunos.filter(
-            (aluno) => aluno.status_previa === "PRONTO",
+            (aluno) => aluno.status_previa === "PRONTO"
           ).length,
           ja_cancelados: alunos.filter(
-            (aluno) => aluno.status_previa === "JA_CANCELADO",
+            (aluno) => aluno.status_previa === "JA_CANCELADO"
           ).length,
           nao_encontrados: alunos.filter(
-            (aluno) => aluno.status_previa === "NAO_ENCONTRADO",
+            (aluno) => aluno.status_previa === "NAO_ENCONTRADO"
           ).length,
           outra_unidade: alunos.filter(
-            (aluno) => aluno.status_previa === "OUTRA_UNIDADE",
+            (aluno) => aluno.status_previa === "OUTRA_UNIDADE"
           ).length,
           alunos,
         });
@@ -3153,7 +3378,7 @@ export default {
         console.error(erro);
         return Response.json(
           { erro: "Não foi possível analisar os cancelados." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -3182,13 +3407,13 @@ export default {
         if (!Array.isArray(body.ras) || body.ras.length === 0) {
           return Response.json(
             { erro: "Nenhum RA foi enviado para cancelamento." },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
         const ras = [
           ...new Set(
-            body.ras.map((ra) => String(ra ?? "").trim()).filter(Boolean),
+            body.ras.map((ra) => String(ra ?? "").trim()).filter(Boolean)
           ),
         ];
 
@@ -3210,7 +3435,7 @@ export default {
             SELECT ra, unidade, status
             FROM alunos
             WHERE periodo_id = ? AND ra IN (${placeholders})
-          `,
+          `
           )
             .bind(periodoAtual!.id, ...lote)
             .all<StatusAluno>();
@@ -3233,8 +3458,8 @@ export default {
           const aluno = encontradosPorRa.get(ra);
           return Boolean(
             aluno &&
-            aluno.unidade === body.unidade &&
-            aluno.status === "CANCELADO",
+              aluno.unidade === body.unidade &&
+              aluno.status === "CANCELADO"
           );
         });
 
@@ -3261,9 +3486,9 @@ export default {
                 WHERE periodo_id = ?
                   AND ra = ?
                   AND unidade = ?
-              `,
-              ).bind(periodoAtual!.id, ra, body.unidade),
-            ),
+              `
+              ).bind(periodoAtual!.id, ra, body.unidade)
+            )
           );
         }
 
@@ -3274,7 +3499,7 @@ export default {
             periodoAtual!.id,
             ra,
             "ATUALIZAR",
-            "STATUS",
+            "STATUS"
           );
         }
 
@@ -3296,7 +3521,7 @@ export default {
         console.error(erro);
         return Response.json(
           { erro: "Não foi possível cancelar os alunos." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -3308,7 +3533,7 @@ export default {
     // =====================================================
 
     const rotaStatusAluno = url.pathname.match(
-      /^\/api\/alunos\/([^/]+)\/status$/,
+      /^\/api\/alunos\/([^/]+)\/status$/
     );
 
     if (rotaStatusAluno && request.method === "PUT") {
@@ -3328,7 +3553,7 @@ export default {
             SELECT id, status
             FROM alunos
             WHERE periodo_id = ? AND ra = ?
-          `,
+          `
         )
           .bind(periodoAtual!.id, ra)
           .first<{
@@ -3339,7 +3564,7 @@ export default {
         if (!aluno) {
           return Response.json(
             { erro: "Aluno não encontrado." },
-            { status: 404 },
+            { status: 404 }
           );
         }
 
@@ -3359,7 +3584,7 @@ export default {
               status = ?,
               atualizado_em = CURRENT_TIMESTAMP
             WHERE id = ?
-          `,
+          `
         )
           .bind(body.status, aluno.id)
           .run();
@@ -3370,7 +3595,7 @@ export default {
           periodoAtual!.id,
           ra,
           "ATUALIZAR",
-          "STATUS",
+          "STATUS"
         );
 
         return Response.json({
@@ -3384,7 +3609,7 @@ export default {
 
         return Response.json(
           { erro: "Não foi possível alterar o status da matrícula." },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
@@ -3408,7 +3633,7 @@ export default {
           SELECT id
           FROM alunos
           WHERE periodo_id = ? AND ra = ?
-        `,
+        `
       )
         .bind(periodoAtual!.id, ra)
         .first<{ id: number }>();
@@ -3420,7 +3645,7 @@ export default {
           },
           {
             status: 404,
-          },
+          }
         );
       }
 
@@ -3437,7 +3662,7 @@ export default {
             contrato = ?,
             atualizado_em = CURRENT_TIMESTAMP
           WHERE aluno_id = ?
-        `,
+        `
       )
         .bind(
           body.identidade ? 1 : 0,
@@ -3447,7 +3672,7 @@ export default {
           body.titulo ? 1 : 0,
           body.ensino_medio ? 1 : 0,
           body.contrato ? 1 : 0,
-          aluno.id,
+          aluno.id
         )
         .run();
 
@@ -3457,7 +3682,7 @@ export default {
         periodoAtual!.id,
         ra,
         "ATUALIZAR",
-        "DOCUMENTOS",
+        "DOCUMENTOS"
       );
 
       return Response.json({
@@ -3491,7 +3716,7 @@ export default {
             },
             {
               status: 400,
-            },
+            }
           );
         }
 
@@ -3500,7 +3725,7 @@ export default {
             SELECT id
             FROM alunos
             WHERE periodo_id = ? AND ra = ?
-          `,
+          `
         )
           .bind(periodoAtual!.id, raAtual)
           .first<{ id: number }>();
@@ -3512,7 +3737,7 @@ export default {
             },
             {
               status: 404,
-            },
+            }
           );
         }
 
@@ -3524,7 +3749,7 @@ export default {
               WHERE periodo_id = ?
               AND ra = ?
               AND id <> ?
-            `,
+            `
           )
             .bind(periodoAtual!.id, novoRa, aluno.id)
             .first<{ id: number }>();
@@ -3536,7 +3761,7 @@ export default {
               },
               {
                 status: 409,
-              },
+              }
             );
           }
         }
@@ -3553,7 +3778,7 @@ export default {
               unidade = ?,
               atualizado_em = CURRENT_TIMESTAMP
             WHERE id = ?
-          `,
+          `
         )
           .bind(
             novoRa,
@@ -3562,7 +3787,7 @@ export default {
             body.email_outro?.trim() || null,
             curso,
             unidade,
-            aluno.id,
+            aluno.id
           )
           .run();
 
@@ -3573,7 +3798,7 @@ export default {
             periodoAtual!.id,
             raAtual,
             "REMOVER",
-            "TROCA DE RA",
+            "TROCA DE RA"
           );
         }
         await registrarPendenciaGoogleSheets(
@@ -3582,7 +3807,7 @@ export default {
           periodoAtual!.id,
           novoRa,
           "ATUALIZAR",
-          "CADASTRO",
+          "CADASTRO"
         );
 
         return Response.json({
@@ -3599,7 +3824,7 @@ export default {
           },
           {
             status: 500,
-          },
+          }
         );
       }
     }
@@ -3617,7 +3842,7 @@ export default {
             SELECT id
             FROM alunos
             WHERE periodo_id = ? AND ra = ?
-          `,
+          `
         )
           .bind(periodoAtual!.id, ra)
           .first<{ id: number }>();
@@ -3629,7 +3854,7 @@ export default {
             },
             {
               status: 404,
-            },
+            }
           );
         }
 
@@ -3637,7 +3862,7 @@ export default {
           `
             DELETE FROM alunos
             WHERE id = ?
-          `,
+          `
         )
           .bind(aluno.id)
           .run();
@@ -3648,7 +3873,7 @@ export default {
           periodoAtual!.id,
           ra,
           "REMOVER",
-          "EXCLUSÃO",
+          "EXCLUSÃO"
         );
 
         return Response.json({
@@ -3664,7 +3889,7 @@ export default {
           },
           {
             status: 500,
-          },
+          }
         );
       }
     }
@@ -3696,7 +3921,7 @@ export default {
             WHERE periodo_id = ?
             ORDER BY id DESC
             LIMIT ?
-          `,
+          `
         )
           .bind(periodoAtual!.id, limite)
           .all<{
@@ -3726,7 +3951,7 @@ export default {
             prazo: registro.prazo,
             tipo_destinatario: registro.tipo_destinatario,
             ras: JSON.parse(registro.ras_json || "[]"),
-          })),
+          }))
         );
       } catch (erro) {
         console.error(erro);
@@ -3737,7 +3962,7 @@ export default {
           },
           {
             status: 500,
-          },
+          }
         );
       }
     }
@@ -3773,7 +3998,7 @@ export default {
             },
             {
               status: 400,
-            },
+            }
           );
         }
 
@@ -3792,7 +4017,7 @@ export default {
               periodo_id
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `,
+          `
         )
           .bind(
             body.grupo_chave,
@@ -3804,7 +4029,7 @@ export default {
             body.prazo || "",
             body.tipo_destinatario || "institucional",
             JSON.stringify(body.ras),
-            periodoAtual!.id,
+            periodoAtual!.id
           )
           .run();
 
@@ -3815,7 +4040,7 @@ export default {
           },
           {
             status: 201,
-          },
+          }
         );
       } catch (erro) {
         console.error(erro);
@@ -3826,7 +4051,7 @@ export default {
           },
           {
             status: 500,
-          },
+          }
         );
       }
     }

@@ -13776,3 +13776,288 @@ html[data-theme="black"] .log-item p {
     animation: none !important;
   }
 }
+
+/* =========================================================
+   EXCLUSÃO DE USUÁRIO
+   ========================================================= */
+
+   .settings-user-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  
+    min-height: 36px;
+    padding: 0 12px;
+  
+    border: 1px solid #efb4b4;
+    border-radius: 9px;
+  
+    background: #fffafa;
+    color: #b42318;
+  
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+  
+    white-space: nowrap;
+    cursor: pointer;
+  
+    transition:
+      background 0.18s ease,
+      border-color 0.18s ease,
+      color 0.18s ease,
+      transform 0.18s ease;
+  }
+  
+  .settings-user-delete:hover {
+    border-color: #e58b8b;
+    background: #ffeded;
+    color: #912018;
+  }
+  
+  .settings-user-delete:active {
+    transform: translateY(1px);
+  }
+  
+  .settings-user-delete:hover {
+    background: #ffeded;
+    border-color: #e58b8b;
+  }
+  
+  .settings-user-delete:active {
+    transform: translateY(1px);
+  }
+  
+  .settings-delete-user-modal {
+    width: min(620px, calc(100vw - 32px));
+  }
+  
+  .settings-delete-user-content {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 22px 24px 24px;
+  }
+  
+  .settings-delete-user-target {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-soft);
+  }
+  
+  .settings-delete-user-target .sidebar-user-avatar {
+    flex: 0 0 auto;
+  }
+  
+  .settings-delete-user-target > div:last-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 3px;
+  }
+  
+  .settings-delete-user-target strong {
+    color: var(--text);
+    font-size: 14px;
+  }
+  
+  .settings-delete-user-target span {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .settings-delete-user-warning {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px 16px;
+    border: 1px solid #efb4b4;
+    border-radius: 12px;
+    background: #fff7f7;
+  }
+  
+  .settings-delete-user-warning strong {
+    color: #b42318;
+    font-size: 13px;
+  }
+  
+  .settings-delete-user-warning span {
+    color: #7a3e3a;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  
+  .settings-delete-user-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 2px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .settings-delete-user-confirm-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    width: 100%;
+  }
+
+  .settings-delete-user-confirm-copy > strong {
+    display: block;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
+  .settings-delete-user-confirm-copy > span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .settings-delete-user-confirm-copy > span b {
+    color: #b42318;
+    font-weight: 800;
+  }
+
+  .settings-delete-user-confirm input {
+    width: 100%;
+    height: 42px;
+    box-sizing: border-box;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    outline: none;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    transition:
+      border-color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .settings-delete-user-confirm input:focus {
+    border-color: #e57373;
+    box-shadow: 0 0 0 3px rgba(229, 115, 115, 0.12);
+  }
+
+  .settings-delete-user-confirm input.confirmed {
+    border-color: #d92d20;
+    background: #fffafa;
+    box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.08);
+  }
+
+  .settings-delete-user-confirm-button {
+    min-height: 40px;
+    padding: 0 18px;
+    border: 1px solid #d92d20;
+    border-radius: 9px;
+    background: #d92d20;
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+      background 0.18s ease,
+      border-color 0.18s ease,
+      opacity 0.18s ease;
+  }
+
+  .settings-delete-user-confirm-button:hover:not(:disabled) {
+    border-color: #b42318;
+    background: #b42318;
+  }
+
+  .settings-delete-user-confirm-button:disabled {
+    border-color: var(--border);
+    background: var(--surface-soft);
+    color: var(--muted);
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+
+  /* Tema escuro */
+
+  html[data-theme="dark"] .settings-user-delete {
+    border-color: rgba(248, 113, 113, 0.35);
+    background: rgba(127, 29, 29, 0.16);
+    color: #fca5a5;
+  }
+
+  html[data-theme="dark"] .settings-user-delete:hover {
+    border-color: rgba(248, 113, 113, 0.55);
+    background: rgba(127, 29, 29, 0.28);
+  }
+
+  html[data-theme="dark"] .settings-delete-user-warning {
+    border-color: rgba(248, 113, 113, 0.3);
+    background: rgba(127, 29, 29, 0.14);
+  }
+
+  html[data-theme="dark"] .settings-delete-user-warning strong {
+    color: #fca5a5;
+  }
+
+  html[data-theme="dark"] .settings-delete-user-warning span {
+    color: #fecaca;
+  }
+
+  @media (max-width: 640px) {
+    .settings-delete-user-content {
+      padding: 18px;
+    }
+
+    .settings-delete-user-target span {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .settings-delete-user-modal .modal-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .settings-delete-user-modal .modal-acoes > button {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .settings-delete-user-modal .botao-cancelar {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .settings-delete-user-modal .botao-cancelar:hover:not(:disabled) {
+    border-color: #aebdca;
+    background: var(--surface-soft);
+  }
