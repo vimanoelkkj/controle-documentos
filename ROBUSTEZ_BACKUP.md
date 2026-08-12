@@ -61,6 +61,24 @@ Depois do primeiro backup, valide o esquema remoto sem alterar dados:
 .\scripts\validate-d1.ps1 -Database controle-documentos-dev-db -DevEnvironment
 ```
 
+### Botão de backup no painel administrativo
+
+O painel em **Configurações → Backup do banco** usa a API oficial do D1 e só é
+exibido para administradores. Antes do deploy, configure as variáveis protegidas:
+
+```powershell
+npx wrangler secret put CLOUDFLARE_ACCOUNT_ID
+npx wrangler secret put CLOUDFLARE_API_TOKEN
+npx wrangler secret put D1_DATABASE_ID
+```
+
+Use um API Token dedicado, limitado à conta e ao D1 necessários, com a permissão
+**D1 Edit**. A exportação administrativa não funciona apenas com **D1 Read**. O token fica no
+Worker e nunca é enviado ao navegador. Ao concluir, o painel fornece um link
+temporário da Cloudflare, válido por uma hora. O navegador pode abrir o SQL como
+texto; nesse caso, use `Ctrl+S` para salvá-lo. Armazene-o de forma
+criptografada; o site não mantém uma cópia permanente do arquivo.
+
 ## Procedimento seguro de restauração
 
 1. Verifique que o SQL e o `.sha256` estão juntos.
