@@ -394,6 +394,10 @@ a {
   background: #1c4561;
 }
 
+.unit-tabs .unit-tab-all {
+  grid-column: 1 / -1;
+}
+
 .unit-tabs strong {
   padding: 2px 6px;
 
@@ -4511,9 +4515,9 @@ html[data-theme="light"] .modal-acoes {
 
 html[data-theme="light"] .progress-track,
 html[data-theme="light"] .dashboard-bar-track,
-html[data-theme="light"] .statistics-document-meter,
+html[data-theme="light"] .statistics-document-meter > div,
 html[data-theme="light"] .statistics-combination-track,
-html[data-theme="light"] .statistics-course-progress,
+html[data-theme="light"] .statistics-course-progress > div,
 html[data-theme="light"] .statistics-histogram-track {
   background: #e5edf2;
 }
@@ -4540,15 +4544,42 @@ html[data-theme="light"] .statistics-histogram-track {
   letter-spacing: 0.12em;
 }
 .log-refresh {
-  min-height: 38px;
-  padding: 0 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 15px;
   border: 1px solid #376b88;
-  border-radius: 9px;
+  border-radius: 10px;
   color: #bfe6ff;
   background: #173247;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 800;
+  line-height: 1;
   cursor: pointer;
+}
+
+.log-refresh > span {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.log-refresh:hover {
+  border-color: #55a9d4;
+  background: #1b4058;
+}
+
+html[data-theme="light"] .log-refresh {
+  color: #17658f;
+  border-color: #9dcde6;
+  background: #e8f5fc;
+}
+
+html[data-theme="light"] .log-refresh:hover {
+  color: #104f70;
+  border-color: #70b5da;
+  background: #d9effa;
 }
 .log-toolbar {
   display: flex;
@@ -12586,4 +12617,667 @@ html[data-theme="light"] .conference-page > .page-header p {
     align-items: stretch;
     flex-direction: column;
   }
+}
+
+/* =========================================================
+   TEMA PRETÃO — preto neutro / OLED
+   ========================================================= */
+
+html[data-theme="black"],
+html[data-theme="black"] body,
+html[data-theme="black"] .app-layout {
+  color-scheme: dark;
+  color: #f1f3f5;
+  background: #000;
+}
+
+html[data-theme="black"] .sidebar {
+  border-color: #222;
+  background: #050505;
+}
+
+html[data-theme="black"] .sidebar-brand,
+html[data-theme="black"] .sidebar-footer,
+html[data-theme="black"] .period-toolbar {
+  border-color: #252525;
+  background: #080808;
+}
+
+html[data-theme="black"] .sidebar-link { color: #9ca6ad; }
+html[data-theme="black"] .sidebar-link:hover { color: #e8edf0; background: #111; }
+html[data-theme="black"] .sidebar-link.active { color: #7dd0ff; border-color: #285c78; background: #0c2533; }
+html[data-theme="black"] .theme-button,
+html[data-theme="black"] .logout-button { color: #d7dee2; border-color: #303030; background: #111; }
+html[data-theme="black"] .theme-button:hover,
+html[data-theme="black"] .logout-button:hover { background: #1a1a1a; }
+
+html[data-theme="black"] .dashboard-page > .dashboard-hero,
+html[data-theme="black"] .conference-page > .page-header,
+html[data-theme="black"] .communication-page > .communication-header,
+html[data-theme="black"] .audit-page > .page-header,
+html[data-theme="black"] .statistics-page > .statistics-hero,
+html[data-theme="black"] .log-page > .page-header,
+html[data-theme="black"] .period-page > .period-hero,
+html[data-theme="black"] .settings-page > .settings-header,
+html[data-theme="black"] .about-page > .about-hero {
+  border-color: #292929;
+  background: #090909;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .42);
+}
+
+html[data-theme="black"] .dashboard-card,
+html[data-theme="black"] .dashboard-kpi,
+html[data-theme="black"] .dashboard-units-card,
+html[data-theme="black"] .dashboard-status-card,
+html[data-theme="black"] .dashboard-pendencias-card,
+html[data-theme="black"] .statistics-card,
+html[data-theme="black"] .statistics-kpi,
+html[data-theme="black"] .student-panel,
+html[data-theme="black"] .student-details,
+html[data-theme="black"] .communication-students-card,
+html[data-theme="black"] .communication-detail,
+html[data-theme="black"] .communication-summary,
+html[data-theme="black"] .communication-preview,
+html[data-theme="black"] .communication-history,
+html[data-theme="black"] .audit-consistency,
+html[data-theme="black"] .audit-outbox,
+html[data-theme="black"] .audit-summary article,
+html[data-theme="black"] .audit-table-wrap,
+html[data-theme="black"] .log-toolbar,
+html[data-theme="black"] .log-list,
+html[data-theme="black"] .period-card,
+html[data-theme="black"] .settings-users-grid article,
+html[data-theme="black"] .settings-user-form,
+html[data-theme="black"] .settings-backup,
+html[data-theme="black"] .about-card {
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .student-card,
+html[data-theme="black"] .communication-student,
+html[data-theme="black"] .audit-consistency-grid article,
+html[data-theme="black"] .audit-outbox-summary article,
+html[data-theme="black"] .audit-outbox-list article,
+html[data-theme="black"] .log-item,
+html[data-theme="black"] .statistics-combination-row,
+html[data-theme="black"] .document-card,
+html[data-theme="black"] .summary-card {
+  border-color: #262626;
+  background: #0f0f0f;
+}
+
+html[data-theme="black"] input,
+html[data-theme="black"] select,
+html[data-theme="black"] textarea,
+html[data-theme="black"] .app-select-trigger,
+html[data-theme="black"] .student-search,
+html[data-theme="black"] .communication-search {
+  color: #edf1f3;
+  border-color: #303030;
+  background: #080808;
+}
+
+html[data-theme="black"] .modal-novo-aluno,
+html[data-theme="black"] .modal-importacao,
+html[data-theme="black"] .modal-excluir-aluno,
+html[data-theme="black"] .modal-cabecalho,
+html[data-theme="black"] .modal-acoes {
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .statistics-document-meter > div,
+html[data-theme="black"] .statistics-course-progress > div,
+html[data-theme="black"] .statistics-combination-track,
+html[data-theme="black"] .statistics-histogram-track,
+html[data-theme="black"] .dashboard-bar-track,
+html[data-theme="black"] .progress-track {
+  background: #202020;
+}
+
+html[data-theme="black"] .audit-table th,
+html[data-theme="black"] .audit-table td,
+html[data-theme="black"] .statistics-document-row,
+html[data-theme="black"] .statistics-course-row,
+html[data-theme="black"] .log-item {
+  border-color: #252525;
+}
+
+html[data-theme="black"] .google-sheets-status.connected {
+  border-color: #1e6e43;
+  background: #071b11;
+}
+
+/* No Pretão, superfícies são neutras. Azul fica restrito a ações e acentos. */
+html[data-theme="black"] .communication-toolbar,
+html[data-theme="black"] .communication-groups,
+html[data-theme="black"] .communication-detail,
+html[data-theme="black"] .communication-email-card,
+html[data-theme="black"] .communication-students-card,
+html[data-theme="black"] .communication-history,
+html[data-theme="black"] .communication-detail-header,
+html[data-theme="black"] .communication-actions,
+html[data-theme="black"] .communication-email-settings,
+html[data-theme="black"] .communication-preview,
+html[data-theme="black"] .communication-preview-top,
+html[data-theme="black"] .communication-students-header,
+html[data-theme="black"] .communication-email-body,
+html[data-theme="black"] .communication-student-list {
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .communication-group-card,
+html[data-theme="black"] .communication-student,
+html[data-theme="black"] .communication-history-item {
+  border-color: #282828;
+  background: #0f0f0f;
+}
+
+html[data-theme="black"] .communication-group-card:hover {
+  border-color: #3a3a3a;
+  background: #151515;
+}
+
+html[data-theme="black"] .communication-group-card.active {
+  border-color: #3c8fbd;
+  background: #121212;
+  box-shadow: inset 3px 0 #55b9ed;
+}
+
+html[data-theme="black"] .communication-group-count,
+html[data-theme="black"] .communication-big-count,
+html[data-theme="black"] .communication-preview-count {
+  color: #8dd6ff;
+  border-color: #315c73;
+  background: #151515;
+}
+
+html[data-theme="black"] .communication-validation.ok {
+  background: #07130d;
+}
+
+html[data-theme="black"] .communication-warning {
+  background: #241313;
+}
+
+html[data-theme="black"] .settings-backup-action,
+html[data-theme="black"] .settings-backup-message,
+html[data-theme="black"] .settings-backup-result,
+html[data-theme="black"] .settings-dev-tools,
+html[data-theme="black"] .settings-dev-message {
+  background: #0f0f0f;
+}
+
+html[data-theme="black"] .audit-toolbar input,
+html[data-theme="black"] .audit-toolbar select,
+html[data-theme="black"] .audit-outbox-list,
+html[data-theme="black"] .log-state,
+html[data-theme="black"] .statistics-unit-table {
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+/* Pretão monocromático: nenhum acento azul. */
+html[data-theme="black"] { accent-color: #b9b9b9; }
+
+html[data-theme="black"] .sidebar-link.active {
+  color: #fff;
+  border-color: #555;
+  background: #171717;
+}
+
+html[data-theme="black"] .sidebar-link.active::before { background: #d8d8d8; }
+
+html[data-theme="black"] .page-title-icon,
+html[data-theme="black"] .communication-preview-icon,
+html[data-theme="black"] .settings-backup-icon,
+html[data-theme="black"] .settings-backup-action-icon {
+  color: #e5e5e5;
+  border-color: #444;
+  background: #151515;
+}
+
+html[data-theme="black"] .communication-eyebrow,
+html[data-theme="black"] .dashboard-hero-eyebrow,
+html[data-theme="black"] .statistics-eyebrow,
+html[data-theme="black"] .audit-consistency-head span,
+html[data-theme="black"] .audit-outbox-head > div > span,
+html[data-theme="black"] .audit-outbox-reasons,
+html[data-theme="black"] .settings-backup-head span,
+html[data-theme="black"] .log-header > div > span,
+html[data-theme="black"] .communication-panel-title > span,
+html[data-theme="black"] .communication-detail-header > div > span {
+  color: #aeb6bb;
+}
+
+html[data-theme="black"] .communication-group-card.active {
+  border-color: #555;
+  background: #151515;
+  box-shadow: inset 3px 0 #d0d0d0;
+}
+
+html[data-theme="black"] .communication-mini-tags span:not(.priority),
+html[data-theme="black"] .communication-tags span:not(.priority),
+html[data-theme="black"] .communication-address,
+html[data-theme="black"] .communication-preview-count,
+html[data-theme="black"] .communication-group-count,
+html[data-theme="black"] .communication-big-count,
+html[data-theme="black"] .student-tags span,
+html[data-theme="black"] .audit-period,
+html[data-theme="black"] .audit-action,
+html[data-theme="black"] .audit-outbox-operation.atualizar {
+  color: #e0e0e0;
+  border-color: #444;
+  background: #151515;
+}
+
+html[data-theme="black"] .communication-email-body li:not(.priority) {
+  color: #e1e1e1;
+  border-color: #3a3a3a;
+  background: #121212;
+}
+
+html[data-theme="black"] .communication-email-body li:not(.priority)::before {
+  color: #bdbdbd;
+}
+
+html[data-theme="black"] .communication-action-buttons button:not(.communication-register-button),
+html[data-theme="black"] .communication-copy-stack button,
+html[data-theme="black"] .communication-select-actions button,
+html[data-theme="black"] .audit-header .log-refresh,
+html[data-theme="black"] .audit-consistency-head button,
+html[data-theme="black"] .audit-outbox-head button,
+html[data-theme="black"] .log-refresh,
+html[data-theme="black"] .secondary-action,
+html[data-theme="black"] .icon-button {
+  color: #f0f0f0;
+  border-color: #484848;
+  background: #1a1a1a;
+}
+
+html[data-theme="black"] .communication-action-buttons button:not(.communication-register-button):hover,
+html[data-theme="black"] .communication-copy-stack button:hover,
+html[data-theme="black"] .communication-select-actions button:hover,
+html[data-theme="black"] .audit-header .log-refresh:hover,
+html[data-theme="black"] .audit-consistency-head button:hover,
+html[data-theme="black"] .audit-outbox-head button:hover,
+html[data-theme="black"] .log-refresh:hover {
+  color: #fff;
+  border-color: #666;
+  background: #252525;
+}
+
+html[data-theme="black"] .dashboard-bar-fill,
+html[data-theme="black"] .statistics-document-meter > div span:not(.priority),
+html[data-theme="black"] .statistics-course-progress > div span,
+html[data-theme="black"] .statistics-combination-track span,
+html[data-theme="black"] .statistics-histogram-bar:not(.complete):not(.critical),
+html[data-theme="black"] .progress-fill {
+  background: #aeb4b8;
+}
+
+html[data-theme="black"] a:not(.sidebar-link),
+html[data-theme="black"] .communication-address {
+  color: #d8d8d8;
+}
+
+html[data-theme="black"] button:not([class*="delete"]):not([class*="danger"]):not([class*="cancel"]):not([class*="register"]):not([class*="reactivate"]):not([class*="deactivate"]) {
+  border-color: #484848;
+  background-color: #1a1a1a;
+  color: #f0f0f0;
+}
+
+html[data-theme="black"] button:not([class*="delete"]):not([class*="danger"]):not([class*="cancel"]):not([class*="register"]):not([class*="reactivate"]):not([class*="deactivate"]):hover:not(:disabled) {
+  border-color: #686868;
+  background-color: #272727;
+  color: #fff;
+}
+
+/* Seleção monocromática: alto contraste sem depender de azul. */
+html[data-theme="black"] .status-tabs button.active,
+html[data-theme="black"] .unit-tabs button.active {
+  color: #fff !important;
+  border-color: #e2e2e2 !important;
+  background: #303030 !important;
+  box-shadow:
+    inset 0 0 0 1px #e2e2e2,
+    0 0 0 2px rgba(255, 255, 255, .08) !important;
+}
+
+html[data-theme="black"] .status-tabs button.active::before {
+  content: "✓";
+  margin-right: 5px;
+  color: #fff;
+}
+
+html[data-theme="black"] .unit-tabs button.active::before {
+  content: "✓";
+  margin-right: 6px;
+  color: #fff;
+}
+
+html[data-theme="black"] .student-card {
+  color: #d5d5d5 !important;
+  border-color: #3a3a3a !important;
+  background: #151515 !important;
+}
+
+html[data-theme="black"] .student-card:hover {
+  border-color: #646464 !important;
+  background: #202020 !important;
+}
+
+html[data-theme="black"] .student-card.active {
+  color: #fff !important;
+  border-color: #d5d5d5 !important;
+  background: #292929 !important;
+  box-shadow:
+    inset 4px 0 #fff,
+    0 0 0 1px rgba(255, 255, 255, .08) !important;
+}
+
+html[data-theme="black"] .student-card.active .student-card-main > strong::before {
+  content: "✓ ";
+  color: #fff;
+}
+
+html[data-theme="black"] .student-tags span,
+html[data-theme="black"] .student-tag-active,
+html[data-theme="black"] .student-progress span {
+  color: #d3d3d3 !important;
+  border-color: #4a4a4a !important;
+  background: #202020 !important;
+}
+
+html[data-theme="black"] .communication-group-card.active {
+  border-color: #d5d5d5 !important;
+  background: #292929 !important;
+  box-shadow: inset 4px 0 #fff !important;
+}
+
+html[data-theme="black"] .communication-group-card.active .communication-group-copy > strong::before {
+  content: "✓ ";
+}
+
+html[data-theme="black"] .student-avatar {
+  color: #050505;
+  border-color: #bdbdbd;
+  background: #d8d8d8;
+}
+
+html[data-theme="black"] .student-progress-percent--critico { color: #ff747d; }
+html[data-theme="black"] .student-progress-percent--parcial { color: #f0c75e; }
+html[data-theme="black"] .student-progress-percent--completo { color: #67d69b; }
+
+html[data-theme="black"] .summary-card li {
+  color: #d7d7d7;
+  border-color: #3b3b3b;
+  background: #151515;
+}
+
+html[data-theme="black"] .conference-actions {
+  border-color: #292929;
+  background: #0f0f0f;
+  box-shadow: none;
+}
+
+html[data-theme="black"] .conference-actions > span.saved { color: #67d69b; }
+html[data-theme="black"] .conference-actions > span.pending { color: #f0c75e; }
+
+html[data-theme="black"] .student-details-header,
+html[data-theme="black"] .document-progress,
+html[data-theme="black"] .documents-area {
+  border-color: #292929;
+  background-color: #0a0a0a;
+}
+
+html[data-theme="black"] .period-create-card,
+html[data-theme="black"] .period-sheets-card,
+html[data-theme="black"] .period-section,
+html[data-theme="black"] .period-current,
+html[data-theme="black"] .period-sheets-preview,
+html[data-theme="black"] .period-sheets-detail,
+html[data-theme="black"] .period-sheets-sync-bar,
+html[data-theme="black"] .period-sheets-sync-result {
+  color: #ededed;
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .period-card {
+  color: #e8e8e8;
+  border-color: #303030;
+  background: #0f0f0f;
+}
+
+html[data-theme="black"] .period-card.current {
+  border-color: #d5d5d5;
+  background: #191919;
+  box-shadow: inset 4px 0 #fff;
+}
+
+html[data-theme="black"] .period-card.current::before { background: #fff; }
+
+html[data-theme="black"] .period-eyebrow,
+html[data-theme="black"] .period-create-card > div > span,
+html[data-theme="black"] .period-sheets-heading > div > span,
+html[data-theme="black"] .period-section-header span,
+html[data-theme="black"] .period-current > span,
+html[data-theme="black"] .period-toolbar-copy > span,
+html[data-theme="black"] .period-toolbar-select > span {
+  color: #aeb6bb;
+}
+
+html[data-theme="black"] .period-current strong,
+html[data-theme="black"] .period-section-header > strong {
+  color: #f0f0f0;
+  border-color: #454545;
+  background: #151515;
+}
+
+html[data-theme="black"] .period-sheets-main input,
+html[data-theme="black"] .period-sheets-grid input,
+html[data-theme="black"] .period-create-form input {
+  border-color: #383838;
+  background: #050505;
+}
+
+/* Sobre: no tema pretao, somente estados reais conservam cor semantica. */
+html[data-theme="black"] .about-eyebrow,
+html[data-theme="black"] .about-card > div:last-child > span,
+html[data-theme="black"] .about-version-card > span,
+html[data-theme="black"] .about-footer-card > div:first-child > span {
+  color: #aeb6bb;
+}
+
+html[data-theme="black"] .about-version-card {
+  color: #ededed;
+  border-color: #383838;
+  background: #101010;
+}
+
+html[data-theme="black"] .about-version-card strong {
+  color: #f2f2f2;
+}
+
+html[data-theme="black"] .about-version-card small,
+html[data-theme="black"] .about-hero > div:first-child > p,
+html[data-theme="black"] .about-card p,
+html[data-theme="black"] .about-footer-card p {
+  color: #9da5aa;
+}
+
+html[data-theme="black"] .about-card-icon,
+html[data-theme="black"] .about-card-icon.google {
+  color: #dedede;
+  border-color: #444;
+  background: #171717;
+}
+
+html[data-theme="black"] .about-footer-card {
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .dashboard-state {
+  color: #aeb6bb;
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .dashboard-state.error {
+  color: #ff747d;
+}
+
+html[data-theme="black"] .period-boot {
+  color: #aeb6bb;
+  background: #050505;
+}
+
+html[data-theme="black"] .period-boot::before {
+  background: #d8d8d8;
+}
+
+html[data-theme="black"] .period-boot.error {
+  color: #ff747d;
+}
+
+html[data-theme="black"] .period-boot.error span,
+html[data-theme="black"] .period-boot.error small {
+  color: #aeb6bb;
+}
+
+/* Contrato e Ensino Medio sao pendencias documentais criticas. */
+.dashboard-nav-bar.critical .dashboard-bar-label span,
+.dashboard-nav-bar.critical .dashboard-bar-label strong {
+  color: #ff8b91;
+}
+
+.dashboard-nav-bar.critical .dashboard-bar-fill.priority {
+  background: #e45d66;
+}
+
+html[data-theme="light"] .dashboard-nav-bar.critical .dashboard-bar-label span,
+html[data-theme="light"] .dashboard-nav-bar.critical .dashboard-bar-label strong {
+  color: #b4232d;
+}
+
+html[data-theme="light"] .dashboard-nav-bar.critical .dashboard-bar-fill.priority {
+  background: #d83d48;
+}
+
+html[data-theme="black"] .dashboard-nav-bar.critical .dashboard-bar-label span,
+html[data-theme="black"] .dashboard-nav-bar.critical .dashboard-bar-label strong {
+  color: #ff858d;
+}
+
+html[data-theme="black"] .dashboard-nav-bar.critical .dashboard-bar-fill.priority {
+  background: #e05a63;
+}
+
+html[data-theme="black"] .dashboard-nav-bar {
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+html[data-theme="black"] .dashboard-nav-bar:hover {
+  background: #101010 !important;
+}
+
+html[data-theme="black"] .dashboard-nav-bar.selected {
+  border-color: #666 !important;
+  background: #202020 !important;
+  box-shadow: inset 0 0 0 1px #666;
+}
+
+html[data-theme="black"] .dashboard-unit-row.dashboard-nav-row {
+  background: transparent !important;
+}
+
+html[data-theme="black"] .dashboard-unit-row.dashboard-nav-row:hover {
+  background: #101010 !important;
+}
+
+/* Gargalos criticos: Contrato e Historico do Ensino Medio. */
+.statistics-document-row.critical .statistics-document-title > span {
+  color: #ff8b91;
+  border-color: #7e353a;
+  background: #2a1215;
+}
+
+.statistics-document-row.critical .statistics-document-title strong,
+.statistics-document-row.critical .statistics-document-meter strong {
+  color: #ff8b91;
+}
+
+.statistics-document-meter > div span.critical {
+  background: #e45d66;
+}
+
+html[data-theme="light"] .statistics-document-row.critical .statistics-document-title > span {
+  color: #a91f29;
+  border-color: #efadb1;
+  background: #fff0f1;
+}
+
+html[data-theme="light"] .statistics-document-row.critical .statistics-document-title strong,
+html[data-theme="light"] .statistics-document-row.critical .statistics-document-meter strong {
+  color: #b4232d;
+}
+
+html[data-theme="light"] .statistics-document-meter > div span.critical {
+  background: #d83d48;
+}
+
+html[data-theme="black"] .statistics-document-row.critical .statistics-document-title > span {
+  color: #ff858d;
+  border-color: #713136;
+  background: #211012;
+}
+
+html[data-theme="black"] .statistics-document-row.critical .statistics-document-title strong,
+html[data-theme="black"] .statistics-document-row.critical .statistics-document-meter strong {
+  color: #ff858d;
+}
+
+html[data-theme="black"] .statistics-document-meter > div span.critical {
+  background: #e05a63;
+}
+
+html[data-theme="black"] .statistics-mini-progress i {
+  background: #aeb4b8;
+}
+
+html[data-theme="black"] .statistics-mini-progress {
+  background: #202020;
+}
+
+html[data-theme="black"] .unit-tabs .unit-tab-all {
+  justify-content: space-between;
+  text-align: left;
+}
+
+html[data-theme="black"] .unit-tabs .unit-tab-all.active::before {
+  content: none;
+}
+
+html[data-theme="black"] .statistics-state {
+  color: #aeb6bb;
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .statistics-state.error {
+  color: #ff747d;
+}
+
+html[data-theme="black"] .status-tabs button {
+  text-align: left;
+}
+
+html[data-theme="black"] .status-tabs button.active::before,
+html[data-theme="black"] .unit-tabs button.active::before {
+  content: none;
 }

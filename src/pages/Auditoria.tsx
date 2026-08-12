@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AppIcon from "../components/AppIcon";
 import { usePeriodo } from "../contexts/PeriodoContext";
 import "./Auditoria.css";
@@ -28,6 +28,36 @@ type RegistroAuditoria = {
   periodo_codigo?: string | null;
 };
 
+type PendenciaSheets = {
+  id: number;
+  ra: string;
+  operacao: "ATUALIZAR" | "REMOVER";
+  status: "PENDENTE" | "ENVIANDO" | "CONFLITO" | "ERRO";
+  tentativas: number;
+  ultimo_erro: string | null;
+  motivos: string[];
+  usuario_nome: string | null;
+  usuario_username: string | null;
+  atualizado_em: string;
+  aluno: {
+    nome: string;
+    curso: string;
+    unidade: string;
+    status: string;
+    documentos: Record<string, boolean>;
+  } | null;
+};
+
+type CaixaSaidaSheets = {
+  modo: "PREVIA_SOMENTE_LEITURA";
+  total: number;
+  atualizar: number;
+  remover: number;
+  conflitos: number;
+  erros: number;
+  pendencias: PendenciaSheets[];
+};
+
 function formatarData(valor: string) {
   const normalizado = valor.includes("T") ? valor : `${valor.replace(" ", "T")}Z`;
   const data = new Date(normalizado);
@@ -46,6 +76,9 @@ function Auditoria() {
   const [diagnostico, setDiagnostico] = useState<DiagnosticoSheets | null>(null);
   const [verificando, setVerificando] = useState(false);
   const [erroDiagnostico, setErroDiagnostico] = useState("");
+  const [caixaSaida, setCaixaSaida] = useState<CaixaSaidaSheets | null>(null);
+  const [carregandoCaixa, setCarregandoCaixa] = useState(false);
+  const [erroCaixa, setErroCaixa] = useState("");
 
   async function carregar() {
     try {
@@ -68,10 +101,30 @@ function Auditoria() {
     carregar();
   }, []);
 
+  const carregarCaixaSaida = useCallback(async () => {
+    if (!periodoAtual) return;
+    try {
+      setCarregandoCaixa(true);
+      setErroCaixa("");
+      const resposta = await fetch(
+        `/api/periodos/${periodoAtual.id}/google-sheets/pendencias`,
+        { cache: "no-store" },
+      );
+      const dados = (await resposta.json()) as CaixaSaidaSheets & { erro?: string };
+      if (!resposta.ok) throw new Error(dados.erro || "Falha ao carregar a caixa de saída.");
+      setCaixaSaida(dados);
+    } catch (falha) {
+      setErroCaixa(falha instanceof Error ? falha.message : "Falha ao carregar a caixa de saída.");
+    } finally {
+      setCarregandoCaixa(false);
+    }
+  }, [periodoAtual]);
+
   useEffect(() => {
     setDiagnostico(null);
     setErroDiagnostico("");
-  }, [periodoAtual?.id]);
+    void carregarCaixaSaida();
+  }, [carregarCaixaSaida]);
 
   async function verificarConsistencia() {
     if (!periodoAtual) return;
@@ -139,7 +192,10 @@ function Auditoria() {
           </div>
           <p>Quem fez o quê, quando e em qual registro do período selecionado.</p>
         </div>
-        <button type="button" className="log-refresh" onClick={carregar}>Atualizar</button>
+        <button type="button" className="log-refresh" onClick={carregar}>
+          <span aria-hidden="true">↻</span>
+          Atualizar auditoria
+        </button>
       </header>
 
       <section className={`audit-consistency ${bloqueado ? "blocked" : diagnostico ? "checked" : ""}`}>
@@ -187,6 +243,63 @@ function Auditoria() {
                 </article>
               ))}
             </div>
+          </>
+        )}
+      </section>
+
+      <section className="audit-outbox">
+        <div className="audit-outbox-head">
+          <div>
+            <span>SISTEMA → PLANILHA</span>
+            <strong>Caixa de saída · {periodoAtual?.codigo || "—"}</strong>
+            <p>Prévia das alterações locais aguardando envio. A planilha não será modificada.</p>
+          </div>
+          <button type="button" onClick={() => void carregarCaixaSaida()} disabled={carregandoCaixa || !periodoAtual}>
+            {carregandoCaixa ? "Atualizando..." : "Atualizar prévia"}
+          </button>
+        </div>
+
+        {erroCaixa ? (
+          <div className="audit-consistency-error">{erroCaixa}</div>
+        ) : caixaSaida && (
+          <>
+            <div className="audit-outbox-summary">
+              <article><span>Pendências</span><strong>{caixaSaida.total}</strong></article>
+              <article><span>A atualizar</span><strong>{caixaSaida.atualizar}</strong></article>
+              <article><span>A remover</span><strong>{caixaSaida.remover}</strong></article>
+              <article className={caixaSaida.conflitos ? "danger" : ""}><span>Conflitos</span><strong>{caixaSaida.conflitos}</strong></article>
+              <article className={caixaSaida.erros ? "danger" : ""}><span>Erros</span><strong>{caixaSaida.erros}</strong></article>
+            </div>
+
+            {caixaSaida.pendencias.length === 0 ? (
+              <div className="audit-outbox-empty">✓ Nenhuma alteração local aguardando envio.</div>
+            ) : (
+              <div className="audit-outbox-list">
+                {caixaSaida.pendencias.map((item) => (
+                  <article key={item.id}>
+                    <span className={`audit-outbox-operation ${item.operacao.toLowerCase()}`}>{item.operacao}</span>
+                    <div>
+                      <strong>{item.aluno?.nome || `RA ${item.ra}`}</strong>
+                      <span>RA {item.ra} · {item.aluno?.unidade || "—"} · {item.aluno?.curso || "registro removido"}</span>
+                      <span className="audit-outbox-reasons">{item.motivos.join(" + ")}</span>
+                      {item.aluno && item.motivos.includes("DOCUMENTOS") && (
+                        <span className="audit-outbox-documents">
+                          {Object.entries(item.aluno.documentos)
+                            .filter(([, entregue]) => entregue)
+                            .map(([nome]) => nome.replace("_", " ").toLocaleUpperCase("pt-BR"))
+                            .join(" · ") || "Nenhum documento marcado como entregue"}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <strong>{item.usuario_nome || "Sistema"}</strong>
+                      <span>{formatarData(item.atualizado_em)}</span>
+                    </div>
+                    <span className={`audit-outbox-state ${item.status.toLowerCase()}`}>{item.status}</span>
+                  </article>
+                ))}
+              </div>
+            )}
           </>
         )}
       </section>

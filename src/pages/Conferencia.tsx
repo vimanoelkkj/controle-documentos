@@ -1930,6 +1930,20 @@ function Conferencia() {
           </div>
 
           <div className="unit-tabs">
+            <button
+              type="button"
+              className={`unit-tab-all ${unidadeSelecionada === "" ? "active" : ""}`}
+              onClick={() => {
+                setUnidadeSelecionada("");
+                setBusca("");
+                setRaSelecionado("");
+                setStatus("salvo");
+              }}
+            >
+              Todas as Unidades
+              <strong>{alunosNoStatus.length}</strong>
+            </button>
+
             {(["EAD", "FACE", "FCH", "FEA"] as Unidade[]).map((unidade) => (
               <button
                 key={unidade}

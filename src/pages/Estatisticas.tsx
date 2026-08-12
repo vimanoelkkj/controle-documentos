@@ -381,9 +381,24 @@ function Estatisticas() {
 
           <div className="statistics-document-list">
             {documentos.map((documento, indice) => (
-              <div className="statistics-document-row" key={documento.campo}>
+              <div
+                className={`statistics-document-row ${
+                  documento.campo === "contrato" || documento.campo === "ensino_medio"
+                    ? "critical"
+                    : ""
+                }`}
+                key={documento.campo}
+              >
                 <div className="statistics-document-title">
-                  <span className={indice === 0 ? "priority" : ""}>{indice + 1}</span>
+                  <span
+                    className={
+                      documento.campo === "contrato" || documento.campo === "ensino_medio"
+                        ? "critical"
+                        : ""
+                    }
+                  >
+                    {indice + 1}
+                  </span>
                   <div>
                     <strong>{documento.nome}</strong>
                     <small>{documento.taxaEntrega}% já entregue</small>
@@ -392,7 +407,11 @@ function Estatisticas() {
                 <div className="statistics-document-meter">
                   <div>
                     <span
-                      className={indice === 0 ? "priority" : ""}
+                      className={
+                        documento.campo === "contrato" || documento.campo === "ensino_medio"
+                          ? "critical"
+                          : ""
+                      }
                       style={{ width: `${documento.taxaPendencia}%` }}
                     />
                   </div>

@@ -449,6 +449,10 @@ function Dashboard() {
                 <button
                   type="button"
                   className={`dashboard-bar-row dashboard-nav-bar ${
+                    item.campo === "contrato" || item.campo === "ensino_medio"
+                      ? "critical "
+                      : ""
+                  }${
                     pendenciasSelecionadas.includes(item.campo)
                       ? "selected"
                       : ""

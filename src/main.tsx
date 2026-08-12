@@ -12,10 +12,10 @@ import App from './App.tsx'
  * após um F5, mesmo quando o usuário havia escolhido o tema claro.
  */
 const temaSalvo = localStorage.getItem('tema')
-const temaInicial = temaSalvo === 'light' ? 'light' : 'dark'
+const temaInicial = temaSalvo === 'light' || temaSalvo === 'black' ? temaSalvo : 'dark'
 
 document.documentElement.dataset.theme = temaInicial
-document.documentElement.style.colorScheme = temaInicial
+document.documentElement.style.colorScheme = temaInicial === 'light' ? 'light' : 'dark'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -18,14 +18,14 @@ const items: { label: string; to: string; icon: AppIconName }[] = [
 function Sidebar() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
-  const [tema, setTema] = useState<"dark" | "light">(() => {
+  const [tema, setTema] = useState<"dark" | "black" | "light">(() => {
     const salvo = localStorage.getItem("tema");
-    return salvo === "light" ? "light" : "dark";
+    return salvo === "light" || salvo === "black" ? salvo : "dark";
   });
 
   useEffect(() => {
     document.documentElement.dataset.theme = tema;
-    document.documentElement.style.colorScheme = tema;
+    document.documentElement.style.colorScheme = tema === "light" ? "light" : "dark";
     localStorage.setItem("tema", tema);
   }, [tema]);
 
@@ -35,7 +35,9 @@ function Sidebar() {
     // Evita que background/border/color sejam interpolados entre os temas.
     root.classList.add("theme-switching");
 
-    setTema((atual) => (atual === "dark" ? "light" : "dark"));
+    setTema((atual) =>
+      atual === "light" ? "dark" : atual === "dark" ? "black" : "light",
+    );
 
     // Mantém as transições desligadas até o navegador pintar o novo tema.
     requestAnimationFrame(() => {
@@ -91,8 +93,14 @@ function Sidebar() {
 
         <div className="sidebar-footer-actions">
           <button type="button" className="theme-button" onClick={alternarTema}>
-            <span aria-hidden="true">{tema === "dark" ? "☀" : "☾"}</span>
-            {tema === "dark" ? "Modo claro" : "Modo escuro"}
+            <span aria-hidden="true">
+              {tema === "light" ? "☾" : tema === "dark" ? "●" : "☀"}
+            </span>
+            {tema === "light"
+              ? "Modo escuro"
+              : tema === "dark"
+                ? "Modo pretão"
+                : "Modo claro"}
           </button>
           <button
             type="button"

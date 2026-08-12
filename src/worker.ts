@@ -302,6 +302,71 @@ async function registrarAuditoria(
   }
 }
 
+async function registrarPendenciaGoogleSheets(
+  env: Env,
+  usuario: UsuarioSessao | null,
+  periodoId: number,
+  ra: string,
+  operacao: "ATUALIZAR" | "REMOVER" = "ATUALIZAR",
+  motivo = "ATUALIZAÇÃO",
+) {
+  let payload: string | null = null;
+
+  if (operacao === "ATUALIZAR") {
+    const aluno = await env.DB.prepare(
+      `
+      SELECT a.ra, a.nome, a.email, a.email_outro, a.curso, a.unidade, a.status,
+             d.identidade, d.cpf, d.certidao, d.residencia, d.titulo,
+             d.ensino_medio, d.contrato
+      FROM alunos a
+      LEFT JOIN documentos d ON d.aluno_id = a.id
+      WHERE a.periodo_id = ? AND a.ra = ?
+    `,
+    )
+      .bind(periodoId, ra)
+      .first<AlunoRow>();
+
+    if (!aluno) operacao = "REMOVER";
+    else payload = JSON.stringify(aluno);
+  }
+
+  await env.DB.prepare(
+    `
+    INSERT INTO google_sheets_pendencias (
+      periodo_id, ra, operacao, payload_json, status,
+      tentativas, ultimo_erro, usuario_id, usuario_nome, usuario_username, motivos
+    ) VALUES (?, ?, ?, ?, 'PENDENTE', 0, NULL, ?, ?, ?, ?)
+    ON CONFLICT(periodo_id, ra) DO UPDATE SET
+      operacao = excluded.operacao,
+      payload_json = excluded.payload_json,
+      status = 'PENDENTE',
+      tentativas = 0,
+      ultimo_erro = NULL,
+      usuario_id = excluded.usuario_id,
+      usuario_nome = excluded.usuario_nome,
+      usuario_username = excluded.usuario_username,
+      motivos = CASE
+        WHEN instr('|' || google_sheets_pendencias.motivos || '|', '|' || excluded.motivos || '|') > 0
+          THEN google_sheets_pendencias.motivos
+        WHEN google_sheets_pendencias.motivos = '' THEN excluded.motivos
+        ELSE google_sheets_pendencias.motivos || '|' || excluded.motivos
+      END,
+      atualizado_em = CURRENT_TIMESTAMP
+  `,
+  )
+    .bind(
+      periodoId,
+      ra,
+      operacao,
+      payload,
+      usuario?.id ?? null,
+      usuario?.nome ?? null,
+      usuario?.username ?? null,
+      motivo,
+    )
+    .run();
+}
+
 function bytesHex(bytes: Uint8Array) {
   return Array.from(bytes)
     .map((byte) => byte.toString(16).padStart(2, "0"))
@@ -2276,6 +2341,103 @@ export default {
     }
 
     // =====================================================
+    // GET /api/periodos/:id/google-sheets/pendencias
+    // Caixa de saida somente leitura. Nao escreve na planilha.
+    // =====================================================
+
+    const rotaSheetsPendencias = url.pathname.match(
+      /^\/api\/periodos\/(\d+)\/google-sheets\/pendencias$/,
+    );
+
+    if (rotaSheetsPendencias && request.method === "GET") {
+      try {
+        const periodoId = Number(rotaSheetsPendencias[1]);
+        const resultado = await env.DB.prepare(
+          `
+          SELECT id, ra, operacao, payload_json, status, tentativas, motivos,
+                 ultimo_erro, usuario_nome, usuario_username,
+                 criado_em, atualizado_em
+          FROM google_sheets_pendencias
+          WHERE periodo_id = ? AND status <> 'CONCLUIDA'
+          ORDER BY atualizado_em DESC, id DESC
+        `,
+        )
+          .bind(periodoId)
+          .all<{
+            id: number;
+            ra: string;
+            operacao: "ATUALIZAR" | "REMOVER";
+            payload_json: string | null;
+            status: "PENDENTE" | "ENVIANDO" | "CONFLITO" | "ERRO";
+            tentativas: number;
+            motivos: string;
+            ultimo_erro: string | null;
+            usuario_nome: string | null;
+            usuario_username: string | null;
+            criado_em: string;
+            atualizado_em: string;
+          }>();
+
+        const pendencias = resultado.results.map((item) => {
+          let payload: AlunoRow | null = null;
+          try {
+            payload = item.payload_json
+              ? (JSON.parse(item.payload_json) as AlunoRow)
+              : null;
+          } catch {
+            payload = null;
+          }
+          return {
+            id: item.id,
+            ra: item.ra,
+            operacao: item.operacao,
+            status: item.status,
+            tentativas: item.tentativas,
+            motivos: item.motivos.split("|").filter(Boolean),
+            ultimo_erro: item.ultimo_erro,
+            usuario_nome: item.usuario_nome,
+            usuario_username: item.usuario_username,
+            criado_em: item.criado_em,
+            atualizado_em: item.atualizado_em,
+            aluno: payload
+              ? {
+                  nome: payload.nome,
+                  curso: payload.curso,
+                  unidade: payload.unidade,
+                  status: payload.status,
+                  documentos: {
+                    identidade: Boolean(payload.identidade),
+                    cpf: Boolean(payload.cpf),
+                    certidao: Boolean(payload.certidao),
+                    residencia: Boolean(payload.residencia),
+                    titulo: Boolean(payload.titulo),
+                    ensino_medio: Boolean(payload.ensino_medio),
+                    contrato: Boolean(payload.contrato),
+                  },
+                }
+              : null,
+          };
+        });
+
+        return Response.json({
+          modo: "PREVIA_SOMENTE_LEITURA",
+          total: pendencias.length,
+          atualizar: pendencias.filter((item) => item.operacao === "ATUALIZAR").length,
+          remover: pendencias.filter((item) => item.operacao === "REMOVER").length,
+          conflitos: pendencias.filter((item) => item.status === "CONFLITO").length,
+          erros: pendencias.filter((item) => item.status === "ERRO").length,
+          pendencias,
+        });
+      } catch (erro) {
+        console.error("Falha ao listar pendencias do Google Sheets:", erro);
+        return Response.json(
+          { erro: "A caixa de saída ainda não está disponível. Aplique a migration 008." },
+          { status: 500 },
+        );
+      }
+    }
+
+    // =====================================================
     // GET /api/log
     // =====================================================
 
@@ -2535,6 +2697,15 @@ export default {
             documentos?.contrato ? 1 : 0,
           )
           .run();
+
+        await registrarPendenciaGoogleSheets(
+          env,
+          usuarioAtual,
+          periodoAtual!.id,
+          ra,
+          "ATUALIZAR",
+          "NOVO ALUNO",
+        );
 
         return Response.json(
           {
@@ -2841,6 +3012,17 @@ export default {
           await env.DB.batch(comandos);
         }
 
+        for (const aluno of [...novos, ...alterados]) {
+          await registrarPendenciaGoogleSheets(
+            env,
+            usuarioAtual,
+            periodoAtual!.id,
+            aluno.ra,
+            "ATUALIZAR",
+            novos.includes(aluno) ? "NOVO ALUNO" : "CADASTRO",
+          );
+        }
+
         return Response.json({
           sucesso: true,
           encontrados: body.alunos.length,
@@ -3085,6 +3267,17 @@ export default {
           );
         }
 
+        for (const ra of paraCancelar) {
+          await registrarPendenciaGoogleSheets(
+            env,
+            usuarioAtual,
+            periodoAtual!.id,
+            ra,
+            "ATUALIZAR",
+            "STATUS",
+          );
+        }
+
         return Response.json({
           sucesso: true,
           recebidos: ras.length,
@@ -3171,6 +3364,15 @@ export default {
           .bind(body.status, aluno.id)
           .run();
 
+        await registrarPendenciaGoogleSheets(
+          env,
+          usuarioAtual,
+          periodoAtual!.id,
+          ra,
+          "ATUALIZAR",
+          "STATUS",
+        );
+
         return Response.json({
           sucesso: true,
           ra,
@@ -3248,6 +3450,15 @@ export default {
           aluno.id,
         )
         .run();
+
+      await registrarPendenciaGoogleSheets(
+        env,
+        usuarioAtual,
+        periodoAtual!.id,
+        ra,
+        "ATUALIZAR",
+        "DOCUMENTOS",
+      );
 
       return Response.json({
         sucesso: true,
@@ -3355,6 +3566,25 @@ export default {
           )
           .run();
 
+        if (novoRa !== raAtual) {
+          await registrarPendenciaGoogleSheets(
+            env,
+            usuarioAtual,
+            periodoAtual!.id,
+            raAtual,
+            "REMOVER",
+            "TROCA DE RA",
+          );
+        }
+        await registrarPendenciaGoogleSheets(
+          env,
+          usuarioAtual,
+          periodoAtual!.id,
+          novoRa,
+          "ATUALIZAR",
+          "CADASTRO",
+        );
+
         return Response.json({
           sucesso: true,
           ra_anterior: raAtual,
@@ -3411,6 +3641,15 @@ export default {
         )
           .bind(aluno.id)
           .run();
+
+        await registrarPendenciaGoogleSheets(
+          env,
+          usuarioAtual,
+          periodoAtual!.id,
+          ra,
+          "REMOVER",
+          "EXCLUSÃO",
+        );
 
         return Response.json({
           sucesso: true,
