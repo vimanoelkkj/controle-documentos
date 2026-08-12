@@ -6363,6 +6363,29 @@ html[data-theme="light"] .period-sheets-ready {
 .settings-user-form h2 {
   margin: 3px 0 0;
 }
+
+.settings-users-count {
+  padding: 6px 10px;
+  border: 1px solid #304857;
+  border-radius: 999px;
+  color: #a9bdca;
+  background: #101c24;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+html[data-theme="light"] .settings-users-count {
+  color: #506b7b;
+  border-color: #ccdbe4;
+  background: #f5f9fb;
+}
+
+html[data-theme="black"] .settings-users-count {
+  color: #d3d3d3;
+  border-color: #3f3f3f;
+  background: #151515;
+}
 .settings-users-grid {
   display: grid;
   gap: 8px;
@@ -12534,6 +12557,36 @@ html[data-theme="dark"] .settings-user-form input:-webkit-autofill:active {
   caret-color: #eef5f9;
 }
 
+html[data-theme="black"] .settings-user-form input:-webkit-autofill,
+html[data-theme="black"] .settings-user-form input:-webkit-autofill:hover,
+html[data-theme="black"] .settings-user-form input:-webkit-autofill:focus,
+html[data-theme="black"] .settings-user-form input:-webkit-autofill:active {
+  -webkit-text-fill-color: #edf1f3;
+  -webkit-box-shadow: 0 0 0 1000px #080808 inset !important;
+  box-shadow: 0 0 0 1000px #080808 inset !important;
+  caret-color: #edf1f3;
+  border-color: #383838;
+}
+
+.settings-user-form input:autofill {
+  color: #eef5f9;
+  background: #0b171f;
+  box-shadow: 0 0 0 1000px #0b171f inset !important;
+}
+
+html[data-theme="light"] .settings-user-form input:autofill {
+  color: #263946;
+  background: #fff;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+}
+
+html[data-theme="black"] .settings-user-form input:autofill {
+  color: #edf1f3;
+  background: #080808;
+  box-shadow: 0 0 0 1000px #080808 inset !important;
+  border-color: #383838;
+}
+
 /* =========================================================
    CABEÇALHOS DE PÁGINA — CARD UNIFICADO
    ========================================================= */
@@ -13274,10 +13327,452 @@ html[data-theme="black"] .statistics-state.error {
 }
 
 html[data-theme="black"] .status-tabs button {
-  text-align: left;
+  text-align: center;
 }
 
 html[data-theme="black"] .status-tabs button.active::before,
 html[data-theme="black"] .unit-tabs button.active::before {
   content: none;
+}
+
+/* Entrada de tela sem transformar o ancestral dos modais. */
+@keyframes page-content-reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.app-content > section > :not([class*="modal"]):not([class*="overlay"]) {
+  animation: page-content-reveal 320ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.app-content > section > :nth-child(2):not([class*="modal"]):not([class*="overlay"]) {
+  animation-delay: 45ms;
+}
+
+.app-content > section > :nth-child(3):not([class*="modal"]):not([class*="overlay"]) {
+  animation-delay: 80ms;
+}
+
+.app-content > section > :nth-child(n + 4):not([class*="modal"]):not([class*="overlay"]) {
+  animation-delay: 110ms;
+}
+
+@keyframes loading-orbit-pulse {
+  0%, 100% { opacity: .35; transform: scale(.72); box-shadow: 0 0 0 0 currentColor; }
+  50% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 6px transparent; }
+}
+
+.dashboard-state,
+.statistics-state,
+.page-loading-state {
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+}
+
+.page-loading-state {
+  display: grid;
+  min-height: 300px;
+  place-items: center;
+  border: 1px solid #223342;
+  border-radius: 14px;
+  color: #8297a7;
+  background: #101a23;
+}
+
+.dashboard-state:not(.error)::before,
+.statistics-state:not(.error)::before,
+.page-loading-state:not(.error)::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  color: #61bfff;
+  background: currentColor;
+  animation: loading-orbit-pulse 1s ease-in-out infinite;
+}
+
+.page-loading-state.error { color: #f19a9a; }
+
+html[data-theme="light"] .page-loading-state {
+  color: #607888;
+  border-color: #d5e0e8;
+  background: #fff;
+}
+
+html[data-theme="black"] .page-loading-state {
+  color: #aeb6bb;
+  border-color: #292929;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .dashboard-state:not(.error)::before,
+html[data-theme="black"] .statistics-state:not(.error)::before,
+html[data-theme="black"] .page-loading-state:not(.error)::before {
+  color: #d8d8d8;
+}
+
+html[data-theme="black"] .page-loading-state.error { color: #ff747d; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-content > section,
+  .app-content > section > :not([class*="modal"]):not([class*="overlay"]),
+  .dashboard-state,
+  .statistics-state,
+  .page-loading-state,
+  .dashboard-state::before,
+  .statistics-state::before,
+  .page-loading-state::before,
+  .period-boot::before {
+    animation: none !important;
+  }
+}
+
+@keyframes select-menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-7px) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes select-option-enter {
+  from { opacity: 0; transform: translateX(-5px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.app-select-menu {
+  transform-origin: top center;
+  animation: select-menu-enter 190ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.app-select-menu {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+}
+
+.app-select-option {
+  min-height: 38px;
+}
+
+.app-select-option {
+  animation: select-option-enter 180ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.app-select-chevron {
+  transition: transform 220ms cubic-bezier(.22, 1, .36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-select-menu,
+  .app-select-option,
+  .app-select-chevron {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Ultimos componentes neutros do tema pretao. */
+html[data-theme="black"] .app-select-menu {
+  color: #ededed;
+  border-color: #444;
+  background: #101010;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, .7);
+}
+
+html[data-theme="black"] .app-select-option {
+  color: #e4e4e4;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+html[data-theme="black"] .app-select-option:hover,
+html[data-theme="black"] .app-select-option.active,
+html[data-theme="black"] .app-select-option.selected {
+  color: #fff;
+  background: #252525 !important;
+}
+
+html[data-theme="black"] .app-select-option small {
+  color: #a2a2a2;
+}
+
+html[data-theme="black"] .dashboard-pending-selection {
+  border-color: #3b3b3b;
+  background: #0a0a0a;
+}
+
+html[data-theme="black"] .dashboard-pending-selection span,
+html[data-theme="black"] .dashboard-pending-selection small {
+  color: #aeb6bb;
+}
+
+html[data-theme="black"] .dashboard-pending-selection strong {
+  color: #f0f0f0;
+}
+
+html[data-theme="black"] .google-sheets-modal {
+  border-color: #383838;
+  background: #090909;
+}
+
+html[data-theme="black"] .google-sheets-modal-head,
+html[data-theme="black"] .google-sheets-modal-actions {
+  border-color: #292929;
+  background: #0b0b0b;
+}
+
+html[data-theme="black"] .google-sheets-modal-head > div:nth-child(2) > span,
+html[data-theme="black"] .google-sheets-modal-head p,
+html[data-theme="black"] .google-sheets-modal-details span,
+html[data-theme="black"] .google-sheets-modal-details code,
+html[data-theme="black"] .google-sheets-connection-state small {
+  color: #a2aaaf;
+}
+
+html[data-theme="black"] .google-sheets-modal-head h2,
+html[data-theme="black"] .google-sheets-modal-details strong,
+html[data-theme="black"] .google-sheets-connection-state strong {
+  color: #ededed;
+}
+
+html[data-theme="black"] .google-sheets-modal-details,
+html[data-theme="black"] .google-sheets-connection-state:not(.connected):not(.disconnected) {
+  border-color: #343434;
+  background: #0e0e0e;
+}
+
+html[data-theme="black"] .google-sheets-modal-icon:not(.connected):not(.disconnected) {
+  border-color: #444;
+  background: #151515;
+}
+
+html[data-theme="black"] .period-sync-confirm-modal {
+  color: #ededed;
+  border-color: #383838;
+  background: #090909;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .75);
+}
+
+html[data-theme="black"] .period-sync-confirm-modal > header,
+html[data-theme="black"] .period-sync-confirm-modal footer {
+  border-color: #292929;
+  background: #0b0b0b;
+}
+
+html[data-theme="black"] .period-sync-confirm-modal h2,
+html[data-theme="black"] .period-sync-confirm-modal header p strong,
+html[data-theme="black"] .period-sync-confirm-grid strong,
+html[data-theme="black"] .period-sync-confirm-details-content article strong {
+  color: #ededed;
+}
+
+html[data-theme="black"] .period-sync-confirm-modal header p,
+html[data-theme="black"] .period-sync-confirm-grid span,
+html[data-theme="black"] .period-sync-confirm-details-content article span,
+html[data-theme="black"] .period-sync-confirm-details-content article small,
+html[data-theme="black"] .period-preview-status-arrow {
+  color: #a2aaaf;
+}
+
+html[data-theme="black"] .period-sync-confirm-grid > div {
+  border-color: #343434;
+  background: #101010;
+}
+
+html[data-theme="black"] .period-sync-confirm-details-content {
+  border-color: #343434;
+  background: #0c0c0c;
+}
+
+html[data-theme="black"] .period-sync-confirm-details-content article {
+  border-color: #292929;
+}
+
+html[data-theme="black"] .period-sync-confirm-details-toggle,
+html[data-theme="black"] .period-sync-back-button {
+  color: #e5e5e5;
+  border-color: #484848;
+  background: #191919;
+}
+
+html[data-theme="black"] .period-sync-confirm-details-toggle:hover,
+html[data-theme="black"] .period-sync-back-button:hover:not(:disabled) {
+  color: #fff;
+  border-color: #666;
+  background: #252525;
+}
+
+html[data-theme="black"] .app-select-trigger:hover:not(:disabled),
+html[data-theme="black"] .app-select-trigger:focus-visible,
+html[data-theme="black"] .app-select-trigger[aria-expanded="true"] {
+  border-color: #5a5a5a !important;
+  background: #171717 !important;
+  box-shadow: 0 0 0 2px #242424 !important;
+}
+
+html[data-theme="black"] .app-select-menu {
+  border-color: #505050 !important;
+}
+
+html[data-theme="black"] .period-confirm-modal {
+  color: #ededed;
+  border-color: #3b3b3b;
+  background: #090909;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .75);
+}
+
+html[data-theme="black"] .period-confirm-modal .modal-cabecalho,
+html[data-theme="black"] .period-confirm-modal .modal-acoes {
+  border-color: #292929;
+  background: #0b0b0b;
+}
+
+html[data-theme="black"] .period-confirm-modal .modal-eyebrow,
+html[data-theme="black"] .period-confirm-modal .modal-cabecalho p {
+  color: #a2aaaf;
+}
+
+html[data-theme="black"] .period-confirm-modal .modal-cabecalho h2,
+html[data-theme="black"] .period-confirm-modal .modal-cabecalho p strong {
+  color: #ededed;
+}
+
+html[data-theme="black"] .period-confirm-modal .modal-fechar,
+html[data-theme="black"] .period-confirm-modal .botao-cancelar {
+  color: #e5e5e5;
+  border-color: #484848;
+  background: #191919;
+}
+
+html[data-theme="black"] .period-confirm-modal .modal-fechar:hover,
+html[data-theme="black"] .period-confirm-modal .botao-cancelar:hover:not(:disabled) {
+  color: #fff;
+  border-color: #666;
+  background: #252525;
+}
+
+html[data-theme="black"] .period-confirm-modal .botao-cadastrar {
+  color: #dff8e7;
+  border-color: #35784d;
+  background: #1d5b35;
+}
+
+html[data-theme="black"] .period-confirm-modal .botao-cadastrar:hover:not(:disabled) {
+  border-color: #4a9967;
+  background: #267244;
+}
+
+html[data-theme="black"] .sidebar-brand-icon {
+  color: #080808;
+  border: 1px solid #bdbdbd;
+  background: #d8d8d8;
+}
+
+html[data-theme="black"] .sidebar-link-icon {
+  color: #c9c9c9;
+}
+
+html[data-theme="black"] .sidebar-link:hover .sidebar-link-icon,
+html[data-theme="black"] .sidebar-link.active .sidebar-link-icon {
+  color: #fff;
+}
+
+html[data-theme="black"] .sidebar-user-avatar {
+  color: #080808;
+  border-color: #bdbdbd;
+  background: #d8d8d8;
+}
+
+.auth-boot {
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+}
+
+.auth-boot::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  color: #61bfff;
+  background: currentColor;
+  animation: loading-orbit-pulse 1s ease-in-out infinite;
+}
+
+html[data-theme="black"] .auth-boot {
+  color: #aeb6bb;
+  background: #050505;
+}
+
+html[data-theme="black"] .auth-boot::before {
+  color: #d8d8d8;
+}
+
+html[data-theme="black"] .student-card-footer > span:not(.student-status-cancelled) {
+  color: #d3d3d3;
+  border-color: #4a4a4a;
+  background: #202020;
+}
+
+html[data-theme="black"] .student-details-empty .empty-state-icon {
+  color: #e2e2e2;
+  border-color: #484848;
+  background: #171717;
+}
+
+html[data-theme="black"] .dashboard-context-filter {
+  border-color: #444;
+  background: #111;
+}
+
+html[data-theme="black"] .dashboard-context-filter span,
+html[data-theme="black"] .dashboard-context-filter small {
+  color: #aeb6bb;
+}
+
+html[data-theme="black"] .dashboard-context-filter strong {
+  color: #ededed;
+}
+
+html[data-theme="black"] .dashboard-context-filter button {
+  color: #e5e5e5;
+  border-color: #4a4a4a;
+  background: #1a1a1a;
+}
+
+html[data-theme="black"] .dashboard-context-filter button:hover {
+  color: #fff;
+  border-color: #666;
+  background: #272727;
+}
+
+html[data-theme="black"] .log-marker {
+  background: #777;
+}
+
+html[data-theme="black"] .log-tags span {
+  color: #d3d3d3;
+  border-color: #454545;
+  background: #1a1a1a;
+}
+
+html[data-theme="black"] .log-toolbar strong,
+html[data-theme="black"] .log-item-head time {
+  color: #aeb6bb;
+}
+
+html[data-theme="black"] .log-item p {
+  color: #c7cdd1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-boot::before {
+    animation: none !important;
+  }
 }

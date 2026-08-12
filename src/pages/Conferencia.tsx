@@ -573,7 +573,7 @@ function Conferencia() {
   if (carregando) {
     return (
       <section className="conference-page">
-        <p>Carregando alunos...</p>
+        <div className="page-loading-state">Carregando alunos...</div>
       </section>
     );
   }
@@ -581,7 +581,7 @@ function Conferencia() {
   if (erro) {
     return (
       <section className="conference-page">
-        <p>{erro}</p>
+        <div className="page-loading-state error">{erro}</div>
       </section>
     );
   }
@@ -2267,7 +2267,9 @@ function Conferencia() {
             className="student-details student-details-empty"
           >
             <div>
-              <span className="empty-state-icon">✓</span>
+              <span className="empty-state-icon">
+                <AppIcon name="info" size={24} />
+              </span>
               <h2>Selecione um aluno</h2>
               <p>
                 {!unidadeSelecionada
