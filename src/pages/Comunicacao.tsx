@@ -92,6 +92,12 @@ function normalizarEmail(valor: string | null | undefined) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "";
 }
 
+function formatarPrazo(valor: string) {
+  const numeros = valor.replace(/\D/g, "").slice(0, 4);
+  if (numeros.length <= 2) return numeros;
+  return `${numeros.slice(0, 2)}/${numeros.slice(2)}`;
+}
+
 function criarGrupos(alunos: AlunoApi[]): Grupo[] {
   const mapa = new Map<string, Grupo>();
 
@@ -703,10 +709,11 @@ ${textoEmail}`;
                       <span>Data limite <small>DD/MM</small></span>
                       <input
                         value={prazo}
-                        onChange={(e) => setPrazo(e.target.value)}
-                        placeholder="01/07"
+                        onChange={(e) => setPrazo(formatarPrazo(e.target.value))}
+                        placeholder="__/__"
                         inputMode="numeric"
                         maxLength={5}
+                        aria-label="Data limite no formato dia e mês"
                       />
                     </label>
                     <label className="communication-subject-field">
