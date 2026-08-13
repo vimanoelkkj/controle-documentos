@@ -1,6 +1,7 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AppSelect from "../components/AppSelect";
+import { useAuth } from "../contexts/AuthContext";
 
 type AlunoApi = {
   ra: string;
@@ -148,6 +149,7 @@ async function copiar(texto: string) {
 }
 
 function Comunicacao() {
+  const { modoApresentacao } = useAuth();
   const [alunos, setAlunos] = useState<AlunoApi[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
@@ -163,7 +165,9 @@ function Comunicacao() {
   const [historicoErro, setHistoricoErro] = useState("");
   const [registrandoHistorico, setRegistrandoHistorico] = useState(false);
   const emailCardRef = useRef<HTMLElement | null>(null);
-  const [alturaMaximaAlunos, setAlturaMaximaAlunos] = useState<number | null>(null);
+  const [alturaMaximaAlunos, setAlturaMaximaAlunos] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     const elemento = emailCardRef.current;
@@ -201,7 +205,9 @@ function Comunicacao() {
     try {
       const resposta = await fetch("/api/comunicacoes?limit=100");
       if (!resposta.ok) {
-        const dados = (await resposta.json().catch(() => ({}))) as { erro?: string };
+        const dados = (await resposta.json().catch(() => ({}))) as {
+          erro?: string;
+        };
         throw new Error(dados.erro || "Não foi possível carregar o histórico.");
       }
 
@@ -315,7 +321,8 @@ function Comunicacao() {
 
   const emailsInstitucionaisDuplicados =
     emailsInstitucionaisBrutos.length -
-    new Set(emailsInstitucionaisBrutos.map((email) => email.toLowerCase())).size;
+    new Set(emailsInstitucionaisBrutos.map((email) => email.toLowerCase()))
+      .size;
 
   const validacaoOk =
     alunosSelecionados.length > 0 &&
@@ -335,15 +342,18 @@ function Comunicacao() {
         if (!atual) mapa.set(ra, { quantidade: 1, ultima: registro.criado_em });
         else {
           atual.quantidade += 1;
-          if (new Date(registro.criado_em) > new Date(atual.ultima)) atual.ultima = registro.criado_em;
+          if (new Date(registro.criado_em) > new Date(atual.ultima))
+            atual.ultima = registro.criado_em;
         }
       });
     });
     return mapa;
   }, [cobrancasDaCombinacao]);
 
-  const alunosJaCobrados = grupo?.alunos.filter((aluno) => cobrancasPorRa.has(aluno.ra)) || [];
-  const alunosNaoCobrados = grupo?.alunos.filter((aluno) => !cobrancasPorRa.has(aluno.ra)) || [];
+  const alunosJaCobrados =
+    grupo?.alunos.filter((aluno) => cobrancasPorRa.has(aluno.ra)) || [];
+  const alunosNaoCobrados =
+    grupo?.alunos.filter((aluno) => !cobrancasPorRa.has(aluno.ra)) || [];
   const ultimaCobrancaGrupo = cobrancasDaCombinacao[0]?.criado_em || "";
 
   const temContrato =
@@ -413,7 +423,9 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
 
   async function copiarPacoteOutlook() {
     if (!emailsInstitucionais.length) {
-      setFeedback("Nenhum e-mail institucional válido nos alunos selecionados.");
+      setFeedback(
+        "Nenhum e-mail institucional válido nos alunos selecionados.",
+      );
       return;
     }
 
@@ -436,7 +448,9 @@ ${textoEmail}`;
 
   async function registrarCobranca() {
     if (!grupo || alunosSelecionados.length === 0) {
-      setFeedback("Selecione pelo menos um aluno antes de registrar a cobrança.");
+      setFeedback(
+        "Selecione pelo menos um aluno antes de registrar a cobrança.",
+      );
       return;
     }
 
@@ -488,7 +502,11 @@ ${textoEmail}`;
   }
 
   if (carregando) {
-    return <section className="communication-page">Carregando comunicação...</section>;
+    return (
+      <section className="communication-page">
+        Carregando comunicação...
+      </section>
+    );
   }
 
   if (erro) {
@@ -501,9 +519,11 @@ ${textoEmail}`;
         <div>
           <span className="communication-eyebrow">CENTRAL DE COMUNICAÇÃO</span>
           <div className="page-title-row">
-          <span className="page-title-icon"><AppIcon name="mail" size={22} /></span>
-          <h1>Cobrança de documentos</h1>
-        </div>
+            <span className="page-title-icon">
+              <AppIcon name="mail" size={22} />
+            </span>
+            <h1>Cobrança de documentos</h1>
+          </div>
           <p>
             Grupos automáticos por combinação exata de pendências. Escolha um
             grupo, revise os alunos e copie os destinatários para o Outlook.
@@ -569,15 +589,21 @@ ${textoEmail}`;
                   {item.documentos.length !== 7 && (
                     <div className="communication-mini-tags">
                       {item.documentos.map((doc) => (
-                        <span key={doc.campo} className={doc.prioritario ? "priority" : ""}>
+                        <span
+                          key={doc.campo}
+                          className={doc.prioritario ? "priority" : ""}
+                        >
                           {doc.curto}
                         </span>
                       ))}
                     </div>
                   )}
                   <span>
-                    {item.alunos.length} aluno{item.alunos.length === 1 ? "" : "s"}
-                    {grupos[0]?.chave === item.chave && grupos.length > 1 ? " • maior grupo" : ""}
+                    {item.alunos.length} aluno
+                    {item.alunos.length === 1 ? "" : "s"}
+                    {grupos[0]?.chave === item.chave && grupos.length > 1
+                      ? " • maior grupo"
+                      : ""}
                   </span>
                 </div>
                 <span className="communication-group-count">
@@ -614,9 +640,22 @@ ${textoEmail}`;
                     documentos — nenhum a mais e nenhum a menos.
                   </p>
                   <div className="communication-charge-summary">
-                    <span><b>{alunosJaCobrados.length}</b> já cobrado(s)</span>
-                    <span><b>{alunosNaoCobrados.length}</b> ainda não cobrado(s)</span>
-                    {ultimaCobrancaGrupo && <span>Última cobrança: <b>{new Date(ultimaCobrancaGrupo).toLocaleString("pt-BR")}</b></span>}
+                    <span>
+                      <b>{alunosJaCobrados.length}</b> já cobrado(s)
+                    </span>
+                    <span>
+                      <b>{alunosNaoCobrados.length}</b> ainda não cobrado(s)
+                    </span>
+                    {ultimaCobrancaGrupo && (
+                      <span>
+                        Última cobrança:{" "}
+                        <b>
+                          {new Date(ultimaCobrancaGrupo).toLocaleString(
+                            "pt-BR",
+                          )}
+                        </b>
+                      </span>
+                    )}
                   </div>
                 </div>
                 <strong className="communication-big-count">
@@ -637,163 +676,234 @@ ${textoEmail}`;
               </div>
 
               <div className="communication-actions">
-                <div>
-                  <span>DESTINATÁRIOS</span>
-                  <strong>{alunosSelecionados.length} alunos selecionados</strong>
-                  <small>
-                    {selecionadosComInstitucional} com e-mail institucional •{" "}
-                    {selecionadosSemInstitucional} sem institucional •{" "}
-                    {emailsAlternativos.length} alternativos
-                  </small>
-                </div>
-                <div className="communication-action-buttons">
-                  <button onClick={() => copiarEmails("institucional")}>
-                    Copiar institucionais
-                  </button>
-                  <button onClick={() => copiarEmails("alternativo")}>
-                    Copiar alternativos
-                  </button>
-                  <button onClick={() => copiarEmails("ambos")}>
-                    Copiar ambos
-                  </button>
-                  <button
-                    className="communication-outlook-button"
-                    onClick={copiarPacoteOutlook}
-                    title="Copia CCO, assunto e mensagem para a área de transferência"
-                  >
-                    Copiar pacote
-                  </button>
-                  <button
-                    className="communication-register-button"
-                    onClick={registrarCobranca}
-                    disabled={registrandoHistorico || alunosSelecionados.length === 0}
-                    title="Use depois de concluir o envio para registrar a cobrança no histórico"
-                  >
-                    {registrandoHistorico ? "Registrando..." : "Registrar cobrança"}
-                  </button>
-                </div>
-              </div>
+                {modoApresentacao ? (
+                  <div>
+                    <span>MODO APRESENTAÇÃO</span>
+                    <strong>
+                      Dados pessoais e ações de comunicação ocultos
+                    </strong>
+                    <small>
+                      A estrutura da combinação continua disponível apenas para
+                      demonstração.
+                    </small>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <span>DESTINATÁRIOS</span>
+                      <strong>
+                        {alunosSelecionados.length} alunos selecionados
+                      </strong>
+                      <small>
+                        {selecionadosComInstitucional} com e-mail institucional
+                        • {selecionadosSemInstitucional} sem institucional •{" "}
+                        {emailsAlternativos.length} alternativos
+                      </small>
+                    </div>
 
-              {feedback && <div className="communication-feedback">{feedback}</div>}
-
-              <div className={`communication-validation ${validacaoOk ? "ok" : "warning"}`}>
-                <div>
-                  <span>VALIDAÇÃO DOS DESTINATÁRIOS</span>
-                  <strong>
-                    {validacaoOk
-                      ? "Lista pronta para comunicação"
-                      : "Revise a lista antes de copiar"}
-                  </strong>
-                </div>
-
-                <div className="communication-validation-items">
-                  <span className={selecionadosSemInstitucional === 0 ? "ok" : "warning"}>
-                    {selecionadosSemInstitucional === 0 ? "✓" : "!"}{" "}
-                    {selecionadosSemInstitucional} sem e-mail institucional
-                  </span>
-                  <span className={emailsInstitucionaisInvalidos.length === 0 ? "ok" : "warning"}>
-                    {emailsInstitucionaisInvalidos.length === 0 ? "✓" : "!"}{" "}
-                    {emailsInstitucionaisInvalidos.length} e-mail(is) inválido(s)
-                  </span>
-                  <span className={emailsInstitucionaisDuplicados === 0 ? "ok" : "attention"}>
-                    {emailsInstitucionaisDuplicados === 0 ? "✓" : "!"}{" "}
-                    {emailsInstitucionaisDuplicados} duplicado(s)
-                  </span>
-                </div>
-              </div>
-
-              <div className="communication-content-grid">
-                <section ref={emailCardRef} className="communication-email-card">
-                  <div className="communication-email-settings">
-                    <label className="communication-deadline-field">
-                      <span>Data limite <small>DD/MM</small></span>
-                      <input
-                        value={prazo}
-                        onChange={(e) => setPrazo(formatarPrazo(e.target.value))}
-                        placeholder="__/__"
-                        inputMode="numeric"
-                        maxLength={5}
-                        aria-label="Data limite no formato dia e mês"
-                      />
-                    </label>
-                    <label className="communication-subject-field">
-                      <span>Assunto <small>do e-mail</small></span>
-                      <input
-                        value={assunto}
-                        onChange={(e) => setAssunto(e.target.value)}
-                        placeholder="Ex.: Documentação pendente — Matrícula"
-                      />
-                    </label>
-                    <div className="communication-copy-stack">
-                      <button type="button" onClick={copiarAssunto}>
-                        Copiar assunto
+                    <div className="communication-action-buttons">
+                      <button onClick={() => copiarEmails("institucional")}>
+                        Copiar institucionais
                       </button>
-                      <button type="button" onClick={copiarComunicado}>
-                        Copiar texto
+
+                      <button onClick={() => copiarEmails("alternativo")}>
+                        Copiar alternativos
+                      </button>
+
+                      <button onClick={() => copiarEmails("ambos")}>
+                        Copiar ambos
+                      </button>
+
+                      <button
+                        className="communication-outlook-button"
+                        onClick={copiarPacoteOutlook}
+                        title="Copia CCO, assunto e mensagem para a área de transferência"
+                      >
+                        Copiar pacote
+                      </button>
+
+                      <button
+                        className="communication-register-button"
+                        onClick={registrarCobranca}
+                        disabled={
+                          registrandoHistorico ||
+                          alunosSelecionados.length === 0
+                        }
+                        title="Use depois de concluir o envio para registrar a cobrança no histórico"
+                      >
+                        {registrandoHistorico
+                          ? "Registrando..."
+                          : "Registrar cobrança"}
                       </button>
                     </div>
+                  </>
+                )}
+              </div>
+              {feedback && (
+                <div className="communication-feedback">{feedback}</div>
+              )}
+              {!modoApresentacao && (
+                <div
+                  className={`communication-validation ${validacaoOk ? "ok" : "warning"}`}
+                >
+                  <div>
+                    <span>VALIDAÇÃO DOS DESTINATÁRIOS</span>
+                    <strong>
+                      {validacaoOk
+                        ? "Lista pronta para comunicação"
+                        : "Revise a lista antes de copiar"}
+                    </strong>
                   </div>
 
-                  <div className="communication-preview">
-                    <div className="communication-preview-top">
-                      <div className="communication-preview-heading">
-                        <div className="communication-preview-icon">✉</div>
-                        <div>
-                          <span>PRÉVIA DA MENSAGEM</span>
-                          <strong>{assunto || "Sem assunto"}</strong>
-                          <small>Para: {alunosSelecionados.length} destinatário(s)</small>
+                  <div className="communication-validation-items">
+                    <span
+                      className={
+                        selecionadosSemInstitucional === 0 ? "ok" : "warning"
+                      }
+                    >
+                      {selecionadosSemInstitucional === 0 ? "✓" : "!"}{" "}
+                      {selecionadosSemInstitucional} sem e-mail institucional
+                    </span>
+
+                    <span
+                      className={
+                        emailsInstitucionaisInvalidos.length === 0
+                          ? "ok"
+                          : "warning"
+                      }
+                    >
+                      {emailsInstitucionaisInvalidos.length === 0 ? "✓" : "!"}{" "}
+                      {emailsInstitucionaisInvalidos.length} e-mail(is)
+                      inválido(s)
+                    </span>
+
+                    <span
+                      className={
+                        emailsInstitucionaisDuplicados === 0
+                          ? "ok"
+                          : "attention"
+                      }
+                    >
+                      {emailsInstitucionaisDuplicados === 0 ? "✓" : "!"}{" "}
+                      {emailsInstitucionaisDuplicados} duplicado(s)
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div
+                className={`communication-content-grid ${
+                  modoApresentacao ? "presentation-mode" : ""
+                }`}
+              >
+                {!modoApresentacao && (
+                  <section
+                    ref={emailCardRef}
+                    className="communication-email-card"
+                  >
+                    <div className="communication-email-settings">
+                      <label className="communication-deadline-field">
+                        <span>
+                          Data limite <small>DD/MM</small>
+                        </span>
+                        <input
+                          value={prazo}
+                          onChange={(e) =>
+                            setPrazo(formatarPrazo(e.target.value))
+                          }
+                          placeholder="__/__"
+                          inputMode="numeric"
+                          maxLength={5}
+                          aria-label="Data limite no formato dia e mês"
+                        />
+                      </label>
+                      <label className="communication-subject-field">
+                        <span>
+                          Assunto <small>do e-mail</small>
+                        </span>
+                        <input
+                          value={assunto}
+                          onChange={(e) => setAssunto(e.target.value)}
+                          placeholder="Ex.: Documentação pendente — Matrícula"
+                        />
+                      </label>
+                      {!modoApresentacao && (
+                        <div className="communication-copy-stack">
+                          <button type="button" onClick={copiarAssunto}>
+                            Copiar assunto
+                          </button>
+
+                          <button type="button" onClick={copiarComunicado}>
+                            Copiar texto
+                          </button>
                         </div>
-                      </div>
-                      <span className="communication-preview-count">{grupo.documentos.length} pendência(s)</span>
-                    </div>
-
-                    <div className="communication-email-body">
-                      <p className="communication-warning">
-                        ⚠️ <b>ATENÇÃO! NÃO RESPONDER A ESTE E-MAIL.</b> MANDE A
-                        SUA RESPOSTA PARA O E-MAIL ABAIXO⬇️:
-                      </p>
-                      <p className="communication-address">
-                        matriculadecalouro@fumec.br
-                      </p>
-                      <p>Prezado(a), boa tarde.</p>
-                      <p>
-                        Informo que em verificação ao nosso sistema a sua
-                        matrícula está pendente alguns documentos importantes.
-                        Peço que realize o envio dos mesmos o mais rápido
-                        possível via e-mail para{" "}
-                        <b>matriculadecalouro@fumec.br</b> ou, se preferir, pode
-                        comparecer pessoalmente na secretaria acadêmica até o
-                        dia <b>{prazo || "___/___"}</b>. Informo que a não
-                        apresentação destes documentos poderá resultar no
-                        bloqueio da sua matrícula. Segue lista abaixo:
-                      </p>
-
-                      <ul>
-                        {grupo.documentos.map((documento) => (
-                          <li
-                            key={documento.campo}
-                            className={documento.prioritario ? "priority" : ""}
-                          >
-                            {documento.email};
-                          </li>
-                        ))}
-                      </ul>
-
-                      {temContrato && (
-                        <p>
-                          Caso esteja pendente o{" "}
-                          <b className="communication-priority-text">
-                            CONTRATO DE MATRÍCULA
-                          </b>{" "}
-                          assinado, você irá receber no seu e-mail o link para o
-                          portal de visualização e assinatura do contrato. Caso
-                          contrário, desconsidere as orientações.
-                        </p>
                       )}
                     </div>
-                  </div>
-                </section>
+                    <div className="communication-preview">
+                      <div className="communication-preview-top">
+                        <div className="communication-preview-heading">
+                          <div className="communication-preview-icon">✉</div>
+                          <div>
+                            <span>PRÉVIA DA MENSAGEM</span>
+                            <strong>{assunto || "Sem assunto"}</strong>
+                            <small>
+                              Para: {alunosSelecionados.length} destinatário(s)
+                            </small>
+                          </div>
+                        </div>
+                        <span className="communication-preview-count">
+                          {grupo.documentos.length} pendência(s)
+                        </span>
+                      </div>
 
+                      <div className="communication-email-body">
+                        <p className="communication-warning">
+                          ⚠️ <b>ATENÇÃO! NÃO RESPONDER A ESTE E-MAIL.</b> MANDE
+                          A SUA RESPOSTA PARA O E-MAIL ABAIXO⬇️:
+                        </p>
+                        <p className="communication-address">
+                          matriculadecalouro@fumec.br
+                        </p>
+                        <p>Prezado(a), boa tarde.</p>
+                        <p>
+                          Informo que em verificação ao nosso sistema a sua
+                          matrícula está pendente alguns documentos importantes.
+                          Peço que realize o envio dos mesmos o mais rápido
+                          possível via e-mail para{" "}
+                          <b>matriculadecalouro@fumec.br</b> ou, se preferir,
+                          pode comparecer pessoalmente na secretaria acadêmica
+                          até o dia <b>{prazo || "___/___"}</b>. Informo que a
+                          não apresentação destes documentos poderá resultar no
+                          bloqueio da sua matrícula. Segue lista abaixo:
+                        </p>
+
+                        <ul>
+                          {grupo.documentos.map((documento) => (
+                            <li
+                              key={documento.campo}
+                              className={
+                                documento.prioritario ? "priority" : ""
+                              }
+                            >
+                              {documento.email};
+                            </li>
+                          ))}
+                        </ul>
+
+                        {temContrato && (
+                          <p>
+                            Caso esteja pendente o{" "}
+                            <b className="communication-priority-text">
+                              CONTRATO DE MATRÍCULA
+                            </b>{" "}
+                            assinado, você irá receber no seu e-mail o link para
+                            o portal de visualização e assinatura do contrato.
+                            Caso contrário, desconsidere as orientações.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                )}
                 <section
                   className="communication-students-card"
                   style={
@@ -806,67 +916,88 @@ ${textoEmail}`;
                     <div>
                       <span>ALUNOS DO GRUPO</span>
                       <strong>
-                        {selecionados.size}/{grupo.alunos.length} selecionados
+                        {modoApresentacao
+                          ? `${grupo.alunos.length} aluno(s)`
+                          : `${selecionados.size}/${grupo.alunos.length} selecionados`}
                       </strong>
                     </div>
                     <input
                       type="search"
                       value={buscaAluno}
                       onChange={(e) => setBuscaAluno(e.target.value)}
-                      placeholder="Nome, RA, curso ou e-mail"
+                      placeholder={
+                        modoApresentacao
+                          ? "Nome, RA ou curso"
+                          : "Nome, RA, curso ou e-mail"
+                      }
                     />
                   </div>
 
-                  <div className="communication-select-actions">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelecionados(
-                          new Set(grupo.alunos.map((aluno) => aluno.ra)),
-                        )
-                      }
-                    >
-                      Selecionar todos
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelecionados(new Set(alunosNaoCobrados.map((aluno) => aluno.ra)))}
-                      disabled={alunosNaoCobrados.length === 0}
-                    >
-                      Selecionar não cobrados
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelecionados(new Set())}
-                    >
-                      Limpar seleção
-                    </button>
-                  </div>
-
+                  {!modoApresentacao && (
+                    <div className="communication-select-actions">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelecionados(
+                            new Set(grupo.alunos.map((aluno) => aluno.ra)),
+                          )
+                        }
+                      >
+                        Selecionar todos
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelecionados(
+                            new Set(alunosNaoCobrados.map((aluno) => aluno.ra)),
+                          )
+                        }
+                        disabled={alunosNaoCobrados.length === 0}
+                      >
+                        Selecionar não cobrados
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelecionados(new Set())}
+                      >
+                        Limpar seleção
+                      </button>
+                    </div>
+                  )}
                   <div className="communication-student-list">
                     {alunosVisiveis.map((aluno) => (
                       <label key={aluno.ra} className="communication-student">
-                        <input
-                          type="checkbox"
-                          checked={selecionados.has(aluno.ra)}
-                          onChange={() => alternarAluno(aluno.ra)}
-                        />
+                        {!modoApresentacao && (
+                          <input
+                            type="checkbox"
+                            checked={selecionados.has(aluno.ra)}
+                            onChange={() => alternarAluno(aluno.ra)}
+                          />
+                        )}
                         <div>
                           <strong>{aluno.nome}</strong>
                           <span>
                             RA {aluno.ra} • {aluno.curso} • {aluno.unidade}
                           </span>
-                          <small>
-                            {normalizarEmail(aluno.email) || "Sem e-mail institucional"}
-                            {" • "}
-                            {normalizarEmail(aluno.email_outro) ||
-                              "Sem e-mail alternativo"}
-                          </small>
-                          {cobrancasPorRa.has(aluno.ra) && (
-                            <span className="communication-charged-badge">
-                              ✓ Cobrado em {new Date(cobrancasPorRa.get(aluno.ra)!.ultima).toLocaleDateString("pt-BR")} • {cobrancasPorRa.get(aluno.ra)!.quantidade}x
-                            </span>
+                          {!modoApresentacao && (
+                            <small>
+                              {normalizarEmail(aluno.email) ||
+                                "Sem e-mail institucional"}
+                              {" • "}
+                              {normalizarEmail(aluno.email_outro) ||
+                                "Sem e-mail alternativo"}
+                            </small>
                           )}
+                          {!modoApresentacao &&
+                            cobrancasPorRa.has(aluno.ra) && (
+                              <span className="communication-charged-badge">
+                                ✓ Cobrado em{" "}
+                                {new Date(
+                                  cobrancasPorRa.get(aluno.ra)!.ultima,
+                                ).toLocaleDateString("pt-BR")}{" "}
+                                • {cobrancasPorRa.get(aluno.ra)!.quantidade}x
+                              </span>
+                            )}
                         </div>
                       </label>
                     ))}
@@ -874,55 +1005,63 @@ ${textoEmail}`;
                 </section>
 
                 <section className="communication-history">
-                <div className="communication-history-header">
-                  <div>
-                    <span>HISTÓRICO DE COBRANÇAS</span>
-                    <strong>Últimos registros</strong>
+                  <div className="communication-history-header">
+                    <div>
+                      <span>HISTÓRICO DE COBRANÇAS</span>
+                      <strong>Últimos registros</strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void carregarHistorico()}
+                    >
+                      Atualizar
+                    </button>
                   </div>
-                  <button type="button" onClick={() => void carregarHistorico()}>
-                    Atualizar
-                  </button>
-                </div>
 
-                {historicoErro ? (
-                  <div className="communication-history-error">
-                    {historicoErro}
-                  </div>
-                ) : historico.length === 0 ? (
-                  <div className="communication-history-empty">
-                    Nenhuma cobrança registrada ainda.
-                  </div>
-                ) : (
-                  <div className="communication-history-list">
-                    {historico.map((registro) => (
-                      <article key={registro.id} className="communication-history-item">
-                        <div>
-                          <strong>
-                            {registro.documentos.length === 7
-                              ? "Todos os documentos"
-                              : registro.documentos.join(" + ")}
-                          </strong>
-                          <span>
-                            {registro.unidade === "TODAS"
-                              ? "Todas as unidades"
-                              : registro.unidade}
-                            {" • "}
-                            {new Date(registro.criado_em).toLocaleString("pt-BR")}
-                          </span>
-                        </div>
-                        <div className="communication-history-numbers">
-                          <strong>{registro.quantidade_alunos}</strong>
-                          <span>alunos</span>
-                        </div>
-                        <div className="communication-history-numbers">
-                          <strong>{registro.quantidade_emails}</strong>
-                          <span>e-mails</span>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </section>
+                  {historicoErro ? (
+                    <div className="communication-history-error">
+                      {historicoErro}
+                    </div>
+                  ) : historico.length === 0 ? (
+                    <div className="communication-history-empty">
+                      Nenhuma cobrança registrada ainda.
+                    </div>
+                  ) : (
+                    <div className="communication-history-list">
+                      {historico.map((registro) => (
+                        <article
+                          key={registro.id}
+                          className="communication-history-item"
+                        >
+                          <div>
+                            <strong>
+                              {registro.documentos.length === 7
+                                ? "Todos os documentos"
+                                : registro.documentos.join(" + ")}
+                            </strong>
+                            <span>
+                              {registro.unidade === "TODAS"
+                                ? "Todas as unidades"
+                                : registro.unidade}
+                              {" • "}
+                              {new Date(registro.criado_em).toLocaleString(
+                                "pt-BR",
+                              )}
+                            </span>
+                          </div>
+                          <div className="communication-history-numbers">
+                            <strong>{registro.quantidade_alunos}</strong>
+                            <span>alunos</span>
+                          </div>
+                          <div className="communication-history-numbers">
+                            <strong>{registro.quantidade_emails}</strong>
+                            <span>e-mails</span>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </section>
               </div>
             </>
           )}

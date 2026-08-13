@@ -1,6 +1,8 @@
 import AppIcon from "../components/AppIcon";
 import "./HistoricoAluno.css";
 import AppSelect from "../components/AppSelect";
+import { useAuth } from "../contexts/AuthContext";
+
 import {
   useEffect,
   useLayoutEffect,
@@ -166,6 +168,7 @@ function Conferencia() {
   const [alunosEmEdicao, setAlunosEmEdicao] = useState<Aluno[]>([]);
   const [raSelecionado, setRaSelecionado] = useState("");
   const [busca, setBusca] = useState("");
+  const { modoApresentacao } = useAuth();
 
   const [unidadeSelecionada, setUnidadeSelecionada] = useState<Unidade | "">(
     () => {
@@ -1886,24 +1889,26 @@ function Conferencia() {
               </div>
             </div>
 
-            <div className="student-panel-actions">
-              <button
-                type="button"
-                className="botao-importar-cancelados"
-                onClick={abrirImportacaoCancelados}
-                title="Importar lista de cancelados"
-              >
-                ⊘ Cancelados
-              </button>
+            {!modoApresentacao && (
+              <div className="student-panel-actions">
+                <button
+                  type="button"
+                  className="botao-importar-cancelados"
+                  onClick={abrirImportacaoCancelados}
+                  title="Importar lista de cancelados"
+                >
+                  ⊘ Cancelados
+                </button>
 
-              <button
-                type="button"
-                className="botao-novo-aluno"
-                onClick={() => setModalAdicionarAluno(true)}
-              >
-                + Adicionar alunos
-              </button>
-            </div>
+                <button
+                  type="button"
+                  className="botao-novo-aluno"
+                  onClick={() => setModalAdicionarAluno(true)}
+                >
+                  + Adicionar alunos
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="status-tabs">
@@ -2081,27 +2086,31 @@ function Conferencia() {
                   Histórico
                 </button>
 
-                <button
-                  type="button"
-                  className="student-edit-button"
-                  onClick={abrirEdicaoAluno}
-                >
-                  Editar aluno
-                </button>
+                {!modoApresentacao && (
+                  <>
+                    <button
+                      type="button"
+                      className="student-edit-button"
+                      onClick={abrirEdicaoAluno}
+                    >
+                      Editar aluno
+                    </button>
 
-                <button
-                  type="button"
-                  className={
-                    alunoSelecionado.status === "ATIVO"
-                      ? "student-delete-button"
-                      : "student-edit-button"
-                  }
-                  onClick={() => setModalStatusAluno(true)}
-                >
-                  {alunoSelecionado.status === "ATIVO"
-                    ? "Cancelar matrícula"
-                    : "Reativar matrícula"}
-                </button>
+                    <button
+                      type="button"
+                      className={
+                        alunoSelecionado.status === "ATIVO"
+                          ? "student-delete-button"
+                          : "student-edit-button"
+                      }
+                      onClick={() => setModalStatusAluno(true)}
+                    >
+                      {alunoSelecionado.status === "ATIVO"
+                        ? "Cancelar matrícula"
+                        : "Reativar matrícula"}
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="student-progress">
@@ -2156,6 +2165,7 @@ function Conferencia() {
                       <input
                         type="checkbox"
                         checked={documento.entregue}
+                        disabled={modoApresentacao}
                         onChange={() => alternarDocumento(documento.nome)}
                       />
 
@@ -2204,62 +2214,66 @@ function Conferencia() {
               </aside>
             </div>
 
-            <footer
-              className={`conference-actions ${erroSalvamento ? "conference-actions-error" : ""}`}
-              style={
-                erroSalvamento
-                  ? {
-                      background: "rgba(220, 53, 69, 0.10)",
-                      borderTopColor: "rgba(220, 53, 69, 0.45)",
-                      boxShadow: "inset 4px 0 0 #dc3545",
-                    }
-                  : undefined
-              }
-            >
-              <span
-                className={
+            {!modoApresentacao && (
+              <footer
+                className={`conference-actions ${
+                  erroSalvamento ? "conference-actions-error" : ""
+                }`}
+                style={
                   erroSalvamento
-                    ? "save-feedback error"
-                    : salvando
-                      ? "save-feedback saving"
-                      : temAlteracoes
-                        ? "pending"
-                        : "saved"
+                    ? {
+                        background: "rgba(220, 53, 69, 0.10)",
+                        borderTopColor: "rgba(220, 53, 69, 0.45)",
+                        boxShadow: "inset 4px 0 0 #dc3545",
+                      }
+                    : undefined
                 }
-                role="status"
-                aria-live="polite"
               >
-                {erroSalvamento
-                  ? `✕ ${erroSalvamento}`
-                  : salvando
-                    ? "↻ Salvando alterações..."
-                    : temAlteracoes
-                      ? "● Alterações pendentes"
-                      : status === "salvo"
-                        ? "✓ Alterações salvas"
-                        : "Nenhuma alteração"}
-              </span>
-
-              <div>
-                <button
-                  type="button"
-                  className="secondary-action"
-                  disabled={!temAlteracoes || salvando}
-                  onClick={restaurarAlteracoes}
+                <span
+                  className={
+                    erroSalvamento
+                      ? "save-feedback error"
+                      : salvando
+                        ? "save-feedback saving"
+                        : temAlteracoes
+                          ? "pending"
+                          : "saved"
+                  }
+                  role="status"
+                  aria-live="polite"
                 >
-                  Restaurar
-                </button>
+                  {erroSalvamento
+                    ? `✕ ${erroSalvamento}`
+                    : salvando
+                      ? "↻ Salvando alterações..."
+                      : temAlteracoes
+                        ? "● Alterações pendentes"
+                        : status === "salvo"
+                          ? "✓ Alterações salvas"
+                          : "Nenhuma alteração"}
+                </span>
 
-                <button
-                  type="button"
-                  className="primary-action"
-                  disabled={!temAlteracoes || salvando}
-                  onClick={salvarAlteracoes}
-                >
-                  {salvando ? "Salvando..." : "Salvar alterações"}
-                </button>
-              </div>
-            </footer>
+                <div>
+                  <button
+                    type="button"
+                    className="secondary-action"
+                    disabled={!temAlteracoes || salvando}
+                    onClick={restaurarAlteracoes}
+                  >
+                    Restaurar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="primary-action"
+                    disabled={!temAlteracoes || salvando}
+                    onClick={salvarAlteracoes}
+                  >
+                    {salvando ? "Salvando..." : "Salvar alterações"}
+                  </button>
+                </div>
+              </footer>
+            )}
           </article>
         ) : (
           <article

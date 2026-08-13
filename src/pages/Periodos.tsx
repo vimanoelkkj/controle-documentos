@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { usePeriodo } from "../contexts/PeriodoContext";
 import AppSelect from "../components/AppSelect";
 import { api } from "../lib/api";
+import { useAuth } from "../contexts/AuthContext";
 
 function normalizarCodigo(valor: string) {
   return valor.trim().toUpperCase().replace(/\s+/g, "");
@@ -98,6 +99,7 @@ const configVazia: SheetsConfig = {
 };
 
 function Periodos() {
+  const { modoApresentacao } = useAuth();
   const { periodos, periodoAtual, selecionarPeriodo, recarregarPeriodos } =
     usePeriodo();
   const [novoCodigo, setNovoCodigo] = useState("");
@@ -435,20 +437,22 @@ function Periodos() {
         >
           Abrir período
         </button>
-        <button
-          type="button"
-          className={periodo.status === "ATIVO" ? "danger-soft" : "secondary"}
-          onClick={() =>
-            setConfirmacao({
-              id: periodo.id,
-              codigo: periodo.codigo,
-              status: periodo.status === "ATIVO" ? "ARQUIVADO" : "ATIVO",
-            })
-          }
-          disabled={processando}
-        >
-          {periodo.status === "ATIVO" ? "Arquivar" : "Reativar"}
-        </button>
+        {!modoApresentacao && (
+          <button
+            type="button"
+            className={periodo.status === "ATIVO" ? "danger-soft" : "secondary"}
+            onClick={() =>
+              setConfirmacao({
+                id: periodo.id,
+                codigo: periodo.codigo,
+                status: periodo.status === "ATIVO" ? "ARQUIVADO" : "ATIVO",
+              })
+            }
+            disabled={processando}
+          >
+            {periodo.status === "ATIVO" ? "Arquivar" : "Reativar"}
+          </button>
+        )}
       </div>
     </article>
   );
@@ -476,39 +480,49 @@ function Periodos() {
         </div>
       </header>
 
-      <section className="period-create-card">
-        <div>
-          <span>NOVO PERÍODO</span>
-          <h2>Criar período letivo</h2>
-          <p>
-            Use o padrão <strong>AAAA-1</strong> ou <strong>AAAA-2</strong>.
-          </p>
-        </div>
-        <div className="period-create-form">
-          <input
-            value={novoCodigo}
-            onChange={(e) => setNovoCodigo(formatarCodigoPeriodo(e.target.value))}
-            onKeyDown={(e) => {
-              const input = e.currentTarget;
-              const cursorNoFim =
-                input.selectionStart === novoCodigo.length &&
-                input.selectionEnd === novoCodigo.length;
+      {!modoApresentacao && (
+        <section className="period-create-card">
+          <div>
+            <span>NOVO PERÍODO</span>
+            <h2>Criar período letivo</h2>
+            <p>
+              Use o padrão <strong>AAAA-1</strong> ou <strong>AAAA-2</strong>.
+            </p>
+          </div>
 
-              if (e.key === "Backspace" && novoCodigo.endsWith("-") && cursorNoFim) {
-                e.preventDefault();
-                setNovoCodigo(novoCodigo.slice(0, -2));
+          <div className="period-create-form">
+            <input
+              value={novoCodigo}
+              onChange={(e) =>
+                setNovoCodigo(formatarCodigoPeriodo(e.target.value))
               }
-            }}
-            placeholder="2027-1"
-            maxLength={6}
-            inputMode="numeric"
-            aria-label="Novo período letivo no formato ano e semestre"
-          />
-          <button type="button" onClick={criarPeriodo} disabled={processando}>
-            + Criar período
-          </button>
-        </div>
-      </section>
+              onKeyDown={(e) => {
+                const input = e.currentTarget;
+                const cursorNoFim =
+                  input.selectionStart === novoCodigo.length &&
+                  input.selectionEnd === novoCodigo.length;
+
+                if (
+                  e.key === "Backspace" &&
+                  novoCodigo.endsWith("-") &&
+                  cursorNoFim
+                ) {
+                  e.preventDefault();
+                  setNovoCodigo(novoCodigo.slice(0, -2));
+                }
+              }}
+              placeholder="2027-1"
+              maxLength={6}
+              inputMode="numeric"
+              aria-label="Novo período letivo no formato ano e semestre"
+            />
+
+            <button type="button" onClick={criarPeriodo} disabled={processando}>
+              + Criar período
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="period-sheets-card">
         <div className="period-sheets-heading">
@@ -544,7 +558,14 @@ function Periodos() {
         <label className="period-sheets-main">
           <span>Link ou ID da planilha</span>
           <input
-            value={sheetsConfig.spreadsheet_id}
+            value={
+              modoApresentacao
+                ? sheetsConfig.spreadsheet_id
+                  ? "Planilha configurada"
+                  : ""
+                : sheetsConfig.spreadsheet_id
+            }
+            disabled={modoApresentacao}
             onChange={(e) =>
               setSheetsConfig({
                 ...sheetsConfig,
@@ -569,6 +590,7 @@ function Periodos() {
               <span>{rotulo}</span>
               <input
                 value={sheetsConfig[campo]}
+                disabled={modoApresentacao}
                 onChange={(e) =>
                   setSheetsConfig({ ...sheetsConfig, [campo]: e.target.value })
                 }
@@ -578,14 +600,16 @@ function Periodos() {
         </div>
         {sheetsErro && <div className="period-sheets-error">{sheetsErro}</div>}
         <div className="period-sheets-actions">
-          <button
-            type="button"
-            className="secondary"
-            onClick={salvarSheets}
-            disabled={sheetsCarregando || !periodoAtual}
-          >
-            {sheetsCarregando ? "Aguarde..." : "Salvar configuração"}
-          </button>
+          {!modoApresentacao && (
+            <button
+              type="button"
+              className="secondary"
+              onClick={salvarSheets}
+              disabled={sheetsCarregando || !periodoAtual}
+            >
+              {sheetsCarregando ? "Aguarde..." : "Salvar configuração"}
+            </button>
+          )}
           <button
             type="button"
             onClick={gerarPreviaSheets}
@@ -716,7 +740,7 @@ function Periodos() {
                                   [grupo.curso]: valor,
                                 }))
                               }
-                              disabled={salvandoMapeamentos}
+                              disabled={modoApresentacao || salvandoMapeamentos}
                               ariaLabel={`Mapear ${grupo.curso} para uma unidade`}
                               options={[
                                 { value: "", label: "Selecionar unidade" },
@@ -742,19 +766,22 @@ function Periodos() {
                             vez.
                           </small>
                         </div>
-                        <button
-                          type="button"
-                          onClick={salvarMapeamentos}
-                          disabled={
-                            !mapeamentosAlterados.length || salvandoMapeamentos
-                          }
-                        >
-                          {salvandoMapeamentos
-                            ? "Salvando unidades..."
-                            : mapeamentosAlterados.length
-                              ? `Salvar ${mapeamentosAlterados.length} alteração(ões)`
-                              : "Salvar unidades"}
-                        </button>
+                        {!modoApresentacao && (
+                          <button
+                            type="button"
+                            onClick={salvarMapeamentos}
+                            disabled={
+                              !mapeamentosAlterados.length ||
+                              salvandoMapeamentos
+                            }
+                          >
+                            {salvandoMapeamentos
+                              ? "Salvando unidades..."
+                              : mapeamentosAlterados.length
+                                ? `Salvar ${mapeamentosAlterados.length} alteração(ões)`
+                                : "Salvar unidades"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -830,11 +857,12 @@ function Periodos() {
               <div className="period-sheets-warning">
                 <strong>Atenção:</strong>{" "}
                 {sheetsPrevia.cursos_nao_mapeados ??
-                  sheetsPrevia.cursos_pendentes.length} curso(s) precisam ser
-                mapeados, afetando{" "}
+                  sheetsPrevia.cursos_pendentes.length}{" "}
+                curso(s) precisam ser mapeados, afetando{" "}
                 {sheetsPrevia.alunos_sem_unidade ??
-                  sheetsPrevia.unidades_nao_resolvidas} aluno(s). Clique em{" "}
-                <strong>Cursos a mapear</strong> antes da sincronização.
+                  sheetsPrevia.unidades_nao_resolvidas}{" "}
+                aluno(s). Clique em <strong>Cursos a mapear</strong> antes da
+                sincronização.
               </div>
             )}
             {sheetsPrevia.unidades_nao_resolvidas === 0 && (
@@ -876,19 +904,23 @@ function Periodos() {
                         : "A planilha será lida novamente no momento da sincronização."}
                     </small>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setResultadoSync(null);
-                      setModalSucessoSync(false);
-                      setModalSincronizar(true);
-                    }}
-                    disabled={sincronizandoSheets || totalOperacoesPrevia === 0}
-                  >
-                    {totalOperacoesPrevia === 0
-                      ? "Sem alterações"
-                      : "Sincronizar agora"}
-                  </button>
+                  {!modoApresentacao && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResultadoSync(null);
+                        setModalSucessoSync(false);
+                        setModalSincronizar(true);
+                      }}
+                      disabled={
+                        sincronizandoSheets || totalOperacoesPrevia === 0
+                      }
+                    >
+                      {totalOperacoesPrevia === 0
+                        ? "Sem alterações"
+                        : "Sincronizar agora"}
+                    </button>
+                  )}
                 </div>
               </>
             )}
