@@ -2,6 +2,7 @@ import AppIcon from "../components/AppIcon";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth, type Perfil } from "../contexts/AuthContext";
 import AppSelect from "../components/AppSelect";
+import { api } from "../lib/api";
 
 type UsuarioLista = {
   id: number;
@@ -59,8 +60,13 @@ function Configuracoes() {
   async function carregar() {
     if (!admin) return;
 
-    const r = await fetch("/api/usuarios");
-    if (r.ok) setUsuarios((await r.json()) as UsuarioLista[]);
+    try {
+      setUsuarios(await api.get<UsuarioLista[]>("/api/usuarios"));
+    } catch (erro) {
+      setErro(
+        erro instanceof Error ? erro.message : "Erro ao carregar usuários.",
+      );
+    }
   }
 
   async function verificarFerramentasDev() {
@@ -70,13 +76,9 @@ function Configuracoes() {
     }
 
     try {
-      const r = await fetch("/api/dev/alunos-reset/status");
-      if (!r.ok) {
-        setDevHabilitado(false);
-        return;
-      }
-
-      const d = (await r.json()) as { habilitado?: boolean };
+      const d = await api.get<{ habilitado?: boolean }>(
+        "/api/dev/alunos-reset/status",
+      );
       setDevHabilitado(Boolean(d.habilitado));
     } catch {
       setDevHabilitado(false);
@@ -90,9 +92,10 @@ function Configuracoes() {
     }
 
     try {
-      const r = await fetch("/api/admin/backup/status");
-      const d = (await r.json()) as { configurado?: boolean };
-      setBackupConfigurado(r.ok && Boolean(d.configurado));
+      const d = await api.get<{ configurado?: boolean }>(
+        "/api/admin/backup/status",
+      );
+      setBackupConfigurado(Boolean(d.configurado));
     } catch {
       setBackupConfigurado(false);
     }
@@ -110,15 +113,14 @@ function Configuracoes() {
     setBackupGerado(null);
 
     try {
-      const r = await fetch("/api/admin/backup", { method: "POST" });
-      const d = (await r.json()) as BackupGerado & { erro?: string };
-      if (!r.ok) {
-        setErroBackup(d.erro || "Não foi possível gerar o backup.");
-        return;
-      }
+      const d = await api.post<BackupGerado>("/api/admin/backup");
       setBackupGerado(d);
-    } catch {
-      setErroBackup("Não foi possível acessar o serviço de backup.");
+    } catch (erro) {
+      setErroBackup(
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível acessar o serviço de backup.",
+      );
     } finally {
       setGerandoBackup(false);
     }
@@ -128,16 +130,16 @@ function Configuracoes() {
     e.preventDefault();
     setErro("");
 
-    const r = await fetch("/api/usuarios", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, username, email, senha, perfil }),
-    });
-
-    const d = (await r.json()) as { erro?: string };
-
-    if (!r.ok) {
-      setErro(d.erro || "Erro ao criar usuário.");
+    try {
+      await api.post<{ sucesso: boolean; id: number }>("/api/usuarios", {
+        nome,
+        username,
+        email,
+        senha,
+        perfil,
+      });
+    } catch (erro) {
+      setErro(erro instanceof Error ? erro.message : "Erro ao criar usuário.");
       return;
     }
 
@@ -150,16 +152,10 @@ function Configuracoes() {
   }
 
   async function alterar(id: number, dados: Record<string, unknown>) {
-    const r = await fetch(`/api/usuarios/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(dados),
-    });
-
-    const d = (await r.json()) as { erro?: string };
-
-    if (!r.ok) {
-      setErro(d.erro || "Erro ao alterar usuário.");
+    try {
+      await api.put<{ sucesso: boolean }>(`/api/usuarios/${id}`, dados);
+    } catch (erro) {
+      setErro(erro instanceof Error ? erro.message : "Erro ao alterar usuário.");
       return;
     }
 
@@ -177,27 +173,21 @@ function Configuracoes() {
     setErroExcluir("");
 
     try {
-      const r = await fetch(`/api/usuarios/${usuarioExcluir.id}`, {
-        method: "DELETE",
-      });
-
-      const d = (await r.json()) as {
-        erro?: string;
-        sucesso?: boolean;
-      };
-
-      if (!r.ok) {
-        setErroExcluir(d.erro || "Não foi possível excluir o usuário.");
-        return;
-      }
+      await api.delete<{ sucesso: boolean }>(
+        `/api/usuarios/${usuarioExcluir.id}`,
+      );
 
       setUsuarioExcluir(null);
       setConfirmacaoExcluir("");
       setErroExcluir("");
 
       await carregar();
-    } catch {
-      setErroExcluir("Não foi possível excluir o usuário.");
+    } catch (erro) {
+      setErroExcluir(
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível excluir o usuário.",
+      );
     } finally {
       setExcluindoUsuario(false);
     }
@@ -213,26 +203,17 @@ function Configuracoes() {
     setMensagemDev("");
 
     try {
-      const r = await fetch("/api/dev/alunos-reset", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          unidade: unidadeDev,
-          confirmacao: confirmacaoDev,
-        }),
-      });
-
-      const d = (await r.json()) as {
-        erro?: string;
+      const d = await api.delete<{
         removidos?: number;
         unidade?: string;
         periodo?: string;
-      };
-
-      if (!r.ok) {
-        setMensagemDev(d.erro || "Não foi possível limpar os alunos.");
-        return;
-      }
+      }>(
+        "/api/dev/alunos-reset",
+        {
+          unidade: unidadeDev,
+          confirmacao: confirmacaoDev,
+        },
+      );
 
       setMensagemDev(
         `✓ ${d.removidos ?? 0} aluno(s) removido(s) de ${
@@ -240,9 +221,11 @@ function Configuracoes() {
         } no período ${d.periodo ?? "atual"}.`
       );
       setConfirmacaoDev("");
-    } catch {
+    } catch (erro) {
       setMensagemDev(
-        "Não foi possível acessar a ferramenta de desenvolvimento."
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível acessar a ferramenta de desenvolvimento.",
       );
     } finally {
       setLimpandoDev(false);
@@ -653,26 +636,20 @@ function Configuracoes() {
                   setErroSenha("");
 
                   try {
-                    const r = await fetch(`/api/usuarios/${usuarioSenha.id}`, {
-                      method: "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ senha: novaSenha }),
-                    });
-
-                    const d = (await r.json()) as { erro?: string };
-
-                    if (!r.ok) {
-                      setErroSenha(
-                        d.erro || "Não foi possível alterar a senha."
-                      );
-                      return;
-                    }
+                    await api.put<{ sucesso: boolean }>(
+                      `/api/usuarios/${usuarioSenha.id}`,
+                      { senha: novaSenha },
+                    );
 
                     setUsuarioSenha(null);
                     setNovaSenha("");
                     void carregar();
-                  } catch {
-                    setErroSenha("Não foi possível alterar a senha.");
+                  } catch (erro) {
+                    setErroSenha(
+                      erro instanceof Error
+                        ? erro.message
+                        : "Não foi possível alterar a senha.",
+                    );
                   } finally {
                     setSalvandoSenha(false);
                   }
