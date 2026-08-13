@@ -1,0 +1,272 @@
+/* Cabeçalhos: fonte final de verdade para todas as páginas principais. */
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 124px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0;
+  padding: 20px 22px;
+  border: 1px solid #223744;
+  border-radius: 14px;
+  background: #101a23;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+}
+
+/* Conferência não possui bloco lateral: mantém todo o texto agrupado à esquerda. */
+.conference-page > .page-header {
+  display: block;
+}
+
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) h1 {
+  margin: 0;
+  font-size: clamp(28px, 2.2vw, 34px);
+  line-height: 1.08;
+}
+
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) .page-title-row {
+  gap: 11px;
+  margin: 5px 0 0;
+}
+
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) .page-title-icon {
+  width: 40px;
+  height: 40px;
+}
+
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) > div:first-child > span,
+:is(.conference-page, .audit-page, .log-page) > .page-header > span {
+  display: block;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: .12em;
+}
+
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) p {
+  max-width: 780px;
+  margin: 7px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+html[data-theme="light"] :is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) {
+  border-color: #cbdce7;
+  background: #f5fbff;
+  box-shadow: 0 10px 28px rgba(55, 93, 119, .08);
+}
+
+html[data-theme="black"] :is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) {
+  border-color: #292929;
+  background: #090909;
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  ) {
+    min-height: 0;
+    align-items: stretch;
+    flex-direction: column;
+    padding: 18px;
+  }
+}
+
+/* Paleta tipográfica única; neutraliza as cores legadas de cada página. */
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) {
+  --page-header-title: #f1f6f9;
+  --page-header-eyebrow: #69a7c9;
+  --page-header-description: #8196a4;
+}
+
+html[data-theme="light"] :is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) {
+  --page-header-title: #172b38;
+  --page-header-eyebrow: #4197c5;
+  --page-header-description: #607b8d;
+}
+
+html[data-theme="black"] :is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) {
+  --page-header-title: #f2f2f2;
+  --page-header-eyebrow: #b8b8b8;
+  --page-header-description: #a0a0a0;
+}
+
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) h1 {
+  color: var(--page-header-title) !important;
+}
+
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) > div:first-child > span,
+:is(.conference-page, .audit-page, .log-page) > .page-header > span {
+  color: var(--page-header-eyebrow) !important;
+}
+
+:is(
+  .dashboard-page > .dashboard-hero,
+  .conference-page > .page-header,
+  .communication-page > .communication-header,
+  .audit-page > .page-header,
+  .statistics-page > .statistics-hero,
+  .log-page > .page-header,
+  .period-page > .period-hero,
+  .courses-page > .courses-header,
+  .settings-page > .settings-header,
+  .about-page > .about-hero
+) p {
+  color: var(--page-header-description) !important;
+}

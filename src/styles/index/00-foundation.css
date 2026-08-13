@@ -211,7 +211,8 @@ a {
 }
 
 .app-content section {
-  width: min(1440px, 100%);
+  width: 100%;
+  max-width: none;
 }
 
 .app-content section > span {
