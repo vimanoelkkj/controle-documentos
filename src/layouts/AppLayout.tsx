@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { PeriodoProvider, usePeriodo } from "../contexts/PeriodoContext";
 import { useAuth } from "../contexts/AuthContext";
+import ChangelogModal from "../components/ChangelogModal";
 
 type SheetsEstado = "carregando" | "conectado" | "nao-conectado" | "temporario";
 
@@ -319,6 +320,8 @@ function LayoutContent() {
           <Outlet />
         </main>
       </div>
+
+      <ChangelogModal />
 
       {modalSheets && (
         <div

@@ -1,4 +1,5 @@
 import AppIcon from "../components/AppIcon";
+import { APP_VERSION, CHANGELOG } from "../data/changelog";
 
 function Sobre() {
   return (
@@ -22,7 +23,7 @@ function Sobre() {
 
         <div className="about-version-card">
           <span>VERSÃO ATUAL</span>
-          <strong>v2.0.0</strong>
+          <strong>v{APP_VERSION}</strong>
           <small>Controle de Documentos</small>
         </div>
       </header>
@@ -124,6 +125,14 @@ function Sobre() {
           </div>
         </article>
       </div>
+
+      <section className="about-changelog">
+        <header><div><span>HISTÓRICO DE ATUALIZAÇÕES</span><h2>Changelog</h2></div><small>{CHANGELOG.length} versão(ões)</small></header>
+        <div className="about-changelog-list">{CHANGELOG.map((release, index) => <article key={release.version}>
+          <div className="about-changelog-version"><span>{index === 0 ? "ATUAL" : "VERSÃO"}</span><strong>v{release.version}</strong><small>{release.date}</small></div>
+          <div className="about-changelog-content"><h3>{release.title}</h3><p>{release.description}</p><ul>{release.items.map((item) => <li key={item.title}><strong>{item.title}</strong><span>{item.description}</span></li>)}</ul></div>
+        </article>)}</div>
+      </section>
 
       <section className="about-footer-card">
         <div>

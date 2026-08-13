@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import AppIcon, { type AppIconName } from "../components/AppIcon";
+import { APP_VERSION } from "../data/changelog";
 
 const items: { label: string; to: string; icon: AppIconName }[] = [
   { label: "Dashboard", to: "/", icon: "dashboard" },
@@ -61,7 +62,7 @@ function Sidebar() {
         <div className="sidebar-brand-copy">
           <strong>Controle de Documentos</strong>
           <div className="sidebar-brand-meta">
-            <span>v2.0.0</span>
+            <span>v{APP_VERSION}</span>
             {ambienteBeta && (
               <span
                 className="environment-beta-badge"
