@@ -1,6 +1,15 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import AppIcon from "../components/AppIcon";
+
+type Tema = "light" | "dark" | "black";
+
+const temas: Array<{ valor: Tema; rotulo: string; simbolo: string }> = [
+  { valor: "light", rotulo: "Claro", simbolo: "☀" },
+  { valor: "dark", rotulo: "Escuro", simbolo: "◐" },
+  { valor: "black", rotulo: "Preto", simbolo: "●" },
+];
 
 function Login() {
   const { usuario, carregando, recarregar } = useAuth();
@@ -12,6 +21,17 @@ function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [tema, setTema] = useState<Tema>(() => {
+    const salvo = localStorage.getItem("tema");
+    return salvo === "light" || salvo === "black" ? salvo : "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = tema;
+    document.documentElement.style.colorScheme = tema === "light" ? "light" : "dark";
+    localStorage.setItem("tema", tema);
+  }, [tema]);
+
   useEffect(() => {
     fetch("/api/auth/bootstrap")
       .then((r) => r.json())
@@ -62,8 +82,26 @@ function Login() {
       <div className="login-backdrop" aria-hidden="true" />
 
       <main className="login-card">
+        <div className="login-theme-selector" role="group" aria-label="Tema da interface">
+          {temas.map((opcao) => (
+            <button
+              type="button"
+              key={opcao.valor}
+              className={tema === opcao.valor ? "active" : ""}
+              aria-pressed={tema === opcao.valor}
+              onClick={() => setTema(opcao.valor)}
+              title={`Usar tema ${opcao.rotulo.toLowerCase()}`}
+            >
+              <span aria-hidden="true">{opcao.simbolo}</span>
+              {opcao.rotulo}
+            </button>
+          ))}
+        </div>
+
         <header className="login-brand">
-          <div className="login-logo">CD</div>
+          <div className="login-logo">
+            <AppIcon name="document" size={25} strokeWidth={1.9} />
+          </div>
           <div className="login-brand-copy">
             <span>CONTROLE DE DOCUMENTOS</span>
             <h1>{bootstrap ? "Criar administrador" : "Bem-vindo de volta"}</h1>

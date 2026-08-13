@@ -18,6 +18,9 @@ const items: { label: string; to: string; icon: AppIconName }[] = [
 function Sidebar() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
+  const ambienteBeta = window.location.hostname.startsWith(
+    "controle-documentos-dev.",
+  );
   const [tema, setTema] = useState<"dark" | "black" | "light">(() => {
     const salvo = localStorage.getItem("tema");
     return salvo === "light" || salvo === "black" ? salvo : "dark";
@@ -56,7 +59,17 @@ function Sidebar() {
 
         <div className="sidebar-brand-copy">
           <strong>Controle de Documentos</strong>
-          <span>v2.0.0</span>
+          <div className="sidebar-brand-meta">
+            <span>v2.0.0</span>
+            {ambienteBeta && (
+              <span
+                className="environment-beta-badge"
+                title="Ambiente de testes — não é produção"
+              >
+                BETA
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -99,7 +112,7 @@ function Sidebar() {
             {tema === "light"
               ? "Modo escuro"
               : tema === "dark"
-                ? "Modo pretão"
+                ? "Modo preto"
                 : "Modo claro"}
           </button>
           <button
