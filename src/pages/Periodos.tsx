@@ -7,6 +7,13 @@ function normalizarCodigo(valor: string) {
   return valor.trim().toUpperCase().replace(/\s+/g, "");
 }
 
+function formatarCodigoPeriodo(valor: string) {
+  const numeros = valor.replace(/\D/g, "").slice(0, 5);
+  if (numeros.length < 4) return numeros;
+  if (numeros.length === 4) return `${numeros}-`;
+  return `${numeros.slice(0, 4)}-${numeros.slice(4)}`;
+}
+
 type SheetsConfig = {
   spreadsheet_id: string;
   aba_base_face_fea: string;
@@ -102,6 +109,7 @@ function Periodos() {
   } | null>(null);
   const [sheetsConfig, setSheetsConfig] = useState<SheetsConfig>(configVazia);
   const [sheetsStatus, setSheetsStatus] = useState<SheetsStatus>("carregando");
+  const [sheetsTitulo, setSheetsTitulo] = useState("");
   const sheetsSalvo = sheetsStatus === "configurado";
   const [sheetsCarregando, setSheetsCarregando] = useState(false);
   const [sheetsErro, setSheetsErro] = useState("");
@@ -148,6 +156,7 @@ function Periodos() {
     setMapeamentos({});
     setMapeamentosSalvos({});
     setSheetsErro("");
+    setSheetsTitulo("");
     setSheetsStatus("carregando");
     setModalSincronizar(false);
     setModalSucessoSync(false);
@@ -180,6 +189,21 @@ function Periodos() {
             },
           );
           setSheetsStatus(config ? "configurado" : "nao_configurado");
+          if (config) {
+            try {
+              const respostaStatus = await fetch(
+                `/api/periodos/${periodoAtual.id}/google-sheets/status`,
+              );
+              const dadosStatus = (await respostaStatus.json()) as {
+                titulo?: string | null;
+              };
+              if (ativo && respostaStatus.ok) {
+                setSheetsTitulo(dadosStatus.titulo?.trim() || "");
+              }
+            } catch {
+              // O nome é complementar; uma falha não invalida a configuração.
+            }
+          }
           return;
         } catch (erro) {
           ultimoErro = erro;
@@ -230,6 +254,19 @@ function Periodos() {
         spreadsheet_id: dados.spreadsheet_id || atual.spreadsheet_id,
       }));
       setSheetsStatus("configurado");
+      try {
+        const respostaStatus = await fetch(
+          `/api/periodos/${periodoAtual.id}/google-sheets/status`,
+        );
+        const dadosStatus = (await respostaStatus.json()) as {
+          titulo?: string | null;
+        };
+        if (respostaStatus.ok) {
+          setSheetsTitulo(dadosStatus.titulo?.trim() || "");
+        }
+      } catch {
+        setSheetsTitulo("");
+      }
     } catch (e) {
       setSheetsErro(
         e instanceof Error ? e.message : "Erro ao salvar integração.",
@@ -514,9 +551,22 @@ function Periodos() {
         <div className="period-create-form">
           <input
             value={novoCodigo}
-            onChange={(e) => setNovoCodigo(e.target.value)}
+            onChange={(e) => setNovoCodigo(formatarCodigoPeriodo(e.target.value))}
+            onKeyDown={(e) => {
+              const input = e.currentTarget;
+              const cursorNoFim =
+                input.selectionStart === novoCodigo.length &&
+                input.selectionEnd === novoCodigo.length;
+
+              if (e.key === "Backspace" && novoCodigo.endsWith("-") && cursorNoFim) {
+                e.preventDefault();
+                setNovoCodigo(novoCodigo.slice(0, -2));
+              }
+            }}
             placeholder="2027-1"
             maxLength={6}
+            inputMode="numeric"
+            aria-label="Novo período letivo no formato ano e semestre"
           />
           <button type="button" onClick={criarPeriodo} disabled={processando}>
             + Criar período
@@ -535,17 +585,25 @@ function Periodos() {
               altera o sistema nem a planilha.
             </p>
           </div>
-          <span
-            className={`period-sheets-status ${sheetsStatus === "configurado" ? "connected" : ""}`}
-          >
-            {sheetsStatus === "carregando"
-              ? "CARREGANDO..."
-              : sheetsStatus === "configurado"
-                ? "CONFIGURADO"
-                : sheetsStatus === "indisponivel"
-                  ? "INDISPONÍVEL"
-                  : "NÃO CONFIGURADO"}
-          </span>
+          <div className="period-sheets-heading-status">
+            <span
+              className={`period-sheets-status ${sheetsStatus === "configurado" ? "connected" : ""}`}
+            >
+              {sheetsStatus === "carregando"
+                ? "CARREGANDO..."
+                : sheetsStatus === "configurado"
+                  ? "CONFIGURADO"
+                  : sheetsStatus === "indisponivel"
+                    ? "INDISPONÍVEL"
+                    : "NÃO CONFIGURADO"}
+            </span>
+            {sheetsTitulo && (
+              <div className="period-sheets-file" title={sheetsTitulo}>
+                <span>PLANILHA VINCULADA</span>
+                <strong>{sheetsTitulo}</strong>
+              </div>
+            )}
+          </div>
         </div>
         <label className="period-sheets-main">
           <span>Link ou ID da planilha</span>
