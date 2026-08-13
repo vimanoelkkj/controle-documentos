@@ -16,6 +16,7 @@ export type Usuario = {
   email: string;
   username: string;
   perfil: Perfil;
+  modo_apresentacao: number;
 };
 
 type AuthValue = {
@@ -25,6 +26,7 @@ type AuthValue = {
   logout: () => Promise<void>;
   podeEditar: boolean;
   admin: boolean;
+  modoApresentacao: boolean;
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -73,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       window.removeEventListener(
         API_SESSION_EXPIRED_EVENT,
-        encerrarSessaoExpirada,
+        encerrarSessaoExpirada
       );
     };
   }, []);
@@ -105,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       timerInatividade.current = setTimeout(
         expirarPorInatividade,
-        TEMPO_INATIVIDADE,
+        TEMPO_INATIVIDADE
       );
     }
 
@@ -165,8 +167,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         carregando,
         recarregar,
         logout,
-        podeEditar: usuario?.perfil === "ADMIN" || usuario?.perfil === "EDITOR",
-        admin: usuario?.perfil === "ADMIN",
+        podeEditar:
+          usuario?.modo_apresentacao !== 1 &&
+          (usuario?.perfil === "ADMIN" || usuario?.perfil === "EDITOR"),
+        admin: usuario?.modo_apresentacao !== 1 && usuario?.perfil === "ADMIN",
+        modoApresentacao: usuario?.modo_apresentacao === 1,
       }}
     >
       {children}

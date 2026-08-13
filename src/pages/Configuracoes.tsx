@@ -11,6 +11,7 @@ type UsuarioLista = {
   username: string;
   perfil: Perfil;
   ativo: number;
+  modo_apresentacao: number;
   criado_em: string;
 };
 
@@ -31,6 +32,7 @@ function Configuracoes() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [perfil, setPerfil] = useState<Perfil>("VISUALIZADOR");
+  const [modoApresentacao, setModoApresentacao] = useState(false);
   const [erro, setErro] = useState("");
 
   const [usuarioSenha, setUsuarioSenha] = useState<UsuarioLista | null>(null);
@@ -64,7 +66,7 @@ function Configuracoes() {
       setUsuarios(await api.get<UsuarioLista[]>("/api/usuarios"));
     } catch (erro) {
       setErro(
-        erro instanceof Error ? erro.message : "Erro ao carregar usuários.",
+        erro instanceof Error ? erro.message : "Erro ao carregar usuários."
       );
     }
   }
@@ -77,7 +79,7 @@ function Configuracoes() {
 
     try {
       const d = await api.get<{ habilitado?: boolean }>(
-        "/api/dev/alunos-reset/status",
+        "/api/dev/alunos-reset/status"
       );
       setDevHabilitado(Boolean(d.habilitado));
     } catch {
@@ -93,7 +95,7 @@ function Configuracoes() {
 
     try {
       const d = await api.get<{ configurado?: boolean }>(
-        "/api/admin/backup/status",
+        "/api/admin/backup/status"
       );
       setBackupConfigurado(Boolean(d.configurado));
     } catch {
@@ -119,7 +121,7 @@ function Configuracoes() {
       setErroBackup(
         erro instanceof Error
           ? erro.message
-          : "Não foi possível acessar o serviço de backup.",
+          : "Não foi possível acessar o serviço de backup."
       );
     } finally {
       setGerandoBackup(false);
@@ -136,7 +138,8 @@ function Configuracoes() {
         username,
         email,
         senha,
-        perfil,
+        perfil: modoApresentacao ? "VISUALIZADOR" : perfil,
+        modo_apresentacao: modoApresentacao,
       });
     } catch (erro) {
       setErro(erro instanceof Error ? erro.message : "Erro ao criar usuário.");
@@ -148,6 +151,7 @@ function Configuracoes() {
     setEmail("");
     setSenha("");
     setPerfil("VISUALIZADOR");
+    setModoApresentacao(false);
     void carregar();
   }
 
@@ -155,7 +159,9 @@ function Configuracoes() {
     try {
       await api.put<{ sucesso: boolean }>(`/api/usuarios/${id}`, dados);
     } catch (erro) {
-      setErro(erro instanceof Error ? erro.message : "Erro ao alterar usuário.");
+      setErro(
+        erro instanceof Error ? erro.message : "Erro ao alterar usuário."
+      );
       return;
     }
 
@@ -174,7 +180,7 @@ function Configuracoes() {
 
     try {
       await api.delete<{ sucesso: boolean }>(
-        `/api/usuarios/${usuarioExcluir.id}`,
+        `/api/usuarios/${usuarioExcluir.id}`
       );
 
       setUsuarioExcluir(null);
@@ -186,7 +192,7 @@ function Configuracoes() {
       setErroExcluir(
         erro instanceof Error
           ? erro.message
-          : "Não foi possível excluir o usuário.",
+          : "Não foi possível excluir o usuário."
       );
     } finally {
       setExcluindoUsuario(false);
@@ -207,13 +213,10 @@ function Configuracoes() {
         removidos?: number;
         unidade?: string;
         periodo?: string;
-      }>(
-        "/api/dev/alunos-reset",
-        {
-          unidade: unidadeDev,
-          confirmacao: confirmacaoDev,
-        },
-      );
+      }>("/api/dev/alunos-reset", {
+        unidade: unidadeDev,
+        confirmacao: confirmacaoDev,
+      });
 
       setMensagemDev(
         `✓ ${d.removidos ?? 0} aluno(s) removido(s) de ${
@@ -225,7 +228,7 @@ function Configuracoes() {
       setMensagemDev(
         erro instanceof Error
           ? erro.message
-          : "Não foi possível acessar a ferramenta de desenvolvimento.",
+          : "Não foi possível acessar a ferramenta de desenvolvimento."
       );
     } finally {
       setLimpandoDev(false);
@@ -289,13 +292,27 @@ function Configuracoes() {
                   </button>
 
                   <AppSelect
-                    value={u.perfil}
-                    onChange={(valor) => alterar(u.id, { perfil: valor })}
+                    value={u.modo_apresentacao ? "APRESENTACAO" : u.perfil}
+                    onChange={(valor) => {
+                      if (valor === "APRESENTACAO") {
+                        void alterar(u.id, {
+                          perfil: "VISUALIZADOR",
+                          modo_apresentacao: true,
+                        });
+                        return;
+                      }
+
+                      void alterar(u.id, {
+                        perfil: valor,
+                        modo_apresentacao: false,
+                      });
+                    }}
                     ariaLabel={`Perfil de ${u.nome}`}
                     options={[
                       { value: "ADMIN", label: "ADMIN" },
                       { value: "EDITOR", label: "EDITOR" },
                       { value: "VISUALIZADOR", label: "VISUALIZADOR" },
+                      { value: "APRESENTACAO", label: "APRESENTAÇÃO" },
                     ]}
                   />
 
@@ -385,13 +402,23 @@ function Configuracoes() {
             <label>
               Perfil
               <AppSelect
-                value={perfil}
-                onChange={(valor) => setPerfil(valor as Perfil)}
+                value={modoApresentacao ? "APRESENTACAO" : perfil}
+                onChange={(valor) => {
+                  if (valor === "APRESENTACAO") {
+                    setPerfil("VISUALIZADOR");
+                    setModoApresentacao(true);
+                    return;
+                  }
+
+                  setPerfil(valor as Perfil);
+                  setModoApresentacao(false);
+                }}
                 ariaLabel="Perfil do novo usuário"
                 options={[
                   { value: "VISUALIZADOR", label: "Visualizador" },
                   { value: "EDITOR", label: "Editor" },
                   { value: "ADMIN", label: "Administrador" },
+                  { value: "APRESENTACAO", label: "Apresentação" },
                 ]}
               />
             </label>
@@ -638,7 +665,7 @@ function Configuracoes() {
                   try {
                     await api.put<{ sucesso: boolean }>(
                       `/api/usuarios/${usuarioSenha.id}`,
-                      { senha: novaSenha },
+                      { senha: novaSenha }
                     );
 
                     setUsuarioSenha(null);
@@ -648,7 +675,7 @@ function Configuracoes() {
                     setErroSenha(
                       erro instanceof Error
                         ? erro.message
-                        : "Não foi possível alterar a senha.",
+                        : "Não foi possível alterar a senha."
                     );
                   } finally {
                     setSalvandoSenha(false);
