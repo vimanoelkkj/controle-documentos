@@ -7,6 +7,7 @@ type AppIconName =
   | "stats"
   | "log"
   | "calendar"
+  | "courses"
   | "settings"
   | "info";
 
@@ -38,6 +39,7 @@ function AppIcon({ name, size = 20, strokeWidth = 1.8 }: AppIconProps) {
     stats: <><path d="M5 19V11M12 19V5M19 19v-7"/><path d="M3 19h18"/></>,
     log: <><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r=".7" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r=".7" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r=".7" fill="currentColor" stroke="none"/></>,
     calendar: <><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9.5h17"/><path d="M8 13h3v3H8z"/></>,
+    courses: <><path d="m3 8.5 9-4.5 9 4.5-9 4.5-9-4.5Z"/><path d="M7 11v4.2c2.8 2.1 7.2 2.1 10 0V11"/><path d="M21 9v6"/></>,
     settings: <><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7a7 7 0 0 0-.7-1.6l.9-1.9-2.1-2.1-1.9.9a7 7 0 0 0-1.7-.7L10.5 3h-3l-.7 2a7 7 0 0 0-1.6.7l-1.9-.9-2.1 2.1.9 1.9a7 7 0 0 0-.7 1.7L0 11.5v3l2 .7c.2.6.4 1.1.7 1.6l-.9 1.9 2.1 2.1 1.9-.9c.5.3 1 .5 1.6.7l.7 2h3l.7-2c.6-.2 1.1-.4 1.6-.7l1.9.9 2.1-2.1-.9-1.9c.3-.5.5-1 .7-1.6l1.8-.7Z" transform="translate(2.5 -1.5) scale(.8)"/></>,
     info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5h.01"/></>,
   };

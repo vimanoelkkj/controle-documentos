@@ -14617,3 +14617,157 @@ html[data-theme="black"] .period-sheets-file strong { color: #e2e2e2; }
   .period-sheets-file { justify-items: start; max-width: 100%; text-align: left; }
   .period-sheets-file strong { max-width: 100%; }
 }
+/* =========================================================
+   CURSOS E UNIDADES
+   ========================================================= */
+.courses-page { display: grid; gap: 18px; }
+.courses-header { padding: 24px; border: 1px solid #294359; border-radius: 15px; background: #0d1a23; }
+.courses-header > div > span { color: #60bdf5; font-size: 11px; font-weight: 900; letter-spacing: .11em; }
+.courses-header h1 { margin: 0; color: #f1f6f9; font-size: clamp(28px, 4vw, 42px); }
+.courses-header p { margin: 8px 0 0; color: #8fa5b5; }
+.courses-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.courses-summary article { display: grid; gap: 7px; padding: 17px 18px; border: 1px solid #294052; border-radius: 12px; background: #0b151e; }
+.courses-summary span { color: #8fa5b5; font-size: 12px; }
+.courses-summary strong { color: #edf5fa; font-size: 25px; }
+.courses-summary article.warning { border-color: #765d22; background: #211b0d; }
+.courses-summary article.warning strong { color: #f2c95f; }
+.courses-panel { overflow: hidden; border: 1px solid #294052; border-radius: 14px; background: #0b151e; }
+.courses-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-bottom: 1px solid #263b4b; }
+.courses-toolbar > div { display: grid; gap: 3px; }
+.courses-toolbar strong { color: #edf5fa; font-size: 16px; }
+.courses-toolbar span { color: #8298a8; font-size: 12px; }
+.courses-toolbar input { width: min(360px, 100%); min-height: 40px; padding: 0 12px; border: 1px solid #314a5c; border-radius: 9px; outline: none; color: #edf5fa; background: #09131b; }
+.courses-toolbar input:focus { border-color: #58b7f4; box-shadow: 0 0 0 3px rgba(88,183,244,.1); }
+.courses-list { display: grid; }
+.course-row { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(150px, .35fr) 180px auto; align-items: center; gap: 16px; min-height: 84px; padding: 14px 18px; border-bottom: 1px solid #223442; }
+.course-row:last-child { border-bottom: 0; }
+.course-row:hover { background: #0e1b24; }
+.course-copy, .course-current { display: grid; gap: 4px; min-width: 0; }
+.course-copy strong { overflow-wrap: anywhere; color: #e9f1f6; font-size: 14px; }
+.course-copy span, .course-current small, .course-current span { color: #8197a7; font-size: 12px; }
+.course-current strong { color: #dce8ef; }
+.course-current.warning strong { color: #f2c95f; }
+.course-row > label { display: grid; gap: 5px; }
+.course-row > label > span { color: #8298a8; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.course-row > button { min-height: 40px; padding: 0 14px; border: 1px solid #34759d; border-radius: 9px; color: #d9effd; background: #17364b; font-weight: 800; cursor: pointer; }
+.course-row > button:hover:not(:disabled) { border-color: #60bdf5; background: #1d4661; }
+.course-row > button:disabled { cursor: default; opacity: .38; }
+.courses-empty { padding: 42px 20px; color: #8298a8; text-align: center; }
+.courses-message { margin: 14px 18px 0; padding: 11px 13px; border: 1px solid; border-radius: 9px; font-size: 13px; }
+.courses-message.success { color: #83dfad; border-color: #2c6c49; background: #10291d; }
+.courses-message.error { color: #f1a0a7; border-color: #783b42; background: #2a1519; }
+.courses-feedback-wrap { display: flex; justify-content: flex-end; padding: 14px 18px 0; }
+.courses-success-card { width: fit-content; max-width: 100%; display: grid; grid-template-columns: 34px minmax(0, 1fr) 30px; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #347653; border-radius: 11px; color: #d9f7e6; background: #10291d; box-shadow: 0 8px 22px rgba(4, 25, 14, .18); }
+.courses-success-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; color: #092016; background: #69d89b; font-size: 17px; font-weight: 900; }
+.courses-success-card > div { display: grid; gap: 2px; }
+.courses-success-card strong { color: #e9fff2; font-size: 13px; }
+.courses-success-card > div > span { color: #9ee7bd; font-size: 12px; }
+.courses-success-card > button { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 7px; color: #9ee7bd; background: transparent; font-size: 20px; cursor: pointer; }
+.courses-success-card > button:hover { color: #fff; background: rgba(255,255,255,.08); }
+.courses-modal-overlay { z-index: 1200; }
+.courses-confirm-modal { width: min(600px, calc(100vw - 32px)); overflow: hidden; border: 1px solid #385265; border-radius: 15px; color: #eaf2f7; background: #0b151d; box-shadow: 0 28px 85px rgba(0,0,0,.62); }
+.courses-confirm-modal header { padding: 22px 24px 18px; border-bottom: 1px solid #293e4d; }
+.courses-confirm-modal header > span { color: #f0c75e; font-size: 11px; font-weight: 900; letter-spacing: .11em; }
+.courses-confirm-modal h2 { margin: 5px 0 8px; font-size: 24px; }
+.courses-confirm-modal header p { margin: 0; color: #9eb0bd; overflow-wrap: anywhere; }
+.courses-confirm-body { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 20px 24px; }
+.courses-confirm-body > div { display: grid; gap: 5px; padding: 13px; border: 1px solid #2c4353; border-radius: 10px; background: #0e1c25; }
+.courses-confirm-body span { color: #8ea3b2; font-size: 12px; }
+.courses-confirm-body > div strong { font-size: 21px; }
+.courses-confirm-body p, .courses-confirm-body label { grid-column: 1 / -1; }
+.courses-confirm-body p { margin: 3px 0; color: #a8b8c3; line-height: 1.55; }
+.courses-confirm-body label { display: grid; gap: 8px; color: #a8b8c3; font-size: 12px; }
+.courses-confirm-body input { min-height: 42px; padding: 0 12px; border: 1px solid #3b5669; border-radius: 9px; outline: none; color: #eef5f9; background: #071119; }
+.courses-confirm-body input:focus { border-color: #60bdf5; box-shadow: 0 0 0 3px rgba(96,189,245,.1); }
+.courses-confirm-modal footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid #293e4d; background: #0d1921; }
+.courses-confirm-modal footer button { min-height: 39px; padding: 0 14px; border: 1px solid #354b5a; border-radius: 9px; color: #d7e3ea; background: #15242e; font-weight: 800; cursor: pointer; }
+.courses-confirm-modal footer button.confirm { color: #fff; border-color: #337553; background: #17603f; }
+.courses-confirm-modal footer button:disabled { cursor: default; opacity: .4; }
+
+html[data-theme="light"] .courses-header { border-color: #bfd9e8; background: #f0f9fe; }
+html[data-theme="light"] .courses-header h1,
+html[data-theme="light"] .courses-summary strong,
+html[data-theme="light"] .courses-toolbar strong,
+html[data-theme="light"] .course-copy strong,
+html[data-theme="light"] .course-current strong { color: #1d3341; }
+html[data-theme="light"] .courses-header p,
+html[data-theme="light"] .courses-summary span,
+html[data-theme="light"] .courses-toolbar span,
+html[data-theme="light"] .course-copy span,
+html[data-theme="light"] .course-current small,
+html[data-theme="light"] .course-current span,
+html[data-theme="light"] .course-row > label > span { color: #607c8f; }
+html[data-theme="light"] .courses-summary article,
+html[data-theme="light"] .courses-panel { border-color: #ccdce6; background: #fff; }
+html[data-theme="light"] .courses-summary article.warning { border-color: #e8c66f; background: #fff8e7; }
+html[data-theme="light"] .courses-toolbar,
+html[data-theme="light"] .course-row { border-color: #d7e3ea; }
+html[data-theme="light"] .course-row:hover { background: #f3f8fb; }
+html[data-theme="light"] .courses-toolbar input { color: #243946; border-color: #bfd2de; background: #f7fafc; }
+html[data-theme="light"] .course-row > button { color: #17628e; border-color: #9dccE8; background: #e9f6fd; }
+html[data-theme="light"] .courses-success-card { color: #174c32; border-color: #91d2ad; background: #edf9f2; box-shadow: 0 8px 22px rgba(35, 103, 65, .1); }
+html[data-theme="light"] .courses-success-icon { color: #fff; background: #26975a; }
+html[data-theme="light"] .courses-success-card strong { color: #174c32; }
+html[data-theme="light"] .courses-success-card > div > span,
+html[data-theme="light"] .courses-success-card > button { color: #39795a; }
+html[data-theme="light"] .courses-success-card > button:hover { color: #174c32; background: #d8f0e2; }
+html[data-theme="light"] .courses-confirm-modal { color: #203541; border-color: #b9cfdb; background: #fff; }
+html[data-theme="light"] .courses-confirm-modal header,
+html[data-theme="light"] .courses-confirm-modal footer { border-color: #d4e0e7; background: #f6f9fb; }
+html[data-theme="light"] .courses-confirm-modal header p,
+html[data-theme="light"] .courses-confirm-body p,
+html[data-theme="light"] .courses-confirm-body label { color: #617987; }
+html[data-theme="light"] .courses-confirm-body > div { border-color: #d2e0e8; background: #f5f9fb; }
+html[data-theme="light"] .courses-confirm-body input { color: #203541; border-color: #b9cedb; background: #fff; }
+
+html[data-theme="black"] .courses-header,
+html[data-theme="black"] .courses-summary article,
+html[data-theme="black"] .courses-panel { color: #ededed; border-color: #303030; background: #0a0a0a; }
+html[data-theme="black"] .courses-header > div > span { color: #d0d0d0; }
+html[data-theme="black"] .courses-header h1,
+html[data-theme="black"] .courses-summary strong,
+html[data-theme="black"] .courses-toolbar strong,
+html[data-theme="black"] .course-copy strong,
+html[data-theme="black"] .course-current strong { color: #f2f2f2; }
+html[data-theme="black"] .courses-header p,
+html[data-theme="black"] .courses-summary span,
+html[data-theme="black"] .courses-toolbar span,
+html[data-theme="black"] .course-copy span,
+html[data-theme="black"] .course-current small,
+html[data-theme="black"] .course-current span,
+html[data-theme="black"] .course-row > label > span { color: #aaa; }
+html[data-theme="black"] .courses-summary article.warning { border-color: #776025; background: #171309; }
+html[data-theme="black"] .courses-toolbar,
+html[data-theme="black"] .course-row { border-color: #2d2d2d; }
+html[data-theme="black"] .course-row:hover { background: #141414; }
+html[data-theme="black"] .courses-toolbar input { color: #f3f3f3; border-color: #424242; background: #050505; }
+html[data-theme="black"] .courses-toolbar input:focus { border-color: #888; box-shadow: 0 0 0 3px rgba(255,255,255,.07); }
+html[data-theme="black"] .course-row > button { color: #eee; border-color: #505050; background: #191919; }
+html[data-theme="black"] .course-row > button:hover:not(:disabled) { border-color: #888; background: #252525; }
+html[data-theme="black"] .courses-success-card { color: #ededed; border-color: #505050; background: #121212; box-shadow: 0 8px 22px rgba(0,0,0,.45); }
+html[data-theme="black"] .courses-success-icon { color: #080808; background: #d8d8d8; }
+html[data-theme="black"] .courses-success-card strong { color: #f3f3f3; }
+html[data-theme="black"] .courses-success-card > div > span,
+html[data-theme="black"] .courses-success-card > button { color: #b8b8b8; }
+html[data-theme="black"] .courses-success-card > button:hover { color: #fff; background: #292929; }
+html[data-theme="black"] .courses-confirm-modal { color: #ededed; border-color: #3b3b3b; background: #090909; }
+html[data-theme="black"] .courses-confirm-modal header,
+html[data-theme="black"] .courses-confirm-modal footer { border-color: #292929; background: #0b0b0b; }
+html[data-theme="black"] .courses-confirm-modal header p,
+html[data-theme="black"] .courses-confirm-body p,
+html[data-theme="black"] .courses-confirm-body label { color: #aaa; }
+html[data-theme="black"] .courses-confirm-body > div { border-color: #343434; background: #101010; }
+html[data-theme="black"] .courses-confirm-body input { color: #f5f5f5; border-color: #484848; background: #050505; }
+html[data-theme="black"] .courses-confirm-body input:focus { border-color: #888; box-shadow: 0 0 0 3px rgba(255,255,255,.07); }
+
+@media (max-width: 1000px) {
+  .course-row { grid-template-columns: minmax(220px, 1fr) 150px 170px; }
+  .course-row > button { grid-column: 1 / -1; }
+}
+@media (max-width: 700px) {
+  .courses-summary { grid-template-columns: 1fr; }
+  .courses-toolbar { align-items: stretch; flex-direction: column; }
+  .courses-toolbar input { width: 100%; }
+  .course-row { grid-template-columns: 1fr; }
+  .course-row > button { grid-column: auto; }
+}

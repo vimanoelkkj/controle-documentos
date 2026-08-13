@@ -11,6 +11,7 @@ const items: { label: string; to: string; icon: AppIconName }[] = [
   { label: "Estatísticas", to: "/estatisticas", icon: "stats" },
   { label: "LOG", to: "/log", icon: "log" },
   { label: "Períodos", to: "/periodos", icon: "calendar" },
+  { label: "Cursos", to: "/cursos", icon: "courses" },
   { label: "Configurações", to: "/configuracoes", icon: "settings" },
   { label: "Sobre", to: "/sobre", icon: "info" },
 ];

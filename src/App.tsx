@@ -10,6 +10,7 @@ import Log from "./pages/Log";
 import Configuracoes from "./pages/Configuracoes";
 import Sobre from "./pages/Sobre";
 import Periodos from "./pages/Periodos";
+import Cursos from "./pages/Cursos";
 import Login from "./pages/Login";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
@@ -28,6 +29,7 @@ function Rotas() {
           <Route path="/log" element={<Log />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/periodos" element={<Periodos />} />
+          <Route path="/cursos" element={<Cursos />} />
           <Route path="/sobre" element={<Sobre />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
