@@ -3,6 +3,7 @@ import AppIcon from "../components/AppIcon";
 import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/AuthContext";
 import { usePeriodo } from "../contexts/PeriodoContext";
+import { api } from "../lib/api";
 
 type Unidade = "FACE" | "FEA" | "FCH" | "EAD";
 type Curso = {
@@ -30,9 +31,9 @@ export default function Cursos() {
     setCarregando(true);
     setErro("");
     try {
-      const resposta = await fetch("/api/cursos", { cache: "no-store" });
-      const dados = (await resposta.json()) as Curso[] & { erro?: string };
-      if (!resposta.ok) throw new Error(dados.erro || "Não foi possível carregar os cursos.");
+      const dados = await api.get<Curso[]>("/api/cursos", {
+        cache: "no-store",
+      });
       setCursos(dados);
       setDestinos(Object.fromEntries(dados.map((curso) => [
         curso.curso,
@@ -62,17 +63,17 @@ export default function Cursos() {
     setSalvando(true);
     setErro("");
     try {
-      const resposta = await fetch("/api/cursos/unidade", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const dados = await api.put<{
+        alunos_alterados?: number;
+        unidade?: string;
+      }>(
+        "/api/cursos/unidade",
+        {
           curso: confirmando.curso,
           unidade: destinos[confirmando.curso],
           confirmacao,
-        }),
-      });
-      const dados = (await resposta.json()) as { erro?: string; alunos_alterados?: number; unidade?: string };
-      if (!resposta.ok) throw new Error(dados.erro || "Não foi possível alterar a unidade.");
+        },
+      );
       setMensagem({
         total: dados.alunos_alterados ?? 0,
         unidade: dados.unidade ?? destinos[confirmando.curso],
@@ -132,7 +133,7 @@ export default function Cursos() {
     {confirmando && <div className="modal-overlay courses-modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget && !salvando) setConfirmando(null); }}>
       <section className="courses-confirm-modal" role="dialog" aria-modal="true">
         <header><span>ALTERAÇÃO EM MASSA</span><h2>Confirmar nova unidade</h2><p><strong>{confirmando.curso}</strong></p></header>
-        <div className="courses-confirm-body"><div><span>Alunos afetados</span><strong>{confirmando.total_alunos}</strong></div><div><span>Nova unidade</span><strong>{destinos[confirmando.curso]}</strong></div><p>Todos os alunos desse curso no período <strong>{periodoAtual?.codigo}</strong> serão vinculados à nova unidade. O mapeamento também será usado nas próximas sincronizações.</p><label>Digite <strong>ALTERAR</strong> para confirmar<input autoFocus value={confirmacao} onChange={(e) => setConfirmacao(e.target.value.toLocaleUpperCase("pt-BR"))} /></label></div>
+        <div className="courses-confirm-body"><div><span>Alunos afetados</span><strong>{confirmando.total_alunos}</strong></div><div><span>Nova unidade</span><strong>{destinos[confirmando.curso]}</strong></div><p>Todos os alunos desse curso no período <strong>{periodoAtual?.codigo}</strong> serão vinculados à nova unidade. O mapeamento também será usado nas próximas sincronizações.</p><label><span className="courses-confirm-label">Digite <strong>ALTERAR</strong> para confirmar</span><input autoFocus value={confirmacao} onChange={(e) => setConfirmacao(e.target.value.toLocaleUpperCase("pt-BR"))} /></label></div>
         <footer><button type="button" onClick={() => setConfirmando(null)} disabled={salvando}>Cancelar</button><button type="button" className="confirm" onClick={() => void alterar()} disabled={salvando || confirmacao !== "ALTERAR"}>{salvando ? "Alterando..." : "Confirmar alteração"}</button></footer>
       </section>
     </div>}
