@@ -1,0 +1,792 @@
+/* =========================================================
+   LOG
+   ========================================================= */
+.log-page {
+  display: grid;
+  gap: 18px;
+}
+.log-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+.log-header > div > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #61bfff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.log-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid #376b88;
+  border-radius: 10px;
+  color: #bfe6ff;
+  background: #173247;
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.log-refresh > span {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.log-refresh:hover {
+  border-color: #55a9d4;
+  background: #1b4058;
+}
+
+html[data-theme="light"] .log-refresh {
+  color: #17658f;
+  border-color: #9dcde6;
+  background: #e8f5fc;
+}
+
+html[data-theme="light"] .log-refresh:hover {
+  color: #104f70;
+  border-color: #70b5da;
+  background: #d9effa;
+}
+.log-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #263b4a;
+  border-radius: 12px;
+  background: #101d27;
+}
+.log-toolbar input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #2d4353;
+  border-radius: 9px;
+  outline: none;
+  color: #eef5f9;
+  background: #0b171f;
+}
+.log-toolbar strong {
+  color: #61bfff;
+  font-size: 18px;
+}
+.log-toolbar span {
+  color: #8296a8;
+  font-size: 12px;
+}
+.log-list {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid #263b4a;
+  border-radius: 14px;
+  background: #101d27;
+}
+.log-item {
+  display: grid;
+  grid-template-columns: 4px 1fr;
+  border-bottom: 1px solid #223746;
+}
+.log-item:last-child {
+  border-bottom: 0;
+}
+.log-marker {
+  background: #58b7f4;
+}
+.log-item-main {
+  padding: 16px 18px;
+}
+.log-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.log-item-head strong {
+  color: #f2f7fa;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+.log-item-head time {
+  color: #78909f;
+  font-size: 12px;
+}
+.log-item p {
+  margin: 7px 0 10px;
+  color: #b8c7d1;
+  font-size: 13px;
+}
+.log-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.log-tags span {
+  padding: 3px 7px;
+  border: 1px solid #2c4a5d;
+  border-radius: 999px;
+  color: #82c9f5;
+  background: #102634;
+  font-size: 11px;
+  font-weight: 800;
+}
+.log-state {
+  padding: 34px;
+  border: 1px solid #263b4a;
+  border-radius: 14px;
+  color: #8fa4b3;
+  background: #101d27;
+  text-align: center;
+}
+.log-state.error {
+  color: #ffaaa0;
+  border-color: #74433d;
+  background: #2a1c1b;
+}
+
+html[data-theme="light"] .log-toolbar,
+html[data-theme="light"] .log-list,
+html[data-theme="light"] .log-state {
+  color: #20313d;
+  border-color: #d5e0e8;
+  background: #ffffff;
+}
+html[data-theme="light"] .log-toolbar input {
+  color: #263946;
+  border-color: #cfdae2;
+  background: #f7fafc;
+}
+html[data-theme="light"] .log-item {
+  border-color: #e1e8ed;
+}
+html[data-theme="light"] .log-item-head strong {
+  color: #14232d;
+}
+html[data-theme="light"] .log-item p {
+  color: #526875;
+}
+html[data-theme="light"] .log-tags span {
+  color: #23678f;
+  border-color: #bcd6e6;
+  background: #eef8fe;
+}
+
+@media (max-width: 720px) {
+  .log-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .log-item-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+/* Dashboard no modo claro: mantém hierarquia visual sem herdar superfícies escuras. */
+html[data-theme="light"] .dashboard-hero {
+  color: #173042;
+  border-color: #cfdde7;
+  background: linear-gradient(135deg, #f8fcff 0%, #edf6fb 100%);
+  box-shadow: 0 12px 32px rgba(37, 61, 77, 0.08);
+}
+
+html[data-theme="light"] .dashboard-hero h1 {
+  color: #14232d;
+}
+
+html[data-theme="light"] .dashboard-hero p,
+html[data-theme="light"] .dashboard-hero-eyebrow,
+html[data-theme="light"] .dashboard-unit-filter > span {
+  color: #607b8d;
+}
+
+html[data-theme="light"] .dashboard-unit-filter select {
+  color: #20313d;
+  border-color: #bfd2df;
+  background: #ffffff;
+  color-scheme: light;
+}
+
+html[data-theme="light"] .dashboard-unit-filter select option {
+  color: #20313d;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .dashboard-kpi > span,
+html[data-theme="light"] .dashboard-card-header > div > span,
+html[data-theme="light"] .dashboard-unit-head {
+  color: #5e7b8f;
+}
+
+html[data-theme="light"] .dashboard-kpi strong {
+  color: #1a2d39;
+}
+
+html[data-theme="light"] .dashboard-kpi.complete strong {
+  color: #3e9c61;
+}
+html[data-theme="light"] .dashboard-kpi.partial strong {
+  color: #b8860b;
+}
+html[data-theme="light"] .dashboard-kpi.critical strong {
+  color: #d94f4f;
+}
+html[data-theme="light"] .dashboard-kpi.progress strong {
+  color: #7457ba;
+}
+
+html[data-theme="light"] .dashboard-kpi small,
+html[data-theme="light"] .dashboard-card-header small,
+html[data-theme="light"] .dashboard-bar-row small,
+html[data-theme="light"] .dashboard-donut-center span,
+html[data-theme="light"] .dashboard-legend span {
+  color: #667f90;
+}
+
+html[data-theme="light"] .dashboard-card-header {
+  border-color: #d8e2e9;
+}
+
+html[data-theme="light"] .dashboard-donut-track {
+  stroke: #e4edf2;
+}
+
+html[data-theme="light"] .dashboard-donut-center strong {
+  color: #243744;
+}
+
+html[data-theme="light"] .dashboard-legend > div {
+  color: #20313d;
+  border-color: #d6e1e8;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .dashboard-legend strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .dashboard-bar-label span {
+  color: #4f6878;
+}
+
+html[data-theme="light"] .dashboard-bar-label strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .dashboard-unit-row {
+  color: #405866;
+  border-color: #dfe7ec;
+}
+
+html[data-theme="light"] .dashboard-unit-row > span.complete {
+  color: #3e9c61;
+}
+html[data-theme="light"] .dashboard-unit-row > span.partial {
+  color: #b8860b;
+}
+html[data-theme="light"] .dashboard-unit-row > span.critical {
+  color: #d94f4f;
+}
+
+html[data-theme="light"] .dashboard-stacked {
+  background: #e5edf2;
+}
+
+html[data-theme="light"] .dashboard-state {
+  color: #607888;
+  border-color: #d5e0e8;
+  background: #ffffff;
+}
+
+/* =========================================================
+   MODO CLARO — CONFERÊNCIA E ESTATÍSTICAS
+   ========================================================= */
+html[data-theme="light"] .student-details-header,
+html[data-theme="light"] .conference-actions,
+html[data-theme="light"] .statistics-card-header,
+html[data-theme="light"] .statistics-document-row,
+html[data-theme="light"] .statistics-course-row,
+html[data-theme="light"] .statistics-unit-row {
+  border-color: #dbe5eb;
+}
+
+html[data-theme="light"] .student-tags span {
+  color: #4f6a7a;
+  border-color: #cbd9e2;
+  background: #f3f8fb;
+}
+
+html[data-theme="light"] .document-progress-label,
+html[data-theme="light"] .document-card span,
+html[data-theme="light"] .summary-number span {
+  color: #667f90;
+}
+
+html[data-theme="light"] .document-card {
+  color: #20313d;
+  border-color: #cfdae2;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .document-card:hover {
+  border-color: #79b9df;
+  background: #f0f8fd;
+}
+
+html[data-theme="light"] .document-card strong {
+  color: #1c2f3b;
+}
+
+html[data-theme="light"] .document-card.delivered {
+  border-color: #a7d9b5;
+  background: #edf9f0;
+}
+
+html[data-theme="light"] .document-card.delivered strong {
+  color: #24633a;
+}
+
+html[data-theme="light"] .document-card.delivered span {
+  color: #4e7f5e;
+}
+
+html[data-theme="light"] .summary-card {
+  color: #20313d;
+  border-color: #c9dce8;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .summary-card li {
+  color: #435b69;
+  border-color: #d2e1e9;
+  background: #f8fbfd;
+}
+
+html[data-theme="light"] .summary-number strong {
+  color: #b88708;
+}
+
+html[data-theme="light"] .conference-actions {
+  background: #f8fafc;
+}
+
+html[data-theme="light"] .conference-actions > span {
+  color: #647c8b;
+}
+
+html[data-theme="light"] .conference-actions > span.saved {
+  color: #2f8c50;
+}
+
+html[data-theme="light"] .student-edit-button {
+  color: #23678f;
+  border-color: #b9d4e4;
+  background: #eef7fc;
+}
+
+html[data-theme="light"] .student-edit-button:hover {
+  color: #174e70;
+  border-color: #8bbdd9;
+  background: #dff1fb;
+}
+
+html[data-theme="light"] .student-delete-button {
+  color: #a9443a;
+  border-color: #e7afa9;
+  background: #fff1f0;
+}
+
+html[data-theme="light"] .student-delete-button:hover {
+  color: #8f342c;
+  border-color: #db9289;
+  background: #fde4e1;
+}
+
+html[data-theme="light"] .secondary-action {
+  color: #516b7b;
+  border-color: #cad8e1;
+  background: #f3f7f9;
+}
+
+html[data-theme="light"] .primary-action {
+  color: #ffffff;
+  border-color: #4d9ac8;
+  background: #3d91c2;
+}
+
+/* Estatísticas: todos os componentes internos também precisam sair da paleta escura. */
+html[data-theme="light"] .statistics-hero {
+  color: #20313d;
+  border-color: #d5e0e8;
+  background: linear-gradient(135deg, #ffffff 0%, #f2f8fc 100%);
+  box-shadow: 0 12px 32px rgba(37, 61, 77, 0.08);
+}
+
+html[data-theme="light"] .statistics-hero h1 {
+  color: #14232d;
+}
+
+html[data-theme="light"] .statistics-eyebrow,
+html[data-theme="light"] .statistics-card-header span,
+html[data-theme="light"] .statistics-kpi > span,
+html[data-theme="light"] .statistics-unit-filter > span {
+  color: #5d7c90;
+}
+
+html[data-theme="light"] .statistics-hero p,
+html[data-theme="light"] .statistics-card-header small,
+html[data-theme="light"] .statistics-kpi small,
+html[data-theme="light"] .statistics-histogram-column small,
+html[data-theme="light"] .statistics-document-title small,
+html[data-theme="light"] .statistics-document-meter small,
+html[data-theme="light"] .statistics-combination-count small,
+html[data-theme="light"] .statistics-course-name small {
+  color: #6b8291;
+}
+
+html[data-theme="light"] .statistics-unit-filter select {
+  color: #20313d;
+  border-color: #bfd2df;
+  background: #ffffff;
+  color-scheme: light;
+}
+
+html[data-theme="light"] .statistics-unit-filter select option {
+  color: #20313d;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .statistics-kpi strong,
+html[data-theme="light"] .statistics-histogram-value,
+html[data-theme="light"] .statistics-histogram-column strong,
+html[data-theme="light"] .statistics-document-title strong,
+html[data-theme="light"] .statistics-document-meter strong,
+html[data-theme="light"] .statistics-combination-count strong,
+html[data-theme="light"] .statistics-course-name strong,
+html[data-theme="light"] .statistics-course-progress strong,
+html[data-theme="light"] .statistics-unit-progress-cell b,
+html[data-theme="light"] .statistics-unit-row > strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .statistics-kpi.progress strong {
+  color: #7457ba;
+}
+html[data-theme="light"] .statistics-kpi.complete strong {
+  color: #3e9c61;
+}
+html[data-theme="light"] .statistics-kpi.critical strong {
+  color: #d94f4f;
+}
+
+html[data-theme="light"] .statistics-histogram-track,
+html[data-theme="light"] .statistics-document-meter > div,
+html[data-theme="light"] .statistics-combination-track,
+html[data-theme="light"] .statistics-course-progress > div,
+html[data-theme="light"] .statistics-mini-progress {
+  background: #e5edf2;
+}
+
+html[data-theme="light"] .statistics-document-title > span {
+  color: #52758a;
+  border-color: #cfdae2;
+  background: #f3f8fb;
+}
+
+html[data-theme="light"] .statistics-document-title > span.priority {
+  color: #9a760f;
+  border-color: #e7d28e;
+  background: #fff9e8;
+}
+
+html[data-theme="light"] .statistics-combination-row {
+  color: #20313d;
+  border-color: #d8e2e9;
+  background: #f8fbfd;
+}
+
+html[data-theme="light"] .statistics-combination-number {
+  color: #688397;
+}
+
+html[data-theme="light"] .statistics-combination-tags span {
+  color: #49697c;
+  border-color: #cedce5;
+  background: #f1f7fa;
+}
+
+html[data-theme="light"] .statistics-unit-head {
+  color: #607d8e;
+}
+
+html[data-theme="light"] .statistics-unit-row {
+  color: #536d7c;
+}
+
+html[data-theme="light"] .statistics-unit-row .complete {
+  color: #3e9c61;
+}
+html[data-theme="light"] .statistics-unit-row .critical {
+  color: #d94f4f;
+}
+
+html[data-theme="light"] .statistics-state,
+html[data-theme="light"] .statistics-empty {
+  color: #607888;
+}
+
+html[data-theme="light"] .statistics-state {
+  border-color: #d5e0e8;
+  background: #ffffff;
+}
+
+/* =========================================================
+   MODO CLARO — COMUNICAÇÃO E TELAS RESTANTES
+   ========================================================= */
+html[data-theme="light"] .communication-header,
+html[data-theme="light"] .communication-toolbar,
+html[data-theme="light"] .communication-groups,
+html[data-theme="light"] .communication-detail,
+html[data-theme="light"] .communication-email-card,
+html[data-theme="light"] .communication-students-card,
+html[data-theme="light"] .communication-history {
+  color: #20313d;
+  border-color: #d5e0e8;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(37, 61, 77, 0.06);
+}
+
+html[data-theme="light"] .communication-header h1,
+html[data-theme="light"] .communication-detail-header h2,
+html[data-theme="light"] .communication-panel-title strong,
+html[data-theme="light"] .communication-preview-top strong,
+html[data-theme="light"] .communication-students-header strong,
+html[data-theme="light"] .communication-validation strong,
+html[data-theme="light"] .communication-history-header strong,
+html[data-theme="light"] .communication-history-item strong {
+  color: #172b38;
+}
+
+html[data-theme="light"] .communication-header p,
+html[data-theme="light"] .communication-detail-header p,
+html[data-theme="light"] .communication-eyebrow,
+html[data-theme="light"] .communication-panel-title span,
+html[data-theme="light"] .communication-detail-header span,
+html[data-theme="light"] .communication-actions > div > span,
+html[data-theme="light"] .communication-preview-top span,
+html[data-theme="light"] .communication-students-header span,
+html[data-theme="light"] .communication-history-header span {
+  color: #617c8d;
+}
+
+html[data-theme="light"] .communication-summary {
+  border-color: #c9dbe7;
+  background: #f7fbfe;
+}
+html[data-theme="light"] .communication-summary span {
+  color: #688293;
+}
+html[data-theme="light"] .communication-summary strong {
+  color: #348fca;
+}
+
+html[data-theme="light"] .communication-toolbar label,
+html[data-theme="light"] .communication-email-settings label {
+  color: #526d7e;
+}
+html[data-theme="light"] .communication-toolbar select,
+html[data-theme="light"] .communication-toolbar input,
+html[data-theme="light"] .communication-email-settings input,
+html[data-theme="light"] .communication-students-header input {
+  color: #20313d;
+  border-color: #cbd9e2;
+  background: #f8fbfd;
+  color-scheme: light;
+}
+html[data-theme="light"] .communication-toolbar select option {
+  color: #20313d;
+  background: #fff;
+}
+
+html[data-theme="light"] .communication-panel-title,
+html[data-theme="light"] .communication-detail-header,
+html[data-theme="light"] .communication-preview-top,
+html[data-theme="light"] .communication-students-header,
+html[data-theme="light"] .communication-select-actions,
+html[data-theme="light"] .communication-email-settings,
+html[data-theme="light"] .communication-history-header,
+html[data-theme="light"] .communication-history-item,
+html[data-theme="light"] .communication-student {
+  border-color: #dce5eb;
+}
+
+html[data-theme="light"] .communication-group-card {
+  color: #20313d;
+  border-color: #d4e0e7;
+  background: #f8fbfd;
+}
+html[data-theme="light"] .communication-group-card:hover,
+html[data-theme="light"] .communication-group-card.active {
+  border-color: #80b7d9;
+  background: #eaf6fd;
+}
+html[data-theme="light"] .communication-group-card.active {
+  box-shadow: inset 3px 0 #48a7df;
+}
+html[data-theme="light"] .communication-group-copy span,
+html[data-theme="light"] .communication-history-item > div:first-child span,
+html[data-theme="light"] .communication-history-numbers span {
+  color: #6a8292;
+}
+html[data-theme="light"] .communication-group-count,
+html[data-theme="light"] .communication-big-count {
+  color: #23678f;
+  background: #e4f2fb;
+}
+
+html[data-theme="light"] .communication-tags span,
+html[data-theme="light"] .communication-mini-tags span {
+  color: #486879;
+  border-color: #cedce5;
+  background: #f3f8fb;
+}
+html[data-theme="light"] .communication-tags span.priority,
+html[data-theme="light"] .communication-mini-tags span.priority {
+  color: #8c6908;
+  border-color: #e5cd7a;
+  background: #fff8df;
+}
+
+html[data-theme="light"] .communication-actions,
+html[data-theme="light"] .communication-validation {
+  color: #20313d;
+  border-color: #d2e0e8;
+  background: #f6fafc;
+}
+html[data-theme="light"] .communication-actions small {
+  color: #667f90;
+}
+html[data-theme="light"] .communication-action-buttons button,
+html[data-theme="light"] .communication-email-settings button,
+html[data-theme="light"] .communication-select-actions button,
+html[data-theme="light"] .communication-history-header button {
+  color: #23678f;
+  border-color: #acd0e5;
+  background: #eaf6fd;
+}
+html[data-theme="light"] .communication-register-button {
+  color: #27663d !important;
+  border-color: #a9d8b7 !important;
+  background: #e9f7ed !important;
+}
+html[data-theme="light"] .communication-outlook-button {
+  color: #1f648d !important;
+  border-color: #9bc9e4 !important;
+  background: #e3f2fb !important;
+}
+
+html[data-theme="light"] .communication-validation-items span {
+  color: #536d7d;
+  border-color: #cedae2;
+  background: #f5f8fa;
+}
+html[data-theme="light"] .communication-validation-items span.ok,
+html[data-theme="light"] .communication-charge-summary span:nth-child(1),
+html[data-theme="light"] .communication-charged-badge {
+  color: #2d7244 !important;
+  border-color: #b3dcc0;
+  background: #edf8f0;
+}
+html[data-theme="light"] .communication-validation-items span.warning {
+  color: #9b4d43;
+  border-color: #e6b8b1;
+  background: #fff2f0;
+}
+html[data-theme="light"] .communication-validation-items span.attention,
+html[data-theme="light"] .communication-charge-summary span:nth-child(2) {
+  color: #8d6a09;
+  border-color: #e5d08b;
+  background: #fff9e6;
+}
+
+html[data-theme="light"] .communication-preview {
+  background: #ffffff;
+}
+html[data-theme="light"] .communication-preview-top {
+  background: linear-gradient(180deg, #f5faff, #edf5f9);
+}
+html[data-theme="light"] .communication-preview-icon {
+  color: #2d83b7;
+  border-color: #b8d7e9;
+  background: #eaf6fd;
+}
+html[data-theme="light"] .communication-preview-heading small,
+html[data-theme="light"] .communication-preview-count {
+  color: #667f90 !important;
+}
+html[data-theme="light"] .communication-preview-count {
+  border-color: #cfdae2;
+  background: #f4f8fa;
+}
+html[data-theme="light"] .communication-email-body {
+  color: #263946;
+  border-color: #d5e0e8;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(37, 61, 77, 0.06);
+}
+html[data-theme="light"] .communication-email-body p {
+  color: #405966;
+}
+html[data-theme="light"] .communication-email-body li {
+  color: #263946;
+  border-color: #d7e2e9;
+  background: #f7fafc;
+}
+html[data-theme="light"] .communication-email-body li.priority {
+  color: #a9443a !important;
+  border-color: #e7afa9;
+  background: #fff1f0;
+}
+html[data-theme="light"] .communication-warning {
+  color: #a9443a !important;
+  border-color: #e7afa9;
+  background: #fff1f0;
+}
+html[data-theme="light"] .communication-address {
+  color: #1e6f9f !important;
+  border-color: #afd2e7;
+  background: #eef8fd;
+}
+
+html[data-theme="light"] .communication-student {
+  color: #20313d;
+  background: #ffffff;
+}
+html[data-theme="light"] .communication-student:hover {
+  background: #f2f8fc;
+}
+html[data-theme="light"] .communication-student span {
+  color: #617b8c;
+}
+html[data-theme="light"] .communication-student small {
+  color: #738b9a;
+}
+html[data-theme="light"] .communication-history-numbers strong {
+  color: #318bc1;
+}
+html[data-theme="light"] .communication-history-empty,
+html[data-theme="light"] .communication-empty {
+  color: #667f90;
+}
+

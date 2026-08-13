@@ -1,0 +1,1958 @@
+/* =========================================================
+   HARMONIZAÇÃO TIPOGRÁFICA
+   Mantém a identidade visual, mas melhora a leitura de textos pequenos.
+   ========================================================= */
+
+body {
+  line-height: 1.45;
+}
+
+button,
+input,
+select,
+textarea {
+  line-height: 1.25;
+}
+
+small {
+  line-height: 1.4;
+}
+
+/* =========================================================
+   IMPORTAÇÃO DE ALUNOS — MODO CLARO
+   ========================================================= */
+
+/* Corpo e áreas internas do modal */
+html[data-theme="light"] .modal-importacao {
+  color: #20313d;
+  border-color: #d5e0e8;
+  background: #ffffff;
+  box-shadow: 0 22px 55px rgba(37, 61, 77, 0.14);
+}
+
+html[data-theme="light"] .importacao-conteudo {
+  background: #ffffff;
+}
+
+html[data-theme="light"] .importacao-unidade {
+  color: #6f8493;
+}
+
+/* Select de unidade */
+html[data-theme="light"] .importacao-unidade select {
+  color: #263946;
+  border-color: #cbd9e2;
+  background: #f7fafc;
+  color-scheme: light;
+}
+
+html[data-theme="light"] .importacao-unidade select option {
+  color: #263946;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .importacao-unidade select:focus {
+  border-color: #58a9d8;
+  box-shadow: 0 0 0 3px rgba(88, 169, 216, 0.12);
+}
+
+/* Abas Colar dados / Arquivo CSV */
+html[data-theme="light"] .importacao-tabs button {
+  color: #405867;
+  border-color: #cbd9e2;
+  background: #f6f9fb;
+}
+
+html[data-theme="light"] .importacao-tabs button:hover {
+  border-color: #9dc6df;
+  background: #edf6fb;
+}
+
+html[data-theme="light"] .importacao-tabs button.active {
+  color: #174b6b;
+  border-color: #67add8;
+  background: #dff1fc;
+}
+
+/* Área de colagem */
+html[data-theme="light"] .importacao-colar textarea {
+  color: #263946;
+  border-color: #cbd9e2;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .importacao-colar textarea::placeholder {
+  color: #7b8f9c;
+}
+
+html[data-theme="light"] .importacao-colar textarea:focus {
+  border-color: #58a9d8;
+  box-shadow: 0 0 0 3px rgba(88, 169, 216, 0.12);
+}
+
+/* Dropzone do CSV */
+html[data-theme="light"] .importacao-dropzone {
+  border-color: #9fc7dc;
+  background: #f3f8fb;
+}
+
+html[data-theme="light"] .importacao-dropzone:hover {
+  border-color: #62add7;
+  background: #eaf5fb;
+}
+
+html[data-theme="light"] .importacao-dropzone strong {
+  color: #29404d;
+}
+
+html[data-theme="light"] .importacao-dropzone span {
+  color: #718795;
+}
+
+/* Botão de análise */
+html[data-theme="light"] .botao-analisar-importacao {
+  color: #ffffff;
+  border-color: #388ec0;
+  background: #3d9ed6;
+}
+
+html[data-theme="light"] .botao-analisar-importacao:hover:not(:disabled) {
+  border-color: #2f83b4;
+  background: #328ec4;
+}
+
+html[data-theme="light"] .botao-analisar-importacao:disabled {
+  color: #ffffff;
+  border-color: #a8cade;
+  background: #a8cade;
+  opacity: 0.78;
+}
+
+/* Prévia e resultado da importação */
+html[data-theme="light"] .importacao-previa-cabecalho,
+html[data-theme="light"] .importacao-resumo {
+  background: #ffffff;
+}
+
+html[data-theme="light"] .importacao-previa-cabecalho h3,
+html[data-theme="light"] .importacao-resultado h3,
+html[data-theme="light"] .importacao-item-principal strong,
+html[data-theme="light"] .importacao-resumo strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .importacao-previa-cabecalho span {
+  color: #4d96c2;
+}
+
+html[data-theme="light"] .importacao-previa-cabecalho button {
+  color: #347fa9;
+}
+
+html[data-theme="light"] .importacao-resumo > div {
+  border-color: #d4e0e7;
+  background: #f6f9fb;
+}
+
+html[data-theme="light"] .importacao-resumo span,
+html[data-theme="light"] .importacao-item-principal span,
+html[data-theme="light"] .importacao-item-principal small,
+html[data-theme="light"] .importacao-item-status span,
+html[data-theme="light"] .importacao-resultado p {
+  color: #708694;
+}
+
+html[data-theme="light"] .importacao-item {
+  border-color: #d4e0e7;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .importacao-item.valido {
+  border-color: #b8ddc4;
+  background: #f0faf3;
+}
+
+html[data-theme="light"] .importacao-item.duplicado {
+  border-color: #e4d39d;
+  background: #fff9e8;
+}
+
+html[data-theme="light"] .importacao-item.invalido,
+html[data-theme="light"] .importacao-item.cancelar {
+  border-color: #e5bab3;
+  background: #fff2f0;
+}
+
+html[data-theme="light"]
+  .importacao-item.valido
+  .importacao-item-status
+  strong {
+  color: #398456;
+}
+
+html[data-theme="light"]
+  .importacao-item.duplicado
+  .importacao-item-status
+  strong {
+  color: #987820;
+}
+
+html[data-theme="light"]
+  .importacao-item.invalido
+  .importacao-item-status
+  strong,
+html[data-theme="light"]
+  .importacao-item.cancelar
+  .importacao-item-status
+  strong {
+  color: #ae5145;
+}
+
+html[data-theme="light"] .importacao-resultado-ok {
+  color: #398456;
+  border-color: #b8ddc4;
+  background: #effaf3;
+}
+
+/* =========================================================
+   LISTA DE ALUNOS — remove divisor solto abaixo da pesquisa
+   ========================================================= */
+.student-list {
+  border-top: 0;
+}
+
+/* =========================================================
+   LISTA DE ALUNOS — CARDS ESPAÇADOS / FLUTUANTES
+   ========================================================= */
+.student-list {
+  display: grid;
+  gap: 8px;
+  padding: 8px 9px 10px;
+  border-top: 0;
+  background: transparent;
+}
+
+.student-card {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #253f50;
+  border-radius: 10px;
+  background: #0e1d27;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.student-card:last-child {
+  border-bottom: 1px solid #253f50;
+}
+
+.student-card:hover {
+  border-color: #3b657f;
+  background: #142633;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.14);
+}
+
+.student-card.active {
+  border-color: #58b7f4;
+  background: #172b39;
+  box-shadow:
+    inset 3px 0 #61bfff,
+    0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* No tema claro, cada aluno vira um card branco independente. */
+html[data-theme="light"] .student-list {
+  background: transparent;
+}
+
+html[data-theme="light"] .student-card {
+  color: #263946;
+  border-color: #d5e0e8;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgba(37, 61, 77, 0.07);
+}
+
+html[data-theme="light"] .student-card:last-child {
+  border-bottom: 1px solid #d5e0e8;
+}
+
+html[data-theme="light"] .student-card:hover {
+  border-color: #a9cfe5;
+  background: #f7fbfe;
+  box-shadow: 0 5px 14px rgba(37, 61, 77, 0.1);
+}
+
+html[data-theme="light"] .student-card.active {
+  color: #12334a;
+  border-color: #69add8;
+  background: #eaf6fd;
+  box-shadow:
+    inset 3px 0 #58b7f4,
+    0 4px 12px rgba(37, 61, 77, 0.09);
+}
+
+/* =========================================================
+   ADICIONAR ALUNOS — CONTRASTE NO MODO CLARO
+   ========================================================= */
+
+/* Os cards de escolha herdavam texto branco do tema escuro. */
+html[data-theme="light"] .modal-opcao {
+  color: #20313d;
+  border-color: #cbd9e2;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .modal-opcao:hover {
+  color: #17384d;
+  border-color: #83bddd;
+  background: #edf7fc;
+}
+
+html[data-theme="light"] .modal-opcao strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .modal-opcao span {
+  color: #6f8493;
+}
+
+/* Cobertura para a variação de classes usada no seletor de tipo de cadastro. */
+html[data-theme="light"] .tipo-cadastro-card,
+html[data-theme="light"] .adicionar-aluno-opcao {
+  color: #20313d;
+  border-color: #cbd9e2;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .tipo-cadastro-card:hover,
+html[data-theme="light"] .adicionar-aluno-opcao:hover {
+  border-color: #83bddd;
+  background: #edf7fc;
+}
+
+html[data-theme="light"] .tipo-cadastro-card strong,
+html[data-theme="light"] .adicionar-aluno-opcao strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .tipo-cadastro-card span,
+html[data-theme="light"] .adicionar-aluno-opcao span {
+  color: #6f8493;
+}
+
+/* =========================================================
+   ADICIONAR ALUNOS — MODO CLARO
+   ========================================================= */
+
+html[data-theme="light"] .adicionar-aluno-opcoes button {
+  border-color: #cbd9e2;
+  color: #20313d;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .adicionar-aluno-opcoes button:hover {
+  border-color: #67add8;
+  background: #eaf6fd;
+}
+
+html[data-theme="light"] .adicionar-aluno-opcoes strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .adicionar-aluno-opcoes span {
+  color: #6f8493;
+}
+
+/* =========================================================
+   MOTION SYSTEM — ANIMAÇÕES GLOBAIS
+   Cole este bloco NO FINAL de src/index.css
+   ========================================================= */
+
+:root {
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --motion-page: 220ms;
+
+  --ease-ui: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out-ui: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------------------------------------------------------
+   ENTRADA DE PÁGINAS
+   --------------------------------------------------------- */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.app-content > section {
+  animation: page-enter var(--motion-page) var(--ease-out-ui) both;
+}
+
+/* ---------------------------------------------------------
+   MODAIS
+   --------------------------------------------------------- */
+
+@keyframes overlay-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.975);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-overlay {
+  animation: overlay-enter var(--motion-base) ease-out both;
+}
+
+.modal-overlay > * {
+  animation: modal-enter var(--motion-slow) var(--ease-out-ui) both;
+  transform-origin: center;
+}
+
+/* ---------------------------------------------------------
+   CARDS / SUPERFÍCIES INTERATIVAS
+   --------------------------------------------------------- */
+
+.student-card,
+.document-card,
+.settings-users-grid article,
+.period-list article,
+.communication-group-card,
+.importacao-item,
+.adicionar-aluno-opcoes button {
+  transition:
+    transform var(--motion-base) var(--ease-ui),
+    box-shadow var(--motion-base) var(--ease-ui),
+    border-color var(--motion-base) var(--ease-ui),
+    background-color var(--motion-base) var(--ease-ui);
+}
+
+.student-card:hover,
+.settings-users-grid article:hover,
+.period-list article:hover,
+.communication-group-card:hover,
+.adicionar-aluno-opcoes button:hover {
+  transform: translateY(-2px);
+}
+
+.student-card:hover {
+  transform: none;
+}
+
+.document-card:hover,
+.importacao-item:hover {
+  transform: translateY(-1px);
+}
+
+/* ---------------------------------------------------------
+   BOTÕES
+   --------------------------------------------------------- */
+
+button,
+a.sidebar-link {
+  transition:
+    transform var(--motion-fast) var(--ease-ui),
+    background-color var(--motion-base) var(--ease-ui),
+    border-color var(--motion-base) var(--ease-ui),
+    color var(--motion-base) var(--ease-ui),
+    box-shadow var(--motion-base) var(--ease-ui),
+    opacity var(--motion-base) ease;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* Botões principais ganham um hover sutil, sem "pular" demais. */
+.primary-action:hover:not(:disabled),
+.botao-cadastrar:hover:not(:disabled),
+.botao-novo-aluno:hover:not(:disabled),
+.botao-importar-alunos:hover:not(:disabled),
+.botao-analisar-importacao:hover:not(:disabled),
+.login-submit:hover:not(:disabled),
+.settings-user-form > button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* ---------------------------------------------------------
+   SIDEBAR
+   --------------------------------------------------------- */
+
+.sidebar-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-link::before {
+  content: "";
+  position: absolute;
+  inset: 5px auto 5px 0;
+  width: 3px;
+  border-radius: 999px;
+  background: #61bfff;
+  opacity: 0;
+  transform: scaleY(0.35);
+  transition:
+    opacity var(--motion-base) var(--ease-ui),
+    transform var(--motion-base) var(--ease-out-ui);
+}
+
+.sidebar-link.active::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.sidebar-link:hover {
+  transform: translateX(2px);
+}
+
+.sidebar-link.active:hover {
+  transform: none;
+}
+
+/* ---------------------------------------------------------
+   INPUTS / SELECTS / TEXTAREAS
+   --------------------------------------------------------- */
+
+input,
+select,
+textarea {
+  transition:
+    border-color var(--motion-base) var(--ease-ui),
+    background-color var(--motion-base) var(--ease-ui),
+    color var(--motion-base) var(--ease-ui),
+    box-shadow var(--motion-base) var(--ease-ui);
+}
+
+/* ---------------------------------------------------------
+   FEEDBACKS / AVISOS
+   --------------------------------------------------------- */
+
+@keyframes feedback-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-error,
+.modal-erro,
+.period-error,
+.period-sheets-warning,
+.period-sheets-ready,
+.settings-error {
+  animation: feedback-enter var(--motion-base) var(--ease-out-ui) both;
+}
+
+/* ---------------------------------------------------------
+   LOADING
+   --------------------------------------------------------- */
+
+@keyframes loading-dot-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.period-boot {
+  gap: 10px;
+}
+
+.period-boot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #61bfff;
+  vertical-align: 1px;
+  animation: loading-dot-pulse 900ms ease-in-out infinite;
+}
+
+html[data-theme="light"] .period-boot::before {
+  background: #318fc5;
+}
+
+/* ---------------------------------------------------------
+   TROCA DE TEMA
+   Em vez de animar * tudo (caro), focamos nas superfícies.
+   --------------------------------------------------------- */
+
+body,
+.sidebar,
+.period-toolbar,
+.student-panel,
+.student-details,
+.summary-card,
+.communication-header,
+.communication-toolbar,
+.communication-groups,
+.communication-detail,
+.communication-email-card,
+.communication-students-card,
+.settings-users-grid article,
+.settings-user-form,
+.login-card,
+.modal-novo-aluno,
+.modal-importacao,
+.modal-excluir-aluno {
+  transition:
+    background-color var(--motion-slow) var(--ease-ui),
+    border-color var(--motion-slow) var(--ease-ui),
+    color var(--motion-slow) var(--ease-ui);
+}
+
+/* ---------------------------------------------------------
+   ACESSIBILIDADE
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+/* =========================================================
+   MOTION SYSTEM V2 — CORRIGE MODAIS + ANIMA CONFERÊNCIA
+   Cole ESTE BLOCO no final do src/index.css.
+   Ele sobrescreve a parte problemática do motion-system anterior.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1) CORREÇÃO DOS MODAIS
+   ---------------------------------------------------------
+   IMPORTANTE:
+   Não use transform no ancestral que contém position: fixed.
+   O transform em .app-content > section fazia o modal-overlay
+   deixar de usar a viewport e ficar preso dentro da seção.
+   --------------------------------------------------------- */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.app-content > section {
+  animation: page-enter var(--motion-page, 220ms) ease-out both;
+}
+
+/* O overlay volta a ocupar a viewport inteira. */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+}
+
+/* ---------------------------------------------------------
+   2) TROCA DE ALUNO — PAINEL DE DETALHES
+   --------------------------------------------------------- */
+
+@keyframes student-detail-enter {
+  from {
+    opacity: 0;
+    transform: translateX(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.student-details-animated {
+  animation: student-detail-enter 190ms
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+/* ---------------------------------------------------------
+   3) CONTEÚDO INTERNO DA FICHA
+   Quando o article remonta ao trocar o RA, os elementos
+   entram em uma sequência curtinha.
+   --------------------------------------------------------- */
+
+@keyframes conference-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.student-details-animated .student-details-header,
+.student-details-animated .document-progress,
+.student-details-animated .documents-area,
+.student-details-animated .conference-actions {
+  animation: conference-item-enter 210ms
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.student-details-animated .document-progress {
+  animation-delay: 35ms;
+}
+
+.student-details-animated .documents-area {
+  animation-delay: 60ms;
+}
+
+.student-details-animated .conference-actions {
+  animation-delay: 85ms;
+}
+
+/* ---------------------------------------------------------
+   4) CARDS DOS DOCUMENTOS
+   --------------------------------------------------------- */
+
+.student-details-animated .document-card {
+  animation: conference-item-enter 180ms
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.student-details-animated .document-card:nth-child(1) {
+  animation-delay: 55ms;
+}
+.student-details-animated .document-card:nth-child(2) {
+  animation-delay: 70ms;
+}
+.student-details-animated .document-card:nth-child(3) {
+  animation-delay: 85ms;
+}
+.student-details-animated .document-card:nth-child(4) {
+  animation-delay: 100ms;
+}
+.student-details-animated .document-card:nth-child(5) {
+  animation-delay: 115ms;
+}
+.student-details-animated .document-card:nth-child(6) {
+  animation-delay: 130ms;
+}
+.student-details-animated .document-card:nth-child(7) {
+  animation-delay: 145ms;
+}
+
+/* Progresso deve deslizar ao marcar/desmarcar documento. */
+.progress-value {
+  transition:
+    width 260ms var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)),
+    background-color 180ms ease;
+}
+
+/* Mudança entregue/pendente fica suave. */
+.document-card {
+  transition:
+    transform var(--motion-base, 180ms) var(--ease-ui, ease),
+    border-color var(--motion-base, 180ms) var(--ease-ui, ease),
+    background-color var(--motion-base, 180ms) var(--ease-ui, ease),
+    box-shadow var(--motion-base, 180ms) var(--ease-ui, ease);
+}
+
+/* Número de pendências / percentual não precisa saltar demais. */
+.summary-number strong,
+.student-progress strong {
+  transition:
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+/* Card selecionado na lateral troca suavemente. */
+.student-card {
+  transition:
+    transform var(--motion-base, 180ms) var(--ease-ui, ease),
+    border-color var(--motion-base, 180ms) var(--ease-ui, ease),
+    background-color var(--motion-base, 180ms) var(--ease-ui, ease),
+    box-shadow var(--motion-base, 180ms) var(--ease-ui, ease);
+}
+
+/* ---------------------------------------------------------
+   5) EMPTY STATE
+   --------------------------------------------------------- */
+
+.student-details-empty > div {
+  animation: conference-item-enter 200ms
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+/* ---------------------------------------------------------
+   6) REDUCED MOTION
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .student-details-animated,
+  .student-details-animated .student-details-header,
+  .student-details-animated .document-progress,
+  .student-details-animated .documents-area,
+  .student-details-animated .conference-actions,
+  .student-details-animated .document-card,
+  .student-details-empty > div {
+    animation: none !important;
+  }
+
+  .progress-value {
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   COMUNICAÇÃO — DATA/ASSUNTO + AÇÕES EM LINHA SEPARADA
+   ========================================================= */
+
+.communication-email-settings {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 12px 16px;
+  align-items: end;
+  padding: 16px;
+}
+
+/* Data limite */
+.communication-email-settings > label:first-child {
+  min-width: 0;
+}
+
+/* Assunto */
+.communication-email-settings > label:nth-child(2) {
+  min-width: 0;
+}
+
+.communication-email-settings > label > span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.communication-email-settings > label > span small {
+  color: #648097;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.communication-email-settings input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.communication-email-settings input:focus {
+  border-color: #43a8df;
+  box-shadow: 0 0 0 3px rgba(67, 168, 223, .13);
+}
+
+.communication-deadline-field input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .05em;
+  text-align: center;
+}
+
+.communication-email-settings > label:nth-child(2) input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Área dos botões */
+.communication-email-settings > :last-child {
+  grid-column: 1 / -1;
+  justify-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+/* NÃO deixa os botões virarem um totem ancestral */
+.communication-email-settings > :last-child button {
+  width: auto;
+  min-width: max-content;
+  white-space: nowrap;
+  min-height: 38px;
+  padding-inline: 14px;
+}
+
+html[data-theme="light"] .communication-email-settings > label > span small {
+  color: #7b91a1;
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .communication-email-settings {
+    grid-template-columns: 1fr;
+  }
+
+  .communication-email-settings > :last-child {
+    grid-column: 1;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* =========================================================
+   MODAL DE SUCESSO — IMPORTAÇÃO DE ALUNOS
+   ========================================================= */
+
+.modal-importacao-sucesso {
+  width: min(520px, 100%);
+  overflow: hidden;
+
+  border: 1px solid #2f5261;
+  border-radius: 16px;
+
+  background: #101d27;
+
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+
+  animation: modal-enter var(--motion-slow, 240ms)
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.importacao-sucesso-conteudo {
+  display: grid;
+  justify-items: center;
+
+  padding: 30px 30px 24px;
+
+  text-align: center;
+}
+
+.importacao-sucesso-icone {
+  display: grid;
+
+  width: 64px;
+  height: 64px;
+
+  margin-bottom: 16px;
+
+  place-items: center;
+
+  border: 1px solid #39724a;
+  border-radius: 50%;
+
+  color: #8be1a2;
+  background: #173620;
+
+  font-size: 28px;
+  font-weight: 900;
+
+  box-shadow: 0 0 0 8px rgba(79, 181, 107, 0.06);
+}
+
+.importacao-sucesso-conteudo .modal-eyebrow {
+  margin-bottom: 6px;
+}
+
+.importacao-sucesso-conteudo h2 {
+  margin: 0;
+
+  color: #f4f8fb;
+
+  font-size: 22px;
+}
+
+.importacao-sucesso-conteudo > p {
+  max-width: 390px;
+
+  margin: 9px 0 0;
+
+  color: #91a6b5;
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.importacao-sucesso-conteudo > p strong {
+  color: #dcecf5;
+}
+
+.importacao-sucesso-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+
+  width: 100%;
+
+  margin-top: 22px;
+}
+
+.importacao-sucesso-resumo > div {
+  display: grid;
+  gap: 3px;
+
+  padding: 13px 10px;
+
+  border: 1px solid #294554;
+  border-radius: 10px;
+
+  background: #0c1922;
+}
+
+.importacao-sucesso-resumo strong {
+  color: #f4f8fb;
+
+  font-size: 22px;
+  line-height: 1;
+}
+
+.importacao-sucesso-resumo span {
+  color: #8198a8;
+
+  font-size: 11px;
+}
+
+.importacao-sucesso-acoes {
+  justify-content: center;
+}
+
+.importacao-sucesso-acoes .botao-cadastrar {
+  min-width: 120px;
+}
+
+/* MODO CLARO */
+
+html[data-theme="light"] .modal-importacao-sucesso {
+  border-color: #d1dee6;
+
+  background: #ffffff;
+
+  box-shadow: 0 22px 55px rgba(37, 61, 77, 0.16);
+}
+
+html[data-theme="light"] .importacao-sucesso-conteudo h2 {
+  color: #20313d;
+}
+
+html[data-theme="light"] .importacao-sucesso-conteudo > p {
+  color: #6f8493;
+}
+
+html[data-theme="light"] .importacao-sucesso-conteudo > p strong {
+  color: #29404d;
+}
+
+html[data-theme="light"] .importacao-sucesso-icone {
+  border-color: #9fd7af;
+
+  color: #2f7d47;
+  background: #edf9f0;
+
+  box-shadow: 0 0 0 8px rgba(65, 156, 89, 0.06);
+}
+
+html[data-theme="light"] .importacao-sucesso-resumo > div {
+  border-color: #d3e0e8;
+
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .importacao-sucesso-resumo strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .importacao-sucesso-resumo span {
+  color: #718795;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 560px) {
+  .importacao-sucesso-conteudo {
+    padding: 26px 18px 20px;
+  }
+
+  .importacao-sucesso-resumo {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   CONFERÊNCIA — TRANSIÇÃO DA IMPORTAÇÃO PARA O SUCESSO
+   Cole este bloco no final de src/index.css
+   ========================================================= */
+
+.importacao-processando {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 32px 24px;
+  text-align: center;
+  animation: importacao-processando-enter 180ms
+    var(--ease-ui, cubic-bezier(0.2, 0.8, 0.2, 1)) both;
+}
+
+.importacao-processando > strong {
+  color: #dceaf3;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.importacao-processando > span {
+  max-width: 360px;
+  color: #7891a2;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.importacao-processando-spinner {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 5px;
+  border: 1px solid #284557;
+  border-radius: 18px;
+  background: #0b1720;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 2%);
+}
+
+.importacao-processando-spinner::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 2px solid #243e4f;
+  border-top-color: #6bc4fa;
+  border-radius: 50%;
+  animation: importacao-spinner 700ms linear infinite;
+}
+
+.importacao-processando-spinner span {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 999px;
+  background: #75c9fa;
+  opacity: 0.25;
+  animation: importacao-ponto 900ms ease-in-out infinite;
+}
+
+.importacao-processando-spinner span:nth-child(1) {
+  left: 18px;
+  animation-delay: 0ms;
+}
+.importacao-processando-spinner span:nth-child(2) {
+  left: 26px;
+  animation-delay: 120ms;
+}
+.importacao-processando-spinner span:nth-child(3) {
+  left: 34px;
+  animation-delay: 240ms;
+}
+
+.importacao-processando.concluindo .importacao-processando-spinner::before {
+  animation-duration: 420ms;
+}
+
+.modal-importacao-finalizando {
+  pointer-events: none;
+  animation: modal-importacao-exit 180ms ease forwards !important;
+}
+
+.modal-overlay-finalizando {
+  pointer-events: none;
+  animation: modal-overlay-importacao-exit 180ms ease forwards !important;
+}
+
+.modal-importacao-sucesso {
+  animation: sucesso-importacao-enter 260ms
+    var(--ease-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.importacao-sucesso-icone {
+  animation: sucesso-importacao-check 420ms cubic-bezier(0.34, 1.56, 0.64, 1)
+    100ms both;
+}
+
+@keyframes importacao-processando-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes importacao-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes importacao-ponto {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes modal-importacao-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes modal-overlay-importacao-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sucesso-importacao-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sucesso-importacao-check {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+html[data-theme="light"] .importacao-processando > strong {
+  color: #223746;
+}
+
+html[data-theme="light"] .importacao-processando > span {
+  color: #718390;
+}
+
+html[data-theme="light"] .importacao-processando-spinner {
+  border-color: #cbdbe5;
+  background: #f4f9fc;
+}
+
+html[data-theme="light"] .importacao-processando-spinner::before {
+  border-color: #d7e4ec;
+  border-top-color: #168ccc;
+}
+
+html[data-theme="light"] .importacao-processando-spinner span {
+  background: #168ccc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .importacao-processando,
+  .importacao-processando-spinner::before,
+  .importacao-processando-spinner span,
+  .modal-importacao-finalizando,
+  .modal-overlay-finalizando,
+  .modal-importacao-sucesso,
+  .importacao-sucesso-icone {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+  }
+}
+
+/* =========================================================
+   FERRAMENTAS DE DESENVOLVIMENTO
+   ========================================================= */
+
+.settings-backup {
+  margin-top: 28px;
+  padding: 20px;
+  border: 1px solid #28546a;
+  border-radius: 12px;
+  background: #0e1920;
+}
+
+.settings-backup-head,
+.settings-backup-action,
+.settings-backup-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.settings-backup-head {
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #243f4d;
+}
+
+.settings-backup-head span {
+  color: #5ebcf0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.settings-backup-head h2 { margin: 3px 0 5px; }
+
+.settings-backup-head p,
+.settings-backup-action span,
+.settings-backup-result span {
+  color: #9eafb9;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.settings-backup-head p { margin: 0; max-width: 680px; }
+
+.settings-backup-head > strong {
+  padding: 5px 8px;
+  border: 1px solid #52616a;
+  border-radius: 7px;
+  color: #aebbc2;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.settings-backup-head > strong.ready {
+  border-color: #286e51;
+  background: #123526;
+  color: #78dfaa;
+}
+
+.settings-backup-head > strong.pending {
+  border-color: #80632e;
+  background: #35290f;
+  color: #f2c96f;
+}
+.settings-backup-action { margin-top: 16px; }
+
+.settings-backup-action > div,
+.settings-backup-result > div { display: grid; gap: 3px; }
+
+.settings-backup-action button,
+.settings-backup-result a {
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid #3288b5;
+  border-radius: 8px;
+  background: #153f55;
+  color: #d8f3ff;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.settings-backup-action button:hover:not(:disabled),
+.settings-backup-result a:hover { border-color: #55b6e6; background: #1a506b; }
+.settings-backup-action button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.settings-backup-message,
+.settings-backup-result {
+  margin-top: 14px;
+  padding: 11px 12px;
+  border: 1px solid #3d5260;
+  border-radius: 8px;
+  background: #10191f;
+  font-size: 11px;
+}
+
+.settings-backup-message.warning { border-color: #6f582c; color: #e4bd6c; }
+.settings-backup-message.error { border-color: #793e38; color: #ff9f91; }
+.settings-backup-result { border-color: #286e51; color: #68d39b; }
+
+html[data-theme="light"] .settings-backup { border-color: #bdd8e6; background: #f4fbff; }
+html[data-theme="light"] .settings-backup-head { border-bottom-color: #d4e5ed; }
+html[data-theme="light"] .settings-backup-head p,
+html[data-theme="light"] .settings-backup-action span,
+html[data-theme="light"] .settings-backup-result span { color: #617985; }
+html[data-theme="light"] .settings-backup-message,
+html[data-theme="light"] .settings-backup-result { background: #fff; }
+
+.settings-backup-title,
+.settings-backup-action-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+}
+
+.settings-backup-icon,
+.settings-backup-action-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #2c6079;
+  border-radius: 10px;
+  background: #112b38;
+  color: #62c8fa;
+}
+
+.settings-backup-action {
+  padding: 14px;
+  border: 1px solid #243f4d;
+  border-radius: 10px;
+  background: #0b1419;
+}
+
+.settings-backup-action-copy {
+  align-items: center;
+}
+
+.settings-backup-action-copy > div {
+  display: grid;
+  gap: 3px;
+}
+
+.settings-backup-action-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+
+.settings-backup-head > strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 28px;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.settings-backup-head > strong i {
+  display: block;
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: none;
+}
+
+.settings-backup-head > strong.pending i {
+  background: #e5aa32;
+}
+
+.settings-backup-head > strong.ready i {
+  background: #35bd78;
+}
+
+.settings-backup-message.warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-color: #514526;
+  background: #18170f;
+}
+
+.settings-backup-message.warning > svg {
+  flex: 0 0 auto;
+}
+
+.settings-backup-message.warning > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.settings-backup-message.warning strong {
+  color: #f0c66d;
+}
+
+html[data-theme="light"] .settings-backup {
+  border-color: #c3dce9;
+  background: linear-gradient(135deg, #f8fcff 0%, #eef8fd 100%);
+  box-shadow: 0 10px 28px rgba(47, 103, 132, 0.07);
+}
+
+html[data-theme="light"] .settings-backup-icon,
+html[data-theme="light"] .settings-backup-action-icon {
+  border-color: #b9dbea;
+  background: #e5f5fc;
+  color: #168ccc;
+}
+
+html[data-theme="light"] .settings-backup-action {
+  border-color: #d1e2ea;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+html[data-theme="light"] .settings-backup-message.warning {
+  border-color: #ead8aa;
+  background: #fffaf0;
+  color: #987024;
+}
+
+html[data-theme="light"] .settings-backup-head > strong.pending {
+  border-color: #e0b756;
+  background: #fff2ca;
+  color: #795609;
+}
+
+html[data-theme="light"] .settings-backup-head > strong.ready {
+  border-color: #8ed2ad;
+  background: #e4f7ed;
+  color: #176b43;
+}
+
+@media (max-width: 720px) {
+  .settings-backup-head,
+  .settings-backup-action,
+  .settings-backup-result { align-items: stretch; flex-direction: column; }
+  .settings-backup-action button,
+  .settings-backup-result a { width: 100%; text-align: center; }
+  .settings-backup-title { padding-right: 0; }
+}
+
+.settings-dev-tools {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid #6f3a34;
+  border-radius: 12px;
+  background: #171111;
+}
+
+.settings-dev-tools-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #4b2c29;
+}
+
+.settings-dev-tools-head h2 {
+  margin: 3px 0 5px;
+}
+
+.settings-dev-tools-head p {
+  margin: 0;
+  max-width: 680px;
+  color: #9eaab3;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.settings-dev-tools-head > strong {
+  padding: 5px 8px;
+  border: 1px solid #7a4039;
+  border-radius: 7px;
+  color: #ff9f91;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.settings-dev-danger {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: end;
+  margin-top: 16px;
+}
+
+.settings-dev-fields {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.55fr) minmax(240px, 1fr);
+  gap: 12px;
+}
+
+.settings-dev-fields label {
+  display: grid;
+  gap: 7px;
+  color: #9eaab3;
+  font-size: 10px;
+}
+
+.settings-dev-fields label strong {
+  color: #ff9f91;
+}
+
+.settings-dev-fields select,
+.settings-dev-fields input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 11px;
+  border: 1px solid #55312d;
+  border-radius: 8px;
+  outline: none;
+  background: #0d1114;
+  color: #dce7ed;
+}
+
+.settings-dev-fields select:focus,
+.settings-dev-fields input:focus {
+  border-color: #a65348;
+}
+
+.settings-dev-delete {
+  min-height: 38px;
+  padding: 10px 14px;
+  border: 1px solid #8a463d;
+  border-radius: 8px;
+  background: #3a1d1a;
+  color: #ffb0a5;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-dev-delete:hover:not(:disabled) {
+  border-color: #b85d50;
+  background: #4a211d;
+}
+
+.settings-dev-delete:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settings-dev-message {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #4b3934;
+  border-radius: 8px;
+  background: #111619;
+  color: #b9c6cd;
+  font-size: 11px;
+}
+
+html[data-theme="light"] .settings-dev-tools {
+  border-color: #e5b8b1;
+  background: #fff8f7;
+}
+
+html[data-theme="light"] .settings-dev-tools-head {
+  border-bottom-color: #ecd0cb;
+}
+
+html[data-theme="light"] .settings-dev-tools-head p {
+  color: #6f7f88;
+}
+
+html[data-theme="light"] .settings-dev-fields select,
+html[data-theme="light"] .settings-dev-fields input {
+  border-color: #e2c0ba;
+  background: #fff;
+  color: #263b48;
+}
+
+html[data-theme="light"] .settings-dev-message {
+  border-color: #e0d2cf;
+  background: #fff;
+  color: #52646e;
+}
+
+@media (max-width: 900px) {
+  .settings-dev-danger {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-dev-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-dev-delete {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   MOTION — MODAIS DA CONFERÊNCIA
+   ========================================================= */
+
+@keyframes conference-modal-overlay-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes conference-modal-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes conference-modal-overlay-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes conference-modal-card-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(5px) scale(0.985);
+  }
+}
+
+.conference-page .modal-overlay {
+  animation: conference-modal-overlay-enter 160ms ease-out both;
+}
+
+.conference-page .modal-overlay > [class*="modal-"] {
+  animation: conference-modal-card-enter 220ms cubic-bezier(0.16, 1, 0.3, 1)
+    both;
+}
+
+.conference-page .modal-overlay.modal-overlay-exit {
+  pointer-events: none;
+  animation: conference-modal-overlay-exit 180ms ease-in both;
+}
+
+.conference-page .modal-overlay.modal-overlay-exit > [class*="modal-"] {
+  animation: conference-modal-card-exit 180ms ease-in both;
+}
+
+/* Mantém a entrada especial do sucesso da importação. */
+.conference-page .modal-overlay > .modal-importacao-sucesso {
+  animation: sucesso-enter 260ms
+    var(--ease-out-ui, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conference-page .modal-overlay,
+  .conference-page .modal-overlay > [class*="modal-"],
+  .conference-page .modal-overlay.modal-overlay-exit,
+  .conference-page .modal-overlay.modal-overlay-exit > [class*="modal-"] {
+    animation-duration: 1ms !important;
+  }
+}
+
+/* =========================================================
+   MODAL EDITAR ALUNO — ZONA DE PERIGO
+   ========================================================= */
+
+.edit-student-danger-zone {
+  margin: 18px 24px 0;
+  padding: 16px;
+  border: 1px solid #6f3a34;
+  border-radius: 10px;
+  background: #241817;
+}
+
+.edit-student-danger-zone > strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #ff9f91;
+  font-size: 11px;
+}
+
+.edit-student-danger-zone > p {
+  margin: 0 0 12px;
+  color: #9eaab3;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* Modo claro: aviso continua sendo de perigo sem virar um tijolo vinho. */
+html[data-theme="light"] .edit-student-danger-zone {
+  border-color: #f0b6b0;
+  background: #fff5f4;
+  box-shadow: inset 0 0 0 1px rgba(215, 63, 49, 0.025);
+}
+
+html[data-theme="light"] .edit-student-danger-zone > strong {
+  color: #c9362b;
+}
+
+html[data-theme="light"] .edit-student-danger-zone > p {
+  color: #52646e;
+}
+
+html[data-theme="light"] .edit-student-danger-zone .student-delete-button {
+  border-color: #e3655a;
+  background: #fffafa;
+  color: #c9362b;
+}
+
+html[data-theme="light"]
+  .edit-student-danger-zone
+  .student-delete-button:hover:not(:disabled) {
+  border-color: #cf4338;
+  background: #fff0ee;
+  color: #b92d23;
+}
+
+/* =========================================================
+   MODAL CANCELAR / REATIVAR MATRÍCULA — MODO CLARO
+   ========================================================= */
+
+html[data-theme="light"] .modal-excluir-conteudo h2 {
+  color: #14232d;
+}
+
+html[data-theme="light"] .modal-excluir-conteudo > p {
+  color: #6f8492;
+}
+
+html[data-theme="light"] .modal-excluir-icon {
+  border-color: #e9a59c;
+  color: #c83d32;
+  background: #fff0ee;
+}
+
+html[data-theme="light"] .modal-reativar-icon {
+  border-color: #9ed5b1;
+  color: #257746;
+  background: #edf9f1;
+}
+
+html[data-theme="light"] .modal-eyebrow-danger {
+  color: #d94c40;
+}
+
+html[data-theme="light"] .aluno-exclusao-card {
+  border-color: #d5e1e9;
+  background: #f7fafc;
+}
+
+html[data-theme="light"] .aluno-exclusao-card strong {
+  color: #20313d;
+}
+
+html[data-theme="light"] .aluno-exclusao-card span {
+  color: #718594;
+}
+
+html[data-theme="light"] .modal-excluir-aviso {
+  border-color: #efb3ab;
+  color: #a9443a !important;
+  background: #fff2f0;
+}
+
+/* Quando o modal estiver reativando, o aviso acompanha o verde. */
+html[data-theme="light"]
+  .modal-reativar-icon
+  ~ .modal-excluir-conteudo
+  .modal-excluir-aviso {
+  border-color: #add9bb;
+  color: #2d7047 !important;
+  background: #eff9f2;
+}
+
+html[data-theme="light"] .modal-excluir-acoes {
+  border-top-color: #dbe5eb;
+  background: #f8fafc;
+}
+
+html[data-theme="light"] .modal-excluir-acoes .botao-cancelar {
+  border-color: #c8d6df;
+  color: #334b5a;
+  background: #ffffff;
+}
+
+html[data-theme="light"]
+  .modal-excluir-acoes
+  .botao-cancelar:hover:not(:disabled) {
+  border-color: #9eb4c2;
+  background: #eef4f7;
+}
+
+html[data-theme="light"] .modal-excluir-acoes .botao-confirmar-exclusao {
+  border-color: #d75a4e;
+  color: #ffffff;
+  background: #bd453b;
+}
+
+html[data-theme="light"]
+  .modal-excluir-acoes
+  .botao-confirmar-exclusao:hover:not(:disabled) {
+  border-color: #c9453a;
+  background: #a93830;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="light"] .modal-excluir-aluno,
+  html[data-theme="light"] .modal-excluir-aluno * {
+    transition-duration: 1ms !important;
+  }
+}
+

@@ -1,0 +1,1088 @@
+/* =========================================================
+   CONFERÊNCIA — ALTURA DA LISTA SINCRONIZADA COM A FICHA
+   ========================================================= */
+
+/*
+  A altura do .student-panel é definida pelo ResizeObserver em Conferencia.tsx
+  usando a altura REAL do .student-details à direita.
+  O card da direita nunca recebe altura por este ajuste.
+*/
+@media (min-width: 901px) {
+  .conference-grid {
+    align-items: start;
+  }
+
+  .student-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: none;
+    overflow: hidden;
+  }
+
+  .student-panel-header,
+  .status-tabs,
+  .unit-tabs,
+  .student-search {
+    flex: 0 0 auto;
+  }
+
+  .student-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .student-details {
+    height: auto;
+    min-height: 0;
+    align-self: start;
+  }
+}
+
+/* =========================================================
+   CONFERÊNCIA — RESUMO COMPACTO
+   Só o card de resumo é estreitado.
+   ========================================================= */
+
+.documents-area {
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 14px;
+}
+
+.summary-card {
+  width: 180px;
+  padding: 12px;
+}
+
+.summary-number {
+  margin: 9px 0 10px;
+}
+
+.summary-number strong {
+  font-size: 26px;
+}
+
+.summary-card ul {
+  gap: 5px;
+}
+
+.summary-card li {
+  padding: 6px 7px;
+  font-size: 10px;
+}
+
+@media (max-width: 1180px) {
+  .documents-area {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .student-panel {
+    height: auto !important;
+  }
+}
+
+/* =========================================================
+   CONFERÊNCIA — LISTA UTILIZÁVEL ANTES DA SELEÇÃO
+   ========================================================= */
+
+/*
+  Antes de abrir um aluno, NÃO copiamos a altura do empty-state da direita.
+  A lista mantém uma área confortável para seleção e scroll.
+*/
+@media (min-width: 901px) {
+  .conference-grid:has(.student-details-empty) .student-panel {
+    height: min(620px, calc(100vh - 280px));
+    min-height: 430px;
+  }
+
+  .conference-grid:has(.student-details-empty) .student-list {
+    flex: 1 1 auto;
+    min-height: 150px;
+    overflow-y: auto;
+  }
+}
+
+/* =========================================================
+   CONFERÊNCIA — APROVEITAR MELHOR A LARGURA DA TELA
+   ========================================================= */
+
+/* Remove o teto global de 1440px somente nesta página. */
+.app-content .conference-page {
+  width: 100%;
+  max-width: none;
+}
+
+/* Dá um pouco mais de espaço para a lista e deixa a ficha
+   aproveitar todo o restante da largura disponível. */
+.conference-grid {
+  grid-template-columns: minmax(340px, 410px) minmax(0, 1fr);
+  gap: 18px;
+}
+
+/* Em telas intermediárias mantém proporção confortável. */
+@media (max-width: 1180px) {
+  .conference-grid {
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+
+/* No responsivo continua empilhado como antes. */
+@media (max-width: 900px) {
+  .conference-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   CONFERÊNCIA — CARDS MAIS ALTOS
+   ========================================================= */
+
+/*
+  A ficha aberta ganha mais área útil vertical.
+  O painel esquerdo continua copiando automaticamente essa altura
+  pelo ResizeObserver já existente.
+*/
+@media (min-width: 901px) {
+  .student-details:not(.student-details-empty) {
+    min-height: min(720px, calc(100vh - 245px));
+  }
+
+  /* Sem aluno selecionado, mantém bastante lista visível. */
+  .conference-grid:has(.student-details-empty) .student-panel {
+    height: min(720px, calc(100vh - 245px));
+    min-height: 520px;
+  }
+}
+
+/* =========================================================
+   CONFERÊNCIA — PREENCHER A VIEWPORT SEM ULTRAPASSAR
+   ========================================================= */
+
+/*
+  A altura exata é calculada em Conferencia.tsx:
+  viewport - posição superior do grid - 20px.
+  Os dois cards recebem a mesma altura.
+*/
+@media (min-width: 901px) {
+  .conference-grid {
+    align-items: start;
+  }
+
+  .student-panel,
+  .student-details {
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  .student-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .student-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .student-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /*
+    A área central absorve o espaço vertical extra.
+    O rodapé de ações permanece encostado no fim do card.
+  */
+  .documents-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-content: start;
+  }
+
+  .conference-actions {
+    flex: 0 0 auto;
+    margin-top: auto;
+  }
+
+  .student-details-empty {
+    display: grid;
+    place-items: center;
+  }
+}
+
+@media (max-width: 900px) {
+  .student-panel,
+  .student-details {
+    height: auto !important;
+  }
+}
+
+/* =========================================================
+   CONFERÊNCIA — PROTEÇÃO CONTRA ALTERAÇÕES NÃO SALVAS
+   ========================================================= */
+
+.unsaved-student-modal {
+  width: min(470px, calc(100vw - 32px));
+  padding: 22px;
+  border: 1px solid #60493a;
+  border-radius: 15px;
+  background: #111d25;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+}
+
+.unsaved-student-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+  border: 1px solid #82643d;
+  border-radius: 11px;
+  color: #ffd16a;
+  background: #2a2115;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.unsaved-student-eyebrow {
+  color: #e3ad48;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.unsaved-student-modal h2 {
+  margin: 5px 0 8px;
+  color: #edf4f7;
+  font-size: 21px;
+}
+
+.unsaved-student-modal p {
+  margin: 0;
+  color: #8ba0ac;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.unsaved-student-modal p strong {
+  color: #dce8ed;
+}
+
+.unsaved-student-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.unsaved-student-actions button {
+  min-height: 39px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.unsaved-student-back {
+  border: 1px solid #36505f;
+  color: #c7d6de;
+  background: #152631;
+}
+
+.unsaved-student-back:hover {
+  background: #1d3441;
+}
+
+.unsaved-student-discard {
+  border: 1px solid #a96355;
+  color: #ffe7e2;
+  background: #8d3f34;
+}
+
+.unsaved-student-discard:hover {
+  background: #a44b3f;
+}
+
+html[data-theme="light"] .unsaved-student-modal {
+  border-color: #e6d0bb;
+  background: #fff;
+  box-shadow: 0 30px 90px rgba(44, 64, 78, 0.2);
+}
+
+html[data-theme="light"] .unsaved-student-icon {
+  border-color: #e9c98e;
+  color: #a46d00;
+  background: #fff7e6;
+}
+
+html[data-theme="light"] .unsaved-student-modal h2 {
+  color: #243944;
+}
+
+html[data-theme="light"] .unsaved-student-modal p {
+  color: #708590;
+}
+
+html[data-theme="light"] .unsaved-student-modal p strong {
+  color: #314956;
+}
+
+html[data-theme="light"] .unsaved-student-back {
+  border-color: #cbdbe4;
+  color: #38515f;
+  background: #f6fafc;
+}
+
+html[data-theme="light"] .unsaved-student-back:hover {
+  background: #edf5f8;
+}
+
+html[data-theme="light"] .unsaved-student-discard {
+  border-color: #e69b91;
+  color: #9e3529;
+  background: #fff1ef;
+}
+
+html[data-theme="light"] .unsaved-student-discard:hover {
+  background: #ffe7e3;
+}
+
+/* =========================================================
+   DASHBOARD — NAVEGAÇÃO PARA A CONFERÊNCIA
+   ========================================================= */
+
+.dashboard-nav-card,
+.dashboard-nav-bar,
+.dashboard-nav-row,
+.dashboard-legend button {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-nav-card {
+  width: 100%;
+}
+
+.dashboard-nav-card:hover {
+  transform: translateY(-2px);
+  border-color: #4d9aca;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-nav-card:focus-visible,
+.dashboard-nav-bar:focus-visible,
+.dashboard-nav-row:focus-visible,
+.dashboard-legend button:focus-visible {
+  outline: 2px solid #62bfff;
+  outline-offset: 2px;
+}
+
+.dashboard-legend button {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  border-radius: 8px;
+}
+
+.dashboard-legend button:hover {
+  background: rgba(97, 191, 255, 0.055);
+}
+
+.dashboard-nav-bar {
+  display: block;
+  width: 100%;
+  padding: 3px 4px;
+  margin: 0 -4px;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  background: transparent;
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.dashboard-nav-bar:hover {
+  transform: translateX(2px);
+  background: rgba(97, 191, 255, 0.05);
+}
+
+.dashboard-nav-row {
+  width: 100%;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  transition: background 140ms ease;
+}
+
+.dashboard-nav-row:hover {
+  background: rgba(97, 191, 255, 0.055);
+}
+
+/* =========================================================
+   CONFERÊNCIA — CONTEXTO VINDO DO DASHBOARD
+   ========================================================= */
+
+.dashboard-context-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 14px 10px;
+  padding: 9px 10px;
+  border: 1px solid #2f6584;
+  border-radius: 9px;
+  background: #10293a;
+}
+
+.dashboard-context-filter > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-context-filter span {
+  color: #65bdf3;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+}
+
+.dashboard-context-filter strong {
+  overflow: hidden;
+  color: #e9f4fa;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-context-filter small {
+  color: #83a1b2;
+  font-size: 9px;
+}
+
+.dashboard-context-filter button {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid #396a85;
+  border-radius: 7px;
+  color: #a9d7f1;
+  background: #16384c;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dashboard-context-filter button:hover {
+  background: #1b4861;
+}
+
+html[data-theme="light"] .dashboard-nav-card:hover {
+  border-color: #78bce2;
+  box-shadow: 0 10px 24px rgba(39, 82, 108, 0.08);
+}
+
+html[data-theme="light"] .dashboard-legend button:hover,
+html[data-theme="light"] .dashboard-nav-bar:hover,
+html[data-theme="light"] .dashboard-nav-row:hover {
+  background: #f0f8fd;
+}
+
+html[data-theme="light"] .dashboard-context-filter {
+  border-color: #b9dbed;
+  background: #eef8fd;
+}
+
+html[data-theme="light"] .dashboard-context-filter span {
+  color: #298abf;
+}
+
+html[data-theme="light"] .dashboard-context-filter strong {
+  color: #294452;
+}
+
+html[data-theme="light"] .dashboard-context-filter small {
+  color: #6f8997;
+}
+
+html[data-theme="light"] .dashboard-context-filter button {
+  border-color: #b3d5e7;
+  color: #287ca9;
+  background: #fff;
+}
+
+html[data-theme="light"] .dashboard-context-filter button:hover {
+  background: #e5f4fb;
+}
+
+/* =========================================================
+   DASHBOARD — MÚLTIPLAS PENDÊNCIAS
+   ========================================================= */
+
+.dashboard-nav-bar {
+  position: relative;
+}
+
+.dashboard-nav-bar.selected {
+  background: rgba(79, 174, 228, 0.11);
+  box-shadow: inset 0 0 0 1px #3d8ebd;
+}
+
+.dashboard-nav-bar.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  color: #eaf8ff;
+  background: #278bc2;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.dashboard-pending-selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid #2d688a;
+  border-radius: 10px;
+  background: #10293a;
+}
+
+.dashboard-pending-selection > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-pending-selection span {
+  color: #63bcf0;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+}
+
+.dashboard-pending-selection strong {
+  color: #eef7fb;
+  font-size: 12px;
+}
+
+.dashboard-pending-selection small {
+  color: #83a0b0;
+  font-size: 9px;
+}
+
+.dashboard-pending-selection-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.dashboard-pending-selection-actions button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.dashboard-pending-clear {
+  border: 1px solid #35566a;
+  color: #a9bfcb;
+  background: #142631;
+}
+
+.dashboard-pending-open {
+  border: 1px solid #459bc9;
+  color: #f4fbff;
+  background: #237fac;
+}
+
+.dashboard-pending-open:hover {
+  background: #2b94c7;
+}
+
+html[data-theme="light"] .dashboard-nav-bar.selected {
+  background: #eaf6fd;
+  box-shadow: inset 0 0 0 1px #72b9df;
+}
+
+html[data-theme="light"] .dashboard-pending-selection {
+  border-color: #b7dcec;
+  background: #eef8fd;
+}
+
+html[data-theme="light"] .dashboard-pending-selection strong {
+  color: #2a4655;
+}
+
+html[data-theme="light"] .dashboard-pending-selection small {
+  color: #718997;
+}
+
+html[data-theme="light"] .dashboard-pending-clear {
+  border-color: #c6dae5;
+  color: #56717f;
+  background: #fff;
+}
+
+html[data-theme="light"] .dashboard-pending-open {
+  border-color: #65add4;
+  color: #fff;
+  background: #2589ba;
+}
+
+@media (max-width: 720px) {
+  .dashboard-pending-selection {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-pending-selection-actions {
+    width: 100%;
+  }
+
+  .dashboard-pending-selection-actions button {
+    flex: 1 1 0;
+  }
+}
+
+/* =========================================================
+   DASHBOARD — AJUSTE DO CHECK NAS PENDÊNCIAS SELECIONADAS
+   ========================================================= */
+
+/* Reserva espaço para o check sem cobrir a quantidade à direita. */
+.dashboard-nav-bar.selected .dashboard-bar-label {
+  padding-right: 30px;
+}
+
+.dashboard-nav-bar.selected .dashboard-bar-label strong {
+  margin-right: 2px;
+}
+
+/* Centraliza melhor o indicador dentro da linha selecionada. */
+.dashboard-nav-bar.selected::after {
+  top: 8px;
+  right: 8px;
+}
+
+/* Dashboard — pré-cálculo de pendências exatas */
+.dashboard-pending-open:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  filter: saturate(0.55);
+}
+
+.dashboard-pending-open:disabled:hover {
+  background: #237fac;
+}
+
+html[data-theme="light"] .dashboard-pending-open:disabled:hover {
+  background: #2589ba;
+}
+
+/* =========================================================
+   CONFERÊNCIA — BUSCA TURBINADA
+   ========================================================= */
+
+.student-search-result {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 14px 8px;
+  min-height: 25px;
+  color: #839aa7;
+  font-size: 9px;
+}
+
+.student-search-result strong {
+  color: #65bdf3;
+  font-size: 10px;
+}
+
+.student-search-result button {
+  margin-left: auto;
+  padding: 3px 7px;
+  border: 1px solid #34596e;
+  border-radius: 6px;
+  color: #9fc9df;
+  background: #132733;
+  font-size: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.student-search-result button:hover {
+  background: #193543;
+}
+
+html[data-theme="light"] .student-search-result {
+  color: #708995;
+}
+
+html[data-theme="light"] .student-search-result strong {
+  color: #288cc0;
+}
+
+html[data-theme="light"] .student-search-result button {
+  border-color: #c5dce8;
+  color: #397f9f;
+  background: #f8fcfe;
+}
+
+html[data-theme="light"] .student-search-result button:hover {
+  background: #edf7fb;
+}
+
+/* =========================================================
+   CONFERÊNCIA — cards da lista nunca esticam
+   ========================================================= */
+
+.student-list {
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+.student-card {
+  align-self: start;
+}
+
+/* =========================================================
+   GOOGLE PLANILHAS — MODAL DE SINCRONIZAÇÃO CONCLUÍDA
+   Reaproveita o visual do sucesso da importação de alunos.
+   ========================================================= */
+
+.sheets-sync-success-modal {
+  width: min(640px, 100%);
+}
+
+.sheets-sync-success-resumo {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.sheets-sync-success-total {
+  display: block;
+  margin-top: 14px;
+  color: #7891a2;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+html[data-theme="light"] .sheets-sync-success-total {
+  color: #718795;
+}
+
+@media (max-width: 680px) {
+  .sheets-sync-success-resumo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .sheets-sync-success-resumo {
+    grid-template-columns: 1fr;
+  }
+}
+
+.period-sheets-metrics button.has-details {
+  cursor: pointer;
+}
+
+.period-sheets-metrics button.no-details {
+  cursor: default;
+}
+
+.period-sheets-sync-bar button:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: saturate(0.6);
+}
+
+.period-sync-confirm-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.period-sync-confirm-metric strong {
+  display: block;
+}
+
+.period-sync-confirm-metric span {
+  display: block;
+}
+
+.period-preview-change {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.period-preview-change > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.period-preview-change strong {
+  font-size: 12px;
+}
+
+.period-preview-change span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.period-preview-list article {
+  grid-template-columns: 1fr;
+}
+
+.period-preview-change {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.period-preview-change strong {
+  font-size: 12px;
+}
+
+.period-preview-change span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.period-preview-list article {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.period-preview-change {
+  margin-top: 0;
+}
+
+.period-sync-confirm-metric span {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.period-sync-confirm-metric strong {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.period-sync-confirm-note {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.period-sync-confirm-note strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.period-sync-confirm-note {
+  padding: 12px 14px;
+}
+
+.period-sync-confirm-details {
+  display: grid;
+  gap: 10px;
+}
+
+.period-sync-confirm-details-toggle {
+  justify-self: start;
+  padding: 8px 12px;
+}
+
+.period-sync-confirm-details-content {
+  display: grid;
+  gap: 8px;
+  max-height: min(380px, 42vh);
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #294250;
+  border-radius: 9px;
+  background: #0a151c;
+}
+
+.period-sync-confirm-modal > header,
+.period-sync-confirm-modal > footer {
+  flex-shrink: 0;
+}
+
+.period-sync-confirm-details-content article {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  padding: 12px 10px;
+  border-bottom: 1px solid #20333f;
+}
+
+.period-sync-confirm-details-content article:last-child {
+  border-bottom: 0;
+}
+
+.period-sync-confirm-details-content article > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.period-sync-confirm-details-content small {
+  font-size: 12px;
+}
+
+.period-sync-confirm-details-toggle {
+  justify-self: start;
+  padding: 7px 12px;
+
+  border: 1px solid #31556a;
+  border-radius: 7px;
+
+  background: #10232e;
+  color: #73c9f5;
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.period-sync-confirm-details-toggle:hover {
+  background: #15303e;
+  border-color: #4b8dad;
+}
+
+.period-sync-confirm-details-toggle:active {
+  background: #0d1d26;
+}
+
+.period-sync-confirm-details {
+  margin-left: 22px;
+  margin-right: 22px;
+}
+
+.period-sync-confirm-details-content {
+  width: auto;
+}
+
+.period-sync-confirm-grid,
+.period-sync-confirm-details,
+.period-sync-confirm-note {
+  margin-left: 22px;
+  margin-right: 22px;
+}
+
+.period-sync-confirm-modal footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.period-sync-confirm-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.period-sync-confirm-modal footer .period-sync-confirm-note {
+  width: fit-content;
+  margin: 0;
+  padding: 8px 12px;
+}
+
+.period-sync-confirm-details {
+  margin-bottom: 14px;
+}
+
+html[data-theme="light"] .period-sync-confirm-details-content {
+  border-color: #d7e3ea;
+  background: #ffffff;
+}
+
+html[data-theme="light"] .period-sync-confirm-details-content article {
+  border-bottom-color: #e1e9ee;
+}
+
+html[data-theme="light"] .period-sync-confirm-details-content article strong {
+  color: #294454;
+}
+
+html[data-theme="light"] .period-sync-confirm-details-content article span,
+html[data-theme="light"] .period-sync-confirm-details-content article small {
+  color: #718694;
+}
+
+html[data-theme="light"]
+  .period-sync-confirm-details-content
+  .period-preview-change
+  span {
+  color: #718694;
+}
+
+html[data-theme="light"] .period-sheets-actions button.secondary,
+html[data-theme="light"] .period-actions button:not(.danger-soft),
+html[data-theme="light"] .period-actions button.secondary,
+html[data-theme="light"] .period-sync-confirm-details-toggle,
+html[data-theme="light"] .period-sync-back-button {
+  border-color: #bfd7e4;
+  color: #23485e;
+  background: #eef7fb;
+}
+
+html[data-theme="light"]
+  .period-sheets-actions
+  button.secondary:hover:not(:disabled),
+html[data-theme="light"]
+  .period-actions
+  button:not(.danger-soft):hover:not(:disabled),
+html[data-theme="light"] .period-actions button.secondary:hover:not(:disabled),
+html[data-theme="light"] .period-sync-confirm-details-toggle:hover,
+html[data-theme="light"] .period-sync-back-button:hover:not(:disabled) {
+  border-color: #94bdd2;
+  color: #17394d;
+  background: #dfeff6;
+}
+

@@ -1,0 +1,967 @@
+/* =========================================================
+   CENTRAL DE COMUNICAÇÃO
+   ========================================================= */
+
+.communication-page {
+  display: grid;
+  gap: 18px;
+}
+
+.communication-header,
+.communication-toolbar,
+.communication-groups,
+.communication-detail,
+.communication-email-card,
+.communication-students-card {
+  border: 1px solid #223342;
+  background: #101a23;
+  border-radius: 14px;
+}
+
+.communication-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 24px;
+}
+
+.communication-header h1 {
+  margin: 5px 0 7px;
+  font-size: 28px;
+}
+
+.communication-header p {
+  margin: 0;
+  max-width: 760px;
+  color: #8fa2b2;
+}
+
+.communication-eyebrow,
+.communication-panel-title span,
+.communication-detail-header span,
+.communication-actions > div > span,
+.communication-preview-top span,
+.communication-students-header span {
+  color: #6d8496;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+}
+
+.communication-summary {
+  min-width: 150px;
+  padding: 14px 18px;
+  border: 1px solid #294359;
+  border-radius: 12px;
+  background: #0b151e;
+  text-align: center;
+}
+
+.communication-summary strong {
+  display: block;
+  color: #67b7f7;
+  font-size: 28px;
+}
+
+.communication-summary span {
+  color: #8fa2b2;
+  font-size: 13px;
+}
+
+.communication-toolbar {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+}
+
+.communication-toolbar label,
+.communication-email-settings label {
+  display: grid;
+  gap: 6px;
+  color: #8fa2b2;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.communication-toolbar select,
+.communication-toolbar input,
+.communication-email-settings input,
+.communication-students-header input {
+  min-height: 38px;
+  border: 1px solid #2a3d4d;
+  border-radius: 9px;
+  padding: 8px 10px;
+  outline: none;
+  color: #eaf1f7;
+  background: #0a141d;
+}
+
+.communication-toolbar input:focus,
+.communication-email-settings input:focus,
+.communication-students-header input:focus {
+  border-color: #4d8fbd;
+}
+
+.communication-search {
+  flex: 1;
+}
+
+.communication-grid {
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.communication-groups {
+  overflow: hidden;
+}
+
+.communication-panel-title {
+  padding: 16px;
+  border-bottom: 1px solid #223342;
+}
+
+.communication-panel-title strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.communication-group-list {
+  display: grid;
+  gap: 7px;
+  max-height: 720px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.communication-group-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #253746;
+  border-radius: 10px;
+  padding: 12px;
+  color: #dfe8ef;
+  background: #0c161f;
+  text-align: left;
+  cursor: pointer;
+}
+
+.communication-group-card:hover,
+.communication-group-card.active {
+  border-color: #477aa0;
+  background: #132636;
+}
+
+.communication-group-card.active {
+  box-shadow: inset 3px 0 #67b7f7;
+}
+
+.communication-group-copy {
+  min-width: 0;
+}
+
+.communication-group-copy strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.communication-group-copy span {
+  display: block;
+  margin-top: 5px;
+  color: #7890a2;
+  font-size: 12px;
+}
+
+.communication-group-count,
+.communication-big-count {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  color: #bfe3ff;
+  background: #17334a;
+  font-weight: 900;
+}
+
+.communication-detail {
+  min-width: 0;
+  padding: 18px;
+}
+
+.communication-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #223342;
+}
+
+.communication-detail-header h2 {
+  margin: 5px 0;
+  font-size: 21px;
+}
+
+.communication-detail-header p {
+  margin: 0;
+  color: #8296a6;
+  font-size: 13px;
+}
+
+.communication-big-count {
+  min-width: 52px;
+  height: 52px;
+  font-size: 20px;
+}
+
+.communication-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 14px 0;
+}
+
+.communication-tags span {
+  padding: 6px 9px;
+  border: 1px solid #314556;
+  border-radius: 999px;
+  color: #b9c8d4;
+  background: #0c171f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.communication-tags span.priority {
+  border-color: #745b27;
+  color: #f4d57d;
+  background: #2a2415;
+}
+
+.communication-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px;
+  border: 1px solid #294359;
+  border-radius: 11px;
+  background: #0b151e;
+}
+
+.communication-actions strong,
+.communication-actions small {
+  display: block;
+  margin-top: 3px;
+}
+
+.communication-actions small {
+  color: #8094a4;
+}
+
+.communication-action-buttons,
+.communication-select-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.communication-action-buttons button,
+.communication-email-settings button,
+.communication-select-actions button {
+  min-height: 35px;
+  border: 1px solid #315b79;
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: #dceeff;
+  background: #17334a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.communication-action-buttons button:hover,
+.communication-email-settings button:hover,
+.communication-select-actions button:hover {
+  filter: brightness(1.12);
+}
+
+.communication-feedback {
+  margin-top: 9px;
+  padding: 9px 11px;
+  border: 1px solid #2e6843;
+  border-radius: 8px;
+  color: #bceccb;
+  background: #153322;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.communication-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.communication-email-card,
+.communication-students-card {
+  overflow: hidden;
+  background: #0c161f;
+}
+
+.communication-email-settings {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: end;
+  padding: 12px;
+  border-bottom: 1px solid #223342;
+}
+
+.communication-preview {
+  padding: 14px;
+}
+
+.communication-preview-top,
+.communication-students-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 11px;
+  border-bottom: 1px solid #223342;
+}
+
+.communication-preview-top strong,
+.communication-students-header strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.communication-email-body {
+  margin-top: 12px;
+  padding: 18px;
+  border-radius: 9px;
+  color: #1d2730;
+  background: #f7f7f4;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.48;
+}
+
+.communication-email-body p {
+  margin: 0 0 13px;
+  color: inherit;
+}
+
+.communication-warning,
+.communication-priority-text,
+.communication-email-body li.priority {
+  color: #b01818 !important;
+}
+
+.communication-address {
+  color: #145da0 !important;
+  text-decoration: underline;
+}
+
+.communication-email-body ul {
+  padding-left: 21px;
+}
+
+.communication-email-body li {
+  margin: 4px 0;
+  font-weight: 700;
+}
+
+.communication-students-header {
+  padding: 12px;
+}
+
+.communication-students-header input {
+  width: min(240px, 48%);
+}
+
+.communication-select-actions {
+  padding: 9px 12px;
+  border-bottom: 1px solid #223342;
+}
+
+.communication-select-actions button {
+  min-height: 30px;
+  font-size: 12px;
+}
+
+.communication-student-list {
+  max-height: 550px;
+  overflow: auto;
+  padding: 8px;
+}
+
+.communication-student {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 9px;
+  padding: 10px;
+  border-bottom: 1px solid #1f303e;
+  cursor: pointer;
+}
+
+.communication-student:hover {
+  background: #111f2a;
+}
+
+.communication-student input {
+  margin-top: 3px;
+  accent-color: #5db8f5;
+}
+
+.communication-student strong,
+.communication-student span,
+.communication-student small {
+  display: block;
+}
+
+.communication-student strong {
+  font-size: 13px;
+}
+
+.communication-student span {
+  margin-top: 3px;
+  color: #8095a5;
+  font-size: 12px;
+}
+
+.communication-student small {
+  margin-top: 4px;
+  color: #607b8f;
+  font-size: 12px;
+}
+
+.communication-empty {
+  padding: 24px;
+  color: #8095a5;
+  text-align: center;
+}
+
+.communication-empty.detail {
+  display: grid;
+  min-height: 500px;
+  place-items: center;
+}
+
+@media (max-width: 1180px) {
+  .communication-grid,
+  .communication-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .communication-group-list {
+    max-height: 330px;
+  }
+}
+
+@media (max-width: 760px) {
+  .communication-header,
+  .communication-actions,
+  .communication-preview-top,
+  .communication-students-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .communication-toolbar,
+  .communication-email-settings {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .communication-students-header input {
+    width: 100%;
+  }
+}
+
+/* Comunicação — polimento do fluxo Outlook */
+.communication-outlook-button {
+  border-color: #3d7da8 !important;
+  background: #205a80 !important;
+}
+
+.communication-copy-stack {
+  display: flex;
+  gap: 7px;
+}
+
+.communication-mini-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 2px;
+}
+
+.communication-mini-tags span {
+  display: inline-flex;
+  max-width: 100%;
+  border: 1px solid #294153;
+  border-radius: 999px;
+  padding: 3px 6px;
+  color: #a9c0d0;
+  background: #101f2a;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.communication-mini-tags span.priority {
+  border-color: #66541e;
+  color: #f0ce64;
+  background: #2b2714;
+}
+
+@media (max-width: 760px) {
+  .communication-copy-stack {
+    width: 100%;
+  }
+
+  .communication-copy-stack button {
+    flex: 1;
+  }
+}
+
+.communication-outlook-primary {
+  font-weight: 800;
+  min-width: 170px;
+  box-shadow: 0 0 0 1px rgba(100, 190, 255, 0.08) inset;
+}
+
+.communication-outlook-fallback {
+  opacity: 0.88;
+}
+
+/* =========================================================
+   COMUNICAÇÃO — VALIDAÇÃO + HISTÓRICO
+   ========================================================= */
+
+.communication-register-button {
+  border-color: #376c45 !important;
+  background: #245535 !important;
+}
+
+.communication-register-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.communication-validation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 9px;
+  padding: 11px 13px;
+  border: 1px solid #294359;
+  border-radius: 10px;
+  background: #0b151e;
+}
+
+.communication-validation.ok {
+  border-color: #2d6140;
+}
+
+.communication-validation.warning {
+  border-color: #765c27;
+}
+
+.communication-validation > div:first-child span,
+.communication-history-header span {
+  display: block;
+  color: #6d8496;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+}
+
+.communication-validation > div:first-child strong,
+.communication-history-header strong {
+  display: block;
+  margin-top: 3px;
+}
+
+.communication-validation-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.communication-validation-items span {
+  border: 1px solid #2a3d4d;
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #9fb0bd;
+  background: #0d1821;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.communication-validation-items span.ok {
+  border-color: #315e3c;
+  color: #bceccb;
+  background: #153322;
+}
+
+.communication-validation-items span.warning {
+  border-color: #7b4a41;
+  color: #f1b8ae;
+  background: #34211e;
+}
+
+.communication-validation-items span.attention {
+  border-color: #735f25;
+  color: #ffe49a;
+  background: #342d17;
+}
+
+.communication-history {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid #223342;
+  border-radius: 14px;
+  background: #0c161f;
+}
+
+.communication-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #223342;
+}
+
+.communication-history-header button {
+  min-height: 30px;
+  border: 1px solid #315b79;
+  border-radius: 8px;
+  padding: 6px 9px;
+  color: #dceeff;
+  background: #17334a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.communication-history-list {
+  display: grid;
+}
+
+.communication-history-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px 70px;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 14px;
+  border-bottom: 1px solid #1f303e;
+}
+
+.communication-history-item:last-child {
+  border-bottom: 0;
+}
+
+.communication-history-item > div:first-child strong,
+.communication-history-item > div:first-child span {
+  display: block;
+}
+
+.communication-history-item > div:first-child strong {
+  font-size: 12px;
+}
+
+.communication-history-item > div:first-child span {
+  margin-top: 4px;
+  color: #748a9b;
+  font-size: 12px;
+}
+
+.communication-history-numbers {
+  text-align: right;
+}
+
+.communication-history-numbers strong,
+.communication-history-numbers span {
+  display: block;
+}
+
+.communication-history-numbers strong {
+  color: #67b7f7;
+  font-size: 15px;
+}
+
+.communication-history-numbers span {
+  color: #748a9b;
+  font-size: 11px;
+}
+
+.communication-history-error,
+.communication-history-empty {
+  padding: 16px;
+  color: #879ba9;
+  text-align: center;
+  font-size: 12px;
+}
+
+.communication-history-error {
+  color: #e3b66e;
+}
+
+@media (max-width: 760px) {
+  .communication-validation {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .communication-validation-items {
+    justify-content: flex-start;
+  }
+
+  .communication-history-item {
+    grid-template-columns: minmax(0, 1fr) 55px 55px;
+  }
+}
+
+/* COMUNICAÇÃO — prévia integrada + status de cobrança */
+.communication-preview {
+  padding: 0;
+  background: #0b151e;
+}
+.communication-preview-top {
+  padding: 14px 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(28, 55, 75, 0.42),
+    rgba(12, 22, 31, 0.2)
+  );
+}
+.communication-preview-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.communication-preview-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid #315b79;
+  border-radius: 9px;
+  color: #79c8ff;
+  background: #122b3d;
+  font-size: 16px;
+}
+.communication-preview-heading small {
+  display: block;
+  margin-top: 4px;
+  color: #728b9e;
+  font-size: 12px;
+}
+.communication-preview-count {
+  padding: 5px 8px;
+  border: 1px solid #2b4558;
+  border-radius: 999px;
+  color: #91a9bb !important;
+  background: #0d1c27;
+  font-size: 12px !important;
+  font-weight: 800;
+}
+.communication-email-body {
+  margin: 14px;
+  padding: 18px;
+  border: 1px solid #294052;
+  border-radius: 11px;
+  color: #d6e0e8;
+  background: #101d27;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+}
+.communication-email-body p {
+  color: #d6e0e8;
+}
+.communication-warning {
+  padding: 10px 12px;
+  border: 1px solid #73433e;
+  border-radius: 8px;
+  color: #ffb1a8 !important;
+  background: #321f1d;
+}
+.communication-address {
+  display: inline-block;
+  padding: 6px 9px;
+  border: 1px solid #315b79;
+  border-radius: 7px;
+  color: #72c5ff !important;
+  background: #102a3c;
+  text-decoration: none;
+}
+.communication-email-body ul {
+  display: grid;
+  gap: 6px;
+  padding-left: 0;
+  list-style: none;
+}
+.communication-email-body li {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #294052;
+  border-radius: 7px;
+  color: #dbe7ef;
+  background: #0c1821;
+}
+.communication-email-body li::before {
+  content: "•";
+  margin-right: 7px;
+  color: #69bfff;
+}
+.communication-email-body li.priority {
+  border-color: #74433d;
+  color: #ffaaa0 !important;
+  background: #2a1c1b;
+}
+.communication-email-body li.priority::before {
+  color: #ff776b;
+}
+.communication-priority-text {
+  color: #ff9187 !important;
+}
+.communication-charge-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+.communication-charge-summary span {
+  padding: 5px 8px;
+  border: 1px solid #294359;
+  border-radius: 999px;
+  color: #8fa5b5;
+  background: #0c1922;
+  font-size: 12px;
+}
+.communication-charge-summary span:nth-child(1) {
+  border-color: #315e3c;
+  color: #bceccb;
+  background: #153322;
+}
+.communication-charge-summary span:nth-child(2) {
+  border-color: #725d25;
+  color: #ffe39a;
+  background: #332c17;
+}
+.communication-charged-badge {
+  display: inline-block !important;
+  width: fit-content;
+  margin-top: 5px;
+  padding: 3px 6px;
+  border: 1px solid #315e3c;
+  border-radius: 999px;
+  color: #bceccb !important;
+  background: #153322;
+  font-size: 11px !important;
+  font-weight: 800;
+}
+.communication-select-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   COMUNICAÇÃO — CORREÇÃO DE ALTURA / RECORTE
+   ========================================================= */
+
+.communication-content-grid {
+  align-items: stretch;
+}
+
+.communication-email-card,
+.communication-students-card {
+  min-height: 0;
+}
+
+.communication-students-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Usa a altura real do card e elimina o corte causado pelo max-height fixo. */
+.communication-student-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 18px;
+  scrollbar-gutter: stable;
+}
+
+.communication-student:last-child {
+  margin-bottom: 6px;
+  border-bottom: 0;
+}
+
+/* O histórico agora é parte do mesmo grid, ocupando a largura inteira.
+   Assim ele só começa DEPOIS das duas colunas terminarem. */
+.communication-history {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  position: relative;
+  z-index: 0;
+}
+
+.communication-email-card,
+.communication-students-card,
+.communication-history {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   COMUNICAÇÃO — LISTA COM ALTURA DINÂMICA
+   Poucos alunos: o card encolhe naturalmente.
+   Muitos alunos: cresce até a altura da prévia e então ganha scroll interno.
+   ========================================================= */
+.communication-content-grid {
+  align-items: start;
+}
+
+.communication-students-card {
+  align-self: start;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* O card recebe via React somente um max-height igual à altura real
+   do card da prévia. Portanto ele nunca fica maior que a coluna esquerda,
+   mas também não é forçado a ocupar espaço vazio quando há poucos alunos. */
+.communication-student-list {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 18px;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.communication-student:last-child {
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
