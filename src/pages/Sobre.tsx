@@ -110,7 +110,7 @@ function Sobre() {
           </div>
         </article>
 
-        <article className="about-card">
+        <article className="about-card about-card-log">
           <div className="about-card-icon">
             <AppIcon name="log" size={22} />
           </div>

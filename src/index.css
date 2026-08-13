@@ -10034,6 +10034,10 @@ html[data-theme="light"] .page-title-icon {
   grid-column: span 2;
 }
 
+.about-card-log {
+  grid-column: 1 / -1;
+}
+
 .about-card-icon {
   flex: 0 0 auto;
   width: 42px;
