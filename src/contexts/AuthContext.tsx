@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { API_SESSION_EXPIRED_EVENT } from "../lib/api";
 
 export type Perfil = "ADMIN" | "EDITOR" | "VISUALIZADOR";
 
@@ -61,6 +62,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void recarregar();
+  }, []);
+
+  useEffect(() => {
+    function encerrarSessaoExpirada() {
+      setUsuario(null);
+    }
+
+    window.addEventListener(API_SESSION_EXPIRED_EVENT, encerrarSessaoExpirada);
+    return () => {
+      window.removeEventListener(
+        API_SESSION_EXPIRED_EVENT,
+        encerrarSessaoExpirada,
+      );
+    };
   }, []);
 
   useEffect(() => {

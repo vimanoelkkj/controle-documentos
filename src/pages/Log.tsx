@@ -1,5 +1,6 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
+import { api } from "../lib/api";
 
 type RegistroLog = {
   id: number;
@@ -29,13 +30,10 @@ function Log() {
     try {
       setCarregando(true);
       setErro("");
-      const resposta = await fetch("/api/log?limit=300", { cache: "no-store" });
-      const dados = (await resposta.json()) as RegistroLog[] | { erro?: string };
-      if (!resposta.ok) {
-        const mensagem = Array.isArray(dados) ? undefined : dados.erro;
-        throw new Error(mensagem || "Não foi possível carregar o LOG.");
-      }
-      setRegistros(dados as RegistroLog[]);
+      const dados = await api.get<RegistroLog[]>("/api/log?limit=300", {
+        cache: "no-store",
+      });
+      setRegistros(dados);
     } catch (erro) {
       setErro(erro instanceof Error ? erro.message : "Não foi possível carregar o LOG.");
     } finally {
