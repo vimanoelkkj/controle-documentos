@@ -101,7 +101,7 @@ async function obterTokenGoogle(env: Env) {
   const payload = base64Url(
     JSON.stringify({
       iss: conta.client_email,
-      scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
+      scope: "https://www.googleapis.com/auth/spreadsheets",
       aud: conta.token_uri || "https://oauth2.googleapis.com/token",
       iat: agora,
       exp: agora + 3600,
@@ -220,6 +220,147 @@ async function lerRangesGoogle(env: Env, config: SheetsConfig) {
     aba,
     linhas: dados.valueRanges?.[indice]?.values ?? [],
   }));
+}
+
+type RangeGoogle = Awaited<ReturnType<typeof lerRangesGoogle>>[number];
+
+type PendenciaGoogleRow = {
+  id: number;
+  ra: string;
+  operacao: "ATUALIZAR" | "REMOVER";
+  payload_json: string | null;
+  status: "PENDENTE" | "ENVIANDO" | "CONCLUIDA" | "CONFLITO" | "ERRO";
+  atualizado_em: string;
+};
+
+type EscritaGoogle = { range: string; values: unknown[][] };
+
+function abaA1(aba: string) {
+  return `'${aba.replace(/'/g, "''")}'`;
+}
+
+function colunaA1(indice: number) {
+  let valor = indice + 1;
+  let coluna = "";
+  while (valor > 0) {
+    valor -= 1;
+    coluna = String.fromCharCode(65 + (valor % 26)) + coluna;
+    valor = Math.floor(valor / 26);
+  }
+  return coluna;
+}
+
+function chaveCabecalho(valor: unknown) {
+  return normalizarComparacao(valor).replace(/[^A-Z0-9]/g, "");
+}
+
+function indiceRa(range: RangeGoogle, tipo: "BASE" | "DOCS" | "CANCELADOS") {
+  const cabecalho = range.linhas[0] ?? [];
+  const encontrados = cabecalho
+    .map((valor, indice) => ({ valor: chaveCabecalho(valor), indice }))
+    .filter((item) => item.valor === "RA");
+
+  if (encontrados.length !== 1) {
+    throw new Error(
+      `A aba ${range.aba} precisa ter exatamente uma coluna com o cabeçalho RA.`
+    );
+  }
+
+  const indice = encontrados[0].indice;
+  if (tipo === "BASE" && indice !== 5) {
+    throw new Error(`A coluna RA da aba ${range.aba} precisa ser a coluna F.`);
+  }
+  if (tipo === "DOCS" && indice !== 0) {
+    throw new Error(`A coluna RA da aba ${range.aba} precisa ser a coluna A.`);
+  }
+  if (tipo === "CANCELADOS" && indice !== 0 && indice !== 5) {
+    throw new Error(`A coluna RA da aba ${range.aba} precisa ser A ou F.`);
+  }
+  return indice;
+}
+
+function linhasPorRa(range: RangeGoogle, indice: number) {
+  const mapa = new Map<string, number[]>();
+  range.linhas.slice(1).forEach((linha, deslocamento) => {
+    const ra = normalizarTexto(linha[indice]);
+    if (!ra) return;
+    const linhas = mapa.get(ra) ?? [];
+    linhas.push(deslocamento + 2);
+    mapa.set(ra, linhas);
+  });
+  return mapa;
+}
+
+function linhaBaseGoogle(aluno: AlunoRow) {
+  return [
+    aluno.contrato ? "ENTREGUE" : "",
+    aluno.curso,
+    aluno.email_outro ?? "",
+    aluno.email ?? "",
+    aluno.nome,
+    aluno.ra,
+  ];
+}
+
+function linhaDocumentosGoogle(aluno: AlunoRow) {
+  return [
+    aluno.ra,
+    aluno.nome,
+    Boolean(aluno.identidade),
+    Boolean(aluno.cpf),
+    Boolean(aluno.certidao),
+    Boolean(aluno.residencia),
+    Boolean(aluno.titulo),
+    Boolean(aluno.ensino_medio),
+    Boolean(aluno.contrato),
+  ];
+}
+
+function linhaCanceladoGoogle(aluno: AlunoRow, indice: number) {
+  if (indice === 5) return linhaBaseGoogle(aluno);
+  const linha = Array(Math.max(indice + 1, 1)).fill("");
+  linha[indice] = aluno.ra;
+  return linha;
+}
+
+function escritaLinha(aba: string, linha: number, valores: unknown[]): EscritaGoogle {
+  return {
+    range: `${abaA1(aba)}!A${linha}:${colunaA1(valores.length - 1)}${linha}`,
+    values: [valores],
+  };
+}
+
+function limparLinha(range: RangeGoogle, linha: number): EscritaGoogle {
+  // A leitura da integração cobre A:K; a remoção limpa o mesmo limite,
+  // inclusive quando o cabeçalho tem menos células preenchidas.
+  const largura = Math.max(range.linhas[0]?.length ?? 0, 11);
+  return escritaLinha(range.aba, linha, Array(largura).fill(""));
+}
+
+async function escreverValoresGoogle(
+  env: Env,
+  config: SheetsConfig,
+  escritas: EscritaGoogle[]
+) {
+  if (!escritas.length) return;
+  const token = await obterTokenGoogle(env);
+  const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(
+    config.spreadsheet_id
+  )}/values:batchUpdate`;
+  const resposta = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ valueInputOption: "RAW", data: escritas }),
+  });
+  if (!resposta.ok) {
+    const detalhe = await resposta.text();
+    throw new Error(
+      `Google Sheets respondeu ${resposta.status}: ${detalhe.slice(0, 240)}`
+    );
+  }
 }
 
 type PeriodoRow = {
@@ -2566,6 +2707,287 @@ export default {
     const rotaSheetsPendencias = url.pathname.match(
       /^\/api\/periodos\/(\d+)\/google-sheets\/pendencias$/
     );
+
+    if (rotaSheetsPendencias && request.method === "POST") {
+      const periodoId = Number(rotaSheetsPendencias[1]);
+      if (usuarioAtual?.perfil !== "ADMIN") {
+        return Response.json(
+          { erro: "Apenas administradores podem enviar alterações à planilha." },
+          { status: 403 }
+        );
+      }
+
+      const body = await request.json<{ confirmacao?: string }>();
+      if (normalizarComparacao(body.confirmacao) !== "SINCRONIZAR") {
+        return Response.json(
+          { erro: 'Digite "SINCRONIZAR" para confirmar o envio.' },
+          { status: 400 }
+        );
+      }
+
+      const periodo = await env.DB.prepare(
+        `SELECT id, codigo, status FROM periodos WHERE id = ?`
+      )
+        .bind(periodoId)
+        .first<{ id: number; codigo: string; status: string }>();
+      if (!periodo) {
+        return Response.json({ erro: "Período não encontrado." }, { status: 404 });
+      }
+      if (periodo.status !== "ATIVO") {
+        return Response.json(
+          { erro: "A escrita está bloqueada para períodos arquivados." },
+          { status: 409 }
+        );
+      }
+
+      const config = await env.DB.prepare(
+        `SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`
+      )
+        .bind(periodoId)
+        .first<SheetsConfig>();
+      if (!config) {
+        return Response.json(
+          { erro: "Configure a planilha deste período primeiro." },
+          { status: 409 }
+        );
+      }
+
+      // Uma execução interrompida pode deixar itens em ENVIANDO. Depois de
+      // quinze minutos eles voltam para ERRO e podem ser reenviados de forma
+      // idempotente, pois o lote grava o estado desejado mais recente.
+      await env.DB.prepare(
+        `UPDATE google_sheets_pendencias
+         SET status = 'ERRO',
+             ultimo_erro = 'Execução anterior interrompida; pronta para nova tentativa.',
+             atualizado_em = CURRENT_TIMESTAMP
+         WHERE periodo_id = ?
+           AND status = 'ENVIANDO'
+           AND atualizado_em < datetime('now', '-15 minutes')`
+      )
+        .bind(periodoId)
+        .run();
+
+      const resultado = await env.DB.prepare(
+        `
+        SELECT id, ra, operacao, payload_json, status, atualizado_em
+        FROM google_sheets_pendencias
+        WHERE periodo_id = ? AND status IN ('PENDENTE', 'ERRO', 'CONFLITO')
+        ORDER BY id
+        LIMIT 200
+      `
+      )
+        .bind(periodoId)
+        .all<PendenciaGoogleRow>();
+
+      if (!resultado.results.length) {
+        return Response.json({ sucesso: true, enviados: 0, conflitos: 0 });
+      }
+
+      try {
+        // A leitura acontece imediatamente antes da escrita para detectar
+        // duplicidades, abas trocadas e cabeçalhos incompatíveis.
+        const ranges = await lerRangesGoogle(env, config);
+        const bases = ranges.slice(0, 2);
+        const documentos = ranges.slice(2, 4);
+        const cancelados = ranges.slice(4, 6);
+        const indicesRa = new Map<string, number>();
+        bases.forEach((range) => indicesRa.set(range.aba, indiceRa(range, "BASE")));
+        documentos.forEach((range) =>
+          indicesRa.set(range.aba, indiceRa(range, "DOCS"))
+        );
+        cancelados.forEach((range) =>
+          indicesRa.set(range.aba, indiceRa(range, "CANCELADOS"))
+        );
+        const mapas = new Map(
+          ranges.map((range) => [
+            range.aba,
+            linhasPorRa(range, indicesRa.get(range.aba)!),
+          ])
+        );
+        const proximasLinhas = new Map(
+          ranges.map((range) => [range.aba, Math.max(range.linhas.length + 1, 2)])
+        );
+        const escritas: EscritaGoogle[] = [];
+        const elegiveis: number[] = [];
+        const conflitos: Array<{ id: number; ra: string; erro: string }> = [];
+
+        const ocorrencias = (grupo: RangeGoogle[], ra: string) =>
+          grupo.flatMap((range) =>
+            (mapas.get(range.aba)?.get(ra) ?? []).map((linha) => ({ range, linha }))
+          );
+        const novaLinha = (range: RangeGoogle) => {
+          const linha = proximasLinhas.get(range.aba)!;
+          proximasLinhas.set(range.aba, linha + 1);
+          return linha;
+        };
+
+        for (const pendencia of resultado.results) {
+          try {
+            const escritasPendencia: EscritaGoogle[] = [];
+            const emBases = ocorrencias(bases, pendencia.ra);
+            const emDocumentos = ocorrencias(documentos, pendencia.ra);
+            const emCancelados = ocorrencias(cancelados, pendencia.ra);
+            if (emBases.length > 1 || emDocumentos.length > 1 || emCancelados.length > 1) {
+              throw new Error("RA duplicado em uma ou mais abas da planilha.");
+            }
+
+            if (pendencia.operacao === "REMOVER") {
+              [...emBases, ...emDocumentos, ...emCancelados].forEach(
+                ({ range, linha }) => escritasPendencia.push(limparLinha(range, linha))
+              );
+              escritas.push(...escritasPendencia);
+              elegiveis.push(pendencia.id);
+              continue;
+            }
+
+            const aluno = pendencia.payload_json
+              ? (JSON.parse(pendencia.payload_json) as AlunoRow)
+              : null;
+            if (!aluno) throw new Error("Payload da pendência está ausente ou inválido.");
+            const grupo = aluno.unidade === "FACE" || aluno.unidade === "FEA" ? 0 :
+              aluno.unidade === "FCH" || aluno.unidade === "EAD" ? 1 : -1;
+            if (grupo < 0) throw new Error(`Unidade ${aluno.unidade || "vazia"} não reconhecida.`);
+
+            const baseDestino = bases[grupo];
+            const docsDestino = documentos[grupo];
+            const cancelDestino = cancelados[grupo];
+            if (emBases[0] && emBases[0].range.aba !== baseDestino.aba) {
+              throw new Error(`RA encontrado na aba inesperada ${emBases[0].range.aba}.`);
+            }
+            if (emDocumentos[0] && emDocumentos[0].range.aba !== docsDestino.aba) {
+              throw new Error(`Documentos encontrados na aba inesperada ${emDocumentos[0].range.aba}.`);
+            }
+
+            escritasPendencia.push(
+              escritaLinha(
+                baseDestino.aba,
+                emBases[0]?.linha ?? novaLinha(baseDestino),
+                linhaBaseGoogle(aluno)
+              ),
+              escritaLinha(
+                docsDestino.aba,
+                emDocumentos[0]?.linha ?? novaLinha(docsDestino),
+                linhaDocumentosGoogle(aluno)
+              )
+            );
+
+            if (aluno.status === "CANCELADO") {
+              if (emCancelados[0] && emCancelados[0].range.aba !== cancelDestino.aba) {
+                throw new Error(`Cancelamento encontrado na aba inesperada ${emCancelados[0].range.aba}.`);
+              }
+              escritasPendencia.push(
+                escritaLinha(
+                  cancelDestino.aba,
+                  emCancelados[0]?.linha ?? novaLinha(cancelDestino),
+                  linhaCanceladoGoogle(aluno, indicesRa.get(cancelDestino.aba)!)
+                )
+              );
+            } else {
+              emCancelados.forEach(({ range, linha }) =>
+                escritasPendencia.push(limparLinha(range, linha))
+              );
+            }
+            escritas.push(...escritasPendencia);
+            elegiveis.push(pendencia.id);
+          } catch (erro) {
+            conflitos.push({
+              id: pendencia.id,
+              ra: pendencia.ra,
+              erro: erro instanceof Error ? erro.message : "Conflito não identificado.",
+            });
+          }
+        }
+
+        if (conflitos.length) {
+          await env.DB.batch(
+            conflitos.map((item) =>
+              env.DB.prepare(
+                `UPDATE google_sheets_pendencias
+                 SET status = 'CONFLITO', ultimo_erro = ?, atualizado_em = CURRENT_TIMESTAMP
+                 WHERE id = ?`
+              ).bind(item.erro, item.id)
+            )
+          );
+        }
+
+        const execucaoId = crypto.randomUUID();
+        if (elegiveis.length) {
+          await env.DB.batch(
+            elegiveis.map((id) =>
+              env.DB.prepare(
+                `UPDATE google_sheets_pendencias
+                 SET status = 'ENVIANDO', tentativas = tentativas + 1,
+                     ultimo_erro = ?, atualizado_em = CURRENT_TIMESTAMP
+                 WHERE id = ? AND status IN ('PENDENTE', 'ERRO', 'CONFLITO')`
+              ).bind(execucaoId, id)
+            )
+          );
+        }
+        const reivindicadas = elegiveis.length
+          ? await env.DB.prepare(
+              `SELECT id FROM google_sheets_pendencias
+               WHERE periodo_id = ? AND status = 'ENVIANDO' AND ultimo_erro = ?`
+            )
+              .bind(periodoId, execucaoId)
+              .all<{ id: number }>()
+          : { results: [] as Array<{ id: number }> };
+        const idsReivindicados = new Set(reivindicadas.results.map((item) => item.id));
+
+        if (idsReivindicados.size !== elegiveis.length) {
+          throw new Error("Outra sincronização assumiu parte das pendências. Atualize a prévia.");
+        }
+
+        try {
+          await escreverValoresGoogle(env, config, escritas);
+          if (elegiveis.length) {
+            await env.DB.batch(
+              elegiveis.map((id) =>
+                env.DB.prepare(
+                  `UPDATE google_sheets_pendencias
+                   SET status = 'CONCLUIDA', ultimo_erro = NULL,
+                       atualizado_em = CURRENT_TIMESTAMP
+                   WHERE id = ? AND ultimo_erro = ?`
+                ).bind(id, execucaoId)
+              )
+            );
+          }
+        } catch (erro) {
+          const mensagem = erro instanceof Error ? erro.message : "Falha ao escrever no Google Sheets.";
+          if (elegiveis.length) {
+            await env.DB.batch(
+              elegiveis.map((id) =>
+                env.DB.prepare(
+                  `UPDATE google_sheets_pendencias
+                   SET status = 'ERRO', ultimo_erro = ?, atualizado_em = CURRENT_TIMESTAMP
+                   WHERE id = ? AND ultimo_erro = ?`
+                ).bind(mensagem, id, execucaoId)
+              )
+            );
+          }
+          throw erro;
+        }
+
+        await registrarAuditoria(env, usuarioAtual, periodoId, {
+          acao: "SINCRONIZAR",
+          entidade: "GOOGLE_SHEETS",
+          descricao: `${elegiveis.length} pendência(s) enviada(s) à planilha; ${conflitos.length} conflito(s) bloqueado(s).`,
+        });
+        return Response.json({
+          sucesso: true,
+          enviados: elegiveis.length,
+          conflitos: conflitos.length,
+          detalhes_conflitos: conflitos,
+        });
+      } catch (erro) {
+        console.error("Falha na escrita segura do Google Sheets:", erro);
+        return Response.json(
+          {
+            erro: erro instanceof Error ? erro.message : "Não foi possível escrever no Google Sheets.",
+          },
+          { status: 500 }
+        );
+      }
+    }
 
     if (rotaSheetsPendencias && request.method === "GET") {
       try {

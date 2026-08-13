@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppIcon from "../components/AppIcon";
+import { useAuth } from "../contexts/AuthContext";
 import { usePeriodo } from "../contexts/PeriodoContext";
 import "./Auditoria.css";
 
@@ -67,6 +68,7 @@ function formatarData(valor: string) {
 }
 
 function Auditoria() {
+  const { admin } = useAuth();
   const { periodoAtual } = usePeriodo();
   const [registros, setRegistros] = useState<RegistroAuditoria[]>([]);
   const [busca, setBusca] = useState("");
@@ -79,6 +81,10 @@ function Auditoria() {
   const [caixaSaida, setCaixaSaida] = useState<CaixaSaidaSheets | null>(null);
   const [carregandoCaixa, setCarregandoCaixa] = useState(false);
   const [erroCaixa, setErroCaixa] = useState("");
+  const [confirmandoEnvio, setConfirmandoEnvio] = useState(false);
+  const [confirmacaoEnvio, setConfirmacaoEnvio] = useState("");
+  const [enviandoCaixa, setEnviandoCaixa] = useState(false);
+  const [resultadoEnvio, setResultadoEnvio] = useState("");
 
   async function carregar() {
     try {
@@ -142,6 +148,39 @@ function Auditoria() {
       setErroDiagnostico(falha instanceof Error ? falha.message : "Falha ao comparar as bases.");
     } finally {
       setVerificando(false);
+    }
+  }
+
+  async function enviarCaixaSaida() {
+    if (!periodoAtual) return;
+    try {
+      setEnviandoCaixa(true);
+      setErroCaixa("");
+      setResultadoEnvio("");
+      const resposta = await fetch(
+        `/api/periodos/${periodoAtual.id}/google-sheets/pendencias`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ confirmacao: confirmacaoEnvio }),
+        },
+      );
+      const dados = (await resposta.json()) as {
+        erro?: string;
+        enviados?: number;
+        conflitos?: number;
+      };
+      if (!resposta.ok) throw new Error(dados.erro || "Falha ao escrever na planilha.");
+      setResultadoEnvio(
+        `✓ ${dados.enviados ?? 0} pendência(s) enviada(s); ${dados.conflitos ?? 0} conflito(s) bloqueado(s).`,
+      );
+      setConfirmandoEnvio(false);
+      setConfirmacaoEnvio("");
+      await Promise.all([carregarCaixaSaida(), carregar()]);
+    } catch (falha) {
+      setErroCaixa(falha instanceof Error ? falha.message : "Falha ao escrever na planilha.");
+    } finally {
+      setEnviandoCaixa(false);
     }
   }
 
@@ -254,13 +293,31 @@ function Auditoria() {
             <strong>Caixa de saída · {periodoAtual?.codigo || "—"}</strong>
             <p>Prévia das alterações locais aguardando envio. A planilha não será modificada.</p>
           </div>
-          <button type="button" onClick={() => void carregarCaixaSaida()} disabled={carregandoCaixa || !periodoAtual}>
-            {carregandoCaixa ? "Atualizando..." : "Atualizar prévia"}
-          </button>
+          <div className="audit-outbox-actions">
+            <button type="button" onClick={() => void carregarCaixaSaida()} disabled={carregandoCaixa || enviandoCaixa || !periodoAtual}>
+              {carregandoCaixa ? "Atualizando..." : "Atualizar prévia"}
+            </button>
+            {admin && Boolean(caixaSaida?.total) && (
+              <button
+                type="button"
+                className="audit-outbox-send"
+                onClick={() => {
+                  setConfirmandoEnvio(true);
+                  setConfirmacaoEnvio("");
+                  setErroCaixa("");
+                }}
+                disabled={carregandoCaixa || enviandoCaixa || !periodoAtual}
+              >
+                Enviar à planilha
+              </button>
+            )}
+          </div>
         </div>
 
         {erroCaixa ? (
           <div className="audit-consistency-error">{erroCaixa}</div>
+        ) : resultadoEnvio ? (
+          <div className="audit-outbox-success">{resultadoEnvio}</div>
         ) : caixaSaida && (
           <>
             <div className="audit-outbox-summary">
@@ -303,6 +360,68 @@ function Auditoria() {
           </>
         )}
       </section>
+
+      {confirmandoEnvio && caixaSaida && (
+        <div className="modal-overlay">
+          <div className="modal-novo-aluno audit-sync-modal">
+            <div className="modal-cabecalho">
+              <div>
+                <span className="modal-eyebrow">SISTEMA → GOOGLE SHEETS</span>
+                <h2>Confirmar escrita na planilha</h2>
+                <p>O sistema relerá as seis abas e bloqueará conflitos antes de escrever.</p>
+              </div>
+              <button
+                type="button"
+                className="modal-fechar"
+                onClick={() => setConfirmandoEnvio(false)}
+                disabled={enviandoCaixa}
+                aria-label="Fechar"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="audit-sync-content">
+              <div className="audit-sync-summary">
+                <article><span>A atualizar</span><strong>{caixaSaida.atualizar}</strong></article>
+                <article><span>A remover</span><strong>{caixaSaida.remover}</strong></article>
+                <article><span>Total</span><strong>{caixaSaida.total}</strong></article>
+              </div>
+              <div className="audit-sync-warning">
+                <strong>Alteração externa</strong>
+                <span>
+                  A operação modificará a planilha configurada para o período {periodoAtual?.codigo}.
+                  RAs duplicados, abas trocadas e cabeçalhos incompatíveis serão bloqueados.
+                </span>
+              </div>
+              <label className="audit-sync-confirm">
+                <span>Digite <b>SINCRONIZAR</b> para confirmar</span>
+                <input
+                  value={confirmacaoEnvio}
+                  onChange={(event) => setConfirmacaoEnvio(event.target.value)}
+                  autoComplete="off"
+                  autoFocus
+                  disabled={enviandoCaixa}
+                />
+              </label>
+            </div>
+
+            <div className="modal-acoes">
+              <button type="button" className="botao-cancelar" onClick={() => setConfirmandoEnvio(false)} disabled={enviandoCaixa}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="audit-sync-confirm-button"
+                onClick={() => void enviarCaixaSaida()}
+                disabled={enviandoCaixa || confirmacaoEnvio.trim().toUpperCase() !== "SINCRONIZAR"}
+              >
+                {enviandoCaixa ? "Validando e enviando..." : "Confirmar envio"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="audit-summary">
         <article><span>Eventos</span><strong>{registros.length}</strong></article>
