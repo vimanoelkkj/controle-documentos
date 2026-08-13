@@ -2025,6 +2025,8 @@ export default {
           prontos_para_reativar: reativar,
           prontos_para_remover: remover,
           ja_cancelados: jaCancelados,
+          alunos_sem_unidade: semUnidade.length,
+          cursos_nao_mapeados: cursosPendentes.size,
           unidades_nao_resolvidas: semUnidade.length,
           detalhes_unidades: semUnidade,
           cursos_pendentes: [...cursosPendentes.values()].sort(

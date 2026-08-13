@@ -29,6 +29,8 @@ type SheetsPrevia = {
   prontos_para_reativar: number;
   prontos_para_remover: number;
   ja_cancelados: number;
+  alunos_sem_unidade: number;
+  cursos_nao_mapeados: number;
   unidades_nao_resolvidas: number;
   detalhes_unidades: Array<{ ra: string; nome: string; curso: string }>;
   cursos_pendentes: Array<{
@@ -628,8 +630,9 @@ function Periodos() {
                   ["remocoes", sheetsPrevia.prontos_para_remover, "Remoções"],
                   [
                     "unidades",
-                    sheetsPrevia.unidades_nao_resolvidas,
-                    "Unidades a resolver",
+                    sheetsPrevia.cursos_nao_mapeados ??
+                      sheetsPrevia.cursos_pendentes.length,
+                    "Cursos a mapear",
                   ],
                 ] as Array<[AbaPrevia, number, string]>
               ).map(([aba, valor, rotulo]) => (
@@ -825,10 +828,13 @@ function Periodos() {
             )}
             {sheetsPrevia.unidades_nao_resolvidas > 0 && (
               <div className="period-sheets-warning">
-                <strong>Atenção:</strong> existem{" "}
-                {sheetsPrevia.unidades_nao_resolvidas} alunos sem unidade
-                definida. Clique em <strong>Unidades a resolver</strong> e
-                mapeie cada curso antes da sincronização.
+                <strong>Atenção:</strong>{" "}
+                {sheetsPrevia.cursos_nao_mapeados ??
+                  sheetsPrevia.cursos_pendentes.length} curso(s) precisam ser
+                mapeados, afetando{" "}
+                {sheetsPrevia.alunos_sem_unidade ??
+                  sheetsPrevia.unidades_nao_resolvidas} aluno(s). Clique em{" "}
+                <strong>Cursos a mapear</strong> antes da sincronização.
               </div>
             )}
             {sheetsPrevia.unidades_nao_resolvidas === 0 && (

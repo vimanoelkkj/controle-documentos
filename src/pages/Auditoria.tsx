@@ -12,6 +12,8 @@ type DiagnosticoSheets = {
   prontos_para_cancelar: number;
   prontos_para_reativar: number;
   prontos_para_remover: number;
+  alunos_sem_unidade: number;
+  cursos_nao_mapeados: number;
   unidades_nao_resolvidas: number;
 };
 
@@ -132,6 +134,17 @@ function Auditoria() {
     void carregarCaixaSaida();
   }, [carregarCaixaSaida]);
 
+  useEffect(() => {
+    if (!confirmandoEnvio) return;
+
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+    };
+  }, [confirmandoEnvio]);
+
   async function verificarConsistencia() {
     if (!periodoAtual) return;
     try {
@@ -179,6 +192,8 @@ function Auditoria() {
       await Promise.all([carregarCaixaSaida(), carregar()]);
     } catch (falha) {
       setErroCaixa(falha instanceof Error ? falha.message : "Falha ao escrever na planilha.");
+      setConfirmandoEnvio(false);
+      setConfirmacaoEnvio("");
     } finally {
       setEnviandoCaixa(false);
     }
@@ -219,6 +234,12 @@ function Auditoria() {
       diagnostico.prontos_para_reativar + diagnostico.prontos_para_remover
     : 0;
   const bloqueado = Boolean(diagnostico?.unidades_nao_resolvidas);
+  const cursosNaoMapeados = diagnostico
+    ? diagnostico.cursos_nao_mapeados ?? 0
+    : 0;
+  const alunosSemUnidade = diagnostico
+    ? diagnostico.alunos_sem_unidade ?? diagnostico.unidades_nao_resolvidas
+    : 0;
 
   return (
     <section className="audit-page">
@@ -263,7 +284,7 @@ function Auditoria() {
               </strong>
               <span>
                 {bloqueado
-                  ? `${diagnostico.unidades_nao_resolvidas} unidade(s) precisam ser resolvidas.`
+                  ? `${cursosNaoMapeados} curso(s) precisam ser mapeados, afetando ${alunosSemUnidade} aluno(s).`
                   : `${diagnostico.encontrados} aluno(s) analisado(s).`}
               </span>
             </div>
@@ -275,7 +296,7 @@ function Auditoria() {
                 ["A cancelar", diagnostico.prontos_para_cancelar, "warning"],
                 ["A reativar", diagnostico.prontos_para_reativar, "change"],
                 ["Somente no sistema", diagnostico.prontos_para_remover, "warning"],
-                ["Unidades não resolvidas", diagnostico.unidades_nao_resolvidas, "blocked"],
+                ["Cursos a mapear", cursosNaoMapeados, "blocked"],
               ].map(([rotulo, valor, classe]) => (
                 <article className={String(classe)} key={String(rotulo)}>
                   <span>{rotulo}</span><strong>{valor}</strong>
