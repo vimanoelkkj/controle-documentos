@@ -1,3 +1,9 @@
+/* Períodos aproveita toda a área útil em monitores largos. */
+.app-content .period-page {
+  width: 100%;
+  max-width: none;
+}
+
 /* =========================================================
    LEGIBILIDADE GLOBAL · interface completa
    ========================================================= */

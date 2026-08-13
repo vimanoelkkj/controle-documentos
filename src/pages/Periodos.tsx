@@ -2,6 +2,7 @@ import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePeriodo } from "../contexts/PeriodoContext";
 import AppSelect from "../components/AppSelect";
+import { api } from "../lib/api";
 
 function normalizarCodigo(valor: string) {
   return valor.trim().toUpperCase().replace(/\s+/g, "");
@@ -166,17 +167,9 @@ function Periodos() {
 
       for (let tentativa = 1; tentativa <= 2; tentativa += 1) {
         try {
-          const resposta = await fetch(
+          const config = await api.get<SheetsConfig | null>(
             `/api/periodos/${periodoAtual.id}/google-sheets`,
           );
-
-          if (!resposta.ok) {
-            throw new Error(
-              "Não foi possível carregar a configuração do Google Sheets.",
-            );
-          }
-
-          const config = (await resposta.json()) as SheetsConfig | null;
           if (!ativo) return;
 
           setSheetsConfig(
@@ -191,13 +184,10 @@ function Periodos() {
           setSheetsStatus(config ? "configurado" : "nao_configurado");
           if (config) {
             try {
-              const respostaStatus = await fetch(
+              const dadosStatus = await api.get<{ titulo?: string | null }>(
                 `/api/periodos/${periodoAtual.id}/google-sheets/status`,
               );
-              const dadosStatus = (await respostaStatus.json()) as {
-                titulo?: string | null;
-              };
-              if (ativo && respostaStatus.ok) {
+              if (ativo) {
                 setSheetsTitulo(dadosStatus.titulo?.trim() || "");
               }
             } catch {
@@ -235,35 +225,20 @@ function Periodos() {
       setSheetsCarregando(true);
       setSheetsErro("");
       setSheetsPrevia(null);
-      const resposta = await fetch(
+      const dados = await api.put<{ spreadsheet_id?: string }>(
         `/api/periodos/${periodoAtual.id}/google-sheets`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(sheetsConfig),
-        },
+        sheetsConfig,
       );
-      const dados = (await resposta.json()) as {
-        erro?: string;
-        spreadsheet_id?: string;
-      };
-      if (!resposta.ok)
-        throw new Error(dados.erro || "Não foi possível salvar a integração.");
       setSheetsConfig((atual) => ({
         ...atual,
         spreadsheet_id: dados.spreadsheet_id || atual.spreadsheet_id,
       }));
       setSheetsStatus("configurado");
       try {
-        const respostaStatus = await fetch(
+        const dadosStatus = await api.get<{ titulo?: string | null }>(
           `/api/periodos/${periodoAtual.id}/google-sheets/status`,
         );
-        const dadosStatus = (await respostaStatus.json()) as {
-          titulo?: string | null;
-        };
-        if (respostaStatus.ok) {
-          setSheetsTitulo(dadosStatus.titulo?.trim() || "");
-        }
+        setSheetsTitulo(dadosStatus.titulo?.trim() || "");
       } catch {
         setSheetsTitulo("");
       }
@@ -282,13 +257,9 @@ function Periodos() {
       setSheetsCarregando(true);
       setSheetsErro("");
       setSheetsPrevia(null);
-      const resposta = await fetch(
+      const dados = await api.post<SheetsPrevia>(
         `/api/periodos/${periodoAtual.id}/google-sheets/previa`,
-        { method: "POST" },
       );
-      const dados = (await resposta.json()) as SheetsPrevia & { erro?: string };
-      if (!resposta.ok)
-        throw new Error(dados.erro || "Não foi possível ler a planilha.");
       setSheetsPrevia(dados);
     } catch (e) {
       setSheetsErro(
@@ -316,22 +287,10 @@ function Periodos() {
       setSheetsErro("");
 
       for (const [curso, unidade] of mapeamentosAlterados) {
-        const resposta = await fetch(
+        await api.put<{ sucesso: boolean }>(
           `/api/periodos/${periodoAtual.id}/google-sheets/mapeamentos`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ curso, unidade }),
-          },
+          { curso, unidade },
         );
-
-        const dados = (await resposta.json()) as { erro?: string };
-
-        if (!resposta.ok) {
-          throw new Error(
-            dados.erro || `Não foi possível salvar o mapeamento de ${curso}.`,
-          );
-        }
       }
 
       setMapeamentosSalvos((atual) => ({
@@ -362,20 +321,9 @@ function Periodos() {
       setSincronizandoSheets(true);
       setSheetsErro("");
 
-      const resposta = await fetch(
+      const dados = await api.post<SheetsResultadoSync>(
         `/api/periodos/${periodoAtual.id}/google-sheets/sincronizar`,
-        { method: "POST" },
       );
-
-      const dados = (await resposta.json()) as SheetsResultadoSync & {
-        erro?: string;
-      };
-
-      if (!resposta.ok) {
-        throw new Error(
-          dados.erro || "Não foi possível sincronizar a planilha.",
-        );
-      }
 
       setModalSincronizar(false);
 
@@ -433,14 +381,9 @@ function Periodos() {
     try {
       setProcessando(true);
       setErro("");
-      const resposta = await fetch("/api/periodos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigo }),
+      await api.post<{ sucesso: boolean; id: number }>("/api/periodos", {
+        codigo,
       });
-      const dados = (await resposta.json()) as { erro?: string };
-      if (!resposta.ok)
-        throw new Error(dados.erro || "Não foi possível criar o período.");
       setNovoCodigo("");
       await recarregarPeriodos();
       selecionarPeriodo(codigo);
@@ -457,14 +400,7 @@ function Periodos() {
     try {
       setProcessando(true);
       setErro("");
-      const resposta = await fetch(`/api/periodos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      const dados = (await resposta.json()) as { erro?: string };
-      if (!resposta.ok)
-        throw new Error(dados.erro || "Não foi possível alterar o período.");
+      await api.put<{ sucesso: boolean }>(`/api/periodos/${id}`, { status });
       await recarregarPeriodos();
       setConfirmacao(null);
     } catch (e) {
