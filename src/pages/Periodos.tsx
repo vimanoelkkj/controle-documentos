@@ -1,5 +1,5 @@
 import AppIcon from "../components/AppIcon";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePeriodo } from "../contexts/PeriodoContext";
 import AppSelect from "../components/AppSelect";
 
@@ -107,6 +107,7 @@ function Periodos() {
   const [sheetsErro, setSheetsErro] = useState("");
   const [sheetsPrevia, setSheetsPrevia] = useState<SheetsPrevia | null>(null);
   const [abaPrevia, setAbaPrevia] = useState<AbaPrevia | null>(null);
+  const listaPreviaRef = useRef<HTMLDivElement | null>(null);
   const [mapeamentos, setMapeamentos] = useState<Record<string, string>>({});
   const [salvandoMapeamentos, setSalvandoMapeamentos] = useState(false);
   const [mapeamentosSalvos, setMapeamentosSalvos] = useState<
@@ -133,6 +134,11 @@ function Periodos() {
       document.body.style.overflow = overflowAnterior;
     };
   }, [modalSincronizar, modalSucessoSync, confirmacao]);
+
+  useEffect(() => {
+    if (!abaPrevia || abaPrevia === "unidades") return;
+    listaPreviaRef.current?.scrollTo({ top: 0 });
+  }, [abaPrevia]);
 
   useEffect(() => {
     if (!periodoAtual) return;
@@ -763,7 +769,7 @@ function Periodos() {
                     </div>
                   )
                 ) : (
-                  <div className="period-preview-list">
+                  <div className="period-preview-list" ref={listaPreviaRef}>
                     {(abaPrevia === "novos"
                       ? sheetsPrevia.detalhes.novos
                       : abaPrevia === "cadastros"

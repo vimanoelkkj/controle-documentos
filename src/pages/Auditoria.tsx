@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppIcon from "../components/AppIcon";
+import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/AuthContext";
 import { usePeriodo } from "../contexts/PeriodoContext";
 import "./Auditoria.css";
@@ -459,10 +460,15 @@ function Auditoria() {
           onChange={(event) => setBusca(event.target.value)}
           placeholder="Buscar usuário, ação, RA ou unidade..."
         />
-        <select value={acao} onChange={(event) => setAcao(event.target.value)}>
-          <option value="TODAS">Todas as ações</option>
-          {acoes.map((item) => <option value={item} key={item}>{item}</option>)}
-        </select>
+        <AppSelect
+          value={acao}
+          onChange={setAcao}
+          ariaLabel="Filtrar auditoria por ação"
+          options={[
+            { value: "TODAS", label: "Todas as ações" },
+            ...acoes.map((item) => ({ value: item, label: item })),
+          ]}
+        />
         <span>{filtrados.length} resultado(s)</span>
       </div>
 

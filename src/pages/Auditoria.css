@@ -73,10 +73,10 @@
 .audit-summary strong { font-size: 1.65rem; }
 .audit-summary .audit-warning { border-color: rgba(245,158,11,.5); }
 .audit-toolbar { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(180px, 260px) auto; gap: 12px; align-items: center; }
-.audit-toolbar input, .audit-toolbar select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 0 13px; border: 1px solid #2d4353; border-radius: 12px; outline: none; color: #eef5f9; background: #0b171f; }
-.audit-toolbar input:focus, .audit-toolbar select:focus { border-color: #42a9e8; box-shadow: 0 0 0 3px rgba(66,169,232,.12); }
+.audit-toolbar input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 0 13px; border: 1px solid #2d4353; border-radius: 12px; outline: none; color: #eef5f9; background: #0b171f; }
+.audit-toolbar input:focus { border-color: #42a9e8; box-shadow: 0 0 0 3px rgba(66,169,232,.12); }
+.audit-toolbar .app-select-trigger { min-height: 44px; border-radius: 12px; }
 .audit-toolbar input::placeholder { color: #71889a; }
-.audit-toolbar select option { color: #eef5f9; background: #0b171f; }
 .audit-toolbar > span { color: #8296a8; white-space: nowrap; }
 .audit-table-wrap { overflow: auto; border: 1px solid #263b4a; border-radius: 16px; background: #101d27; }
 .audit-table { width: 100%; border-collapse: collapse; min-width: 900px; }
@@ -126,10 +126,8 @@ html[data-theme="light"] .audit-summary span,
 html[data-theme="light"] .audit-toolbar > span,
 html[data-theme="light"] .audit-table th,
 html[data-theme="light"] .audit-table small { color: #71879a; }
-html[data-theme="light"] .audit-toolbar input,
-html[data-theme="light"] .audit-toolbar select { color: #263946; border-color: #cfdae2; background: #f7fafc; }
+html[data-theme="light"] .audit-toolbar input { color: #263946; border-color: #cfdae2; background: #f7fafc; }
 html[data-theme="light"] .audit-toolbar input::placeholder { color: #8296a8; }
-html[data-theme="light"] .audit-toolbar select option { color: #263946; background: #fff; }
 html[data-theme="light"] .audit-table th,
 html[data-theme="light"] .audit-table td { border-color: #e1e8ed; }
 html[data-theme="light"] .audit-action { color: #14699b; background: #e5f4fd; }
