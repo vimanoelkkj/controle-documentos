@@ -10,6 +10,7 @@ import { handleImportacaoAlunosRoute } from "./server/routes/importacao-alunos";
 import { handleLogsRoute } from "./server/routes/logs";
 import { handleComunicacoesRoute } from "./server/routes/comunicacoes";
 import { handleBackupRoute } from "./server/routes/backup";
+import { handleDevToolsRoute } from "./server/routes/dev-tools";
 import {
   AuthStorageUnavailableError,
   handleAuthRoute,
@@ -525,16 +526,6 @@ function podeEditar(usuario: UsuarioSessao) {
   return (
     !emModoApresentacao(usuario) &&
     (usuario.perfil === "ADMIN" || usuario.perfil === "EDITOR")
-  );
-}
-
-function ambienteDesenvolvimento(request: Request, env: Env) {
-  const hostname = new URL(request.url).hostname.toLowerCase();
-
-  return (
-    env.ENVIRONMENT?.toLowerCase() === "dev" ||
-    hostname === "localhost" ||
-    hostname === "127.0.0.1"
   );
 }
 
@@ -1786,106 +1777,15 @@ export default {
         { status: 409 },
       );
     }
+    const respostaDevTools = await handleDevToolsRoute({
+      request,
+      url,
+      env,
+      usuarioAtual,
+      periodoAtual,
+    });
+    if (respostaDevTools) return respostaDevTools;
 
-    // =====================================================
-    // FERRAMENTAS DE DESENVOLVIMENTO — LIMPEZA DE ALUNOS
-    // =====================================================
-
-    if (
-      url.pathname === "/api/dev/alunos-reset/status" &&
-      request.method === "GET"
-    ) {
-      return Response.json({
-        habilitado:
-          ambienteDesenvolvimento(request, env) &&
-          usuarioAtual?.perfil === "ADMIN",
-      });
-    }
-
-    if (
-      url.pathname === "/api/dev/alunos-reset" &&
-      request.method === "DELETE"
-    ) {
-      if (!ambienteDesenvolvimento(request, env)) {
-        return Response.json(
-          {
-            erro: "Ferramenta disponível somente no ambiente de desenvolvimento.",
-          },
-          { status: 403 },
-        );
-      }
-
-      if (usuarioAtual?.perfil !== "ADMIN") {
-        return Response.json(
-          {
-            erro: "Apenas administradores podem usar ferramentas de desenvolvimento.",
-          },
-          { status: 403 },
-        );
-      }
-
-      try {
-        const body = await request.json<{
-          unidade?: string;
-          confirmacao?: string;
-        }>();
-
-        const unidade = body.unidade?.trim().toUpperCase() || "TODOS";
-        const unidadesValidas = ["FACE", "FEA", "FCH", "EAD", "TODOS"];
-
-        if (!unidadesValidas.includes(unidade)) {
-          return Response.json({ erro: "Unidade inválida." }, { status: 400 });
-        }
-
-        const confirmacaoEsperada =
-          unidade === "TODOS" ? "LIMPAR TODOS" : `LIMPAR ${unidade}`;
-
-        if (body.confirmacao?.trim().toUpperCase() !== confirmacaoEsperada) {
-          return Response.json(
-            { erro: `Digite "${confirmacaoEsperada}" para confirmar.` },
-            { status: 400 },
-          );
-        }
-
-        const contagem =
-          unidade === "TODOS"
-            ? await env.DB.prepare(
-                `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ?`,
-              )
-                .bind(periodoAtual!.id)
-                .first<{ total: number }>()
-            : await env.DB.prepare(
-                `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ? AND unidade = ?`,
-              )
-                .bind(periodoAtual!.id, unidade)
-                .first<{ total: number }>();
-
-        if (unidade === "TODOS") {
-          await env.DB.prepare(`DELETE FROM alunos WHERE periodo_id = ?`)
-            .bind(periodoAtual!.id)
-            .run();
-        } else {
-          await env.DB.prepare(
-            `DELETE FROM alunos WHERE periodo_id = ? AND unidade = ?`,
-          )
-            .bind(periodoAtual!.id, unidade)
-            .run();
-        }
-
-        return Response.json({
-          sucesso: true,
-          unidade,
-          removidos: Number(contagem?.total ?? 0),
-          periodo: periodoAtual!.codigo,
-        });
-      } catch (erro) {
-        console.error(erro);
-        return Response.json(
-          { erro: "Não foi possível limpar os alunos de desenvolvimento." },
-          { status: 500 },
-        );
-      }
-    }
 
     // =====================================================
     // GET /api/periodos/:id/google-sheets/pendencias
