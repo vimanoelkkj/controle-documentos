@@ -20,18 +20,17 @@ import { useAlunos } from "./conferencia/hooks/useAlunos";
 import { useFiltrosConferencia } from "./conferencia/hooks/useFiltrosConferencia";
 import { useLayoutConferencia } from "./conferencia/hooks/useLayoutConferencia";
 import { useAtalhosConferencia } from "./conferencia/hooks/useAtalhosConferencia";
+import { useDocumentosAluno } from "./conferencia/hooks/useDocumentosAluno";
 import {
   alterarStatusAluno,
   editarAluno,
   cadastrarAluno as cadastrarAlunoApi,
   excluirAluno as excluirAlunoApi,
   registrarLogAluno,
-  salvarDocumentosAluno,
 } from "./conferencia/operacoes";
 import {
   formularioVazio,
   statusDocumentalAluno,
-  type Aluno,
   type FiltroStatus,
   type FormAluno,
   type Unidade,
@@ -65,9 +64,6 @@ function Conferencia() {
         : "";
     },
   );
-  const [status, setStatus] = useState<"salvo" | "pendente">("salvo");
-  const [salvando, setSalvando] = useState(false);
-  const [erroSalvamento, setErroSalvamento] = useState("");
 
   const [modalAdicionarAluno, setModalAdicionarAluno] = useState(false);
   const fluxoImportacao = useImportacaoAlunos({
@@ -198,6 +194,25 @@ function Conferencia() {
     void carregarAlunosDoServidor(undefined, "", "ATIVO");
   }, [carregarAlunosDoServidor]);
 
+  const {
+    alunoSelecionado,
+    alunoSalvo,
+    status,
+    setStatus,
+    salvando,
+    erroSalvamento,
+    temAlteracoes,
+    alternarDocumento,
+    restaurarAlteracoes,
+    salvarAlteracoes,
+  } = useDocumentosAluno({
+    alunosSalvos,
+    setAlunosSalvos,
+    alunosEmEdicao,
+    setAlunosEmEdicao,
+    raSelecionado,
+  });
+
   useAtalhosConferencia({
     algumModalAberto: Boolean(
       modalAdicionarAluno ||
@@ -220,51 +235,6 @@ function Conferencia() {
     aoSalvar: () => void salvarAlteracoes(),
   });
 
-  if (carregando) {
-    return (
-      <section className="conference-page">
-        <div className="page-loading-state">Carregando alunos...</div>
-      </section>
-    );
-  }
-
-  if (erro) {
-    return (
-      <section className="conference-page">
-        <div className="page-loading-state error">{erro}</div>
-      </section>
-    );
-  }
-
-  const alunoVazio: Aluno = {
-    ra: "",
-    nome: "",
-    unidade: "",
-    curso: "",
-    email: null,
-    email_outro: null,
-    status: "ATIVO",
-    documentos: [
-      { nome: "ID", entregue: false },
-      { nome: "CPF", entregue: false },
-      { nome: "CERTIDÃO", entregue: false },
-      { nome: "RESIDÊNCIA", entregue: false },
-      { nome: "TÍTULO", entregue: false },
-      { nome: "ENSINO MÉDIO", entregue: false },
-      { nome: "CONTRATO", entregue: false },
-    ],
-  };
-
-  const alunoSelecionado =
-    alunosEmEdicao.find((aluno) => aluno.ra === raSelecionado) ??
-    alunosEmEdicao[0] ??
-    alunoVazio;
-
-  const alunoSalvo =
-    alunosSalvos.find((aluno) => aluno.ra === raSelecionado) ??
-    alunosSalvos[0] ??
-    alunoVazio;
-
   const {
     alunosNoStatus,
     quantidadesPorUnidade,
@@ -282,6 +252,23 @@ function Conferencia() {
     filtroDocumentalDashboard,
     pendenciasDashboard,
   });
+  
+  if (carregando) {
+    return (
+      <section className="conference-page">
+        <div className="page-loading-state">Carregando alunos...</div>
+      </section>
+    );
+  }
+
+  if (erro) {
+    return (
+      <section className="conference-page">
+        <div className="page-loading-state error">{erro}</div>
+      </section>
+    );
+  }
+
 
   function limparFiltroDashboard() {
     setFiltroDocumentalDashboard("");
@@ -312,11 +299,6 @@ function Conferencia() {
     .map((parte) => parte[0])
     .join("");
 
-  const temAlteracoes = alunoSelecionado.documentos.some(
-    (documento, index) =>
-      documento.entregue !== alunoSalvo.documentos[index].entregue,
-  );
-
   function fecharModalAnimado(
     nome: string,
     fechar: () => void,
@@ -339,119 +321,6 @@ function Conferencia() {
     fecharModalAnimado("importar-cancelados", () =>
       setModalImportarCancelados(false),
     );
-  }
-
-  function alternarDocumento(nomeDocumento: string) {
-    setAlunosEmEdicao((estadoAtual) =>
-      estadoAtual.map((aluno) => {
-        if (aluno.ra !== raSelecionado) {
-          return aluno;
-        }
-
-        return {
-          ...aluno,
-          documentos: aluno.documentos.map((documento) =>
-            documento.nome === nomeDocumento
-              ? {
-                ...documento,
-                entregue: !documento.entregue,
-              }
-              : documento,
-          ),
-        };
-      }),
-    );
-
-    setStatus("pendente");
-    setErroSalvamento("");
-  }
-
-  function restaurarAlteracoes() {
-    setAlunosEmEdicao((estadoAtual) =>
-      estadoAtual.map((aluno) =>
-        aluno.ra === raSelecionado
-          ? {
-            ...alunoSalvo,
-            documentos: alunoSalvo.documentos.map((documento) => ({
-              ...documento,
-            })),
-          }
-          : aluno,
-      ),
-    );
-
-    setStatus("salvo");
-    setErroSalvamento("");
-  }
-
-  async function salvarAlteracoes() {
-    if (salvando || !temAlteracoes) return;
-
-    setSalvando(true);
-    setErroSalvamento("");
-
-    try {
-      const mapaDocumentos = Object.fromEntries(
-        alunoSelecionado.documentos.map((documento) => [
-          documento.nome,
-          documento.entregue,
-        ]),
-      );
-
-      await salvarDocumentosAluno(alunoSelecionado.ra, {
-        identidade: mapaDocumentos["ID"],
-        cpf: mapaDocumentos["CPF"],
-        certidao: mapaDocumentos["CERTIDÃO"],
-        residencia: mapaDocumentos["RESIDÊNCIA"],
-        titulo: mapaDocumentos["TÍTULO"],
-        ensino_medio: mapaDocumentos["ENSINO MÉDIO"],
-        contrato: mapaDocumentos["CONTRATO"],
-      });
-      setAlunosSalvos((estadoAtual) =>
-        estadoAtual.map((aluno) =>
-          aluno.ra === raSelecionado
-            ? {
-              ...alunoSelecionado,
-              documentos: alunoSelecionado.documentos.map((documento) => ({
-                ...documento,
-              })),
-            }
-            : aluno,
-        ),
-      );
-
-      setStatus("salvo");
-
-      const alteracoesDocumentais = alunoSelecionado.documentos
-        .map((documento, index) => {
-          const anterior = alunoSalvo.documentos[index];
-
-          if (!anterior || anterior.entregue === documento.entregue) {
-            return null;
-          }
-
-          return `${documento.nome} → ${documento.entregue ? "entregue" : "pendente"
-            }`;
-        })
-        .filter(Boolean)
-        .join("; ");
-
-      await registrarLogAluno(
-        "DOCUMENTOS",
-        alteracoesDocumentais
-          ? `Documentos atualizados: ${alteracoesDocumentais}.`
-          : `Documentação de ${alunoSelecionado.nome} atualizada.`,
-        alunoSelecionado.ra,
-        alunoSelecionado.unidade,
-      );
-    } catch (erro) {
-      console.error(erro);
-      setErroSalvamento(
-        "Não foi possível salvar. Suas alterações continuam nesta tela.",
-      );
-    } finally {
-      setSalvando(false);
-    }
   }
 
   function selecionarAluno(ra: string) {
