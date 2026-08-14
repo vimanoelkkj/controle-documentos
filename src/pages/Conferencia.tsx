@@ -3,16 +3,13 @@ import "./HistoricoAluno.css";
 import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
 import { FormularioAluno } from "./conferencia/FormularioAluno";
+import { ModalHistoricoAluno } from "./conferencia/ModalHistoricoAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import {
   analisarTextoImportacao,
   extrairRasCancelados,
 } from "./conferencia/importacao";
-import {
-  classeAcaoHistorico,
-  formatarDataHistorico,
-  quantidadeResultado,
-} from "./conferencia/utils";
+import { quantidadeResultado } from "./conferencia/utils";
 import {
   DOCUMENTO_DASHBOARD_POR_CAMPO,
   clonarAlunos,
@@ -1786,152 +1783,16 @@ function Conferencia() {
         )}
       </div>
 
-      {modalHistoricoAluno && (
-        <div className="modal-overlay">
-          <section
-            className="student-history-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="student-history-title"
-          >
-            <header className="student-history-header">
-              <div className="student-history-heading">
-                <div className="student-history-icon">↺</div>
-
-                <div>
-                  <span>HISTÓRICO DO ALUNO</span>
-                  <h2 id="student-history-title">{alunoSelecionado.nome}</h2>
-                  <p>
-                    RA {alunoSelecionado.ra} · {alunoSelecionado.unidade} ·{" "}
-                    {alunoSelecionado.curso}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="student-history-close"
-                onClick={() => setModalHistoricoAluno(false)}
-                aria-label="Fechar histórico"
-              >
-                ×
-              </button>
-            </header>
-
-            <div className="student-history-toolbar">
-              <div>
-                <strong>{historicoAluno.length}</strong>
-                <span>
-                  {historicoAluno.length === 1
-                    ? " ocorrência encontrada"
-                    : " ocorrências encontradas"}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => void carregarHistoricoAluno(alunoSelecionado.ra)}
-                disabled={carregandoHistorico}
-              >
-                {carregandoHistorico ? "Atualizando..." : "↻ Atualizar"}
-              </button>
-            </div>
-
-            <div className="student-history-content">
-              {carregandoHistorico && historicoAluno.length === 0 ? (
-                <div className="student-history-state">
-                  <div className="student-history-spinner" />
-                  <strong>Carregando histórico...</strong>
-                  <span>Buscando registros deste período letivo.</span>
-                </div>
-              ) : erroHistorico ? (
-                <div className="student-history-state error">
-                  <strong>Não foi possível carregar o histórico.</strong>
-                  <span>{erroHistorico}</span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      void carregarHistoricoAluno(alunoSelecionado.ra)
-                    }
-                  >
-                    Tentar novamente
-                  </button>
-                </div>
-              ) : historicoAluno.length === 0 ? (
-                <div className="student-history-state">
-                  <div className="student-history-empty-icon">○</div>
-                  <strong>Nenhum registro encontrado</strong>
-                  <span>
-                    As próximas alterações feitas neste aluno aparecerão aqui.
-                  </span>
-                </div>
-              ) : (
-                <div className="student-history-timeline">
-                  {historicoAluno.map((registro) => (
-                    <article className="student-history-item" key={registro.id}>
-                      <div
-                        className={`student-history-marker ${classeAcaoHistorico(
-                          registro.acao,
-                        )}`}
-                      />
-
-                      <div className="student-history-event">
-                        <div className="student-history-event-top">
-                          <span
-                            className={`student-history-action ${classeAcaoHistorico(
-                              registro.acao,
-                            )}`}
-                          >
-                            {registro.acao}
-                          </span>
-
-                          <div className="student-history-meta">
-                            <span className="student-history-user">
-                              {registro.usuario_nome
-                                ? `${registro.usuario_nome}${
-                                    registro.usuario_username
-                                      ? ` · @${registro.usuario_username}`
-                                      : ""
-                                  }`
-                                : "Usuário não registrado"}
-                            </span>
-                            <time>
-                              {formatarDataHistorico(registro.criado_em)}
-                            </time>
-                          </div>
-                        </div>
-
-                        <p>{registro.descricao}</p>
-
-                        {registro.unidade && (
-                          <small>Unidade {registro.unidade}</small>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {historicoPossivelmenteLimitado && (
-              <div className="student-history-limit">
-                Exibindo ocorrências encontradas entre os 500 registros mais
-                recentes deste período.
-              </div>
-            )}
-
-            <footer className="student-history-footer">
-              <span>Somente leitura · dados do LOG do período atual</span>
-              <button
-                type="button"
-                onClick={() => setModalHistoricoAluno(false)}
-              >
-                Fechar
-              </button>
-            </footer>
-          </section>
-        </div>
-      )}
+      <ModalHistoricoAluno
+        aberto={modalHistoricoAluno}
+        aluno={alunoSelecionado}
+        historico={historicoAluno}
+        carregando={carregandoHistorico}
+        erro={erroHistorico}
+        possivelmenteLimitado={historicoPossivelmenteLimitado}
+        aoAtualizar={() => void carregarHistoricoAluno(alunoSelecionado.ra)}
+        aoFechar={() => setModalHistoricoAluno(false)}
+      />
 
       {trocaAlunoPendente && (
         <div className="modal-overlay">
