@@ -19,6 +19,7 @@ import { useImportacaoAlunos } from "./conferencia/hooks/useImportacaoAlunos";
 import { useAlunos } from "./conferencia/hooks/useAlunos";
 import { useFiltrosConferencia } from "./conferencia/hooks/useFiltrosConferencia";
 import { useLayoutConferencia } from "./conferencia/hooks/useLayoutConferencia";
+import { useAtalhosConferencia } from "./conferencia/hooks/useAtalhosConferencia";
 import {
   alterarStatusAluno,
   editarAluno,
@@ -41,7 +42,6 @@ import {
   useRef,
   useState,
 } from "react";
-
 function Conferencia() {
   const {
     alunosSalvos,
@@ -198,10 +198,9 @@ function Conferencia() {
     void carregarAlunosDoServidor(undefined, "", "ATIVO");
   }, [carregarAlunosDoServidor]);
 
-  useEffect(() => {
-    function atalhosConferencia(event: KeyboardEvent) {
-      const algumModalAberto = Boolean(
-        modalAdicionarAluno ||
+  useAtalhosConferencia({
+    algumModalAberto: Boolean(
+      modalAdicionarAluno ||
         modalImportarAlunos ||
         sucessoImportacao ||
         modalNovoAluno ||
@@ -210,86 +209,15 @@ function Conferencia() {
         modalStatusAluno ||
         modalImportarCancelados ||
         trocaAlunoPendente ||
-        modalHistoricoAluno,
-      );
-
-      if (algumModalAberto) return;
-
-      const tecla = event.key.toLowerCase();
-
-      if ((event.ctrlKey || event.metaKey) && tecla === "f") {
-        event.preventDefault();
-        buscaAlunoRef.current?.focus();
-        buscaAlunoRef.current?.select();
-        return;
-      }
-
-      if ((event.ctrlKey || event.metaKey) && tecla === "s") {
-        event.preventDefault();
-
-        if (temAlteracoes && temAlunoSelecionadoNoFiltro) {
-          void salvarAlteracoes();
-        }
-
-        return;
-      }
-
-      if (event.key === "Escape" && busca) {
-        event.preventDefault();
-        setBusca("");
-        buscaAlunoRef.current?.focus();
-        return;
-      }
-
-      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-
-      const alvo = event.target as HTMLElement | null;
-      const estaDigitando =
-        alvo instanceof HTMLInputElement ||
-        alvo instanceof HTMLTextAreaElement ||
-        alvo instanceof HTMLSelectElement ||
-        alvo?.isContentEditable;
-
-      // Na busca, as setas também percorrem os resultados. Nos demais campos,
-      // preserva o comportamento normal de edição.
-      if (estaDigitando && alvo !== buscaAlunoRef.current) return;
-
-      const botoes = Array.from(
-        listaAlunosRef.current?.querySelectorAll<HTMLButtonElement>(
-          ".student-card",
-        ) ?? [],
-      );
-
-      if (botoes.length === 0) return;
-
-      event.preventDefault();
-
-      const indiceAtual = botoes.findIndex(
-        (botao) => botao === document.activeElement,
-      );
-      const indiceSelecionado = botoes.findIndex(
-        (botao) => botao.dataset.ra === raSelecionado,
-      );
-      const base = indiceAtual >= 0 ? indiceAtual : indiceSelecionado;
-
-      let proximoIndice: number;
-
-      if (event.key === "ArrowDown") {
-        proximoIndice = base < 0 ? 0 : Math.min(base + 1, botoes.length - 1);
-      } else {
-        proximoIndice = base < 0 ? botoes.length - 1 : Math.max(base - 1, 0);
-      }
-
-      botoes[proximoIndice]?.focus();
-      botoes[proximoIndice]?.scrollIntoView({
-        block: "nearest",
-        behavior: "smooth",
-      });
-    }
-
-    window.addEventListener("keydown", atalhosConferencia);
-
-    return () => window.removeEventListener("keydown", atalhosConferencia);
+        modalHistoricoAluno
+    ),
+    busca,
+    raSelecionado,
+    buscaAlunoRef,
+    listaAlunosRef,
+    setBusca,
+    podeSalvar: () => temAlteracoes && temAlunoSelecionadoNoFiltro,
+    aoSalvar: () => void salvarAlteracoes(),
   });
 
   if (carregando) {
