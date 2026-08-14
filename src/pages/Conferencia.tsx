@@ -18,6 +18,7 @@ import { useImportacaoCancelados } from "./conferencia/hooks/useImportacaoCancel
 import { useImportacaoAlunos } from "./conferencia/hooks/useImportacaoAlunos";
 import { useAlunos } from "./conferencia/hooks/useAlunos";
 import { useFiltrosConferencia } from "./conferencia/hooks/useFiltrosConferencia";
+import { useLayoutConferencia } from "./conferencia/hooks/useLayoutConferencia";
 import {
   alterarStatusAluno,
   editarAluno,
@@ -35,7 +36,11 @@ import {
   type Unidade,
 } from "./conferencia/model";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 function Conferencia() {
   const {
@@ -148,9 +153,16 @@ function Conferencia() {
     },
   );
 
-  const painelListaRef = useRef<HTMLElement | null>(null);
-  const detalhesAlunoRef = useRef<HTMLElement | null>(null);
-  const conferenciaGridRef = useRef<HTMLDivElement | null>(null);
+  const {
+    painelListaRef,
+    detalhesAlunoRef,
+    conferenciaGridRef,
+  } = useLayoutConferencia({
+    carregando,
+    raSelecionado,
+    unidadeSelecionada,
+    filtroStatus,
+  });
   const buscaAlunoRef = useRef<HTMLInputElement | null>(null);
   const listaAlunosRef = useRef<HTMLDivElement | null>(null);
 
@@ -169,49 +181,6 @@ function Conferencia() {
     processandoCancelados,
     abrirImportacaoCancelados,
   } = fluxoCancelados;
-
-  useLayoutEffect(() => {
-    const grid = conferenciaGridRef.current;
-    const painel = painelListaRef.current;
-    const detalhes = detalhesAlunoRef.current;
-
-    if (!grid || !painel || !detalhes) return;
-
-    const ajustarAltura = () => {
-      if (window.matchMedia("(max-width: 1100px)").matches) {
-        painel.style.removeProperty("height");
-        detalhes.style.removeProperty("height");
-        return;
-      }
-
-      // Mantém uma pequena margem visual até o fim da viewport.
-      const margemInferior = 20;
-      const topo = Math.ceil(grid.getBoundingClientRect().top);
-      const alturaDisponivel = Math.max(
-        460,
-        window.innerHeight - topo - margemInferior,
-      );
-
-      painel.style.height = `${alturaDisponivel}px`;
-      detalhes.style.height = `${alturaDisponivel}px`;
-    };
-
-    ajustarAltura();
-
-    window.addEventListener("resize", ajustarAltura);
-
-    // Se algo acima do grid mudar de tamanho, recalcula sem depender
-    // apenas do resize da janela.
-    const observer = new ResizeObserver(ajustarAltura);
-    observer.observe(grid.parentElement ?? grid);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", ajustarAltura);
-      painel.style.removeProperty("height");
-      detalhes.style.removeProperty("height");
-    };
-  }, [carregando, raSelecionado, unidadeSelecionada, filtroStatus]);
 
   async function carregarAlunos(
     raParaSelecionar?: string,
@@ -368,23 +337,23 @@ function Conferencia() {
     alunosSalvos[0] ??
     alunoVazio;
 
-    const {
-      alunosNoStatus,
-      quantidadesPorUnidade,
-      temFiltroDashboard,
-      alunosFiltrados,
-      temAlunoSelecionadoNoFiltro,
-      descricaoFiltroDashboard,
-    } = useFiltrosConferencia({
-      alunosSalvos,
-      alunosEmEdicao,
-      raSelecionado,
-      busca,
-      filtroStatus,
-      unidadeSelecionada,
-      filtroDocumentalDashboard,
-      pendenciasDashboard,
-    });
+  const {
+    alunosNoStatus,
+    quantidadesPorUnidade,
+    temFiltroDashboard,
+    alunosFiltrados,
+    temAlunoSelecionadoNoFiltro,
+    descricaoFiltroDashboard,
+  } = useFiltrosConferencia({
+    alunosSalvos,
+    alunosEmEdicao,
+    raSelecionado,
+    busca,
+    filtroStatus,
+    unidadeSelecionada,
+    filtroDocumentalDashboard,
+    pendenciasDashboard,
+  });
 
   function limparFiltroDashboard() {
     setFiltroDocumentalDashboard("");
@@ -456,9 +425,9 @@ function Conferencia() {
           documentos: aluno.documentos.map((documento) =>
             documento.nome === nomeDocumento
               ? {
-                  ...documento,
-                  entregue: !documento.entregue,
-                }
+                ...documento,
+                entregue: !documento.entregue,
+              }
               : documento,
           ),
         };
@@ -474,11 +443,11 @@ function Conferencia() {
       estadoAtual.map((aluno) =>
         aluno.ra === raSelecionado
           ? {
-              ...alunoSalvo,
-              documentos: alunoSalvo.documentos.map((documento) => ({
-                ...documento,
-              })),
-            }
+            ...alunoSalvo,
+            documentos: alunoSalvo.documentos.map((documento) => ({
+              ...documento,
+            })),
+          }
           : aluno,
       ),
     );
@@ -514,11 +483,11 @@ function Conferencia() {
         estadoAtual.map((aluno) =>
           aluno.ra === raSelecionado
             ? {
-                ...alunoSelecionado,
-                documentos: alunoSelecionado.documentos.map((documento) => ({
-                  ...documento,
-                })),
-              }
+              ...alunoSelecionado,
+              documentos: alunoSelecionado.documentos.map((documento) => ({
+                ...documento,
+              })),
+            }
             : aluno,
         ),
       );
@@ -533,9 +502,8 @@ function Conferencia() {
             return null;
           }
 
-          return `${documento.nome} → ${
-            documento.entregue ? "entregue" : "pendente"
-          }`;
+          return `${documento.nome} → ${documento.entregue ? "entregue" : "pendente"
+            }`;
         })
         .filter(Boolean)
         .join("; ");
@@ -577,11 +545,11 @@ function Conferencia() {
       estadoAtual.map((aluno) =>
         aluno.ra === raSelecionado
           ? {
-              ...alunoSalvo,
-              documentos: alunoSalvo.documentos.map((documento) => ({
-                ...documento,
-              })),
-            }
+            ...alunoSalvo,
+            documentos: alunoSalvo.documentos.map((documento) => ({
+              ...documento,
+            })),
+          }
           : aluno,
       ),
     );
