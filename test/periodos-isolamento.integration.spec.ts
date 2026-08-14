@@ -185,6 +185,30 @@ describe.sequential("isolamento de dados entre períodos", () => {
     expect(alunosB[0]).toMatchObject({ identidade: 0, cpf: 0 });
   });
 
+  it("rejeita documentos de aluno inexistente sem alterar o aluno valido", async () => {
+    const response = await jsonRequest(
+      "/api/alunos/RA-INEXISTENTE/documentos?periodo=2026-2",
+      "PUT",
+      {
+        identidade: false,
+        cpf: false,
+        certidao: true,
+        residencia: true,
+        titulo: true,
+        ensino_medio: true,
+        contrato: true,
+      },
+      adminCookie,
+    );
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toMatchObject({
+      erro: "Aluno não encontrado.",
+    });
+
+    const alunos = await listarAlunos("2026-2");
+    expect(alunos[0]).toMatchObject({ identidade: 1, cpf: 1 });
+  });
+
   it("mantém a contagem de alunos separada por período", async () => {
     const response = await request("/api/periodos", {
       headers: { Cookie: adminCookie },

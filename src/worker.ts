@@ -4,6 +4,7 @@ import { handleCursosRoute } from "./server/routes/cursos";
 import { handlePeriodosRoute } from "./server/routes/periodos";
 import { handleUsuariosRoute } from "./server/routes/usuarios";
 import { handleCancelamentosRoute } from "./server/routes/cancelamentos";
+import { handleDocumentosRoute } from "./server/routes/documentos";
 
 interface Env {
   DB: D1Database;
@@ -3485,81 +3486,22 @@ export default {
     if (respostaCancelamentos) return respostaCancelamentos;
 
     // =====================================================
-    // PUT /api/alunos/:ra/documentos
-    // =====================================================
-
-    if (
-      url.pathname.startsWith("/api/alunos/") &&
-      url.pathname.endsWith("/documentos") &&
-      request.method === "PUT"
-    ) {
-      const partes = url.pathname.split("/");
-      const ra = decodeURIComponent(partes[3]);
-
-      const body = await request.json<DocumentosBody>();
-
-      const aluno = await env.DB.prepare(
-        `
-          SELECT id
-          FROM alunos
-          WHERE periodo_id = ? AND ra = ?
-        `,
-      )
-        .bind(periodoAtual!.id, ra)
-        .first<{ id: number }>();
-
-      if (!aluno) {
-        return Response.json(
-          {
-            erro: "Aluno não encontrado.",
-          },
-          {
-            status: 404,
-          },
-        );
-      }
-
-      await env.DB.prepare(
-        `
-          UPDATE documentos
-          SET
-            identidade = ?,
-            cpf = ?,
-            certidao = ?,
-            residencia = ?,
-            titulo = ?,
-            ensino_medio = ?,
-            contrato = ?,
-            atualizado_em = CURRENT_TIMESTAMP
-          WHERE aluno_id = ?
-        `,
-      )
-        .bind(
-          body.identidade ? 1 : 0,
-          body.cpf ? 1 : 0,
-          body.certidao ? 1 : 0,
-          body.residencia ? 1 : 0,
-          body.titulo ? 1 : 0,
-          body.ensino_medio ? 1 : 0,
-          body.contrato ? 1 : 0,
-          aluno.id,
-        )
-        .run();
-
-      await registrarPendenciaGoogleSheets(
-        env,
-        usuarioAtual,
-        periodoAtual!.id,
-        ra,
-        "ATUALIZAR",
-        "DOCUMENTOS",
-      );
-
-      return Response.json({
-        sucesso: true,
-        ra,
-      });
-    }
+    const respostaDocumentos = await handleDocumentosRoute({
+      request,
+      url,
+      db: env.DB,
+      periodoId: periodoAtual!.id,
+      registrarPendencia: (ra) =>
+        registrarPendenciaGoogleSheets(
+          env,
+          usuarioAtual,
+          periodoAtual!.id,
+          ra,
+          "ATUALIZAR",
+          "DOCUMENTOS",
+        ),
+    });
+    if (respostaDocumentos) return respostaDocumentos;
 
     // =====================================================
     // PUT /api/alunos/:ra
