@@ -52,6 +52,13 @@ export default {
     const url = new URL(request.url);
     const authResponse = await handleAuthRoute(request, env, url);
     if (authResponse) return authResponse;
+
+    // Requisições do frontend não dependem de sessão nem de período letivo.
+    // Encaminhe-as aos assets antes de montar o contexto das rotas da API.
+    if (!url.pathname.startsWith("/api/")) {
+      return env.ASSETS.fetch(request);
+    }
+
     const autorizacao = await autorizarRequisicaoApi(request, url, env.DB);
     if (autorizacao.resposta) return autorizacao.resposta;
     const usuarioAtual: UsuarioSessao | null = autorizacao.usuario;
