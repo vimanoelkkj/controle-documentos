@@ -13,7 +13,7 @@ export async function registrarPendenciaGoogleSheets(
   periodoId: number,
   ra: string,
   operacao: "ATUALIZAR" | "REMOVER" = "ATUALIZAR",
-  motivo = "ATUALIZAÃ‡ÃƒO",
+  motivo = "ATUALIZAÇÃO",
 ) {
   let payload: string | null = null;
   if (operacao === "ATUALIZAR") {

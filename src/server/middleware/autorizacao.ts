@@ -45,7 +45,7 @@ export async function autorizarRequisicaoApi(
     return {
       usuario: null,
       resposta: Response.json(
-        { erro: "SessÃ£o expirada ou nÃ£o autenticada." },
+        { erro: "Sessão expirada ou não autenticada." },
         { status: 401 },
       ),
     };
@@ -67,7 +67,7 @@ export async function autorizarRequisicaoApi(
     return {
       usuario,
       resposta: Response.json(
-        { erro: "AÃ§Ã£o indisponÃ­vel no modo apresentaÃ§Ã£o." },
+        { erro: "Ação indisponível no modo apresentação." },
         { status: 403 },
       ),
     };
@@ -82,7 +82,7 @@ export async function autorizarRequisicaoApi(
     return {
       usuario,
       resposta: Response.json(
-        { erro: "ConteÃºdo indisponÃ­vel no modo apresentaÃ§Ã£o." },
+        { erro: "Conteúdo indisponível no modo apresentação." },
         { status: 403 },
       ),
     };
@@ -105,7 +105,7 @@ export function bloquearEscritaSemPermissao(
     !podeEditar(usuario)
   ) {
     return Response.json(
-      { erro: "Seu perfil Ã© somente visualizaÃ§Ã£o." },
+      { erro: "Seu perfil é somente visualização." },
       { status: 403 },
     );
   }
