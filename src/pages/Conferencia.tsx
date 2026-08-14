@@ -15,6 +15,7 @@ import {
   extrairRasCancelados,
 } from "./conferencia/importacao";
 import { quantidadeResultado } from "./conferencia/utils";
+import { registrarLogAluno } from "./conferencia/operacoes";
 import {
   DOCUMENTO_DASHBOARD_POR_CAMPO,
   clonarAlunos,
@@ -363,29 +364,6 @@ function Conferencia() {
 
     return () => window.removeEventListener("keydown", atalhosConferencia);
   });
-
-  async function registrarLog(
-    acao: string,
-    descricao: string,
-    ra?: string,
-    unidade?: string,
-  ) {
-    try {
-      await fetch("/api/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          acao,
-          entidade: "ALUNO",
-          descricao,
-          ra,
-          unidade,
-        }),
-      });
-    } catch (erro) {
-      console.error("Não foi possível registrar o LOG.", erro);
-    }
-  }
 
   if (carregando) {
     return (
@@ -737,7 +715,7 @@ function Conferencia() {
 
       setResultadoImportacao(dados);
 
-      await registrarLog(
+      await registrarLogAluno(
         "IMPORTAÇÃO",
         `${alunos.length} aluno(s) sincronizado(s) pela importação.`,
         undefined,
@@ -940,7 +918,7 @@ function Conferencia() {
 
       setResultadoCancelados(dados);
 
-      await registrarLog(
+      await registrarLogAluno(
         "CANCELAMENTO EM LOTE",
         `${ras.length} matrícula(s) processada(s) pela lista de cancelados.`,
         undefined,
@@ -1071,7 +1049,7 @@ function Conferencia() {
         .filter(Boolean)
         .join("; ");
 
-      await registrarLog(
+      await registrarLogAluno(
         "DOCUMENTOS",
         alteracoesDocumentais
           ? `Documentos atualizados: ${alteracoesDocumentais}.`
@@ -1159,7 +1137,7 @@ function Conferencia() {
 
       const raCadastrado = novoAluno.ra.trim();
 
-      await registrarLog(
+      await registrarLogAluno(
         "CADASTRO",
         `${novoAluno.nome.trim()} cadastrado no sistema.`,
         raCadastrado,
@@ -1234,7 +1212,7 @@ function Conferencia() {
 
       const novoRa = alunoEdicao.ra.trim();
 
-      await registrarLog(
+      await registrarLogAluno(
         "EDIÇÃO",
         `Dados cadastrais de ${alunoEdicao.nome.trim()} atualizados.`,
         novoRa,
@@ -1287,7 +1265,7 @@ function Conferencia() {
 
       setModalStatusAluno(false);
 
-      await registrarLog(
+      await registrarLogAluno(
         novoStatus === "CANCELADO" ? "CANCELAMENTO" : "REATIVAÇÃO",
         `${alunoSelecionado.nome} teve a matrícula ${novoStatus === "CANCELADO" ? "cancelada" : "reativada"}.`,
         alunoSelecionado.ra,
@@ -1335,7 +1313,7 @@ function Conferencia() {
 
       setModalExcluirAluno(false);
 
-      await registrarLog(
+      await registrarLogAluno(
         "EXCLUSÃO",
         `${alunoSelecionado.nome} excluído do sistema.`,
         alunoSelecionado.ra,
