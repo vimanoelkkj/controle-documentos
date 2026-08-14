@@ -1,3 +1,4 @@
+import { PeriodoCard } from "./periodos/PeriodoCard";
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 import { usePeriodo } from "../contexts/periodo";
@@ -146,49 +147,6 @@ function Periodos() {
       setProcessando(false);
     }
   }
-
-  const renderPeriodo = (periodo: (typeof periodos)[number]) => (
-    <article
-      className={`period-card ${periodo.codigo === periodoAtual?.codigo ? "current" : ""}`}
-      key={periodo.id}
-    >
-      <div>
-        <span className={`period-status ${periodo.status.toLowerCase()}`}>
-          {periodo.status}
-        </span>
-        <h3>{periodo.codigo}</h3>
-        <p>
-          {periodo.total_alunos} aluno{periodo.total_alunos === 1 ? "" : "s"}{" "}
-          vinculado{periodo.total_alunos === 1 ? "" : "s"}
-        </p>
-      </div>
-      <div className="period-actions">
-        <button
-          type="button"
-          onClick={() => selecionarPeriodo(periodo.codigo)}
-          disabled={periodo.codigo === periodoAtual?.codigo}
-        >
-          Abrir período
-        </button>
-        {!modoApresentacao && (
-          <button
-            type="button"
-            className={periodo.status === "ATIVO" ? "danger-soft" : "secondary"}
-            onClick={() =>
-              setConfirmacao({
-                id: periodo.id,
-                codigo: periodo.codigo,
-                status: periodo.status === "ATIVO" ? "ARQUIVADO" : "ATIVO",
-              })
-            }
-            disabled={processando}
-          >
-            {periodo.status === "ATIVO" ? "Arquivar" : "Reativar"}
-          </button>
-        )}
-      </div>
-    </article>
-  );
 
   return (
     <section className="period-page">
@@ -687,7 +645,19 @@ function Periodos() {
           </div>
           <strong>{ativos.length}</strong>
         </div>
-        <div className="period-list">{ativos.map(renderPeriodo)}</div>
+        <div className="period-list">
+          {ativos.map((periodo) => (
+            <PeriodoCard
+              key={periodo.id}
+              periodo={periodo}
+              codigoPeriodoAtual={periodoAtual?.codigo}
+              modoApresentacao={modoApresentacao}
+              processando={processando}
+              aoAbrir={selecionarPeriodo}
+              aoAlterarStatus={setConfirmacao}
+            />
+          ))}
+        </div>
       </section>
 
       <section
@@ -701,7 +671,19 @@ function Periodos() {
           <strong>{arquivados.length}</strong>
         </div>
         {arquivados.length ? (
-          <div className="period-list">{arquivados.map(renderPeriodo)}</div>
+          <div className="period-list">
+            {arquivados.map((periodo) => (
+              <PeriodoCard
+                key={periodo.id}
+                periodo={periodo}
+                codigoPeriodoAtual={periodoAtual?.codigo}
+                modoApresentacao={modoApresentacao}
+                processando={processando}
+                aoAbrir={selecionarPeriodo}
+                aoAlterarStatus={setConfirmacao}
+              />
+            ))}
+          </div>
         ) : (
           <div className="period-empty">
             <div className="period-empty-icon" aria-hidden="true">
