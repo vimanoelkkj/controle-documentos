@@ -7,6 +7,7 @@ import { ModalAdicionarAluno } from "./conferencia/ModalAdicionarAluno";
 import { ModalTrocaAluno } from "./conferencia/ModalTrocaAluno";
 import { ModalNovoAluno } from "./conferencia/ModalNovoAluno";
 import { ModalEditarAluno } from "./conferencia/ModalEditarAluno";
+import { ModalStatusAluno } from "./conferencia/ModalStatusAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import {
   analisarTextoImportacao,
@@ -2607,95 +2608,16 @@ Não Entregue    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA 
         </div>
       )}
 
-      {modalStatusAluno && (
-        <div
-          className={`modal-overlay ${modalSaindo === "status-aluno" ? "modal-overlay-exit" : ""}`}
-        >
-          <div className="modal-excluir-aluno">
-            <div
-              className={
-                alunoSelecionado.status === "ATIVO"
-                  ? "modal-excluir-icon"
-                  : "modal-reativar-icon"
-              }
-            >
-              {alunoSelecionado.status === "ATIVO" ? "!" : "↻"}
-            </div>
-
-            <div className="modal-excluir-conteudo">
-              <span
-                className={
-                  alunoSelecionado.status === "ATIVO"
-                    ? "modal-eyebrow modal-eyebrow-danger"
-                    : "modal-eyebrow"
-                }
-              >
-                {alunoSelecionado.status === "ATIVO"
-                  ? "CANCELAMENTO"
-                  : "REATIVAÇÃO"}
-              </span>
-
-              <h2>
-                {alunoSelecionado.status === "ATIVO"
-                  ? "Cancelar matrícula?"
-                  : "Reativar matrícula?"}
-              </h2>
-
-              <p>
-                {alunoSelecionado.status === "ATIVO"
-                  ? "O aluno será retirado da lista de ativos, mas todo o cadastro e a conferência documental serão preservados."
-                  : "O aluno voltará para a lista de ativos e manterá todo o histórico documental existente."}
-              </p>
-
-              <div className="aluno-exclusao-card">
-                <strong>{alunoSelecionado.nome}</strong>
-
-                <span>
-                  RA {alunoSelecionado.ra} · {alunoSelecionado.curso}
-                </span>
-              </div>
-
-              <p className="modal-excluir-aviso">
-                {alunoSelecionado.status === "ATIVO"
-                  ? `Status atual: ATIVO → novo status: CANCELADO`
-                  : `Status atual: CANCELADO → novo status: ATIVO`}
-              </p>
-            </div>
-
-            <div className="modal-excluir-acoes">
-              <button
-                type="button"
-                className="botao-cancelar"
-                onClick={() =>
-                  fecharModalAnimado("status-aluno", () =>
-                    setModalStatusAluno(false),
-                  )
-                }
-                disabled={alterandoStatusAluno}
-              >
-                Voltar
-              </button>
-
-              <button
-                type="button"
-                className={
-                  alunoSelecionado.status === "ATIVO"
-                    ? "botao-confirmar-exclusao"
-                    : "botao-cadastrar"
-                }
-                onClick={alterarStatusMatricula}
-                disabled={alterandoStatusAluno}
-              >
-                {alterandoStatusAluno
-                  ? "Salvando..."
-                  : alunoSelecionado.status === "ATIVO"
-                    ? "Cancelar matrícula"
-                    : "Reativar matrícula"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalStatusAluno
+        aberto={modalStatusAluno}
+        saindo={modalSaindo === "status-aluno"}
+        aluno={alunoSelecionado}
+        processando={alterandoStatusAluno}
+        aoFechar={() =>
+          fecharModalAnimado("status-aluno", () => setModalStatusAluno(false))
+        }
+        aoConfirmar={() => void alterarStatusMatricula()}
+      />
 
       {modalExcluirAluno && (
         <div
