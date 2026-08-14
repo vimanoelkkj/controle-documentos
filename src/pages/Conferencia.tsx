@@ -6,6 +6,7 @@ import { FormularioAluno } from "./conferencia/FormularioAluno";
 import { ModalHistoricoAluno } from "./conferencia/ModalHistoricoAluno";
 import { ModalAdicionarAluno } from "./conferencia/ModalAdicionarAluno";
 import { ModalTrocaAluno } from "./conferencia/ModalTrocaAluno";
+import { ModalNovoAluno } from "./conferencia/ModalNovoAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import {
   analisarTextoImportacao,
@@ -1830,66 +1831,18 @@ function Conferencia() {
         }
       />
 
-      {modalNovoAluno && (
-        <div
-          className={`modal-overlay ${modalSaindo === "novo-aluno" ? "modal-overlay-exit" : ""}`}
-        >
-          <div className="modal-novo-aluno">
-            <div className="modal-cabecalho">
-              <div>
-                <span className="modal-eyebrow">CADASTRO</span>
-                <h2>Novo aluno</h2>
-                <p>Adicione um aluno ao controle de documentos.</p>
-              </div>
-
-              <button
-                type="button"
-                className="modal-fechar"
-                onClick={() =>
-                  fecharModalAnimado("novo-aluno", () =>
-                    setModalNovoAluno(false),
-                  )
-                }
-                disabled={cadastrando}
-              >
-                ×
-              </button>
-            </div>
-
-            <FormularioAluno
-              dados={novoAluno}
-              setDados={setNovoAluno}
-              mostrarDocumentos
-            />
-
-            {erroCadastro && <div className="modal-erro">{erroCadastro}</div>}
-
-            <div className="modal-acoes">
-              <button
-                type="button"
-                className="botao-cancelar"
-                onClick={() =>
-                  fecharModalAnimado("novo-aluno", () =>
-                    setModalNovoAluno(false),
-                  )
-                }
-                disabled={cadastrando}
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="button"
-                className="botao-cadastrar"
-                onClick={cadastrarAluno}
-                disabled={cadastrando}
-              >
-                {cadastrando ? "Cadastrando..." : "Cadastrar aluno"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalNovoAluno
+        aberto={modalNovoAluno}
+        saindo={modalSaindo === "novo-aluno"}
+        dados={novoAluno}
+        setDados={setNovoAluno}
+        erro={erroCadastro}
+        cadastrando={cadastrando}
+        aoFechar={() =>
+          fecharModalAnimado("novo-aluno", () => setModalNovoAluno(false))
+        }
+        aoCadastrar={() => void cadastrarAluno()}
+      />
 
       {modalEditarAluno && (
         <div
