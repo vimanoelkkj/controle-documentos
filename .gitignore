@@ -30,3 +30,8 @@ dist-ssr
 
 # Backups D1 contêm dados pessoais e credenciais derivadas.
 backups/
+
+
+# Backups locais do banco
+backup-*.sql
+*-backup.sql
