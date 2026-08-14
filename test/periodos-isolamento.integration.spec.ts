@@ -12,6 +12,13 @@ type Aluno = {
   cpf: number;
 };
 
+type Periodo = {
+  id: number;
+  codigo: string;
+  status: "ATIVO" | "ARQUIVADO";
+  total_alunos: number;
+};
+
 const baseUrl = "https://controle-documentos.test";
 const senha = "SenhaSegura123";
 const raCompartilhado = "RA-ISOLAMENTO-001";
@@ -192,5 +199,62 @@ describe.sequential("isolamento de dados entre períodos", () => {
 
     expect(Number(periodoA?.total_alunos)).toBe(1);
     expect(Number(periodoB?.total_alunos)).toBe(1);
+  });
+
+  it("arquiva e reativa o período preservando seus dados", async () => {
+    const listarPeriodos = () =>
+      request("/api/periodos", { headers: { Cookie: adminCookie } });
+
+    const respostaInicial = await listarPeriodos();
+    expect(respostaInicial.status).toBe(200);
+    const periodosIniciais = await respostaInicial.json<Periodo[]>();
+    const periodo = periodosIniciais.find((item) => item.codigo === "2027-1");
+    expect(periodo).toBeDefined();
+
+    const arquivar = await jsonRequest(
+      `/api/periodos/${periodo!.id}`,
+      "PUT",
+      { status: "ARQUIVADO" },
+      adminCookie,
+    );
+    expect(arquivar.status).toBe(200);
+    await expect(arquivar.json()).resolves.toMatchObject({
+      id: periodo!.id,
+      codigo: "2027-1",
+      status: "ARQUIVADO",
+    });
+
+    const respostaArquivado = await listarPeriodos();
+    const periodosArquivados = await respostaArquivado.json<Periodo[]>();
+    expect(
+      periodosArquivados.find((item) => item.id === periodo!.id)?.status,
+    ).toBe("ARQUIVADO");
+
+    const reativar = await jsonRequest(
+      `/api/periodos/${periodo!.id}`,
+      "PUT",
+      { status: "ATIVO" },
+      adminCookie,
+    );
+    expect(reativar.status).toBe(200);
+    await expect(reativar.json()).resolves.toMatchObject({
+      id: periodo!.id,
+      codigo: "2027-1",
+      status: "ATIVO",
+    });
+
+    const respostaReativado = await listarPeriodos();
+    const periodosReativados = await respostaReativado.json<Periodo[]>();
+    const periodoReativado = periodosReativados.find(
+      (item) => item.id === periodo!.id,
+    );
+    expect(periodoReativado).toMatchObject({
+      status: "ATIVO",
+      total_alunos: 1,
+    });
+
+    const alunos = await listarAlunos("2027-1");
+    expect(alunos).toHaveLength(1);
+    expect(alunos[0].ra).toBe(raCompartilhado);
   });
 });
