@@ -72,6 +72,9 @@ describe.sequential("autenticação e permissões", () => {
 
     const loginAdmin = await login("admin.teste", senha);
     expect(loginAdmin.response.status).toBe(200);
+    expect(loginAdmin.response.headers.get("Set-Cookie")).toContain(
+      "HttpOnly; SameSite=Strict; Max-Age=3600; Secure",
+    );
     adminCookie = loginAdmin.cookie;
 
     const me = await request("/api/auth/me", {
@@ -81,6 +84,19 @@ describe.sequential("autenticação e permissões", () => {
     await expect(me.json()).resolves.toMatchObject({
       usuario: { username: "admin.teste", perfil: "ADMIN" },
     });
+  });
+
+  it("renova uma sessão autenticada e rejeita atividade sem cookie", async () => {
+    const semSessao = await request("/api/auth/atividade", { method: "POST" });
+    expect(semSessao.status).toBe(401);
+
+    const atividade = await request("/api/auth/atividade", {
+      method: "POST",
+      headers: { Cookie: adminCookie },
+    });
+    expect(atividade.status).toBe(200);
+    await expect(atividade.json()).resolves.toEqual({ sucesso: true });
+    expect(atividade.headers.get("Set-Cookie")).toContain("Max-Age=3600");
   });
 
   it("aplica permissões diferentes para ADMIN, EDITOR e VISUALIZADOR", async () => {
