@@ -4,6 +4,7 @@ import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
 import { FormularioAluno } from "./conferencia/FormularioAluno";
 import { ModalHistoricoAluno } from "./conferencia/ModalHistoricoAluno";
+import { ModalTrocaAluno } from "./conferencia/ModalTrocaAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import {
   analisarTextoImportacao,
@@ -1794,48 +1795,12 @@ function Conferencia() {
         aoFechar={() => setModalHistoricoAluno(false)}
       />
 
-      {trocaAlunoPendente && (
-        <div className="modal-overlay">
-          <section
-            className="unsaved-student-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="unsaved-student-title"
-          >
-            <div className="unsaved-student-icon">!</div>
-
-            <span className="unsaved-student-eyebrow">
-              ALTERAÇÕES NÃO SALVAS
-            </span>
-
-            <h2 id="unsaved-student-title">Trocar de aluno?</h2>
-
-            <p>
-              Você modificou a documentação de{" "}
-              <strong>{alunoSelecionado.nome}</strong>. Se continuar, essas
-              alterações serão descartadas.
-            </p>
-
-            <div className="unsaved-student-actions">
-              <button
-                type="button"
-                className="unsaved-student-back"
-                onClick={() => setTrocaAlunoPendente(null)}
-              >
-                Voltar e salvar
-              </button>
-
-              <button
-                type="button"
-                className="unsaved-student-discard"
-                onClick={descartarAlteracoesETrocarAluno}
-              >
-                Descartar e continuar
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+      <ModalTrocaAluno
+        aberto={Boolean(trocaAlunoPendente)}
+        nomeAluno={alunoSelecionado.nome}
+        aoVoltar={() => setTrocaAlunoPendente(null)}
+        aoDescartar={descartarAlteracoesETrocarAluno}
+      />
 
       {modalAdicionarAluno && (
         <div
