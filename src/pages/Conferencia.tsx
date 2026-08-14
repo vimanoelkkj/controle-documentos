@@ -1,3 +1,4 @@
+import { useFiltrosUrlConferencia } from "./conferencia/hooks/useFiltrosUrlConferencia";
 import { useSelecaoAluno } from "./conferencia/hooks/useSelecaoAluno";
 import AppIcon from "../components/AppIcon";
 import "./HistoricoAluno.css";
@@ -45,16 +46,19 @@ function Conferencia() {
   const [busca, setBusca] = useState("");
   const { modoApresentacao } = useAuth();
 
-  const [unidadeSelecionada, setUnidadeSelecionada] = useState<Unidade | "">(
-    () => {
-      const valor = new URLSearchParams(window.location.search).get("unidade");
-      return ["FACE", "FEA", "FCH", "EAD"].includes(valor || "")
-        ? (valor as Unidade)
-        : "";
-    },
-  );
+  const {
+    unidadeSelecionada,
+    setUnidadeSelecionada,
+    filtroStatus,
+    setFiltroStatus,
+    filtroDocumentalDashboard,
+    setFiltroDocumentalDashboard,
+    pendenciasDashboard,
+    setPendenciasDashboard,
+  } = useFiltrosUrlConferencia();
 
   const [modalAdicionarAluno, setModalAdicionarAluno] = useState(false);
+
   const fluxoImportacao = useImportacaoAlunos({
     alunosSalvos,
     unidadeInicial: unidadeSelecionada || "FCH",
@@ -83,43 +87,6 @@ function Conferencia() {
     carregarHistoricoAluno,
     abrirHistoricoAluno,
   } = useHistoricoAluno();
-
-  const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>(() => {
-    const valor = new URLSearchParams(window.location.search).get("status");
-    return valor === "CANCELADO" || valor === "TODOS" ? valor : "ATIVO";
-  });
-
-  const [filtroDocumentalDashboard, setFiltroDocumentalDashboard] = useState<
-    "COMPLETO" | "PARCIAL" | "CRITICO" | ""
-  >(() => {
-    const valor = new URLSearchParams(window.location.search).get("docStatus");
-    return valor === "COMPLETO" || valor === "PARCIAL" || valor === "CRITICO"
-      ? valor
-      : "";
-  });
-
-  const [pendenciasDashboard, setPendenciasDashboard] = useState<string[]>(
-    () => {
-      const valor = new URLSearchParams(window.location.search).get(
-        "pendencia",
-      );
-
-      const validos = new Set([
-        "identidade",
-        "cpf",
-        "certidao",
-        "residencia",
-        "titulo",
-        "ensino_medio",
-        "contrato",
-      ]);
-
-      return (valor || "")
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item) => validos.has(item));
-    },
-  );
 
   const { painelListaRef, detalhesAlunoRef, conferenciaGridRef } =
     useLayoutConferencia({
