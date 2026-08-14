@@ -1,6 +1,6 @@
 import AppIcon from "../components/AppIcon";
-import { useEffect, useState, type FormEvent } from "react";
-import { useAuth, type Perfil } from "../contexts/AuthContext";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useAuth, type Perfil } from "../contexts/auth";
 import AppSelect from "../components/AppSelect";
 import { api } from "../lib/api";
 
@@ -59,7 +59,7 @@ function Configuracoes() {
   const [erroBackup, setErroBackup] = useState("");
   const [backupGerado, setBackupGerado] = useState<BackupGerado | null>(null);
 
-  async function carregar() {
+  const carregar = useCallback(async () => {
     if (!admin) return;
 
     try {
@@ -69,9 +69,9 @@ function Configuracoes() {
         erro instanceof Error ? erro.message : "Erro ao carregar usuários."
       );
     }
-  }
+  }, [admin]);
 
-  async function verificarFerramentasDev() {
+  const verificarFerramentasDev = useCallback(async () => {
     if (!admin) {
       setDevHabilitado(false);
       return;
@@ -85,9 +85,9 @@ function Configuracoes() {
     } catch {
       setDevHabilitado(false);
     }
-  }
+  }, [admin]);
 
-  async function verificarBackup() {
+  const verificarBackup = useCallback(async () => {
     if (!admin) {
       setBackupConfigurado(null);
       return;
@@ -101,13 +101,13 @@ function Configuracoes() {
     } catch {
       setBackupConfigurado(false);
     }
-  }
+  }, [admin]);
 
   useEffect(() => {
     void carregar();
     void verificarFerramentasDev();
     void verificarBackup();
-  }, [admin]);
+  }, [carregar, verificarFerramentasDev, verificarBackup]);
 
   async function gerarBackup() {
     setGerandoBackup(true);

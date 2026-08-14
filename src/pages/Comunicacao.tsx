@@ -1,7 +1,7 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AppSelect from "../components/AppSelect";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth";
 
 type AlunoApi = {
   ra: string;
@@ -272,7 +272,7 @@ function Comunicacao() {
     }
     setSelecionados(new Set(grupo.alunos.map((aluno) => aluno.ra)));
     setBuscaAluno("");
-  }, [grupoSelecionado, grupo?.chave]);
+  }, [grupo]);
 
   const alunosVisiveis = useMemo(() => {
     if (!grupo) return [];

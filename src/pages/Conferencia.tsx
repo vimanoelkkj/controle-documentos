@@ -1,7 +1,7 @@
 import AppIcon from "../components/AppIcon";
 import "./HistoricoAluno.css";
 import AppSelect from "../components/AppSelect";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth";
 
 import {
   useEffect,
@@ -1411,7 +1411,7 @@ function Conferencia() {
       .replace(/[\u0300-\u036f]/g, "")
       .trim()
       .toLowerCase()
-      .replace(/[\-_()]+/g, " ")
+      .replace(/[-_()]+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
   }

@@ -1,35 +1,11 @@
 import {
-  createContext,
-  useContext,
   useEffect,
   useRef,
   useState,
   type ReactNode,
 } from "react";
 import { API_SESSION_EXPIRED_EVENT } from "../lib/api";
-
-export type Perfil = "ADMIN" | "EDITOR" | "VISUALIZADOR";
-
-export type Usuario = {
-  id: number;
-  nome: string;
-  email: string;
-  username: string;
-  perfil: Perfil;
-  modo_apresentacao: number;
-};
-
-type AuthValue = {
-  usuario: Usuario | null;
-  carregando: boolean;
-  recarregar: () => Promise<void>;
-  logout: () => Promise<void>;
-  podeEditar: boolean;
-  admin: boolean;
-  modoApresentacao: boolean;
-};
-
-const AuthContext = createContext<AuthValue | null>(null);
+import { AuthContext, type Usuario } from "./auth";
 
 const TEMPO_INATIVIDADE = 60 * 60 * 1000;
 const INTERVALO_RENOVACAO = 5 * 60 * 1000;
@@ -177,14 +153,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const c = useContext(AuthContext);
-
-  if (!c) {
-    throw new Error("useAuth fora do AuthProvider");
-  }
-
-  return c;
 }

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import AppIcon from "../components/AppIcon";
 import AppSelect from "../components/AppSelect";
-import { useAuth } from "../contexts/AuthContext";
-import { usePeriodo } from "../contexts/PeriodoContext";
+import { useAuth } from "../contexts/auth";
+import { usePeriodo } from "../contexts/periodo";
 import { api } from "../lib/api";
 
 type Unidade = "FACE" | "FEA" | "FCH" | "EAD";

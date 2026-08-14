@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth";
 import AppIcon, { type AppIconName } from "../components/AppIcon";
 import { APP_VERSION } from "../data/changelog";
 
@@ -18,7 +18,7 @@ const items: { label: string; to: string; icon: AppIconName }[] = [
 ];
 
 function Sidebar() {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, modoApresentacao } = useAuth();
   const navigate = useNavigate();
   const ambienteBeta = window.location.hostname.startsWith(
     "controle-documentos-dev.",
@@ -76,7 +76,13 @@ function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {items.map((item) => (
+        {items
+          .filter(
+            (item) =>
+              !modoApresentacao ||
+              !["/auditoria", "/log", "/configuracoes"].includes(item.to),
+          )
+          .map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -90,7 +96,7 @@ function Sidebar() {
             </span>
             <span>{item.label}</span>
           </NavLink>
-        ))}
+          ))}
       </nav>
 
       <div className="sidebar-footer">
@@ -101,7 +107,7 @@ function Sidebar() {
             </div>
             <div className="sidebar-user-copy">
               <strong>{usuario.nome}</strong>
-              <span>{usuario.perfil}</span>
+              <span>{modoApresentacao ? "APRESENTAÇÃO" : usuario.perfil}</span>
             </div>
           </div>
         )}

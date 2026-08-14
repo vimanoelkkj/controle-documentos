@@ -1,6 +1,7 @@
 import {
   useEffect,
   useId,
+  useCallback,
   useRef,
   useState,
   type CSSProperties,
@@ -41,7 +42,7 @@ function AppSelect({
 
   const selecionado = options.find((option) => option.value === value) ?? options[0];
 
-  function posicionarMenu() {
+  const posicionarMenu = useCallback(() => {
     const trigger = triggerRef.current;
     if (!trigger) return;
 
@@ -59,7 +60,7 @@ function AppSelect({
       width: rect.width,
       zIndex: 10000,
     });
-  }
+  }, [options.length]);
 
   function abrir() {
     if (disabled || !options.length) return;
@@ -102,7 +103,7 @@ function AppSelect({
       window.removeEventListener("resize", reposicionar);
       window.removeEventListener("scroll", reposicionar, true);
     };
-  }, [aberto]);
+  }, [aberto, posicionarMenu]);
 
   function onKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (disabled) return;

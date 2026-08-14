@@ -1,9 +1,9 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePeriodo } from "../contexts/PeriodoContext";
+import { usePeriodo } from "../contexts/periodo";
 import AppSelect from "../components/AppSelect";
 import { api } from "../lib/api";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth";
 
 function normalizarCodigo(valor: string) {
   return valor.trim().toUpperCase().replace(/\s+/g, "");
@@ -219,7 +219,7 @@ function Periodos() {
     return () => {
       ativo = false;
     };
-  }, [periodoAtual?.id]);
+  }, [periodoAtual]);
 
   async function salvarSheets() {
     if (!periodoAtual) return;
@@ -885,23 +885,39 @@ function Periodos() {
                   )}
                 </div>
                 <div
-                  className={`period-sheets-sync-bar ${totalOperacoesPrevia === 0 ? "is-synced" : ""}`}
+                  className={`period-sheets-sync-bar ${
+                    modoApresentacao
+                      ? "is-presentation"
+                      : totalOperacoesPrevia === 0
+                        ? "is-synced"
+                        : ""
+                  }`}
                 >
                   <div>
                     <span>
-                      {totalOperacoesPrevia === 0
-                        ? "TUDO SINCRONIZADO"
-                        : "APLICAR ALTERAÇÕES"}
+                      {modoApresentacao
+                        ? "PRÉVIA CONCLUÍDA"
+                        : totalOperacoesPrevia === 0
+                          ? "TUDO SINCRONIZADO"
+                          : "APLICAR ALTERAÇÕES"}
                     </span>
                     <strong>
-                      {totalOperacoesPrevia === 0
-                        ? "✓ Nenhuma alteração encontrada"
-                        : `${totalOperacoesPrevia} operação(ões) pronta(s)`}
+                      {modoApresentacao
+                        ? totalOperacoesPrevia === 0
+                          ? "✓ Nenhuma divergência encontrada"
+                          : totalOperacoesPrevia === 1
+                            ? "✓ 1 divergência encontrada"
+                            : `✓ ${totalOperacoesPrevia} divergências encontradas`
+                        : totalOperacoesPrevia === 0
+                          ? "✓ Nenhuma alteração encontrada"
+                          : `${totalOperacoesPrevia} operação(ões) pronta(s)`}
                     </strong>
                     <small>
-                      {totalOperacoesPrevia === 0
-                        ? "O Google Sheets e o sistema estão sem divergências."
-                        : "A planilha será lida novamente no momento da sincronização."}
+                      {modoApresentacao
+                        ? "Consulta somente leitura. Nenhuma alteração será aplicada."
+                        : totalOperacoesPrevia === 0
+                          ? "O Google Sheets e o sistema estão sem divergências."
+                          : "A planilha será lida novamente no momento da sincronização."}
                     </small>
                   </div>
                   {!modoApresentacao && (
