@@ -4,6 +4,7 @@ import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
 import { FormularioAluno } from "./conferencia/FormularioAluno";
 import { ModalHistoricoAluno } from "./conferencia/ModalHistoricoAluno";
+import { ModalAdicionarAluno } from "./conferencia/ModalAdicionarAluno";
 import { ModalTrocaAluno } from "./conferencia/ModalTrocaAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import {
@@ -1802,66 +1803,32 @@ function Conferencia() {
         aoDescartar={descartarAlteracoesETrocarAluno}
       />
 
-      {modalAdicionarAluno && (
-        <div
-          className={`modal-overlay ${modalSaindo === "adicionar-aluno" ? "modal-overlay-exit" : ""}`}
-        >
-          <div className="modal-novo-aluno modal-adicionar-aluno">
-            <div className="modal-cabecalho">
-              <div>
-                <span className="modal-eyebrow">ALUNOS</span>
-                <h2>Adicionar alunos</h2>
-                <p>Escolha como deseja incluir alunos na conferência.</p>
-              </div>
-
-              <button
-                type="button"
-                className="modal-fechar"
-                onClick={() =>
-                  fecharModalAnimado("adicionar-aluno", () =>
-                    setModalAdicionarAluno(false),
-                  )
-                }
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="adicionar-aluno-opcoes">
-              <button
-                type="button"
-                onClick={() => {
-                  fecharModalAnimado(
-                    "adicionar-aluno",
-                    () => setModalAdicionarAluno(false),
-                    () => {
-                      setErroCadastro("");
-                      setModalNovoAluno(true);
-                    },
-                  );
-                }}
-              >
-                <strong>+ Novo aluno</strong>
-                <span>Cadastrar um aluno manualmente.</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  fecharModalAnimado(
-                    "adicionar-aluno",
-                    () => setModalAdicionarAluno(false),
-                    abrirImportacao,
-                  );
-                }}
-              >
-                <strong>⇧ Importar lista</strong>
-                <span>Adicionar ou atualizar vários alunos de uma vez.</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalAdicionarAluno
+        aberto={modalAdicionarAluno}
+        saindo={modalSaindo === "adicionar-aluno"}
+        aoFechar={() =>
+          fecharModalAnimado("adicionar-aluno", () =>
+            setModalAdicionarAluno(false),
+          )
+        }
+        aoNovoAluno={() =>
+          fecharModalAnimado(
+            "adicionar-aluno",
+            () => setModalAdicionarAluno(false),
+            () => {
+              setErroCadastro("");
+              setModalNovoAluno(true);
+            },
+          )
+        }
+        aoImportar={() =>
+          fecharModalAnimado(
+            "adicionar-aluno",
+            () => setModalAdicionarAluno(false),
+            abrirImportacao,
+          )
+        }
+      />
 
       {modalNovoAluno && (
         <div
