@@ -17,7 +17,14 @@ import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import { useImportacaoCancelados } from "./conferencia/hooks/useImportacaoCancelados";
 import { useImportacaoAlunos } from "./conferencia/hooks/useImportacaoAlunos";
 import { useAlunos } from "./conferencia/hooks/useAlunos";
-import { registrarLogAluno } from "./conferencia/operacoes";
+import {
+  alterarStatusAluno,
+  editarAluno,
+  cadastrarAluno as cadastrarAlunoApi,
+  excluirAluno as excluirAlunoApi,
+  registrarLogAluno,
+  salvarDocumentosAluno,
+} from "./conferencia/operacoes";
 import {
   DOCUMENTO_DASHBOARD_POR_CAMPO,
   formularioVazio,
@@ -29,12 +36,7 @@ import {
   type Unidade,
 } from "./conferencia/model";
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 function Conferencia() {
   const {
@@ -578,29 +580,15 @@ function Conferencia() {
         ]),
       );
 
-      const resposta = await fetch(
-        `/api/alunos/${alunoSelecionado.ra}/documentos`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            identidade: mapaDocumentos["ID"],
-            cpf: mapaDocumentos["CPF"],
-            certidao: mapaDocumentos["CERTIDÃO"],
-            residencia: mapaDocumentos["RESIDÊNCIA"],
-            titulo: mapaDocumentos["TÍTULO"],
-            ensino_medio: mapaDocumentos["ENSINO MÉDIO"],
-            contrato: mapaDocumentos["CONTRATO"],
-          }),
-        },
-      );
-
-      if (!resposta.ok) {
-        throw new Error("Falha ao salvar alterações.");
-      }
-
+      await salvarDocumentosAluno(alunoSelecionado.ra, {
+        identidade: mapaDocumentos["ID"],
+        cpf: mapaDocumentos["CPF"],
+        certidao: mapaDocumentos["CERTIDÃO"],
+        residencia: mapaDocumentos["RESIDÊNCIA"],
+        titulo: mapaDocumentos["TÍTULO"],
+        ensino_medio: mapaDocumentos["ENSINO MÉDIO"],
+        contrato: mapaDocumentos["CONTRATO"],
+      });
       setAlunosSalvos((estadoAtual) =>
         estadoAtual.map((aluno) =>
           aluno.ra === raSelecionado
@@ -698,24 +686,7 @@ function Conferencia() {
     try {
       setCadastrando(true);
 
-      const resposta = await fetch("/api/alunos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(novoAluno),
-      });
-
-      const dados = (await resposta.json()) as {
-        erro?: string;
-        sucesso?: boolean;
-        ra?: string;
-        id?: number;
-      };
-
-      if (!resposta.ok) {
-        throw new Error(dados.erro || "Não foi possível cadastrar o aluno.");
-      }
+      await cadastrarAlunoApi(novoAluno);
 
       const raCadastrado = novoAluno.ra.trim();
 
@@ -771,26 +742,7 @@ function Conferencia() {
     try {
       setEditando(true);
 
-      const resposta = await fetch(
-        `/api/alunos/${encodeURIComponent(alunoSelecionado.ra)}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(alunoEdicao),
-        },
-      );
-
-      const dados = (await resposta.json()) as {
-        erro?: string;
-        sucesso?: boolean;
-        ra?: string;
-      };
-
-      if (!resposta.ok) {
-        throw new Error(dados.erro || "Não foi possível editar o aluno.");
-      }
+      await editarAluno(alunoSelecionado.ra, alunoEdicao);
 
       const novoRa = alunoEdicao.ra.trim();
 
@@ -820,30 +772,7 @@ function Conferencia() {
     try {
       setAlterandoStatusAluno(true);
 
-      const resposta = await fetch(
-        `/api/alunos/${encodeURIComponent(alunoSelecionado.ra)}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status: novoStatus,
-          }),
-        },
-      );
-
-      const dados = (await resposta.json()) as {
-        erro?: string;
-        sucesso?: boolean;
-        status?: "ATIVO" | "CANCELADO";
-      };
-
-      if (!resposta.ok) {
-        throw new Error(
-          dados.erro || "Não foi possível alterar o status da matrícula.",
-        );
-      }
+      await alterarStatusAluno(alunoSelecionado.ra, novoStatus);
 
       setModalStatusAluno(false);
 
@@ -877,21 +806,7 @@ function Conferencia() {
     try {
       setExcluindo(true);
 
-      const resposta = await fetch(
-        `/api/alunos/${encodeURIComponent(alunoSelecionado.ra)}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      const dados = (await resposta.json()) as {
-        erro?: string;
-        sucesso?: boolean;
-      };
-
-      if (!resposta.ok) {
-        throw new Error(dados.erro || "Não foi possível excluir o aluno.");
-      }
+      await excluirAlunoApi(alunoSelecionado.ra);
 
       setModalExcluirAluno(false);
 
@@ -1068,7 +983,6 @@ function Conferencia() {
         saindo={modalSaindo === "importar-cancelados"}
         aoFechar={fecharImportacaoCancelados}
       />
-
 
       <ModalStatusAluno
         aberto={modalStatusAluno}
