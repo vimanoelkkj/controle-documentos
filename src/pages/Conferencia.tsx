@@ -10,6 +10,7 @@ import { ModalEditarAluno } from "./conferencia/ModalEditarAluno";
 import { ModalStatusAluno } from "./conferencia/ModalStatusAluno";
 import { ModalExcluirAluno } from "./conferencia/ModalExcluirAluno";
 import { ModalImportarCancelados } from "./conferencia/ModalImportarCancelados";
+import { ModalSucessoImportacao } from "./conferencia/ModalSucessoImportacao";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import { useImportacaoCancelados } from "./conferencia/hooks/useImportacaoCancelados";
 import {
@@ -2073,67 +2074,10 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
         </div>
       )}
 
-      {sucessoImportacao && (
-        <div className="modal-overlay">
-          <div
-            className="modal-importacao-sucesso"
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="importacao-sucesso-conteudo">
-              <div className="importacao-sucesso-icone">✓</div>
-
-              <span className="modal-eyebrow">IMPORTAÇÃO CONCLUÍDA</span>
-              <h2>Alunos sincronizados com sucesso</h2>
-
-              <p>
-                A importação para a unidade{" "}
-                <strong>{sucessoImportacao.unidade}</strong> foi concluída.
-              </p>
-
-              <div className="importacao-sucesso-resumo">
-                <div>
-                  <strong>
-                    {quantidadeResultado(
-                      sucessoImportacao.resultado.importados,
-                    )}
-                  </strong>
-                  <span>incluídos</span>
-                </div>
-
-                <div>
-                  <strong>
-                    {quantidadeResultado(
-                      sucessoImportacao.resultado.atualizados,
-                    )}
-                  </strong>
-                  <span>atualizados</span>
-                </div>
-
-                <div>
-                  <strong>
-                    {quantidadeResultado(
-                      sucessoImportacao.resultado.sem_alteracoes,
-                    )}
-                  </strong>
-                  <span>sem alterações</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="modal-acoes importacao-sucesso-acoes">
-              <button
-                type="button"
-                className="botao-cadastrar"
-                onClick={() => void fecharSucessoImportacao()}
-                autoFocus
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalSucessoImportacao
+        sucesso={sucessoImportacao}
+        aoFechar={() => void fecharSucessoImportacao()}
+      />
 
       <ModalImportarCancelados
         fluxo={fluxoCancelados}
