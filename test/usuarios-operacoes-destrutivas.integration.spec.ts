@@ -169,6 +169,27 @@ describe.sequential("operacoes administrativas de usuarios", () => {
     expect(me.status).toBe(200);
   });
 
+  it("impede remover o perfil do ultimo administrador ativo", async () => {
+    const removerPerfil = await jsonRequest(
+      `/api/usuarios/${adminId}`,
+      "PUT",
+      { perfil: "EDITOR" },
+      adminCookie,
+    );
+    expect(removerPerfil.status).toBe(409);
+    await expect(removerPerfil.json()).resolves.toMatchObject({
+      erro: expect.stringContaining("último administrador ativo"),
+    });
+
+    const me = await request("/api/auth/me", {
+      headers: { Cookie: adminCookie },
+    });
+    expect(me.status).toBe(200);
+    await expect(me.json()).resolves.toMatchObject({
+      usuario: { perfil: "ADMIN" },
+    });
+  });
+
   it("redefine a senha e encerra todas as sessoes anteriores", async () => {
     const redefinir = await jsonRequest(
       `/api/usuarios/${editorId}`,
