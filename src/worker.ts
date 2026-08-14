@@ -28,11 +28,14 @@ import { obterPeriodoAtual } from "./server/services/periodo-context";
 import { registrarAuditoria } from "./server/services/auditoria";
 import { registrarPendenciaGoogleSheets } from "./server/services/google-sheets-pendencias";
 import {
-  AuthStorageUnavailableError,
+  autorizarRequisicaoApi,
+  bloquearEscritaSemPermissao,
+  emModoApresentacao,
+  podeEditar,
+} from "./server/middleware/autorizacao";
+import {
   handleAuthRoute,
   hashSenha,
-  respostaAuthTemporariamenteIndisponivel,
-  usuarioDaRequisicao,
   type UsuarioSessao,
 } from "./server/routes/auth";
 
@@ -45,82 +48,16 @@ interface Env {
   D1_DATABASE_ID?: string;
   ENVIRONMENT?: string;
 }
-function emModoApresentacao(usuario: UsuarioSessao) {
-  return usuario.modo_apresentacao === 1;
-}
-
-function podeEditar(usuario: UsuarioSessao) {
-  return (
-    !emModoApresentacao(usuario) &&
-    (usuario.perfil === "ADMIN" || usuario.perfil === "EDITOR")
-  );
-}
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const authResponse = await handleAuthRoute(request, env, url);
     if (authResponse) return authResponse;
+    const autorizacao = await autorizarRequisicaoApi(request, url, env.DB);
+    if (autorizacao.resposta) return autorizacao.resposta;
+    const usuarioAtual: UsuarioSessao | null = autorizacao.usuario;
 
-    let usuarioAtual: UsuarioSessao | null = null;
-    if (url.pathname.startsWith("/api/")) {
-      try {
-        usuarioAtual = await usuarioDaRequisicao(request, env);
-      } catch (erro) {
-        if (erro instanceof AuthStorageUnavailableError) {
-          return respostaAuthTemporariamenteIndisponivel();
-        }
-        throw erro;
-      }
-
-      if (!usuarioAtual) {
-        return Response.json(
-          { erro: "Sessão expirada ou não autenticada." },
-          { status: 401 },
-        );
-      }
-
-      const metodoMutavel = ["POST", "PUT", "PATCH", "DELETE"].includes(
-        request.method,
-      );
-
-      const rotaPermitidaNoModoApresentacao =
-        url.pathname === "/api/auth/logout" ||
-        url.pathname === "/api/auth/atividade" ||
-        /^\/api\/periodos\/\d+\/google-sheets\/previa$/.test(url.pathname);
-
-      if (
-        emModoApresentacao(usuarioAtual) &&
-        metodoMutavel &&
-        !rotaPermitidaNoModoApresentacao
-      ) {
-        return Response.json(
-          {
-            erro: "Ação indisponível no modo apresentação.",
-          },
-          {
-            status: 403,
-          },
-        );
-      }
-
-      const rotaSensivelNoModoApresentacao =
-        (url.pathname === "/api/log" && request.method === "GET") ||
-        (request.method === "GET" &&
-          /^\/api\/periodos\/\d+\/google-sheets\/pendencias$/.test(
-            url.pathname,
-          ));
-
-      if (
-        emModoApresentacao(usuarioAtual) &&
-        rotaSensivelNoModoApresentacao
-      ) {
-        return Response.json(
-          { erro: "Conteúdo indisponível no modo apresentação." },
-          { status: 403 },
-        );
-      }
-
+    if (usuarioAtual) {
       const respostaUsuarios = await handleUsuariosRoute({
         request,
         url,
@@ -134,19 +71,12 @@ export default {
       });
       if (respostaUsuarios) return respostaUsuarios;
 
-      const rotaSomenteLeituraViaPost =
-        /^\/api\/periodos\/\d+\/google-sheets\/previa$/.test(url.pathname);
-
-      if (
-        !["GET", "HEAD", "OPTIONS"].includes(request.method) &&
-        !rotaSomenteLeituraViaPost &&
-        !podeEditar(usuarioAtual)
-      ) {
-        return Response.json(
-          { erro: "Seu perfil é somente visualização." },
-          { status: 403 },
-        );
-      }
+      const bloqueioEscrita = bloquearEscritaSemPermissao(
+        request,
+        url,
+        usuarioAtual,
+      );
+      if (bloqueioEscrita) return bloqueioEscrita;
     }
 
     // =====================================================
