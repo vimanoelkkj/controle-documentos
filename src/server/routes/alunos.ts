@@ -265,6 +265,34 @@ async function editarAluno(
   }
 }
 
+async function excluirAluno(
+  db: D1Database,
+  periodoId: number,
+  ra: string,
+  registrarPendencia: AlunosRouteContext["registrarPendencia"],
+) {
+  try {
+    const aluno = await db
+      .prepare("SELECT id FROM alunos WHERE periodo_id = ? AND ra = ?")
+      .bind(periodoId, ra)
+      .first<{ id: number }>();
+
+    if (!aluno) {
+      return Response.json({ erro: "Aluno não encontrado." }, { status: 404 });
+    }
+
+    await db.prepare("DELETE FROM alunos WHERE id = ?").bind(aluno.id).run();
+    await registrarPendencia(ra, "REMOVER", "EXCLUSÃO");
+    return Response.json({ sucesso: true, ra });
+  } catch (erro) {
+    console.error(erro);
+    return Response.json(
+      { erro: "Não foi possível excluir o aluno." },
+      { status: 500 },
+    );
+  }
+}
+
 export async function handleAlunosRoute({
   request,
   url,
@@ -286,6 +314,14 @@ export async function handleAlunosRoute({
   if (rotaAluno && request.method === "PUT") {
     return editarAluno(
       request,
+      db,
+      periodoId,
+      decodeURIComponent(rotaAluno[1]),
+      registrarPendencia,
+    );
+  }
+  if (rotaAluno && request.method === "DELETE") {
+    return excluirAluno(
       db,
       periodoId,
       decodeURIComponent(rotaAluno[1]),

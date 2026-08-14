@@ -345,4 +345,27 @@ describe.sequential("isolamento de dados entre períodos", () => {
       expect.arrayContaining([raCompartilhado, segundoRa]),
     );
   });
+
+  it("exclui somente o aluno do período solicitado", async () => {
+    const segundoRa = "RA-ISOLAMENTO-002";
+    const response = await request(
+      `/api/alunos/${encodeURIComponent(segundoRa)}?periodo=2026-2`,
+      {
+        method: "DELETE",
+        headers: { Cookie: adminCookie },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      sucesso: true,
+      ra: segundoRa,
+    });
+
+    const alunosA = await listarAlunos("2026-2");
+    const alunosB = await listarAlunos("2027-1");
+    expect(alunosA.some((aluno) => aluno.ra === segundoRa)).toBe(false);
+    expect(alunosA.some((aluno) => aluno.ra === raCompartilhado)).toBe(true);
+    expect(alunosB.some((aluno) => aluno.ra === raCompartilhado)).toBe(true);
+  });
 });
