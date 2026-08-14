@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "controle-documentos-test",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-08-06",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "controle-documentos-test-db",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ]
+}
