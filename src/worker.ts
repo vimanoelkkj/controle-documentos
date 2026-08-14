@@ -9,6 +9,7 @@ import { handleAlunosRoute } from "./server/routes/alunos";
 import { handleImportacaoAlunosRoute } from "./server/routes/importacao-alunos";
 import { handleLogsRoute } from "./server/routes/logs";
 import { handleComunicacoesRoute } from "./server/routes/comunicacoes";
+import { handleBackupRoute } from "./server/routes/backup";
 import {
   AuthStorageUnavailableError,
   handleAuthRoute,
@@ -515,93 +516,6 @@ async function registrarPendenciaGoogleSheets(
       motivo,
     )
     .run();
-}
-
-type EstadoExportacaoD1 = {
-  at_bookmark?: string;
-  status?: "complete" | "error";
-  error?: string;
-  result?: {
-    filename?: string;
-    signed_url?: string;
-  };
-};
-
-type RespostaCloudflare<T> = {
-  success: boolean;
-  result?: T;
-  errors?: Array<{ message?: string }>;
-};
-
-async function solicitarExportacaoD1(env: Env) {
-  const accountId = env.CLOUDFLARE_ACCOUNT_ID?.trim();
-  const apiToken = env.CLOUDFLARE_API_TOKEN?.trim();
-  const databaseId = env.D1_DATABASE_ID?.trim();
-
-  if (!accountId || !apiToken || !databaseId) {
-    throw new Error("O backup online ainda nao foi configurado no Worker.");
-  }
-
-  const endpoint =
-    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(
-      accountId,
-    )}` + `/d1/database/${encodeURIComponent(databaseId)}/export`;
-  const headers = {
-    Authorization: `Bearer ${apiToken}`,
-    "Content-Type": "application/json",
-  };
-
-  let bookmark: string | undefined;
-
-  for (let tentativa = 0; tentativa < 60; tentativa += 1) {
-    const resposta = await fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        output_format: "polling",
-        ...(bookmark ? { current_bookmark: bookmark } : {}),
-      }),
-    });
-
-    const dados =
-      (await resposta.json()) as RespostaCloudflare<EstadoExportacaoD1>;
-
-    if (!resposta.ok || !dados.success || !dados.result) {
-      const detalhe = dados.errors
-        ?.map((erro) => erro.message)
-        .filter(Boolean)
-        .join("; ");
-      throw new Error(detalhe || "A Cloudflare recusou a exportacao do D1.");
-    }
-
-    bookmark = dados.result.at_bookmark || bookmark;
-
-    if (dados.result.status === "error") {
-      throw new Error(dados.result.error || "A exportacao do D1 falhou.");
-    }
-
-    if (dados.result.status === "complete") {
-      const arquivo = dados.result.result?.filename;
-      const downloadUrl = dados.result.result?.signed_url;
-      if (!arquivo || !downloadUrl)
-        throw new Error(
-          "A exportacao terminou sem fornecer o arquivo para download.",
-        );
-
-      return { arquivo, downloadUrl };
-    }
-
-    if (!bookmark)
-      throw new Error(
-        "A Cloudflare nao forneceu o identificador da exportacao.",
-      );
-
-    await aguardar(1000);
-  }
-
-  throw new Error(
-    "O backup demorou mais que o esperado. Tente novamente em instantes.",
-  );
 }
 function emModoApresentacao(usuario: UsuarioSessao) {
   return usuario.modo_apresentacao === 1;
@@ -1843,67 +1757,18 @@ export default {
         );
       }
     }
+    const respostaBackup = await handleBackupRoute({
+      request,
+      url,
+      env,
+      usuarioAtual,
+      obterPeriodoAuditoriaId: async () =>
+        (await obterPeriodoAtual(request, env, url))?.id ?? null,
+      registrarAuditoria: (periodoId, evento) =>
+        registrarAuditoria(env, usuarioAtual, periodoId, evento),
+    });
+    if (respostaBackup) return respostaBackup;
 
-    if (
-      url.pathname === "/api/admin/backup/status" &&
-      request.method === "GET"
-    ) {
-      if (usuarioAtual?.perfil !== "ADMIN")
-        return Response.json(
-          { erro: "Apenas administradores podem acessar o backup." },
-          { status: 403 },
-        );
-
-      return Response.json({
-        configurado: Boolean(
-          env.CLOUDFLARE_ACCOUNT_ID?.trim() &&
-          env.CLOUDFLARE_API_TOKEN?.trim() &&
-          env.D1_DATABASE_ID?.trim(),
-        ),
-      });
-    }
-
-    if (url.pathname === "/api/admin/backup" && request.method === "POST") {
-      if (usuarioAtual?.perfil !== "ADMIN")
-        return Response.json(
-          { erro: "Apenas administradores podem gerar backups." },
-          { status: 403 },
-        );
-
-      try {
-        const periodoAuditoria = await obterPeriodoAtual(request, env, url);
-        await registrarAuditoria(
-          env,
-          usuarioAtual,
-          periodoAuditoria?.id ?? null,
-          {
-            acao: "BACKUP",
-            entidade: "BANCO_D1",
-            descricao:
-              "Exportacao manual do banco D1 solicitada pelo painel administrativo.",
-          },
-        );
-
-        const exportacao = await solicitarExportacaoD1(env);
-        return Response.json({
-          sucesso: true,
-          arquivo: exportacao.arquivo,
-          download_url: exportacao.downloadUrl,
-          expira_em_segundos: 3600,
-        });
-      } catch (erro) {
-        console.error("Falha ao gerar backup do D1:", erro);
-        return Response.json(
-          {
-            erro:
-              erro instanceof Error
-                ? erro.message
-                : "Nao foi possivel gerar o backup do D1.",
-          },
-          { status: 500 },
-        );
-      }
-    }
 
     const periodoAtual = url.pathname.startsWith("/api/")
       ? await obterPeriodoAtual(request, env, url)
