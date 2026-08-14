@@ -3,6 +3,7 @@ import "./HistoricoAluno.css";
 import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
 import { FormularioAluno } from "./conferencia/FormularioAluno";
+import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import {
   analisarTextoImportacao,
   extrairRasCancelados,
@@ -24,7 +25,6 @@ import {
   type AlunoImportacao,
   type FiltroStatus,
   type FormAluno,
-  type HistoricoLog,
   type LinhaPreviaImportacao,
   type PreviaCancelados,
   type ResultadoCancelados,
@@ -97,12 +97,16 @@ function Conferencia() {
   const [trocaAlunoPendente, setTrocaAlunoPendente] = useState<string | null>(
     null,
   );
-  const [modalHistoricoAluno, setModalHistoricoAluno] = useState(false);
-  const [historicoAluno, setHistoricoAluno] = useState<HistoricoLog[]>([]);
-  const [carregandoHistorico, setCarregandoHistorico] = useState(false);
-  const [erroHistorico, setErroHistorico] = useState("");
-  const [historicoPossivelmenteLimitado, setHistoricoPossivelmenteLimitado] =
-    useState(false);
+  const {
+    modalHistoricoAluno,
+    setModalHistoricoAluno,
+    historicoAluno,
+    carregandoHistorico,
+    erroHistorico,
+    historicoPossivelmenteLimitado,
+    carregarHistoricoAluno,
+    abrirHistoricoAluno,
+  } = useHistoricoAluno();
 
   const [novoAluno, setNovoAluno] = useState<FormAluno>(formularioVazio);
   const [alunoEdicao, setAlunoEdicao] = useState<FormAluno>(formularioVazio);
@@ -379,45 +383,6 @@ function Conferencia() {
     } catch (erro) {
       console.error("Não foi possível registrar o LOG.", erro);
     }
-  }
-
-  async function carregarHistoricoAluno() {
-    if (!alunoSelecionado.ra) return;
-
-    try {
-      setCarregandoHistorico(true);
-      setErroHistorico("");
-
-      const resposta = await fetch("/api/log?limit=500");
-
-      if (!resposta.ok) {
-        throw new Error("Não foi possível carregar o histórico.");
-      }
-
-      const dados = (await resposta.json()) as HistoricoLog[];
-      const raAtual = alunoSelecionado.ra.trim();
-
-      setHistoricoAluno(
-        dados.filter((registro) => registro.ra?.trim() === raAtual),
-      );
-      setHistoricoPossivelmenteLimitado(dados.length >= 500);
-    } catch (erro) {
-      console.error(erro);
-      setHistoricoAluno([]);
-      setHistoricoPossivelmenteLimitado(false);
-      setErroHistorico(
-        erro instanceof Error
-          ? erro.message
-          : "Não foi possível carregar o histórico.",
-      );
-    } finally {
-      setCarregandoHistorico(false);
-    }
-  }
-
-  function abrirHistoricoAluno() {
-    setModalHistoricoAluno(true);
-    void carregarHistoricoAluno();
   }
 
   if (carregando) {
@@ -1605,7 +1570,7 @@ function Conferencia() {
                 <button
                   type="button"
                   className="student-history-button"
-                  onClick={abrirHistoricoAluno}
+                  onClick={() => abrirHistoricoAluno(alunoSelecionado.ra)}
                 >
                   Histórico
                 </button>
@@ -1865,7 +1830,7 @@ function Conferencia() {
 
               <button
                 type="button"
-                onClick={() => void carregarHistoricoAluno()}
+                onClick={() => void carregarHistoricoAluno(alunoSelecionado.ra)}
                 disabled={carregandoHistorico}
               >
                 {carregandoHistorico ? "Atualizando..." : "↻ Atualizar"}
@@ -1885,7 +1850,9 @@ function Conferencia() {
                   <span>{erroHistorico}</span>
                   <button
                     type="button"
-                    onClick={() => void carregarHistoricoAluno()}
+                    onClick={() =>
+                      void carregarHistoricoAluno(alunoSelecionado.ra)
+                    }
                   >
                     Tentar novamente
                   </button>
