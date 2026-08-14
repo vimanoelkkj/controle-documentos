@@ -2,11 +2,11 @@ import AppIcon from "../components/AppIcon";
 import "./HistoricoAluno.css";
 import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
-import { FormularioAluno } from "./conferencia/FormularioAluno";
 import { ModalHistoricoAluno } from "./conferencia/ModalHistoricoAluno";
 import { ModalAdicionarAluno } from "./conferencia/ModalAdicionarAluno";
 import { ModalTrocaAluno } from "./conferencia/ModalTrocaAluno";
 import { ModalNovoAluno } from "./conferencia/ModalNovoAluno";
+import { ModalEditarAluno } from "./conferencia/ModalEditarAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import {
   analisarTextoImportacao,
@@ -1844,87 +1844,25 @@ function Conferencia() {
         aoCadastrar={() => void cadastrarAluno()}
       />
 
-      {modalEditarAluno && (
-        <div
-          className={`modal-overlay ${modalSaindo === "editar-aluno" ? "modal-overlay-exit" : ""}`}
-        >
-          <div className="modal-novo-aluno">
-            <div className="modal-cabecalho">
-              <div>
-                <span className="modal-eyebrow">EDIÇÃO</span>
-                <h2>Editar aluno</h2>
-                <p>Atualize os dados cadastrais do aluno.</p>
-              </div>
-
-              <button
-                type="button"
-                className="modal-fechar"
-                onClick={() =>
-                  fecharModalAnimado("editar-aluno", () =>
-                    setModalEditarAluno(false),
-                  )
-                }
-                disabled={editando}
-              >
-                ×
-              </button>
-            </div>
-
-            <FormularioAluno dados={alunoEdicao} setDados={setAlunoEdicao} />
-
-            {erroEdicao && <div className="modal-erro">{erroEdicao}</div>}
-
-            <div className="edit-student-danger-zone">
-              <strong>ZONA DE PERIGO</strong>
-
-              <p>
-                Excluir permanentemente deve ser usado apenas quando este
-                cadastro foi criado por engano. Para saída do aluno, use o
-                cancelamento de matrícula.
-              </p>
-
-              <button
-                type="button"
-                className="student-delete-button"
-                onClick={() => {
-                  fecharModalAnimado(
-                    "editar-aluno",
-                    () => setModalEditarAluno(false),
-                    () => setModalExcluirAluno(true),
-                  );
-                }}
-                disabled={editando}
-              >
-                Excluir permanentemente
-              </button>
-            </div>
-
-            <div className="modal-acoes">
-              <button
-                type="button"
-                className="botao-cancelar"
-                onClick={() =>
-                  fecharModalAnimado("editar-aluno", () =>
-                    setModalEditarAluno(false),
-                  )
-                }
-                disabled={editando}
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="button"
-                className="botao-cadastrar"
-                onClick={salvarEdicaoAluno}
-                disabled={editando}
-              >
-                {editando ? "Salvando..." : "Salvar alterações"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalEditarAluno
+        aberto={modalEditarAluno}
+        saindo={modalSaindo === "editar-aluno"}
+        dados={alunoEdicao}
+        setDados={setAlunoEdicao}
+        erro={erroEdicao}
+        editando={editando}
+        aoFechar={() =>
+          fecharModalAnimado("editar-aluno", () => setModalEditarAluno(false))
+        }
+        aoSalvar={() => void salvarEdicaoAluno()}
+        aoExcluir={() =>
+          fecharModalAnimado(
+            "editar-aluno",
+            () => setModalEditarAluno(false),
+            () => setModalExcluirAluno(true),
+          )
+        }
+      />
 
       {modalImportarAlunos && (
         <div
