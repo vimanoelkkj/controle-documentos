@@ -7,6 +7,7 @@ import { handleCancelamentosRoute } from "./server/routes/cancelamentos";
 import { handleDocumentosRoute } from "./server/routes/documentos";
 import { handleAlunosRoute } from "./server/routes/alunos";
 import { handleImportacaoAlunosRoute } from "./server/routes/importacao-alunos";
+import { handleLogsRoute } from "./server/routes/logs";
 
 interface Env {
   DB: D1Database;
@@ -2813,133 +2814,20 @@ export default {
       }
     }
 
-    // =====================================================
-    // GET /api/log
-    // =====================================================
-
-    if (url.pathname === "/api/log" && request.method === "GET") {
-      try {
-        const limiteSolicitado = Number(url.searchParams.get("limit") || "200");
-        const limite = Math.max(1, Math.min(500, limiteSolicitado));
-        const escopoGlobal = url.searchParams.get("scope") === "all";
-
-        const resultado = await env.DB.prepare(
-          escopoGlobal
-            ? `
-            SELECT
-              l.id,
-              l.criado_em,
-              l.acao,
-              l.entidade,
-              l.descricao,
-              l.ra,
-              l.unidade,
-              l.usuario_id,
-              l.usuario_nome,
-              l.usuario_username,
-              p.codigo AS periodo_codigo
-            FROM logs l
-            LEFT JOIN periodos p ON p.id = l.periodo_id
-            ORDER BY l.id DESC
-            LIMIT ?
-          `
-            : `
-            SELECT
-              id,
-              criado_em,
-              acao,
-              entidade,
-              descricao,
-              ra,
-              unidade,
-              usuario_id,
-              usuario_nome,
-              usuario_username
-            FROM logs
-            WHERE periodo_id = ?
-            ORDER BY id DESC
-            LIMIT ?
-          `,
-        )
-          .bind(...(escopoGlobal ? [limite] : [periodoAtual!.id, limite]))
-          .all();
-
-        return Response.json(resultado.results);
-      } catch (erro) {
-        console.error(erro);
-        return Response.json(
-          {
-            erro: "LOG indisponível. Verifique se as migrations do LOG foram aplicadas no D1.",
-          },
-          { status: 500 },
-        );
-      }
-    }
-
-    // =====================================================
-    // POST /api/log
-    // =====================================================
-
-    if (url.pathname === "/api/log" && request.method === "POST") {
-      try {
-        const body = await request.json<{
-          acao: string;
-          entidade: string;
-          descricao: string;
-          ra?: string;
-          unidade?: string;
-        }>();
-
-        if (
-          !body.acao?.trim() ||
-          !body.entidade?.trim() ||
-          !body.descricao?.trim()
-        ) {
-          return Response.json(
-            { erro: "Dados insuficientes para registrar o LOG." },
-            { status: 400 },
-          );
-        }
-
-        await env.DB.prepare(
-          `
-            INSERT INTO logs (
-              acao,
-              entidade,
-              descricao,
-              ra,
-              unidade,
-              periodo_id,
-              usuario_id,
-              usuario_nome,
-              usuario_username
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `,
-        )
-          .bind(
-            body.acao.trim(),
-            body.entidade.trim(),
-            body.descricao.trim(),
-            body.ra?.trim() || null,
-            body.unidade?.trim() || null,
-            periodoAtual!.id,
-            usuarioAtual?.id ?? null,
-            usuarioAtual?.nome ?? null,
-            usuarioAtual?.username ?? null,
-          )
-          .run();
-
-        return Response.json({ sucesso: true }, { status: 201 });
-      } catch (erro) {
-        console.error(erro);
-        return Response.json(
-          { erro: "Não foi possível registrar o LOG." },
-          { status: 500 },
-        );
-      }
-    }
-
+    const respostaLogs = await handleLogsRoute({
+      request,
+      url,
+      db: env.DB,
+      periodoId: periodoAtual!.id,
+      usuario: usuarioAtual
+        ? {
+            id: usuarioAtual.id,
+            nome: usuarioAtual.nome,
+            username: usuarioAtual.username,
+          }
+        : null,
+    });
+    if (respostaLogs) return respostaLogs;
     const respostaCursos = await handleCursosRoute({
       request,
       url,
