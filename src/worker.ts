@@ -24,6 +24,7 @@ import {
   testarConexaoGoogleSheets,
   valorBooleano,
 } from "./server/services/google-sheets";
+import { obterPeriodoAtual } from "./server/services/periodo-context";
 import {
   AuthStorageUnavailableError,
   handleAuthRoute,
@@ -59,41 +60,6 @@ type AlunoRow = {
   contrato: number;
   status: "ATIVO" | "CANCELADO";
 };
-
-type PeriodoRow = {
-  id: number;
-  codigo: string;
-  status: "ATIVO" | "ARQUIVADO";
-  criado_em: string;
-  atualizado_em: string;
-};
-
-function obterCookie(request: Request, nome: string) {
-  const cookies = request.headers.get("Cookie") || "";
-  for (const parte of cookies.split(";")) {
-    const [chave, ...valor] = parte.trim().split("=");
-    if (chave === nome) return decodeURIComponent(valor.join("="));
-  }
-  return null;
-}
-
-async function obterPeriodoAtual(request: Request, env: Env, url: URL) {
-  const codigo =
-    url.searchParams.get("periodo") || obterCookie(request, "periodo");
-
-  if (codigo) {
-    const periodo = await env.DB.prepare(
-      `SELECT id, codigo, status, criado_em, atualizado_em FROM periodos WHERE codigo = ?`,
-    )
-      .bind(codigo)
-      .first<PeriodoRow>();
-    if (periodo) return periodo;
-  }
-
-  return env.DB.prepare(
-    `SELECT id, codigo, status, criado_em, atualizado_em FROM periodos ORDER BY CASE status WHEN 'ATIVO' THEN 0 ELSE 1 END, id DESC LIMIT 1`,
-  ).first<PeriodoRow>();
-}
 
 type EventoAuditoria = {
   acao: string;
@@ -280,7 +246,7 @@ export default {
         usuarioAtual,
         hashSenha,
         obterPeriodoAuditoriaId: async () =>
-          (await obterPeriodoAtual(request, env, url))?.id ?? null,
+          (await obterPeriodoAtual(request, env.DB, url))?.id ?? null,
         registrarAuditoria: (periodoId, evento) =>
           registrarAuditoria(env, usuarioAtual, periodoId, evento),
       });
@@ -359,7 +325,7 @@ export default {
       env,
       usuarioAtual,
       obterPeriodoAuditoriaId: async () =>
-        (await obterPeriodoAtual(request, env, url))?.id ?? null,
+        (await obterPeriodoAtual(request, env.DB, url))?.id ?? null,
       registrarAuditoria: (periodoId, evento) =>
         registrarAuditoria(env, usuarioAtual, periodoId, evento),
     });
@@ -367,7 +333,7 @@ export default {
 
 
     const periodoAtual = url.pathname.startsWith("/api/")
-      ? await obterPeriodoAtual(request, env, url)
+      ? await obterPeriodoAtual(request, env.DB, url)
       : null;
 
     if (
