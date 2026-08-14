@@ -10,9 +10,9 @@ import { ModalEditarAluno } from "./conferencia/ModalEditarAluno";
 import { ModalStatusAluno } from "./conferencia/ModalStatusAluno";
 import { ModalExcluirAluno } from "./conferencia/ModalExcluirAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
+import { useImportacaoCancelados } from "./conferencia/hooks/useImportacaoCancelados";
 import {
   analisarTextoImportacao,
-  extrairRasCancelados,
 } from "./conferencia/importacao";
 import { quantidadeResultado } from "./conferencia/utils";
 import { registrarLogAluno } from "./conferencia/operacoes";
@@ -29,8 +29,6 @@ import {
   type FiltroStatus,
   type FormAluno,
   type LinhaPreviaImportacao,
-  type PreviaCancelados,
-  type ResultadoCancelados,
   type ResultadoImportacao,
   type Unidade,
 } from "./conferencia/model";
@@ -165,19 +163,35 @@ function Conferencia() {
   const buscaAlunoRef = useRef<HTMLInputElement | null>(null);
   const listaAlunosRef = useRef<HTMLDivElement | null>(null);
 
-  const [modalImportarCancelados, setModalImportarCancelados] = useState(false);
-  const [modoCancelados, setModoCancelados] = useState<"colar" | "csv">(
-    "colar",
-  );
-  const [unidadeCancelados, setUnidadeCancelados] = useState<Unidade>("FACE");
-  const [textoCancelados, setTextoCancelados] = useState("");
-  const [arquivoCancelados, setArquivoCancelados] = useState("");
-  const [previaCancelados, setPreviaCancelados] =
-    useState<PreviaCancelados | null>(null);
-  const [resultadoCancelados, setResultadoCancelados] =
-    useState<ResultadoCancelados | null>(null);
-  const [processandoCancelados, setProcessandoCancelados] = useState(false);
-  const [erroCancelados, setErroCancelados] = useState("");
+  const {
+    modalImportarCancelados,
+    setModalImportarCancelados,
+    modoCancelados,
+    setModoCancelados,
+    unidadeCancelados,
+    setUnidadeCancelados,
+    textoCancelados,
+    setTextoCancelados,
+    arquivoCancelados,
+    previaCancelados,
+    setPreviaCancelados,
+    resultadoCancelados,
+    processandoCancelados,
+    erroCancelados,
+    setErroCancelados,
+    abrirImportacaoCancelados,
+    limparImportacaoCancelados,
+    selecionarArquivoCancelados,
+    gerarPreviaCancelados,
+    confirmarCancelados,
+  } = useImportacaoCancelados({
+    unidadeInicial: unidadeSelecionada || "FACE",
+    aoConcluir: async (ra, unidade) => {
+      setUnidadeSelecionada(unidade);
+      setFiltroStatus("CANCELADO");
+      await carregarAlunos(ra, unidade, "CANCELADO");
+    },
+  });
 
   useLayoutEffect(() => {
     const grid = conferenciaGridRef.current;
@@ -771,172 +785,12 @@ function Conferencia() {
     await carregarAlunos(undefined, unidade, filtroStatus);
   }
 
-  function abrirImportacaoCancelados() {
-    setModoCancelados("colar");
-    setUnidadeCancelados(unidadeSelecionada || "FACE");
-    setTextoCancelados("");
-    setArquivoCancelados("");
-    setPreviaCancelados(null);
-    setResultadoCancelados(null);
-    setErroCancelados("");
-    setModalImportarCancelados(true);
-  }
-
   function fecharImportacaoCancelados() {
     if (processandoCancelados) return;
 
     fecharModalAnimado("importar-cancelados", () =>
       setModalImportarCancelados(false),
     );
-  }
-
-  function limparImportacaoCancelados() {
-    setTextoCancelados("");
-    setArquivoCancelados("");
-    setPreviaCancelados(null);
-    setResultadoCancelados(null);
-    setErroCancelados("");
-  }
-
-  async function selecionarArquivoCancelados(
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
-    const arquivo = event.target.files?.[0];
-
-    if (!arquivo) return;
-
-    setErroCancelados("");
-    setPreviaCancelados(null);
-    setResultadoCancelados(null);
-    setArquivoCancelados(arquivo.name);
-
-    try {
-      const bytes = await arquivo.arrayBuffer();
-
-      let conteudo: string;
-
-      try {
-        conteudo = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-      } catch {
-        conteudo = new TextDecoder("windows-1252").decode(bytes);
-      }
-
-      setTextoCancelados(conteudo);
-    } catch (erro) {
-      console.error(erro);
-      setErroCancelados("Não foi possível ler o arquivo CSV.");
-    }
-  }
-
-  async function gerarPreviaCancelados() {
-    setErroCancelados("");
-    setResultadoCancelados(null);
-
-    if (!textoCancelados.trim()) {
-      setErroCancelados(
-        modoCancelados === "csv"
-          ? "Selecione um arquivo CSV."
-          : "Cole os dados da planilha.",
-      );
-      return;
-    }
-
-    try {
-      setProcessandoCancelados(true);
-
-      const ras = extrairRasCancelados(textoCancelados);
-
-      if (ras.length === 0) {
-        throw new Error("Nenhum RA foi encontrado.");
-      }
-
-      const resposta = await fetch("/api/alunos/cancelados/previa", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          unidade: unidadeCancelados,
-          ras,
-        }),
-      });
-
-      const dados = (await resposta.json()) as PreviaCancelados;
-
-      if (!resposta.ok) {
-        throw new Error(
-          dados.erro || "Não foi possível analisar os cancelados.",
-        );
-      }
-
-      setPreviaCancelados(dados);
-    } catch (erro) {
-      console.error(erro);
-      setPreviaCancelados(null);
-      setErroCancelados(
-        erro instanceof Error
-          ? erro.message
-          : "Não foi possível analisar os cancelados.",
-      );
-    } finally {
-      setProcessandoCancelados(false);
-    }
-  }
-
-  async function confirmarCancelados() {
-    if (!previaCancelados) return;
-
-    const ras = previaCancelados.alunos
-      .filter((aluno) => aluno.status_previa === "PRONTO")
-      .map((aluno) => aluno.ra);
-
-    if (ras.length === 0) {
-      setErroCancelados("Não há alunos prontos para cancelar.");
-      return;
-    }
-
-    try {
-      setProcessandoCancelados(true);
-      setErroCancelados("");
-
-      const resposta = await fetch("/api/alunos/cancelados", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          unidade: unidadeCancelados,
-          ras,
-        }),
-      });
-
-      const dados = (await resposta.json()) as ResultadoCancelados;
-
-      if (!resposta.ok) {
-        throw new Error(dados.erro || "Não foi possível cancelar os alunos.");
-      }
-
-      setResultadoCancelados(dados);
-
-      await registrarLogAluno(
-        "CANCELAMENTO EM LOTE",
-        `${ras.length} matrícula(s) processada(s) pela lista de cancelados.`,
-        undefined,
-        unidadeCancelados,
-      );
-
-      setUnidadeSelecionada(unidadeCancelados);
-      setFiltroStatus("CANCELADO");
-
-      await carregarAlunos(ras[0], unidadeCancelados, "CANCELADO");
-    } catch (erro) {
-      console.error(erro);
-      setErroCancelados(
-        erro instanceof Error ? erro.message : "Erro ao cancelar alunos.",
-      );
-    } finally {
-      setProcessandoCancelados(false);
-    }
   }
 
   function alternarDocumento(nomeDocumento: string) {
