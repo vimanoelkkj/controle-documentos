@@ -281,4 +281,68 @@ describe.sequential("isolamento de dados entre períodos", () => {
     expect(alunos).toHaveLength(1);
     expect(alunos[0].ra).toBe(raCompartilhado);
   });
+
+  it("rejeita edição sem os campos cadastrais obrigatórios", async () => {
+    const response = await jsonRequest(
+      `/api/alunos/${encodeURIComponent(raCompartilhado)}?periodo=2026-2`,
+      "PUT",
+      {
+        ra: raCompartilhado,
+        nome: "",
+        curso: "ADMINISTRAÇÃO",
+        unidade: "FCH",
+      },
+      adminCookie,
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      erro: "RA, nome, curso e unidade são obrigatórios.",
+    });
+
+    const alunos = await listarAlunos("2026-2");
+    expect(alunos[0]).toMatchObject({
+      ra: raCompartilhado,
+      nome: "Aluno A Atualizado",
+      unidade: "FCH",
+    });
+  });
+
+  it("impede trocar o RA por outro já usado no mesmo período", async () => {
+    const segundoRa = "RA-ISOLAMENTO-002";
+    const cadastrar = await jsonRequest(
+      "/api/alunos?periodo=2026-2",
+      "POST",
+      {
+        ra: segundoRa,
+        nome: "Segundo Aluno",
+        curso: "ADMINISTRAÇÃO",
+        unidade: "FACE",
+      },
+      adminCookie,
+    );
+    expect(cadastrar.status).toBe(201);
+
+    const response = await jsonRequest(
+      `/api/alunos/${encodeURIComponent(segundoRa)}?periodo=2026-2`,
+      "PUT",
+      {
+        ra: raCompartilhado,
+        nome: "Segundo Aluno",
+        curso: "ADMINISTRAÇÃO",
+        unidade: "FACE",
+      },
+      adminCookie,
+    );
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      erro: "Já existe outro aluno com este RA.",
+    });
+
+    const alunos = await listarAlunos("2026-2");
+    expect(alunos.map((aluno) => aluno.ra)).toEqual(
+      expect.arrayContaining([raCompartilhado, segundoRa]),
+    );
+  });
 });

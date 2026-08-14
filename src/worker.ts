@@ -5,6 +5,7 @@ import { handlePeriodosRoute } from "./server/routes/periodos";
 import { handleUsuariosRoute } from "./server/routes/usuarios";
 import { handleCancelamentosRoute } from "./server/routes/cancelamentos";
 import { handleDocumentosRoute } from "./server/routes/documentos";
+import { handleAlunosRoute } from "./server/routes/alunos";
 
 interface Env {
   DB: D1Database;
@@ -31,16 +32,6 @@ type AlunoRow = {
   ensino_medio: number;
   contrato: number;
   status: "ATIVO" | "CANCELADO";
-};
-
-type DadosAluno = {
-  ra: string;
-  nome: string;
-  curso: string;
-  unidade: string;
-  email?: string;
-  email_outro?: string;
-  documentos?: DocumentosBody;
 };
 
 type DocumentosBody = {
@@ -2960,194 +2951,24 @@ export default {
     if (respostaCursos) return respostaCursos;
 
     // =====================================================
-    // GET /api/alunos
-    // =====================================================
-
-    if (url.pathname === "/api/alunos" && request.method === "GET") {
-      const resultado = await env.DB.prepare(
-        `
-          SELECT
-            a.ra,
-            a.nome,
-            a.email,
-            a.email_outro,
-            a.curso,
-            a.unidade,
-            a.status,
-            d.identidade,
-            d.cpf,
-            d.certidao,
-            d.residencia,
-            d.titulo,
-            d.ensino_medio,
-            d.contrato
-          FROM alunos a
-          INNER JOIN documentos d
-            ON d.aluno_id = a.id
-          WHERE a.periodo_id = ?
-          ORDER BY a.nome
-        `,
-      )
-        .bind(periodoAtual!.id)
-        .all<AlunoRow>();
-
-      if (usuarioAtual && emModoApresentacao(usuarioAtual)) {
-        const alunosSanitizados = resultado.results.map((aluno, indice) => ({
-          ra: `APRESENTACAO-${String(indice + 1).padStart(4, "0")}`,
-          nome: `Aluno ${String(indice + 1).padStart(4, "0")}`,
-          email: "",
-          email_outro: "",
-          curso: aluno.curso,
-          unidade: aluno.unidade,
-          status: aluno.status,
-          identidade: aluno.identidade,
-          cpf: aluno.cpf,
-          certidao: aluno.certidao,
-          residencia: aluno.residencia,
-          titulo: aluno.titulo,
-          ensino_medio: aluno.ensino_medio,
-          contrato: aluno.contrato,
-        }));
-
-        return Response.json(alunosSanitizados);
-      }
-
-      return Response.json(resultado.results);
-    }
-
-    // =====================================================
-    // POST /api/alunos
-    // =====================================================
-
-    if (url.pathname === "/api/alunos" && request.method === "POST") {
-      try {
-        const body = await request.json<DadosAluno>();
-
-        const ra = body.ra?.trim();
-        const nome = body.nome?.trim();
-        const curso = body.curso?.trim();
-        const unidade = body.unidade?.trim();
-
-        if (!ra || !nome || !curso || !unidade) {
-          return Response.json(
-            {
-              erro: "RA, nome, curso e unidade são obrigatórios.",
-            },
-            {
-              status: 400,
-            },
-          );
-        }
-
-        const existente = await env.DB.prepare(
-          `
-            SELECT id
-            FROM alunos
-            WHERE periodo_id = ? AND ra = ?
-          `,
-        )
-          .bind(periodoAtual!.id, ra)
-          .first<{ id: number }>();
-
-        if (existente) {
-          return Response.json(
-            {
-              erro: "Já existe um aluno com este RA.",
-            },
-            {
-              status: 409,
-            },
-          );
-        }
-
-        const resultado = await env.DB.prepare(
-          `
-            INSERT INTO alunos (
-              periodo_id,
-              ra,
-              nome,
-              email,
-              email_outro,
-              curso,
-              unidade
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-          `,
-        )
-          .bind(
-            periodoAtual!.id,
-            ra,
-            nome,
-            body.email?.trim() || null,
-            body.email_outro?.trim() || null,
-            curso,
-            unidade,
-          )
-          .run();
-
-        const alunoId = resultado.meta.last_row_id;
-
-        const documentos = body.documentos;
-
-        await env.DB.prepare(
-          `
-            INSERT INTO documentos (
-              aluno_id,
-              identidade,
-              cpf,
-              certidao,
-              residencia,
-              titulo,
-              ensino_medio,
-              contrato
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `,
-        )
-          .bind(
-            alunoId,
-            documentos?.identidade ? 1 : 0,
-            documentos?.cpf ? 1 : 0,
-            documentos?.certidao ? 1 : 0,
-            documentos?.residencia ? 1 : 0,
-            documentos?.titulo ? 1 : 0,
-            documentos?.ensino_medio ? 1 : 0,
-            documentos?.contrato ? 1 : 0,
-          )
-          .run();
-
-        await registrarPendenciaGoogleSheets(
+    const respostaAlunos = await handleAlunosRoute({
+      request,
+      url,
+      db: env.DB,
+      periodoId: periodoAtual!.id,
+      modoApresentacao:
+        Boolean(usuarioAtual) && emModoApresentacao(usuarioAtual!),
+      registrarPendencia: (ra, tipo, motivo) =>
+        registrarPendenciaGoogleSheets(
           env,
           usuarioAtual,
           periodoAtual!.id,
           ra,
-          "ATUALIZAR",
-          "NOVO ALUNO",
-        );
-
-        return Response.json(
-          {
-            sucesso: true,
-            ra,
-            id: alunoId,
-          },
-          {
-            status: 201,
-          },
-        );
-      } catch (erro) {
-        console.error(erro);
-
-        return Response.json(
-          {
-            erro: "Não foi possível cadastrar o aluno.",
-          },
-          {
-            status: 500,
-          },
-        );
-      }
-    }
+          tipo,
+          motivo,
+        ),
+    });
+    if (respostaAlunos) return respostaAlunos;
 
     // =====================================================
     // POST /api/alunos/importar
@@ -3503,143 +3324,7 @@ export default {
     });
     if (respostaDocumentos) return respostaDocumentos;
 
-    // =====================================================
-    // PUT /api/alunos/:ra
-    // Editar dados cadastrais
-    // =====================================================
-
     const rotaAluno = url.pathname.match(/^\/api\/alunos\/([^/]+)$/);
-
-    if (rotaAluno && request.method === "PUT") {
-      try {
-        const raAtual = decodeURIComponent(rotaAluno[1]);
-
-        const body = await request.json<DadosAluno>();
-
-        const novoRa = body.ra?.trim();
-        const nome = body.nome?.trim();
-        const curso = body.curso?.trim();
-        const unidade = body.unidade?.trim();
-
-        if (!novoRa || !nome || !curso || !unidade) {
-          return Response.json(
-            {
-              erro: "RA, nome, curso e unidade são obrigatórios.",
-            },
-            {
-              status: 400,
-            },
-          );
-        }
-
-        const aluno = await env.DB.prepare(
-          `
-            SELECT id
-            FROM alunos
-            WHERE periodo_id = ? AND ra = ?
-          `,
-        )
-          .bind(periodoAtual!.id, raAtual)
-          .first<{ id: number }>();
-
-        if (!aluno) {
-          return Response.json(
-            {
-              erro: "Aluno não encontrado.",
-            },
-            {
-              status: 404,
-            },
-          );
-        }
-
-        if (novoRa !== raAtual) {
-          const raEmUso = await env.DB.prepare(
-            `
-              SELECT id
-              FROM alunos
-              WHERE periodo_id = ?
-              AND ra = ?
-              AND id <> ?
-            `,
-          )
-            .bind(periodoAtual!.id, novoRa, aluno.id)
-            .first<{ id: number }>();
-
-          if (raEmUso) {
-            return Response.json(
-              {
-                erro: "Já existe outro aluno com este RA.",
-              },
-              {
-                status: 409,
-              },
-            );
-          }
-        }
-
-        await env.DB.prepare(
-          `
-            UPDATE alunos
-            SET
-              ra = ?,
-              nome = ?,
-              email = ?,
-              email_outro = ?,
-              curso = ?,
-              unidade = ?,
-              atualizado_em = CURRENT_TIMESTAMP
-            WHERE id = ?
-          `,
-        )
-          .bind(
-            novoRa,
-            nome,
-            body.email?.trim() || null,
-            body.email_outro?.trim() || null,
-            curso,
-            unidade,
-            aluno.id,
-          )
-          .run();
-
-        if (novoRa !== raAtual) {
-          await registrarPendenciaGoogleSheets(
-            env,
-            usuarioAtual,
-            periodoAtual!.id,
-            raAtual,
-            "REMOVER",
-            "TROCA DE RA",
-          );
-        }
-        await registrarPendenciaGoogleSheets(
-          env,
-          usuarioAtual,
-          periodoAtual!.id,
-          novoRa,
-          "ATUALIZAR",
-          "CADASTRO",
-        );
-
-        return Response.json({
-          sucesso: true,
-          ra_anterior: raAtual,
-          ra: novoRa,
-        });
-      } catch (erro) {
-        console.error(erro);
-
-        return Response.json(
-          {
-            erro: "Não foi possível atualizar o aluno.",
-          },
-          {
-            status: 500,
-          },
-        );
-      }
-    }
 
     // =====================================================
     // DELETE /api/alunos/:ra
