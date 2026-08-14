@@ -8,6 +8,7 @@ import { ModalTrocaAluno } from "./conferencia/ModalTrocaAluno";
 import { ModalNovoAluno } from "./conferencia/ModalNovoAluno";
 import { ModalEditarAluno } from "./conferencia/ModalEditarAluno";
 import { ModalStatusAluno } from "./conferencia/ModalStatusAluno";
+import { ModalExcluirAluno } from "./conferencia/ModalExcluirAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import {
   analisarTextoImportacao,
@@ -2619,62 +2620,16 @@ Não Entregue    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA 
         aoConfirmar={() => void alterarStatusMatricula()}
       />
 
-      {modalExcluirAluno && (
-        <div
-          className={`modal-overlay ${modalSaindo === "excluir-aluno" ? "modal-overlay-exit" : ""}`}
-        >
-          <div className="modal-excluir-aluno">
-            <div className="modal-excluir-icon">!</div>
-
-            <div className="modal-excluir-conteudo">
-              <span className="modal-eyebrow modal-eyebrow-danger">
-                EXCLUSÃO
-              </span>
-
-              <h2>Excluir permanentemente?</h2>
-
-              <p>Este recurso é reservado para cadastros criados por engano:</p>
-
-              <div className="aluno-exclusao-card">
-                <strong>{alunoSelecionado.nome}</strong>
-
-                <span>
-                  RA {alunoSelecionado.ra} · {alunoSelecionado.curso}
-                </span>
-              </div>
-
-              <p className="modal-excluir-aviso">
-                O aluno e todo o controle de documentos associado serão
-                excluídos. Esta ação não pode ser desfeita.
-              </p>
-            </div>
-
-            <div className="modal-excluir-acoes">
-              <button
-                type="button"
-                className="botao-cancelar"
-                onClick={() =>
-                  fecharModalAnimado("excluir-aluno", () =>
-                    setModalExcluirAluno(false),
-                  )
-                }
-                disabled={excluindo}
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="button"
-                className="botao-confirmar-exclusao"
-                onClick={excluirAluno}
-                disabled={excluindo}
-              >
-                {excluindo ? "Excluindo..." : "Excluir permanentemente"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalExcluirAluno
+        aberto={modalExcluirAluno}
+        saindo={modalSaindo === "excluir-aluno"}
+        aluno={alunoSelecionado}
+        excluindo={excluindo}
+        aoFechar={() =>
+          fecharModalAnimado("excluir-aluno", () => setModalExcluirAluno(false))
+        }
+        aoConfirmar={() => void excluirAluno()}
+      />
     </section>
   );
 }
