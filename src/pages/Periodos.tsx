@@ -2,10 +2,10 @@ import { PeriodoCard } from "./periodos/PeriodoCard";
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 import { usePeriodo } from "../contexts/periodo";
-import AppSelect from "../components/AppSelect";
 import { api } from "../lib/api";
 import { useAuth } from "../contexts/auth";
 import { useGoogleSheetsPeriodo } from "./periodos/hooks/useGoogleSheetsPeriodo";
+import { GoogleSheetsCard } from "./periodos/google-sheets/GoogleSheetsCard";
 
 function normalizarCodigo(valor: string) {
   return valor.trim().toUpperCase().replace(/\s+/g, "");
@@ -17,25 +17,6 @@ function formatarCodigoPeriodo(valor: string) {
   if (numeros.length === 4) return `${numeros}-`;
   return `${numeros.slice(0, 4)}-${numeros.slice(4)}`;
 }
-
-type SheetsConfig = {
-  spreadsheet_id: string;
-  aba_base_face_fea: string;
-  aba_base_fch_ead: string;
-  aba_docs_face_fea: string;
-  aba_docs_fch_ead: string;
-  aba_cancelados_face_fea: string;
-  aba_cancelados_fch_ead: string;
-};
-
-type AbaPrevia =
-  | "novos"
-  | "cadastros"
-  | "documentos"
-  | "cancelamentos"
-  | "reativacoes"
-  | "unidades"
-  | "remocoes";
 
 function Periodos() {
   const { modoApresentacao } = useAuth();
@@ -215,425 +196,35 @@ function Periodos() {
         </section>
       )}
 
-      <section className="period-sheets-card">
-        <div className="period-sheets-heading">
-          <div>
-            <span>INTEGRAÇÃO</span>
-            <h2>Google Sheets</h2>
-            <p>
-              Leitura segura da planilha vinculada ao período{" "}
-              <strong>{periodoAtual?.codigo ?? "—"}</strong>. A prévia não
-              altera o sistema nem a planilha.
-            </p>
-          </div>
-          <div className="period-sheets-heading-status">
-            <span
-              className={`period-sheets-status ${sheetsStatus === "configurado" ? "connected" : ""}`}
-            >
-              {sheetsStatus === "carregando"
-                ? "CARREGANDO..."
-                : sheetsStatus === "configurado"
-                  ? "CONFIGURADO"
-                  : sheetsStatus === "indisponivel"
-                    ? "INDISPONÍVEL"
-                    : "NÃO CONFIGURADO"}
-            </span>
-            {sheetsTitulo && (
-              <div className="period-sheets-file" title={sheetsTitulo}>
-                <span>PLANILHA VINCULADA</span>
-                <strong>{sheetsTitulo}</strong>
-              </div>
-            )}
-          </div>
-        </div>
-        <label className="period-sheets-main">
-          <span>Link ou ID da planilha</span>
-          <input
-            value={
-              modoApresentacao
-                ? sheetsConfig.spreadsheet_id
-                  ? "Planilha configurada"
-                  : ""
-                : sheetsConfig.spreadsheet_id
-            }
-            disabled={modoApresentacao}
-            onChange={(e) =>
-              setSheetsConfig({
-                ...sheetsConfig,
-                spreadsheet_id: e.target.value,
-              })
-            }
-            placeholder="https://docs.google.com/spreadsheets/d/..."
-          />
-        </label>
-        <div className="period-sheets-grid">
-          {(
-            [
-              ["Base FACE / FEA", "aba_base_face_fea"],
-              ["Base FCH / EAD", "aba_base_fch_ead"],
-              ["Documentos FACE / FEA", "aba_docs_face_fea"],
-              ["Documentos FCH / EAD", "aba_docs_fch_ead"],
-              ["Cancelados FACE / FEA", "aba_cancelados_face_fea"],
-              ["Cancelados FCH / EAD", "aba_cancelados_fch_ead"],
-            ] as Array<[string, keyof SheetsConfig]>
-          ).map(([rotulo, campo]) => (
-            <label key={campo}>
-              <span>{rotulo}</span>
-              <input
-                value={sheetsConfig[campo]}
-                disabled={modoApresentacao}
-                onChange={(e) =>
-                  setSheetsConfig({ ...sheetsConfig, [campo]: e.target.value })
-                }
-              />
-            </label>
-          ))}
-        </div>
-        {sheetsErro && <div className="period-sheets-error">{sheetsErro}</div>}
-        <div className="period-sheets-actions">
-          {!modoApresentacao && (
-            <button
-              type="button"
-              className="secondary"
-              onClick={salvarSheets}
-              disabled={sheetsCarregando || !periodoAtual}
-            >
-              {sheetsCarregando ? "Aguarde..." : "Salvar configuração"}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={gerarPreviaSheets}
-            disabled={sheetsCarregando || !sheetsSalvo}
-          >
-            {sheetsCarregando ? "Lendo..." : "Ler planilha e gerar prévia"}
-          </button>
-        </div>
-        {sheetsPrevia && (
-          <div className="period-sheets-preview">
-            <div className="period-sheets-preview-title">
-              <div>
-                <span>PRÉVIA · SOMENTE LEITURA</span>
-                <h3>{sheetsPrevia.encontrados} alunos encontrados</h3>
-              </div>
-              <strong>✓ NADA ALTERADO</strong>
-            </div>
-            <div className="period-sheets-metrics">
-              {(
-                [
-                  ["novos", sheetsPrevia.novos, "Novos alunos"],
-                  [
-                    "cadastros",
-                    sheetsPrevia.alteracoes_cadastrais,
-                    "Cadastros diferentes",
-                  ],
-                  [
-                    "documentos",
-                    sheetsPrevia.documentos_alterados,
-                    "Documentos diferentes",
-                  ],
-                  [
-                    "cancelamentos",
-                    sheetsPrevia.prontos_para_cancelar,
-                    "Cancelamentos",
-                  ],
-                  [
-                    "reativacoes",
-                    sheetsPrevia.prontos_para_reativar,
-                    "Reativações",
-                  ],
-                  ["remocoes", sheetsPrevia.prontos_para_remover, "Remoções"],
-                  [
-                    "unidades",
-                    sheetsPrevia.cursos_nao_mapeados ??
-                      sheetsPrevia.cursos_pendentes.length,
-                    "Cursos a mapear",
-                  ],
-                ] as Array<[AbaPrevia, number, string]>
-              ).map(([aba, valor, rotulo]) => (
-                <button
-                  type="button"
-                  key={aba}
-                  className={[
-                    aba === "unidades" && valor ? "warning" : "",
-                    abaPrevia === aba ? "active" : "",
-                    (
-                      aba === "documentos"
-                        ? sheetsPrevia.documentos_alterados > 0
-                        : valor > 0
-                    )
-                      ? "has-details"
-                      : "no-details",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => {
-                    const temDetalhes =
-                      aba === "documentos"
-                        ? sheetsPrevia.documentos_alterados > 0
-                        : valor > 0;
-
-                    if (temDetalhes) {
-                      setAbaPrevia(aba);
-                    }
-                  }}
-                >
-                  <strong>{valor}</strong>
-                  <span>{rotulo}</span>
-                  {(aba === "documentos"
-                    ? sheetsPrevia.documentos_alterados > 0
-                    : valor > 0) && <small>Ver detalhes</small>}
-                </button>
-              ))}
-            </div>
-
-            {abaPrevia && (
-              <div className="period-sheets-detail">
-                <div className="period-sheets-detail-head">
-                  <div>
-                    <span>CONFERÊNCIA</span>
-                    <h4>
-                      {abaPrevia === "unidades"
-                        ? "Mapear cursos por unidade"
-                        : "Detalhes da prévia"}
-                    </h4>
-                  </div>
-                  <button type="button" onClick={() => setAbaPrevia(null)}>
-                    ×
-                  </button>
-                </div>
-                {abaPrevia === "unidades" ? (
-                  sheetsPrevia.cursos_pendentes.length ? (
-                    <div className="period-course-map">
-                      {sheetsPrevia.cursos_pendentes.map((grupo) => (
-                        <article key={grupo.curso}>
-                          <div className="period-course-info">
-                            <strong>{grupo.curso}</strong>
-                            <span>
-                              {grupo.quantidade} aluno(s) será(ão) resolvido(s)
-                            </span>
-                            <small>
-                              {grupo.alunos
-                                .slice(0, 3)
-                                .map((a) => a.nome)
-                                .join(" · ")}
-                              {grupo.alunos.length > 3
-                                ? ` · +${grupo.alunos.length - 3}`
-                                : ""}
-                            </small>
-                          </div>
-                          <div className="period-course-actions">
-                            <AppSelect
-                              value={mapeamentos[grupo.curso] || ""}
-                              onChange={(valor) =>
-                                setMapeamentos((atual) => ({
-                                  ...atual,
-                                  [grupo.curso]: valor,
-                                }))
-                              }
-                              disabled={modoApresentacao || salvandoMapeamentos}
-                              ariaLabel={`Mapear ${grupo.curso} para uma unidade`}
-                              options={[
-                                { value: "", label: "Selecionar unidade" },
-                                { value: "FACE", label: "FACE" },
-                                { value: "FEA", label: "FEA" },
-                                { value: "FCH", label: "FCH" },
-                                { value: "EAD", label: "EAD" },
-                              ]}
-                            />
-                          </div>
-                        </article>
-                      ))}
-                      <div className="period-course-map-save">
-                        <div>
-                          <span>MAPEAMENTO DE UNIDADES</span>
-                          <strong>
-                            {mapeamentosAlterados.length
-                              ? `${mapeamentosAlterados.length} alteração(ões) pronta(s) para salvar`
-                              : "Nenhuma alteração para salvar"}
-                          </strong>
-                          <small>
-                            Ajuste todos os cursos acima e salve tudo de uma
-                            vez.
-                          </small>
-                        </div>
-                        {!modoApresentacao && (
-                          <button
-                            type="button"
-                            onClick={salvarMapeamentos}
-                            disabled={
-                              !mapeamentosAlterados.length ||
-                              salvandoMapeamentos
-                            }
-                          >
-                            {salvandoMapeamentos
-                              ? "Salvando unidades..."
-                              : mapeamentosAlterados.length
-                                ? `Salvar ${mapeamentosAlterados.length} alteração(ões)`
-                                : "Salvar unidades"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="period-sheets-resolved">
-                      ✓ Todas as unidades foram resolvidas.
-                    </div>
-                  )
-                ) : (
-                  <div className="period-preview-list" ref={listaPreviaRef}>
-                    {(abaPrevia === "novos"
-                      ? sheetsPrevia.detalhes.novos
-                      : abaPrevia === "cadastros"
-                        ? sheetsPrevia.detalhes.cadastros
-                        : abaPrevia === "documentos"
-                          ? sheetsPrevia.detalhes.documentos
-                          : abaPrevia === "reativacoes"
-                            ? sheetsPrevia.detalhes.reativacoes
-                            : abaPrevia === "remocoes"
-                              ? sheetsPrevia.detalhes.remocoes
-                              : sheetsPrevia.detalhes.cancelamentos
-                    ).map((item) => (
-                      <article key={`${abaPrevia}-${item.ra}`}>
-                        <div>
-                          <strong>{item.nome}</strong>
-                          <span>RA {item.ra}</span>
-                        </div>
-                        {"curso" in item ? (
-                          <p>{`${item.curso} · ${item.unidade || "Unidade pendente"}`}</p>
-                        ) : "detalhe" in item ? (
-                          <div className="period-preview-change">
-                            {item.detalhe.split("\n").map((linha) => {
-                              const [campo, alteracao] = linha.split(": ");
-
-                              return (
-                                <div key={linha}>
-                                  <strong>{campo}</strong>
-                                  <span>{alteracao}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : abaPrevia === "reativacoes" ? (
-                          <div className="period-preview-change">
-                            <div>
-                              <strong>Reativação</strong>
-                              <span>
-                                Cancelado → Ativo · Unidade {item.unidade}
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <p>{`Unidade ${item.unidade}`}</p>
-                        )}
-                      </article>
-                    ))}
-                    {((abaPrevia === "novos" &&
-                      !sheetsPrevia.detalhes.novos.length) ||
-                      (abaPrevia === "cadastros" &&
-                        !sheetsPrevia.detalhes.cadastros.length) ||
-                      (abaPrevia === "documentos" &&
-                        !sheetsPrevia.detalhes.documentos.length) ||
-                      (abaPrevia === "cancelamentos" &&
-                        !sheetsPrevia.detalhes.cancelamentos.length)) && (
-                      <div className="period-sheets-resolved">
-                        Nenhuma divergência nesta categoria.
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-            {sheetsPrevia.unidades_nao_resolvidas > 0 && (
-              <div className="period-sheets-warning">
-                <strong>Atenção:</strong>{" "}
-                {sheetsPrevia.cursos_nao_mapeados ??
-                  sheetsPrevia.cursos_pendentes.length}{" "}
-                curso(s) precisam ser mapeados, afetando{" "}
-                {sheetsPrevia.alunos_sem_unidade ??
-                  sheetsPrevia.unidades_nao_resolvidas}{" "}
-                aluno(s). Clique em <strong>Cursos a mapear</strong> antes da
-                sincronização.
-              </div>
-            )}
-            {sheetsPrevia.unidades_nao_resolvidas === 0 && (
-              <>
-                <div
-                  className={`period-sheets-ready ${
-                    totalOperacoesPrevia === 0 ? "is-synced" : ""
-                  }`}
-                >
-                  {totalOperacoesPrevia === 0 ? (
-                    <>
-                      <strong>✓ Tudo sincronizado.</strong> Nenhuma divergência
-                      encontrada.
-                    </>
-                  ) : (
-                    <>
-                      <strong>✓ Unidades resolvidas.</strong> A prévia está
-                      pronta para sincronização.
-                    </>
-                  )}
-                </div>
-                <div
-                  className={`period-sheets-sync-bar ${
-                    modoApresentacao
-                      ? "is-presentation"
-                      : totalOperacoesPrevia === 0
-                        ? "is-synced"
-                        : ""
-                  }`}
-                >
-                  <div>
-                    <span>
-                      {modoApresentacao
-                        ? "PRÉVIA CONCLUÍDA"
-                        : totalOperacoesPrevia === 0
-                          ? "TUDO SINCRONIZADO"
-                          : "APLICAR ALTERAÇÕES"}
-                    </span>
-                    <strong>
-                      {modoApresentacao
-                        ? totalOperacoesPrevia === 0
-                          ? "✓ Nenhuma divergência encontrada"
-                          : totalOperacoesPrevia === 1
-                            ? "✓ 1 divergência encontrada"
-                            : `✓ ${totalOperacoesPrevia} divergências encontradas`
-                        : totalOperacoesPrevia === 0
-                          ? "✓ Nenhuma alteração encontrada"
-                          : `${totalOperacoesPrevia} operação(ões) pronta(s)`}
-                    </strong>
-                    <small>
-                      {modoApresentacao
-                        ? "Consulta somente leitura. Nenhuma alteração será aplicada."
-                        : totalOperacoesPrevia === 0
-                          ? "O Google Sheets e o sistema estão sem divergências."
-                          : "A planilha será lida novamente no momento da sincronização."}
-                    </small>
-                  </div>
-                  {!modoApresentacao && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setResultadoSync(null);
-                        setModalSucessoSync(false);
-                        setModalSincronizar(true);
-                      }}
-                      disabled={
-                        sincronizandoSheets || totalOperacoesPrevia === 0
-                      }
-                    >
-                      {totalOperacoesPrevia === 0
-                        ? "Sem alterações"
-                        : "Sincronizar agora"}
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </section>
+      <GoogleSheetsCard
+        codigoPeriodo={periodoAtual?.codigo}
+        modoApresentacao={modoApresentacao}
+        sheetsConfig={sheetsConfig}
+        setSheetsConfig={setSheetsConfig}
+        sheetsStatus={sheetsStatus}
+        sheetsTitulo={sheetsTitulo}
+        sheetsSalvo={sheetsSalvo}
+        sheetsCarregando={sheetsCarregando}
+        sheetsErro={sheetsErro}
+        sheetsPrevia={sheetsPrevia}
+        abaPrevia={abaPrevia}
+        setAbaPrevia={setAbaPrevia}
+        listaPreviaRef={listaPreviaRef}
+        mapeamentos={mapeamentos}
+        setMapeamentos={setMapeamentos}
+        salvandoMapeamentos={salvandoMapeamentos}
+        mapeamentosAlterados={mapeamentosAlterados}
+        salvarSheets={salvarSheets}
+        gerarPreviaSheets={gerarPreviaSheets}
+        salvarMapeamentos={salvarMapeamentos}
+        totalOperacoesPrevia={totalOperacoesPrevia}
+        sincronizandoSheets={sincronizandoSheets}
+        abrirSincronizacao={() => {
+          setResultadoSync(null);
+          setModalSucessoSync(false);
+          setModalSincronizar(true);
+        }}
+      />
 
       {erro && <div className="period-error">{erro}</div>}
 
