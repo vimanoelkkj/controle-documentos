@@ -16,16 +16,14 @@ import { DetalhesAluno } from "./conferencia/DetalhesAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
 import { useImportacaoCancelados } from "./conferencia/hooks/useImportacaoCancelados";
 import { useImportacaoAlunos } from "./conferencia/hooks/useImportacaoAlunos";
+import { useAlunos } from "./conferencia/hooks/useAlunos";
 import { registrarLogAluno } from "./conferencia/operacoes";
 import {
   DOCUMENTO_DASHBOARD_POR_CAMPO,
-  clonarAlunos,
-  converterAlunosApi,
   formularioVazio,
   normalizarBusca,
   statusDocumentalAluno,
   type Aluno,
-  type AlunoApi,
   type FiltroStatus,
   type FormAluno,
   type Unidade,
@@ -39,9 +37,17 @@ import {
 } from "react";
 
 function Conferencia() {
-  const [alunosSalvos, setAlunosSalvos] = useState<Aluno[]>([]);
-  const [alunosEmEdicao, setAlunosEmEdicao] = useState<Aluno[]>([]);
-  const [raSelecionado, setRaSelecionado] = useState("");
+  const {
+    alunosSalvos,
+    setAlunosSalvos,
+    alunosEmEdicao,
+    setAlunosEmEdicao,
+    raSelecionado,
+    setRaSelecionado,
+    carregando,
+    erro,
+    carregarAlunos: carregarAlunosDoServidor,
+  } = useAlunos();
   const [busca, setBusca] = useState("");
   const { modoApresentacao } = useAuth();
 
@@ -56,8 +62,6 @@ function Conferencia() {
   const [status, setStatus] = useState<"salvo" | "pendente">("salvo");
   const [salvando, setSalvando] = useState(false);
   const [erroSalvamento, setErroSalvamento] = useState("");
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState("");
 
   const [modalAdicionarAluno, setModalAdicionarAluno] = useState(false);
   const fluxoImportacao = useImportacaoAlunos({
@@ -213,49 +217,16 @@ function Conferencia() {
     unidadeFiltro: Unidade | "" = unidadeSelecionada,
     statusFiltro: FiltroStatus = filtroStatus,
   ) {
-    try {
-      setCarregando(true);
-      setErro("");
-
-      const resposta = await fetch("/api/alunos");
-
-      if (!resposta.ok) {
-        throw new Error("Falha ao carregar alunos.");
-      }
-
-      const dados: AlunoApi[] = await resposta.json();
-      const alunosConvertidos = converterAlunosApi(dados);
-
-      setAlunosSalvos(clonarAlunos(alunosConvertidos));
-      setAlunosEmEdicao(clonarAlunos(alunosConvertidos));
-
-      const pertenceAoFiltroAtual = (aluno: Aluno) =>
-        aluno.unidade === unidadeFiltro &&
-        (statusFiltro === "TODOS" || aluno.status === statusFiltro);
-
-      if (raParaSelecionar) {
-        const alunoSolicitado = alunosConvertidos.find(
-          (aluno) => aluno.ra === raParaSelecionar,
-        );
-
-        if (alunoSolicitado && pertenceAoFiltroAtual(alunoSolicitado)) {
-          setRaSelecionado(raParaSelecionar);
-          return;
-        }
-      }
-
-      setRaSelecionado("");
-    } catch (erro) {
-      console.error(erro);
-      setErro("Não foi possível carregar os alunos.");
-    } finally {
-      setCarregando(false);
-    }
+    await carregarAlunosDoServidor(
+      raParaSelecionar,
+      unidadeFiltro,
+      statusFiltro,
+    );
   }
 
   useEffect(() => {
-    carregarAlunos();
-  }, []);
+    void carregarAlunosDoServidor(undefined, "", "ATIVO");
+  }, [carregarAlunosDoServidor]);
 
   useEffect(() => {
     function atalhosConferencia(event: KeyboardEvent) {
