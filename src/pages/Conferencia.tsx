@@ -2,6 +2,7 @@ import AppIcon from "../components/AppIcon";
 import "./HistoricoAluno.css";
 import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
+import { FormularioAluno } from "./conferencia/FormularioAluno";
 import {
   DOCUMENTO_DASHBOARD_POR_CAMPO,
   clonarAlunos,
@@ -11,8 +12,15 @@ import {
   statusDocumentalAluno,
   type Aluno,
   type AlunoApi,
+  type AlunoImportacao,
+  type FiltroStatus,
   type FormAluno,
   type HistoricoLog,
+  type LinhaPreviaImportacao,
+  type PreviaCancelados,
+  type ResultadoCancelados,
+  type ResultadoImportacao,
+  type Unidade,
 } from "./conferencia/model";
 
 import {
@@ -21,8 +29,6 @@ import {
   useRef,
   useState,
   type ChangeEvent,
-  type Dispatch,
-  type SetStateAction,
 } from "react";
 
 function Conferencia() {
@@ -3441,229 +3447,6 @@ Não Entregue    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA 
         </div>
       )}
     </section>
-  );
-}
-
-type Unidade = "FACE" | "FEA" | "FCH" | "EAD";
-type FiltroStatus = "ATIVO" | "CANCELADO" | "TODOS";
-
-type LinhaPreviaCancelado = {
-  ra: string;
-  nome?: string;
-  curso?: string;
-  unidade?: string;
-  status?: "ATIVO" | "CANCELADO";
-  status_previa: "PRONTO" | "JA_CANCELADO" | "NAO_ENCONTRADO" | "OUTRA_UNIDADE";
-};
-
-type PreviaCancelados = {
-  sucesso?: boolean;
-  recebidos: number;
-  prontos_para_cancelar: number;
-  ja_cancelados: number;
-  nao_encontrados: number;
-  outra_unidade: number;
-  alunos: LinhaPreviaCancelado[];
-  erro?: string;
-};
-
-type ResultadoCancelados = {
-  sucesso?: boolean;
-  recebidos: number;
-  cancelados: number;
-  ja_cancelados: number;
-  nao_encontrados: number;
-  outra_unidade: number;
-  erro?: string;
-};
-
-type AlunoImportacao = {
-  ra: string;
-  nome: string;
-  curso: string;
-  email?: string;
-  email_outro?: string;
-  contrato?: boolean;
-};
-
-type LinhaPreviaImportacao = AlunoImportacao & {
-  linha: number;
-  status: "valido" | "alterado" | "igual" | "duplicado" | "invalido";
-  motivo?: string;
-};
-
-type ResultadoImportacao = {
-  encontrados: number | unknown[];
-  importados: number | unknown[];
-  atualizados?: number | unknown[];
-  sem_alteracoes?: number | unknown[];
-  ja_cadastrados: number | unknown[];
-  duplicados_no_lote: number | unknown[];
-  invalidos: number | unknown[];
-  detalhes?: unknown;
-  erro?: string;
-};
-
-type FormularioAlunoProps = {
-  dados: FormAluno;
-  setDados: Dispatch<SetStateAction<FormAluno>>;
-  mostrarDocumentos?: boolean;
-};
-
-function FormularioAluno({
-  dados,
-  setDados,
-  mostrarDocumentos = false,
-}: FormularioAlunoProps) {
-  return (
-    <div className="modal-formulario">
-      <label>
-        RA *
-        <input
-          value={dados.ra}
-          onChange={(event) => {
-            const raAnterior = dados.ra.trim();
-            const novoRa = event.target.value;
-            const emailAutomaticoAnterior = raAnterior
-              ? `a${raAnterior}@fumec.edu.br`
-              : "";
-            const deveAtualizarEmail =
-              mostrarDocumentos &&
-              (!dados.email.trim() || dados.email === emailAutomaticoAnterior);
-
-            setDados({
-              ...dados,
-              ra: novoRa,
-              ...(deveAtualizarEmail
-                ? {
-                    email: novoRa.trim()
-                      ? `a${novoRa.trim()}@fumec.edu.br`
-                      : "",
-                  }
-                : {}),
-            });
-          }}
-          placeholder="Ex.: 2910136038"
-        />
-      </label>
-
-      <label>
-        Nome *
-        <input
-          value={dados.nome}
-          onChange={(event) =>
-            setDados({
-              ...dados,
-              nome: event.target.value.toLocaleUpperCase("pt-BR"),
-            })
-          }
-          placeholder="Nome completo"
-        />
-      </label>
-
-      <label>
-        Curso *
-        <input
-          value={dados.curso}
-          onChange={(event) =>
-            setDados({
-              ...dados,
-              curso: event.target.value.toLocaleUpperCase("pt-BR"),
-            })
-          }
-          placeholder="Ex.: PSICOLOGIA"
-        />
-      </label>
-
-      <label>
-        Unidade *
-        <AppSelect
-          value={dados.unidade}
-          onChange={(valor) =>
-            setDados({
-              ...dados,
-              unidade: valor,
-            })
-          }
-          ariaLabel="Unidade do aluno"
-          options={[
-            { value: "FACE", label: "FACE" },
-            { value: "FEA", label: "FEA" },
-            { value: "FCH", label: "FCH" },
-            { value: "EAD", label: "EAD" },
-          ]}
-        />
-      </label>
-
-      <label>
-        E-mail institucional
-        <input
-          type="email"
-          value={dados.email}
-          onChange={(event) =>
-            setDados({
-              ...dados,
-              email: event.target.value,
-            })
-          }
-          placeholder="a0000000000@fumec.edu.br"
-        />
-      </label>
-
-      <label>
-        E-mail alternativo
-        <input
-          type="email"
-          value={dados.email_outro}
-          onChange={(event) =>
-            setDados({
-              ...dados,
-              email_outro: event.target.value,
-            })
-          }
-          placeholder="aluno@email.com"
-        />
-      </label>
-
-      {mostrarDocumentos && (
-        <fieldset className="cadastro-documentos">
-          <legend>Documentos já entregues</legend>
-          <p>Marque somente o que já estiver conferido no cadastro inicial.</p>
-          <div className="cadastro-documentos-grid">
-            {[
-              ["identidade", "Identidade"],
-              ["cpf", "CPF"],
-              ["certidao", "Certidão de Registro Civil"],
-              ["residencia", "Comprovante de Residência"],
-              ["titulo", "Título de Eleitor"],
-              ["ensino_medio", "Histórico do Ensino Médio"],
-              ["contrato", "Contrato"],
-            ].map(([campo, nome]) => {
-              const chave = campo as keyof FormAluno["documentos"];
-
-              return (
-                <label className="cadastro-documento-check" key={campo}>
-                  <input
-                    type="checkbox"
-                    checked={dados.documentos[chave]}
-                    onChange={(event) =>
-                      setDados({
-                        ...dados,
-                        documentos: {
-                          ...dados.documentos,
-                          [chave]: event.target.checked,
-                        },
-                      })
-                    }
-                  />
-                  <span>{nome}</span>
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-      )}
-    </div>
   );
 }
 

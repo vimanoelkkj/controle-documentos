@@ -62,6 +62,66 @@ export type FormAluno = {
   };
 };
 
+export type Unidade = "FACE" | "FEA" | "FCH" | "EAD";
+export type FiltroStatus = "ATIVO" | "CANCELADO" | "TODOS";
+
+export type LinhaPreviaCancelado = {
+  ra: string;
+  nome?: string;
+  curso?: string;
+  unidade?: string;
+  status?: "ATIVO" | "CANCELADO";
+  status_previa: "PRONTO" | "JA_CANCELADO" | "NAO_ENCONTRADO" | "OUTRA_UNIDADE";
+};
+
+export type PreviaCancelados = {
+  sucesso?: boolean;
+  recebidos: number;
+  prontos_para_cancelar: number;
+  ja_cancelados: number;
+  nao_encontrados: number;
+  outra_unidade: number;
+  alunos: LinhaPreviaCancelado[];
+  erro?: string;
+};
+
+export type ResultadoCancelados = {
+  sucesso?: boolean;
+  recebidos: number;
+  cancelados: number;
+  ja_cancelados: number;
+  nao_encontrados: number;
+  outra_unidade: number;
+  erro?: string;
+};
+
+export type AlunoImportacao = {
+  ra: string;
+  nome: string;
+  curso: string;
+  email?: string;
+  email_outro?: string;
+  contrato?: boolean;
+};
+
+export type LinhaPreviaImportacao = AlunoImportacao & {
+  linha: number;
+  status: "valido" | "alterado" | "igual" | "duplicado" | "invalido";
+  motivo?: string;
+};
+
+export type ResultadoImportacao = {
+  encontrados: number | unknown[];
+  importados: number | unknown[];
+  atualizados?: number | unknown[];
+  sem_alteracoes?: number | unknown[];
+  ja_cadastrados: number | unknown[];
+  duplicados_no_lote: number | unknown[];
+  invalidos: number | unknown[];
+  detalhes?: unknown;
+  erro?: string;
+};
+
 export function normalizarBusca(valor: string | null | undefined) {
   return (valor ?? "")
     .normalize("NFD")
