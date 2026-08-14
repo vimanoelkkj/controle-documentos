@@ -1,3 +1,4 @@
+import { useSelecaoAluno } from "./conferencia/hooks/useSelecaoAluno";
 import AppIcon from "../components/AppIcon";
 import "./HistoricoAluno.css";
 import { useAuth } from "../contexts/auth";
@@ -28,11 +29,7 @@ import {
   type Unidade,
 } from "./conferencia/model";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 function Conferencia() {
   const {
     alunosSalvos,
@@ -75,9 +72,7 @@ function Conferencia() {
   } = fluxoImportacao;
 
   const [modalSaindo, setModalSaindo] = useState<string | null>(null);
-  const [trocaAlunoPendente, setTrocaAlunoPendente] = useState<string | null>(
-    null,
-  );
+
   const {
     modalHistoricoAluno,
     setModalHistoricoAluno,
@@ -126,16 +121,13 @@ function Conferencia() {
     },
   );
 
-  const {
-    painelListaRef,
-    detalhesAlunoRef,
-    conferenciaGridRef,
-  } = useLayoutConferencia({
-    carregando,
-    raSelecionado,
-    unidadeSelecionada,
-    filtroStatus,
-  });
+  const { painelListaRef, detalhesAlunoRef, conferenciaGridRef } =
+    useLayoutConferencia({
+      carregando,
+      raSelecionado,
+      unidadeSelecionada,
+      filtroStatus,
+    });
   const buscaAlunoRef = useRef<HTMLInputElement | null>(null);
   const listaAlunosRef = useRef<HTMLDivElement | null>(null);
 
@@ -190,50 +182,64 @@ function Conferencia() {
     raSelecionado,
   });
 
-      const {
-  novoAluno,
-  setNovoAluno,
-  alunoEdicao,
-  setAlunoEdicao,
-  modalNovoAluno,
-  setModalNovoAluno,
-  modalEditarAluno,
-  setModalEditarAluno,
-  modalExcluirAluno,
-  setModalExcluirAluno,
-  modalStatusAluno,
-  setModalStatusAluno,
-  cadastrando,
-  editando,
-  excluindo,
-  alterandoStatusAluno,
-  erroCadastro,
-  setErroCadastro,
-  erroEdicao,
-  cadastrarAluno,
-  abrirEdicaoAluno,
-  salvarEdicaoAluno,
-  alterarStatusMatricula,
-  excluirAluno,
-} = useGerenciamentoAluno({
-  alunoSelecionado,
-  carregarAlunos,
-  setFiltroStatus,
-  setUnidadeSelecionada,
-});
+  const {
+    trocaAlunoPendente,
+    setTrocaAlunoPendente,
+    selecionarAluno,
+    descartarAlteracoesETrocarAluno,
+  } = useSelecaoAluno({
+    setAlunosEmEdicao,
+    raSelecionado,
+    setRaSelecionado,
+    alunoSalvo,
+    temAlteracoes,
+    setStatus,
+  });
+
+  const {
+    novoAluno,
+    setNovoAluno,
+    alunoEdicao,
+    setAlunoEdicao,
+    modalNovoAluno,
+    setModalNovoAluno,
+    modalEditarAluno,
+    setModalEditarAluno,
+    modalExcluirAluno,
+    setModalExcluirAluno,
+    modalStatusAluno,
+    setModalStatusAluno,
+    cadastrando,
+    editando,
+    excluindo,
+    alterandoStatusAluno,
+    erroCadastro,
+    setErroCadastro,
+    erroEdicao,
+    cadastrarAluno,
+    abrirEdicaoAluno,
+    salvarEdicaoAluno,
+    alterarStatusMatricula,
+    excluirAluno,
+  } = useGerenciamentoAluno({
+    alunoSelecionado,
+    carregarAlunos,
+    setFiltroStatus,
+    setUnidadeSelecionada,
+  });
 
   useAtalhosConferencia({
     algumModalAberto: Boolean(
       modalAdicionarAluno ||
-        modalImportarAlunos ||
-        sucessoImportacao ||
-        modalNovoAluno ||
-        modalEditarAluno ||
-        modalExcluirAluno ||
-        modalStatusAluno ||
-        modalImportarCancelados ||
-        trocaAlunoPendente ||
-        modalHistoricoAluno
+      modalImportarAlunos ||
+      sucessoImportacao ||
+      modalNovoAluno ||
+      modalEditarAluno ||
+      modalExcluirAluno ||
+      modalStatusAluno ||
+      modalImportarCancelados ||
+      trocaAlunoPendente ||
+      modalHistoricoAluno,
     ),
     busca,
     raSelecionado,
@@ -261,7 +267,7 @@ function Conferencia() {
     filtroDocumentalDashboard,
     pendenciasDashboard,
   });
-  
+
   if (carregando) {
     return (
       <section className="conference-page">
@@ -277,7 +283,6 @@ function Conferencia() {
       </section>
     );
   }
-
 
   function limparFiltroDashboard() {
     setFiltroDocumentalDashboard("");
@@ -332,38 +337,6 @@ function Conferencia() {
     );
   }
 
-  function selecionarAluno(ra: string) {
-    if (ra === raSelecionado) return;
-
-    if (temAlteracoes) {
-      setTrocaAlunoPendente(ra);
-      return;
-    }
-
-    setRaSelecionado(ra);
-    setStatus("salvo");
-  }
-
-  function descartarAlteracoesETrocarAluno() {
-    if (!trocaAlunoPendente) return;
-
-    setAlunosEmEdicao((estadoAtual) =>
-      estadoAtual.map((aluno) =>
-        aluno.ra === raSelecionado
-          ? {
-            ...alunoSalvo,
-            documentos: alunoSalvo.documentos.map((documento) => ({
-              ...documento,
-            })),
-          }
-          : aluno,
-      ),
-    );
-
-    setRaSelecionado(trocaAlunoPendente);
-    setTrocaAlunoPendente(null);
-    setStatus("salvo");
-  }
   return (
     <section className="conference-page">
       <header className="page-header">

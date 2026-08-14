@@ -167,11 +167,7 @@ export function useGerenciamentoAluno({
       setFiltroStatus(novoStatus);
       setUnidadeSelecionada(unidadeDoAluno);
 
-      await carregarAlunos(
-        alunoSelecionado.ra,
-        unidadeDoAluno,
-        novoStatus,
-      );
+      await carregarAlunos(alunoSelecionado.ra, unidadeDoAluno, novoStatus);
     } catch (erro) {
       console.error(erro);
 
@@ -202,9 +198,7 @@ export function useGerenciamentoAluno({
 
       await carregarAlunos();
     } catch (erro) {
-      alert(
-        erro instanceof Error ? erro.message : "Erro ao excluir aluno.",
-      );
+      alert(erro instanceof Error ? erro.message : "Erro ao excluir aluno.");
     } finally {
       setExcluindo(false);
     }
