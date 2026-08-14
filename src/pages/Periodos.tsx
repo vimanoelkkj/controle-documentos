@@ -1,29 +1,34 @@
 import { PeriodoCard } from "./periodos/PeriodoCard";
 import AppIcon from "../components/AppIcon";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { usePeriodo } from "../contexts/periodo";
-import { api } from "../lib/api";
 import { useAuth } from "../contexts/auth";
 import { useGoogleSheetsPeriodo } from "./periodos/hooks/useGoogleSheetsPeriodo";
 import { GoogleSheetsCard } from "./periodos/google-sheets/GoogleSheetsCard";
 import { ModalSincronizacaoSucesso } from "./periodos/google-sheets/ModalSincronizacaoSucesso";
 import { ModalConfirmarSincronizacao } from "./periodos/google-sheets/ModalConfirmarSincronizacao";
-
-function normalizarCodigo(valor: string) {
-  return valor.trim().toUpperCase().replace(/\s+/g, "");
-}
-
-function formatarCodigoPeriodo(valor: string) {
-  const numeros = valor.replace(/\D/g, "").slice(0, 5);
-  if (numeros.length < 4) return numeros;
-  if (numeros.length === 4) return `${numeros}-`;
-  return `${numeros.slice(0, 4)}-${numeros.slice(4)}`;
-}
+import {
+  formatarCodigoPeriodo,
+  useGerenciamentoPeriodos,
+} from "./periodos/hooks/useGerenciamentoPeriodos";
 
 function Periodos() {
   const { modoApresentacao } = useAuth();
   const { periodos, periodoAtual, selecionarPeriodo, recarregarPeriodos } =
     usePeriodo();
+  const {
+    novoCodigo,
+    setNovoCodigo,
+    processando,
+    erro,
+    confirmacao,
+    setConfirmacao,
+    criarPeriodo,
+    alterarStatus,
+  } = useGerenciamentoPeriodos({
+    recarregarPeriodos,
+    selecionarPeriodo,
+  });
   const {
     sheetsConfig,
     setSheetsConfig,
@@ -58,14 +63,6 @@ function Periodos() {
     periodoAtual,
     recarregarPeriodos,
   });
-  const [novoCodigo, setNovoCodigo] = useState("");
-  const [processando, setProcessando] = useState(false);
-  const [erro, setErro] = useState("");
-  const [confirmacao, setConfirmacao] = useState<{
-    id: number;
-    codigo: string;
-    status: "ATIVO" | "ARQUIVADO";
-  } | null>(null);
   useEffect(() => {
     const temModalAberto =
       modalSincronizar || modalSucessoSync || confirmacao !== null;
@@ -89,47 +86,6 @@ function Periodos() {
     () => periodos.filter((periodo) => periodo.status === "ARQUIVADO"),
     [periodos],
   );
-
-  async function criarPeriodo() {
-    const codigo = normalizarCodigo(novoCodigo);
-    if (!/^\d{4}-(1|2)$/.test(codigo)) {
-      setErro("Use o formato AAAA-1 ou AAAA-2. Ex.: 2027-1.");
-      return;
-    }
-
-    try {
-      setProcessando(true);
-      setErro("");
-      await api.post<{ sucesso: boolean; id: number }>("/api/periodos", {
-        codigo,
-      });
-      setNovoCodigo("");
-      await recarregarPeriodos();
-      selecionarPeriodo(codigo);
-    } catch (e) {
-      setErro(
-        e instanceof Error ? e.message : "Não foi possível criar o período.",
-      );
-    } finally {
-      setProcessando(false);
-    }
-  }
-
-  async function alterarStatus(id: number, status: "ATIVO" | "ARQUIVADO") {
-    try {
-      setProcessando(true);
-      setErro("");
-      await api.put<{ sucesso: boolean }>(`/api/periodos/${id}`, { status });
-      await recarregarPeriodos();
-      setConfirmacao(null);
-    } catch (e) {
-      setErro(
-        e instanceof Error ? e.message : "Não foi possível alterar o período.",
-      );
-    } finally {
-      setProcessando(false);
-    }
-  }
 
   return (
     <section className="period-page">
