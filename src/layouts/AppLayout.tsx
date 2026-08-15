@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { PeriodoProvider, usePeriodo } from "../contexts/PeriodoContext";
-import { useAuth } from "../contexts/AuthContext";
+import { PeriodoProvider } from "../contexts/PeriodoContext";
+import { usePeriodo } from "../contexts/periodo";
+import { useAuth } from "../contexts/auth";
 import ChangelogModal from "../components/ChangelogModal";
 
 type SheetsEstado = "carregando" | "conectado" | "nao-conectado" | "temporario";
@@ -37,7 +38,7 @@ function LayoutContent() {
   const { periodos, periodoAtual, carregando, erro, selecionarPeriodo } =
     usePeriodo();
 
-  const { usuario } = useAuth();
+  const { usuario, modoApresentacao } = useAuth();
 
   const [sheetsStatus, setSheetsStatus] = useState<SheetsStatus | null>(null);
   const [testandoSheets, setTestandoSheets] = useState(false);
@@ -217,7 +218,9 @@ function LayoutContent() {
             <strong>{periodoAtual.codigo}</strong>
 
             {periodoAtual.status === "ARQUIVADO" && (
-              <em>ARQUIVADO · edição permitida</em>
+              <em>
+                ARQUIVADO · {modoApresentacao ? "somente leitura" : "edição permitida"}
+              </em>
             )}
           </div>
 
@@ -249,7 +252,7 @@ function LayoutContent() {
 
           {usuario?.perfil === "VISUALIZADOR" && (
             <div className="period-toolbar-readonly" role="status">
-              <span>VISUALIZADOR</span>
+              <span>{modoApresentacao ? "APRESENTAÇÃO" : "VISUALIZADOR"}</span>
               <strong>Somente leitura</strong>
               <small>Alterações bloqueadas para esta conta</small>
             </div>
@@ -311,8 +314,9 @@ function LayoutContent() {
 
         {periodoAtual.status === "ARQUIVADO" && (
           <div className="period-archive-warning">
-            Você está visualizando um período arquivado. Alterações continuam
-            permitidas e ficam registradas no LOG.
+            {modoApresentacao
+              ? "Você está visualizando um período arquivado em modo somente leitura."
+              : "Você está visualizando um período arquivado. Alterações continuam permitidas e ficam registradas no LOG."}
           </div>
         )}
 

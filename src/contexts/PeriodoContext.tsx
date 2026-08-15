@@ -1,24 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-
-export type Periodo = {
-  id: number;
-  codigo: string;
-  status: "ATIVO" | "ARQUIVADO";
-  criado_em: string;
-  atualizado_em: string;
-  total_alunos: number;
-};
-
-type PeriodoContextValue = {
-  periodos: Periodo[];
-  periodoAtual: Periodo | null;
-  carregando: boolean;
-  erro: string;
-  selecionarPeriodo: (codigo: string) => void;
-  recarregarPeriodos: () => Promise<void>;
-};
-
-const PeriodoContext = createContext<PeriodoContextValue | null>(null);
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { PeriodoContext, type Periodo } from "./periodo";
 
 function salvarPeriodo(codigo: string) {
   localStorage.setItem("periodoAtual", codigo);
@@ -89,10 +70,4 @@ export function PeriodoProvider({ children }: { children: ReactNode }) {
       {children}
     </PeriodoContext.Provider>
   );
-}
-
-export function usePeriodo() {
-  const contexto = useContext(PeriodoContext);
-  if (!contexto) throw new Error("usePeriodo deve ser usado dentro de PeriodoProvider.");
-  return contexto;
 }

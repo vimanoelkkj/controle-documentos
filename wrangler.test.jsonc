@@ -3,6 +3,9 @@
   "name": "controle-documentos-test",
   "main": "./src/worker.ts",
   "compatibility_date": "2026-08-06",
+  "vars": {
+    "ENVIRONMENT": "dev"
+  },
   "d1_databases": [
     {
       "binding": "DB",

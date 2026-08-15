@@ -12,10 +12,11 @@ import Sobre from "./pages/Sobre";
 import Periodos from "./pages/Periodos";
 import Cursos from "./pages/Cursos";
 import Login from "./pages/Login";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/auth";
 
 function Rotas() {
-  const { usuario, carregando } = useAuth();
+  const { usuario, carregando, modoApresentacao } = useAuth();
   if (carregando) return <div className="auth-boot">Carregando sessão...</div>;
   return <Routes>
         <Route path="/login" element={<Login />} />
@@ -24,10 +25,10 @@ function Rotas() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/conferencia" element={<Conferencia />} />
           <Route path="/comunicacao" element={<Comunicacao />} />
-          <Route path="/auditoria" element={<Auditoria />} />
+          <Route path="/auditoria" element={modoApresentacao ? <Navigate to="/" replace /> : <Auditoria />} />
           <Route path="/estatisticas" element={<Estatisticas />} />
-          <Route path="/log" element={<Log />} />
-          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/log" element={modoApresentacao ? <Navigate to="/" replace /> : <Log />} />
+          <Route path="/configuracoes" element={modoApresentacao ? <Navigate to="/" replace /> : <Configuracoes />} />
           <Route path="/periodos" element={<Periodos />} />
           <Route path="/cursos" element={<Cursos />} />
           <Route path="/sobre" element={<Sobre />} />

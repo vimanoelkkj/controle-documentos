@@ -1,6 +1,12 @@
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 import AppSelect from "../components/AppSelect";
+import { EstatisticasKpis } from "./estatisticas/components/EstatisticasKpis";
+import { CardDistribuicao } from "./estatisticas/components/CardDistribuicao";
+import { CardPendenciasDocumento } from "./estatisticas/components/CardPendenciasDocumento";
+import { CardCombinacoesPendencias } from "./estatisticas/components/CardCombinacoesPendencias";
+import { CardCursos } from "./estatisticas/components/CardCursos";
+import { CardUnidades } from "./estatisticas/components/CardUnidades";
 
 type AlunoApi = {
   ra: string;
@@ -34,9 +40,17 @@ const DOCUMENTOS: { campo: DocumentoCampo; nome: string; curto: string }[] = [
   { campo: "identidade", nome: "Identidade", curto: "Identidade" },
   { campo: "cpf", nome: "CPF", curto: "CPF" },
   { campo: "certidao", nome: "Certidão de Registro Civil", curto: "Certidão" },
-  { campo: "residencia", nome: "Comprovante de Residência", curto: "Residência" },
+  {
+    campo: "residencia",
+    nome: "Comprovante de Residência",
+    curto: "Residência",
+  },
   { campo: "titulo", nome: "Título de Eleitor", curto: "Título" },
-  { campo: "ensino_medio", nome: "Histórico do Ensino Médio", curto: "Ens. Médio" },
+  {
+    campo: "ensino_medio",
+    nome: "Histórico do Ensino Médio",
+    curto: "Ens. Médio",
+  },
   { campo: "contrato", nome: "Contrato", curto: "Contrato" },
 ];
 
@@ -57,13 +71,6 @@ function statusDocumental(aluno: AlunoApi): StatusDocumental {
 function percentual(valor: number, total: number) {
   if (!total) return 0;
   return Math.round((valor / total) * 100);
-}
-
-function numero(valor: number, casas = 0) {
-  return valor.toLocaleString("pt-BR", {
-    minimumFractionDigits: casas,
-    maximumFractionDigits: casas,
-  });
 }
 
 function Estatisticas() {
@@ -147,7 +154,10 @@ function Estatisticas() {
     [base],
   );
 
-  const maiorFaixa = Math.max(1, ...distribuicao.map((item) => item.quantidade));
+  const maiorFaixa = Math.max(
+    1,
+    ...distribuicao.map((item) => item.quantidade),
+  );
 
   const documentos = useMemo(
     () =>
@@ -287,9 +297,11 @@ function Estatisticas() {
         <div>
           <span className="statistics-eyebrow">ANÁLISE OPERACIONAL</span>
           <div className="page-title-row">
-          <span className="page-title-icon"><AppIcon name="stats" size={22} /></span>
-          <h1>Estatísticas documentais</h1>
-        </div>
+            <span className="page-title-icon">
+              <AppIcon name="stats" size={22} />
+            </span>
+            <h1>Estatísticas documentais</h1>
+          </div>
           <p>
             Onde estão os gargalos, como os alunos se distribuem e quais grupos
             merecem prioridade na conferência.
@@ -310,225 +322,27 @@ function Estatisticas() {
         </div>
       </header>
 
-      <div className="statistics-kpis">
-        <article className="statistics-kpi">
-          <span>MÉDIA POR ALUNO</span>
-          <strong>{numero(resumo.mediaPorAluno, 1)} / 7</strong>
-          <small>documentos entregues por matrícula</small>
-        </article>
-
-        <article className="statistics-kpi progress">
-          <span>TAXA DOCUMENTAL</span>
-          <strong>{resumo.taxaDocumental}%</strong>
-          <small>
-            {numero(resumo.documentosEntregues)} de {numero(resumo.documentosPossiveis)} conferidos
-          </small>
-        </article>
-
-        <article className="statistics-kpi complete">
-          <span>ALUNOS 7/7</span>
-          <strong>{numero(resumo.completos)}</strong>
-          <small>{percentual(resumo.completos, base.length)}% da base analisada</small>
-        </article>
-
-        <article className="statistics-kpi critical">
-          <span>ALUNOS 0/7</span>
-          <strong>{numero(resumo.zerados)}</strong>
-          <small>{percentual(resumo.zerados, base.length)}% sem nenhum documento</small>
-        </article>
-      </div>
+      <EstatisticasKpis resumo={resumo} totalAlunos={base.length} />
 
       <div className="statistics-grid two-columns">
-        <article className="statistics-card">
-          <div className="statistics-card-header">
-            <div>
-              <span>DISTRIBUIÇÃO</span>
-              <h2>Quantidade de documentos por aluno</h2>
-            </div>
-            <small>{numero(base.length)} alunos ativos</small>
-          </div>
+        <CardDistribuicao
+          distribuicao={distribuicao}
+          maiorFaixa={maiorFaixa}
+          totalAlunos={base.length}
+        />
 
-          <div className="statistics-histogram" aria-label="Distribuição de documentos entregues">
-            {distribuicao.map((item) => (
-              <div className="statistics-histogram-column" key={item.entregues}>
-                <div className="statistics-histogram-value">{item.quantidade}</div>
-                <div className="statistics-histogram-track">
-                  <div
-                    className={`statistics-histogram-bar ${item.entregues === 7 ? "complete" : item.entregues === 0 ? "critical" : ""}`}
-                    style={{
-                      height: `${Math.max(
-                        item.quantidade ? 8 : 0,
-                        (item.quantidade / maiorFaixa) * 100,
-                      )}%`,
-                    }}
-                  />
-                </div>
-                <strong>{item.entregues}/7</strong>
-                <small>{percentual(item.quantidade, base.length)}%</small>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="statistics-card">
-          <div className="statistics-card-header">
-            <div>
-              <span>GARGALOS</span>
-              <h2>Pendência por documento</h2>
-            </div>
-            <small>maior primeiro</small>
-          </div>
-
-          <div className="statistics-document-list">
-            {documentos.map((documento, indice) => (
-              <div
-                className={`statistics-document-row ${
-                  documento.campo === "contrato" || documento.campo === "ensino_medio"
-                    ? "critical"
-                    : ""
-                }`}
-                key={documento.campo}
-              >
-                <div className="statistics-document-title">
-                  <span
-                    className={
-                      documento.campo === "contrato" || documento.campo === "ensino_medio"
-                        ? "critical"
-                        : ""
-                    }
-                  >
-                    {indice + 1}
-                  </span>
-                  <div>
-                    <strong>{documento.nome}</strong>
-                    <small>{documento.taxaEntrega}% já entregue</small>
-                  </div>
-                </div>
-                <div className="statistics-document-meter">
-                  <div>
-                    <span
-                      className={
-                        documento.campo === "contrato" || documento.campo === "ensino_medio"
-                          ? "critical"
-                          : ""
-                      }
-                      style={{ width: `${documento.taxaPendencia}%` }}
-                    />
-                  </div>
-                  <strong>{documento.pendentes}</strong>
-                  <small>pendentes</small>
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
+        <CardPendenciasDocumento documentos={documentos} />
       </div>
 
       <div className="statistics-grid two-columns lower-grid">
-        <article className="statistics-card">
-          <div className="statistics-card-header">
-            <div>
-              <span>PADRÕES RECORRENTES</span>
-              <h2>Combinações de pendências</h2>
-            </div>
-            <small>top {combinacoesPendencias.length}</small>
-          </div>
+        <CardCombinacoesPendencias
+          combinacoes={combinacoesPendencias}
+          maiorCombinacao={maiorCombinacao}
+        />
 
-          <div className="statistics-combination-list">
-            {combinacoesPendencias.length ? (
-              combinacoesPendencias.map((grupo, indice) => (
-                <div className="statistics-combination-row" key={grupo.nomes.join("|")}>
-                  <div className="statistics-combination-number">#{indice + 1}</div>
-                  <div className="statistics-combination-main">
-                    <div className="statistics-combination-tags">
-                      {grupo.nomes.map((nome) => (
-                        <span key={nome}>{nome}</span>
-                      ))}
-                    </div>
-                    <div className="statistics-combination-track">
-                      <span style={{ width: `${(grupo.quantidade / maiorCombinacao) * 100}%` }} />
-                    </div>
-                  </div>
-                  <div className="statistics-combination-count">
-                    <strong>{grupo.quantidade}</strong>
-                    <small>alunos</small>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="statistics-empty">Nenhuma pendência nesta seleção.</div>
-            )}
-          </div>
-        </article>
-
-        <article className="statistics-card">
-          <div className="statistics-card-header">
-            <div>
-              <span>CURSOS</span>
-              <h2>Maiores bases da seleção</h2>
-            </div>
-            <small>até 8 cursos</small>
-          </div>
-
-          <div className="statistics-course-list">
-            {cursosStats.map((curso) => (
-              <div className="statistics-course-row" key={curso.curso}>
-                <div className="statistics-course-name">
-                  <strong title={curso.curso}>{curso.curso}</strong>
-                  <small>{curso.total} alunos · {curso.completos} completos</small>
-                </div>
-                <div className="statistics-course-progress">
-                  <div>
-                    <span style={{ width: `${curso.progresso}%` }} />
-                  </div>
-                  <strong>{curso.progresso}%</strong>
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
+        <CardCursos cursos={cursosStats} />
       </div>
-
-      {unidade === "GERAL" && (
-        <article className="statistics-card statistics-units-card">
-          <div className="statistics-card-header">
-            <div>
-              <span>COMPARATIVO</span>
-              <h2>Eficiência documental por unidade</h2>
-            </div>
-            <small>ordenado por progresso</small>
-          </div>
-
-          <div className="statistics-unit-table">
-            <div className="statistics-unit-head">
-              <span>Unidade</span>
-              <span>Alunos</span>
-              <span>Média</span>
-              <span>Progresso</span>
-              <span>7/7</span>
-              <span>Críticos</span>
-              <span>Pend./aluno</span>
-            </div>
-
-            {unidadesStats.map((item) => (
-              <div className="statistics-unit-row" key={item.unidade}>
-                <strong>{item.unidade}</strong>
-                <span>{item.total}</span>
-                <span>{numero(item.media, 1)} / 7</span>
-                <span className="statistics-unit-progress-cell">
-                  <span className="statistics-mini-progress">
-                    <i style={{ width: `${item.progresso}%` }} />
-                  </span>
-                  <b>{item.progresso}%</b>
-                </span>
-                <span className="complete">{item.completos} <small>({item.taxaCompleta}%)</small></span>
-                <span className="critical">{item.criticos} <small>({item.taxaCritica}%)</small></span>
-                <span>{numero(item.pendenciasPorAluno, 1)}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-      )}
+      {unidade === "GERAL" && <CardUnidades unidades={unidadesStats} />}
     </section>
   );
 }

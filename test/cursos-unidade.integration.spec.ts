@@ -145,6 +145,30 @@ beforeAll(async () => {
 });
 
 describe.sequential("alteracao em massa da unidade de cursos", () => {
+  it("lista os cursos agrupados por unidade no periodo atual", async () => {
+    const response = await request("/api/cursos?periodo=2026-2", {
+      headers: { Cookie: adminCookie },
+    });
+    expect(response.status).toBe(200);
+
+    const cursos = await response.json<
+      Array<{
+        curso: string;
+        total_alunos: number;
+        unidades: Array<{ unidade: string; total: number }>;
+      }>
+    >();
+    expect(cursos).toHaveLength(1);
+    expect(cursos[0]).toMatchObject({ curso, total_alunos: 3 });
+    expect(cursos[0].unidades).toEqual(
+      expect.arrayContaining([
+        { unidade: "FACE", total: 1 },
+        { unidade: "FCH", total: 1 },
+        { unidade: "EAD", total: 1 },
+      ]),
+    );
+  });
+
   it("exige a confirmacao de seguranca", async () => {
     const response = await jsonRequest(
       "/api/cursos/unidade?periodo=2026-2",

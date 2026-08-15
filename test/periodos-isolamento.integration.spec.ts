@@ -12,6 +12,13 @@ type Aluno = {
   cpf: number;
 };
 
+type Periodo = {
+  id: number;
+  codigo: string;
+  status: "ATIVO" | "ARQUIVADO";
+  total_alunos: number;
+};
+
 const baseUrl = "https://controle-documentos.test";
 const senha = "SenhaSegura123";
 const raCompartilhado = "RA-ISOLAMENTO-001";
@@ -178,6 +185,30 @@ describe.sequential("isolamento de dados entre períodos", () => {
     expect(alunosB[0]).toMatchObject({ identidade: 0, cpf: 0 });
   });
 
+  it("rejeita documentos de aluno inexistente sem alterar o aluno valido", async () => {
+    const response = await jsonRequest(
+      "/api/alunos/RA-INEXISTENTE/documentos?periodo=2026-2",
+      "PUT",
+      {
+        identidade: false,
+        cpf: false,
+        certidao: true,
+        residencia: true,
+        titulo: true,
+        ensino_medio: true,
+        contrato: true,
+      },
+      adminCookie,
+    );
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toMatchObject({
+      erro: "Aluno não encontrado.",
+    });
+
+    const alunos = await listarAlunos("2026-2");
+    expect(alunos[0]).toMatchObject({ identidade: 1, cpf: 1 });
+  });
+
   it("mantém a contagem de alunos separada por período", async () => {
     const response = await request("/api/periodos", {
       headers: { Cookie: adminCookie },
@@ -192,5 +223,149 @@ describe.sequential("isolamento de dados entre períodos", () => {
 
     expect(Number(periodoA?.total_alunos)).toBe(1);
     expect(Number(periodoB?.total_alunos)).toBe(1);
+  });
+
+  it("arquiva e reativa o período preservando seus dados", async () => {
+    const listarPeriodos = () =>
+      request("/api/periodos", { headers: { Cookie: adminCookie } });
+
+    const respostaInicial = await listarPeriodos();
+    expect(respostaInicial.status).toBe(200);
+    const periodosIniciais = await respostaInicial.json<Periodo[]>();
+    const periodo = periodosIniciais.find((item) => item.codigo === "2027-1");
+    expect(periodo).toBeDefined();
+
+    const arquivar = await jsonRequest(
+      `/api/periodos/${periodo!.id}`,
+      "PUT",
+      { status: "ARQUIVADO" },
+      adminCookie,
+    );
+    expect(arquivar.status).toBe(200);
+    await expect(arquivar.json()).resolves.toMatchObject({
+      id: periodo!.id,
+      codigo: "2027-1",
+      status: "ARQUIVADO",
+    });
+
+    const respostaArquivado = await listarPeriodos();
+    const periodosArquivados = await respostaArquivado.json<Periodo[]>();
+    expect(
+      periodosArquivados.find((item) => item.id === periodo!.id)?.status,
+    ).toBe("ARQUIVADO");
+
+    const reativar = await jsonRequest(
+      `/api/periodos/${periodo!.id}`,
+      "PUT",
+      { status: "ATIVO" },
+      adminCookie,
+    );
+    expect(reativar.status).toBe(200);
+    await expect(reativar.json()).resolves.toMatchObject({
+      id: periodo!.id,
+      codigo: "2027-1",
+      status: "ATIVO",
+    });
+
+    const respostaReativado = await listarPeriodos();
+    const periodosReativados = await respostaReativado.json<Periodo[]>();
+    const periodoReativado = periodosReativados.find(
+      (item) => item.id === periodo!.id,
+    );
+    expect(periodoReativado).toMatchObject({
+      status: "ATIVO",
+      total_alunos: 1,
+    });
+
+    const alunos = await listarAlunos("2027-1");
+    expect(alunos).toHaveLength(1);
+    expect(alunos[0].ra).toBe(raCompartilhado);
+  });
+
+  it("rejeita edição sem os campos cadastrais obrigatórios", async () => {
+    const response = await jsonRequest(
+      `/api/alunos/${encodeURIComponent(raCompartilhado)}?periodo=2026-2`,
+      "PUT",
+      {
+        ra: raCompartilhado,
+        nome: "",
+        curso: "ADMINISTRAÇÃO",
+        unidade: "FCH",
+      },
+      adminCookie,
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      erro: "RA, nome, curso e unidade são obrigatórios.",
+    });
+
+    const alunos = await listarAlunos("2026-2");
+    expect(alunos[0]).toMatchObject({
+      ra: raCompartilhado,
+      nome: "Aluno A Atualizado",
+      unidade: "FCH",
+    });
+  });
+
+  it("impede trocar o RA por outro já usado no mesmo período", async () => {
+    const segundoRa = "RA-ISOLAMENTO-002";
+    const cadastrar = await jsonRequest(
+      "/api/alunos?periodo=2026-2",
+      "POST",
+      {
+        ra: segundoRa,
+        nome: "Segundo Aluno",
+        curso: "ADMINISTRAÇÃO",
+        unidade: "FACE",
+      },
+      adminCookie,
+    );
+    expect(cadastrar.status).toBe(201);
+
+    const response = await jsonRequest(
+      `/api/alunos/${encodeURIComponent(segundoRa)}?periodo=2026-2`,
+      "PUT",
+      {
+        ra: raCompartilhado,
+        nome: "Segundo Aluno",
+        curso: "ADMINISTRAÇÃO",
+        unidade: "FACE",
+      },
+      adminCookie,
+    );
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      erro: "Já existe outro aluno com este RA.",
+    });
+
+    const alunos = await listarAlunos("2026-2");
+    expect(alunos.map((aluno) => aluno.ra)).toEqual(
+      expect.arrayContaining([raCompartilhado, segundoRa]),
+    );
+  });
+
+  it("exclui somente o aluno do período solicitado", async () => {
+    const segundoRa = "RA-ISOLAMENTO-002";
+    const response = await request(
+      `/api/alunos/${encodeURIComponent(segundoRa)}?periodo=2026-2`,
+      {
+        method: "DELETE",
+        headers: { Cookie: adminCookie },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      sucesso: true,
+      ra: segundoRa,
+    });
+
+    const alunosA = await listarAlunos("2026-2");
+    const alunosB = await listarAlunos("2027-1");
+    expect(alunosA.some((aluno) => aluno.ra === segundoRa)).toBe(false);
+    expect(alunosA.some((aluno) => aluno.ra === raCompartilhado)).toBe(true);
+    expect(alunosB.some((aluno) => aluno.ra === raCompartilhado)).toBe(true);
   });
 });

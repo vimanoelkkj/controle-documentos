@@ -210,6 +210,21 @@ afterAll(() => {
 });
 
 describe.sequential("previa e sincronizacao do Google Sheets", () => {
+  it("informa que o período ainda não possui planilha configurada", async () => {
+    const response = await request(
+      `/api/periodos/${periodoId}/google-sheets/status`,
+      { headers: { Cookie: adminCookie } },
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      configurado: false,
+      conectado: false,
+      spreadsheet_id: null,
+      titulo: null,
+      erro: null,
+    });
+  });
+
   it("exige configuracao antes de acessar a planilha", async () => {
     const response = await jsonRequest(
       `/api/periodos/${periodoId}/google-sheets/previa`,
@@ -239,6 +254,17 @@ describe.sequential("previa e sincronizacao do Google Sheets", () => {
     await expect(response.json()).resolves.toMatchObject({
       sucesso: true,
       spreadsheet_id: spreadsheetId,
+    });
+
+    const configuracao = await request(
+      `/api/periodos/${periodoId}/google-sheets`,
+      { headers: { Cookie: adminCookie } },
+    );
+    expect(configuracao.status).toBe(200);
+    await expect(configuracao.json()).resolves.toMatchObject({
+      periodo_id: periodoId,
+      spreadsheet_id: spreadsheetId,
+      aba_base_face_fea: "BASE FACE FEA",
     });
   });
 

@@ -258,6 +258,20 @@ describe.sequential("cancelamento e reativacao de alunos", () => {
     expect((await obterAluno("2026-2", raCompartilhado)).status).toBe("ATIVO");
   });
 
+  it("rejeita status invalido sem alterar a matricula", async () => {
+    const response = await jsonRequest(
+      `/api/alunos/${encodeURIComponent(raCompartilhado)}/status?periodo=2026-2`,
+      "PUT",
+      { status: "PENDENTE" },
+      editorCookie,
+    );
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      erro: "Status inválido.",
+    });
+    expect((await obterAluno("2026-2", raCompartilhado)).status).toBe("ATIVO");
+  });
+
   it("bloqueia cancelamento e reativacao para o visualizador", async () => {
     const cancelar = await jsonRequest(
       "/api/alunos/cancelados?periodo=2026-2",
