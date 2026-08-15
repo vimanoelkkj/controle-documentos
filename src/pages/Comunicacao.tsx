@@ -13,6 +13,7 @@ import { ListaAlunos } from "./comunicacao/components/ListaAlunos";
 import { useGruposComunicacao } from "./comunicacao/hooks/useGruposComunicacao";
 import { useDestinatariosComunicacao } from "./comunicacao/hooks/useDestinatariosComunicacao";
 import { PainelAcoesComunicacao } from "./comunicacao/components/PainelAcoesComunicacao";
+import { ResumoCombinacao } from "./comunicacao/components/ResumoCombinacao";
 
 function Comunicacao() {
   const { modoApresentacao } = useAuth();
@@ -243,53 +244,12 @@ function Comunicacao() {
             </div>
           ) : (
             <>
-              <div className="communication-detail-header">
-                <div>
-                  <span>COMBINAÇÃO EXATA</span>
-                  <h2>
-                    {grupo.documentos.length === 7
-                      ? "Todos os documentos"
-                      : grupo.documentos.map((doc) => doc.curto).join(" + ")}
-                  </h2>
-                  <p>
-                    Aqui entram somente alunos que devem exatamente estes
-                    documentos — nenhum a mais e nenhum a menos.
-                  </p>
-                  <div className="communication-charge-summary">
-                    <span>
-                      <b>{alunosJaCobrados.length}</b> já cobrado(s)
-                    </span>
-                    <span>
-                      <b>{alunosNaoCobrados.length}</b> ainda não cobrado(s)
-                    </span>
-                    {ultimaCobrancaGrupo && (
-                      <span>
-                        Última cobrança:{" "}
-                        <b>
-                          {new Date(ultimaCobrancaGrupo).toLocaleString(
-                            "pt-BR",
-                          )}
-                        </b>
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <strong className="communication-big-count">
-                  {grupo.alunos.length}
-                </strong>
-              </div>
-
-              <div className="communication-tags">
-                {grupo.documentos.map((documento) => (
-                  <span
-                    key={documento.campo}
-                    className={documento.prioritario ? "priority" : ""}
-                  >
-                    {documento.curto}
-                    {documento.prioritario ? " • prioritário" : ""}
-                  </span>
-                ))}
-              </div>
+              <ResumoCombinacao
+                grupo={grupo}
+                alunosJaCobrados={alunosJaCobrados.length}
+                alunosNaoCobrados={alunosNaoCobrados.length}
+                ultimaCobrancaGrupo={ultimaCobrancaGrupo}
+              />
               <PainelAcoesComunicacao
                 modoApresentacao={modoApresentacao}
                 quantidadeSelecionados={alunosSelecionados.length}
