@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 import type { Grupo } from "../model";
-import { formatarPrazo } from "../utils";
+import { formatarPrazo, prazoValido } from "../utils";
 
 type Props = {
   emailCardRef: RefObject<HTMLElement | null>;
@@ -27,6 +27,7 @@ export function CartaoEmail({
   copiarAssunto,
   copiarComunicado,
 }: Props) {
+  const prazoEstaValido = prazoValido(prazo);
   return (
     <section ref={emailCardRef} className="communication-email-card">
       <div className="communication-email-settings">
@@ -38,11 +39,27 @@ export function CartaoEmail({
           <input
             value={prazo}
             onChange={(e) => setPrazo(formatarPrazo(e.target.value))}
+            onKeyDown={(e) => {
+              const input = e.currentTarget;
+              const cursorNoFim =
+                input.selectionStart === prazo.length &&
+                input.selectionEnd === prazo.length;
+
+              if (e.key === "Backspace" && prazo.endsWith("/") && cursorNoFim) {
+                e.preventDefault();
+                setPrazo(prazo.slice(0, -2));
+              }
+            }}
             placeholder="__/__"
             inputMode="numeric"
             maxLength={5}
             aria-label="Data limite no formato dia e mês"
           />
+          {prazo.length === 5 && !prazoEstaValido && (
+            <small className="communication-field-error">
+              Informe uma data válida no formato DD/MM.
+            </small>
+          )}
         </label>
 
         <label className="communication-subject-field">
@@ -58,11 +75,19 @@ export function CartaoEmail({
         </label>
 
         <div className="communication-copy-stack">
-          <button type="button" onClick={() => void copiarAssunto()}>
+          <button
+            type="button"
+            onClick={() => void copiarAssunto()}
+            disabled={!prazoEstaValido}
+          >
             Copiar assunto
           </button>
 
-          <button type="button" onClick={() => void copiarComunicado()}>
+          <button
+            type="button"
+            onClick={() => void copiarComunicado()}
+            disabled={!prazoEstaValido}
+          >
             Copiar texto
           </button>
         </div>

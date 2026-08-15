@@ -982,3 +982,14 @@
   margin-bottom: 0;
   border-bottom: 0;
 }
+
+.communication-copy-stack button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: saturate(0.6);
+}
+
+.communication-copy-stack button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}

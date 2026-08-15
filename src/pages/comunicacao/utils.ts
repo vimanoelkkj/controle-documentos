@@ -9,9 +9,24 @@ export function normalizarEmail(valor: string | null | undefined) {
 export function formatarPrazo(valor: string) {
   const numeros = valor.replace(/\D/g, "").slice(0, 4);
 
-  if (numeros.length <= 2) return numeros;
+  if (numeros.length < 2) return numeros;
+  if (numeros.length === 2) return `${numeros}/`;
 
   return `${numeros.slice(0, 2)}/${numeros.slice(2)}`;
+}
+
+export function prazoValido(valor: string) {
+  const match = /^(\d{2})\/(\d{2})$/.exec(valor);
+  if (!match) return false;
+
+  const dia = Number(match[1]);
+  const mes = Number(match[2]);
+
+  if (mes < 1 || mes > 12) return false;
+
+  const diasPorMes = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  return dia >= 1 && dia <= diasPorMes[mes - 1];
 }
 
 export function criarGrupos(alunos: AlunoApi[]): Grupo[] {
