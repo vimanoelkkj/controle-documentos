@@ -1,29 +1,42 @@
+import { useEffect } from "react";
 import AppIcon from "../components/AppIcon";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { useAuth, type Perfil } from "../contexts/auth";
-import AppSelect from "../components/AppSelect";
-import { api } from "../lib/api";
+import { useAuth } from "../contexts/auth";
+
 import { useBackup } from "./configuracoes/hooks/useBackup";
-import { BackupSection } from "./configuracoes/components/BackupSection";
 import { useFerramentasDev } from "./configuracoes/hooks/useFerramentasDev";
-import { FerramentasDevSection } from "./configuracoes/components/FerramentasDevSection";
 import { useRedefinirSenha } from "./configuracoes/hooks/useRedefinirSenha";
-import { ModalRedefinirSenha } from "./configuracoes/components/ModalRedefinirSenha";
 import { useExcluirUsuario } from "./configuracoes/hooks/useExcluirUsuario";
+import { useUsuarios } from "./configuracoes/hooks/useUsuarios";
+
+import { BackupSection } from "./configuracoes/components/BackupSection";
+import { FerramentasDevSection } from "./configuracoes/components/FerramentasDevSection";
+import { ModalRedefinirSenha } from "./configuracoes/components/ModalRedefinirSenha";
 import { ModalExcluirUsuario } from "./configuracoes/components/ModalExcluirUsuario";
-import type { UsuarioLista } from "./configuracoes/model";
+import { ListaUsuarios } from "./configuracoes/components/ListaUsuarios";
+import { FormNovoUsuario } from "./configuracoes/components/FormNovoUsuario";
 
 function Configuracoes() {
   const { admin } = useAuth();
 
-  const [usuarios, setUsuarios] = useState<UsuarioLista[]>([]);
-  const [nome, setNome] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [perfil, setPerfil] = useState<Perfil>("VISUALIZADOR");
-  const [modoApresentacao, setModoApresentacao] = useState(false);
-  const [erro, setErro] = useState("");
+  const {
+    usuarios,
+    nome,
+    setNome,
+    username,
+    setUsername,
+    email,
+    setEmail,
+    senha,
+    setSenha,
+    perfil,
+    setPerfil,
+    modoApresentacao,
+    setModoApresentacao,
+    erro,
+    carregar,
+    criarUsuario,
+    alterarUsuario,
+  } = useUsuarios({ admin });
 
   const {
     usuarioSenha,
@@ -52,6 +65,7 @@ function Configuracoes() {
     confirmacaoEsperada,
     limparAlunosDev,
   } = useFerramentasDev({ admin });
+
   const {
     backupConfigurado,
     gerandoBackup,
@@ -60,18 +74,6 @@ function Configuracoes() {
     verificarBackup,
     gerarBackup,
   } = useBackup({ admin });
-
-  const carregar = useCallback(async () => {
-    if (!admin) return;
-
-    try {
-      setUsuarios(await api.get<UsuarioLista[]>("/api/usuarios"));
-    } catch (erro) {
-      setErro(
-        erro instanceof Error ? erro.message : "Erro ao carregar usuários.",
-      );
-    }
-  }, [admin]);
 
   const {
     usuarioExcluir,
@@ -93,57 +95,20 @@ function Configuracoes() {
     void verificarBackup();
   }, [carregar, verificarFerramentasDev, verificarBackup]);
 
-  async function criar(e: FormEvent) {
-    e.preventDefault();
-    setErro("");
-
-    try {
-      await api.post<{ sucesso: boolean; id: number }>("/api/usuarios", {
-        nome,
-        username,
-        email,
-        senha,
-        perfil: modoApresentacao ? "VISUALIZADOR" : perfil,
-        modo_apresentacao: modoApresentacao,
-      });
-    } catch (erro) {
-      setErro(erro instanceof Error ? erro.message : "Erro ao criar usuário.");
-      return;
-    }
-
-    setNome("");
-    setUsername("");
-    setEmail("");
-    setSenha("");
-    setPerfil("VISUALIZADOR");
-    setModoApresentacao(false);
-    void carregar();
-  }
-
-  async function alterar(id: number, dados: Record<string, unknown>) {
-    try {
-      await api.put<{ sucesso: boolean }>(`/api/usuarios/${id}`, dados);
-    } catch (erro) {
-      setErro(
-        erro instanceof Error ? erro.message : "Erro ao alterar usuário.",
-      );
-      return;
-    }
-
-    void carregar();
-  }
-
   return (
     <section className="settings-page">
       <header className="settings-header">
         <div>
           <span>SISTEMA</span>
+
           <div className="page-title-row">
             <span className="page-title-icon">
               <AppIcon name="settings" size={22} />
             </span>
+
             <h1>Configurações</h1>
           </div>
+
           <p>Preferências, integrações e controle de acesso.</p>
         </div>
       </header>
@@ -154,172 +119,29 @@ function Configuracoes() {
         </div>
       ) : (
         <>
-          <div className="settings-users-head">
-            <div>
-              <span>ACESSO</span>
-              <h2>Usuários</h2>
-            </div>
-            <strong>{usuarios.length}</strong>
-          </div>
+          <ListaUsuarios
+            usuarios={usuarios}
+            alterarUsuario={alterarUsuario}
+            abrirModalSenha={abrirModalSenha}
+            abrirModalExcluir={abrirModalExcluir}
+          />
 
-          <div className="settings-users-grid">
-            {usuarios.map((u) => (
-              <article key={u.id} className={!u.ativo ? "disabled" : ""}>
-                <div className="settings-user-main">
-                  <div className="sidebar-user-avatar">{u.nome[0]}</div>
-                  <div>
-                    <strong>{u.nome}</strong>
-                    <span>
-                      @{u.username} · {u.email}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="settings-user-actions">
-                  <button
-                    type="button"
-                    className="settings-password-button"
-                    onClick={() => {
-                      abrirModalSenha(u);
-                    }}
-                  >
-                    ⌁ Senha
-                  </button>
-
-                  <AppSelect
-                    value={u.modo_apresentacao ? "APRESENTACAO" : u.perfil}
-                    onChange={(valor) => {
-                      if (valor === "APRESENTACAO") {
-                        void alterar(u.id, {
-                          perfil: "VISUALIZADOR",
-                          modo_apresentacao: true,
-                        });
-                        return;
-                      }
-
-                      void alterar(u.id, {
-                        perfil: valor,
-                        modo_apresentacao: false,
-                      });
-                    }}
-                    ariaLabel={`Perfil de ${u.nome}`}
-                    options={[
-                      { value: "ADMIN", label: "ADMIN" },
-                      { value: "EDITOR", label: "EDITOR" },
-                      { value: "VISUALIZADOR", label: "VISUALIZADOR" },
-                      { value: "APRESENTACAO", label: "APRESENTAÇÃO" },
-                    ]}
-                  />
-
-                  <button
-                    type="button"
-                    className={`settings-user-toggle ${
-                      u.ativo ? "deactivate" : "reactivate"
-                    }`}
-                    onClick={() => alterar(u.id, { ativo: !u.ativo })}
-                  >
-                    <span aria-hidden="true">{u.ativo ? "⊘" : "↻"}</span>
-                    {u.ativo ? "Desativar" : "Reativar"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="settings-user-delete"
-                    onClick={() => {
-                      abrirModalExcluir(u);
-                    }}
-                  >
-                    <span aria-hidden="true">×</span>
-                    Excluir
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <form className="settings-user-form" onSubmit={criar}>
-            <div>
-              <span>NOVO USUÁRIO</span>
-              <h2>Criar acesso</h2>
-            </div>
-
-            <label>
-              Nome
-              <input
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                required
-              />
-            </label>
-
-            <label>
-              Usuário
-              <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                minLength={3}
-                placeholder="ex.: vitormanoel"
-                required
-              />
-            </label>
-
-            <label>
-              E-mail
-              <div className="settings-email-simple">
-                <input
-                  type="text"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nome@fumec.edu.br"
-                  list="email-dominios"
-                  required
-                />
-                <datalist id="email-dominios">
-                  <option value="@fumec.edu.br" />
-                  <option value="@gmail.com" />
-                </datalist>
-              </div>
-            </label>
-
-            <label>
-              Senha inicial
-              <input
-                type="password"
-                minLength={8}
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                required
-              />
-            </label>
-
-            <label>
-              Perfil
-              <AppSelect
-                value={modoApresentacao ? "APRESENTACAO" : perfil}
-                onChange={(valor) => {
-                  if (valor === "APRESENTACAO") {
-                    setPerfil("VISUALIZADOR");
-                    setModoApresentacao(true);
-                    return;
-                  }
-
-                  setPerfil(valor as Perfil);
-                  setModoApresentacao(false);
-                }}
-                ariaLabel="Perfil do novo usuário"
-                options={[
-                  { value: "VISUALIZADOR", label: "Visualizador" },
-                  { value: "EDITOR", label: "Editor" },
-                  { value: "ADMIN", label: "Administrador" },
-                  { value: "APRESENTACAO", label: "Apresentação" },
-                ]}
-              />
-            </label>
-
-            {erro && <div className="login-error">{erro}</div>}
-
-            <button type="submit">Criar usuário</button>
-          </form>
+          <FormNovoUsuario
+            nome={nome}
+            setNome={setNome}
+            username={username}
+            setUsername={setUsername}
+            email={email}
+            setEmail={setEmail}
+            senha={senha}
+            setSenha={setSenha}
+            perfil={perfil}
+            setPerfil={setPerfil}
+            modoApresentacao={modoApresentacao}
+            setModoApresentacao={setModoApresentacao}
+            erro={erro}
+            criarUsuario={criarUsuario}
+          />
 
           <BackupSection
             backupConfigurado={backupConfigurado}
@@ -328,6 +150,7 @@ function Configuracoes() {
             backupGerado={backupGerado}
             gerarBackup={gerarBackup}
           />
+
           {devHabilitado && (
             <FerramentasDevSection
               unidadeDev={unidadeDev}
@@ -343,6 +166,7 @@ function Configuracoes() {
           )}
         </>
       )}
+
       {usuarioSenha && (
         <ModalRedefinirSenha
           usuario={usuarioSenha}
@@ -357,6 +181,7 @@ function Configuracoes() {
           aoSalvar={salvarNovaSenha}
         />
       )}
+
       {usuarioExcluir && (
         <ModalExcluirUsuario
           usuario={usuarioExcluir}
