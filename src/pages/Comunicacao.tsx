@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/auth";
 import type { AlunoApi, HistoricoComunicacao } from "./comunicacao/model";
 import { useHistoricoComunicacao } from "./comunicacao/hooks/useHistoricoComunicacao";
 import { criarTextoEmail } from "./comunicacao/mensagens";
+import { HistoricoComunicacoes } from "./comunicacao/components/HistoricoComunicacoes";
 import { useAcoesComunicacao } from "./comunicacao/hooks/useAcoesComunicacao";
 import {
   criarGrupos,
@@ -713,65 +714,11 @@ function Comunicacao() {
                     ))}
                   </div>
                 </section>
-
-                <section className="communication-history">
-                  <div className="communication-history-header">
-                    <div>
-                      <span>HISTÓRICO DE COBRANÇAS</span>
-                      <strong>Últimos registros</strong>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => void carregarHistorico()}
-                    >
-                      Atualizar
-                    </button>
-                  </div>
-
-                  {historicoErro ? (
-                    <div className="communication-history-error">
-                      {historicoErro}
-                    </div>
-                  ) : historico.length === 0 ? (
-                    <div className="communication-history-empty">
-                      Nenhuma cobrança registrada ainda.
-                    </div>
-                  ) : (
-                    <div className="communication-history-list">
-                      {historico.map((registro) => (
-                        <article
-                          key={registro.id}
-                          className="communication-history-item"
-                        >
-                          <div>
-                            <strong>
-                              {registro.documentos.length === 7
-                                ? "Todos os documentos"
-                                : registro.documentos.join(" + ")}
-                            </strong>
-                            <span>
-                              {registro.unidade === "TODAS"
-                                ? "Todas as unidades"
-                                : registro.unidade}
-                              {" • "}
-                              {new Date(registro.criado_em).toLocaleString(
-                                "pt-BR",
-                              )}
-                            </span>
-                          </div>
-                          <div className="communication-history-numbers">
-                            <strong>{registro.quantidade_alunos}</strong>
-                            <span>alunos</span>
-                          </div>
-                          <div className="communication-history-numbers">
-                            <strong>{registro.quantidade_emails}</strong>
-                            <span>e-mails</span>
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                </section>
+                <HistoricoComunicacoes
+                  historico={historico}
+                  historicoErro={historicoErro}
+                  aoAtualizar={carregarHistorico}
+                />
               </div>
             </>
           )}
