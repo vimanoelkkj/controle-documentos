@@ -6,7 +6,7 @@ import { ModalConfirmarAlteracaoCurso } from "./cursos/ModalConfirmarAlteracaoCu
 import { ListaCursos } from "./cursos/ListaCursos";
 import { api } from "../lib/api";
 
-type Unidade = "FACE" | "FEA" | "FCH" | "EAD";
+import type { Unidade } from "../types/domain";
 type Curso = {
   curso: string;
   total_alunos: number;

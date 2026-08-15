@@ -1,6 +1,6 @@
 import AppSelect from "../../components/AppSelect";
 
-type Unidade = "FACE" | "FEA" | "FCH" | "EAD";
+import type { Unidade } from "../../types/domain";
 
 type Curso = {
   curso: string;
