@@ -5,6 +5,8 @@ import AppSelect from "../components/AppSelect";
 import { api } from "../lib/api";
 import { useBackup } from "./configuracoes/hooks/useBackup";
 import { BackupSection } from "./configuracoes/components/BackupSection";
+import { useFerramentasDev } from "./configuracoes/hooks/useFerramentasDev";
+import { FerramentasDevSection } from "./configuracoes/components/FerramentasDevSection";
 
 type UsuarioLista = {
   id: number;
@@ -16,8 +18,6 @@ type UsuarioLista = {
   modo_apresentacao: number;
   criado_em: string;
 };
-
-type UnidadeDev = "FACE" | "FEA" | "FCH" | "EAD" | "TODOS";
 
 function Configuracoes() {
   const { admin } = useAuth();
@@ -43,11 +43,19 @@ function Configuracoes() {
   const [excluindoUsuario, setExcluindoUsuario] = useState(false);
   const [erroExcluir, setErroExcluir] = useState("");
 
-  const [devHabilitado, setDevHabilitado] = useState(false);
-  const [unidadeDev, setUnidadeDev] = useState<UnidadeDev>("FCH");
-  const [confirmacaoDev, setConfirmacaoDev] = useState("");
-  const [limpandoDev, setLimpandoDev] = useState(false);
-  const [mensagemDev, setMensagemDev] = useState("");
+  const {
+    devHabilitado,
+    unidadeDev,
+    setUnidadeDev,
+    confirmacaoDev,
+    setConfirmacaoDev,
+    limpandoDev,
+    mensagemDev,
+    setMensagemDev,
+    verificarFerramentasDev,
+    confirmacaoEsperada,
+    limparAlunosDev,
+  } = useFerramentasDev({ admin });
   const {
     backupConfigurado,
     gerandoBackup,
@@ -66,22 +74,6 @@ function Configuracoes() {
       setErro(
         erro instanceof Error ? erro.message : "Erro ao carregar usuários.",
       );
-    }
-  }, [admin]);
-
-  const verificarFerramentasDev = useCallback(async () => {
-    if (!admin) {
-      setDevHabilitado(false);
-      return;
-    }
-
-    try {
-      const d = await api.get<{ habilitado?: boolean }>(
-        "/api/dev/alunos-reset/status",
-      );
-      setDevHabilitado(Boolean(d.habilitado));
-    } catch {
-      setDevHabilitado(false);
     }
   }, [admin]);
 
@@ -159,42 +151,6 @@ function Configuracoes() {
       );
     } finally {
       setExcluindoUsuario(false);
-    }
-  }
-
-  const confirmacaoEsperada =
-    unidadeDev === "TODOS" ? "LIMPAR TODOS" : `LIMPAR ${unidadeDev}`;
-
-  async function limparAlunosDev() {
-    if (confirmacaoDev.trim().toUpperCase() !== confirmacaoEsperada) return;
-
-    setLimpandoDev(true);
-    setMensagemDev("");
-
-    try {
-      const d = await api.delete<{
-        removidos?: number;
-        unidade?: string;
-        periodo?: string;
-      }>("/api/dev/alunos-reset", {
-        unidade: unidadeDev,
-        confirmacao: confirmacaoDev,
-      });
-
-      setMensagemDev(
-        `✓ ${d.removidos ?? 0} aluno(s) removido(s) de ${
-          d.unidade === "TODOS" ? "todas as unidades" : d.unidade
-        } no período ${d.periodo ?? "atual"}.`,
-      );
-      setConfirmacaoDev("");
-    } catch (erro) {
-      setMensagemDev(
-        erro instanceof Error
-          ? erro.message
-          : "Não foi possível acessar a ferramenta de desenvolvimento.",
-      );
-    } finally {
-      setLimpandoDev(false);
     }
   }
 
@@ -398,77 +354,18 @@ function Configuracoes() {
             backupGerado={backupGerado}
             gerarBackup={gerarBackup}
           />
-
           {devHabilitado && (
-            <section className="settings-dev-tools">
-              <div className="settings-dev-tools-head">
-                <div>
-                  <span>AMBIENTE DE DESENVOLVIMENTO</span>
-                  <h2>Ferramentas de teste</h2>
-                  <p>
-                    Limpe alunos do período atual para repetir importações sem
-                    mexer em usuários, períodos ou configurações.
-                  </p>
-                </div>
-                <strong>DEV</strong>
-              </div>
-
-              <div className="settings-dev-danger">
-                <div className="settings-dev-fields">
-                  <label>
-                    Alunos a remover
-                    <AppSelect
-                      value={unidadeDev}
-                      onChange={(valor) => {
-                        setUnidadeDev(valor as UnidadeDev);
-                        setConfirmacaoDev("");
-                        setMensagemDev("");
-                      }}
-                      disabled={limpandoDev}
-                      ariaLabel="Alunos a remover"
-                      options={[
-                        { value: "FACE", label: "FACE" },
-                        { value: "FEA", label: "FEA" },
-                        { value: "FCH", label: "FCH" },
-                        { value: "EAD", label: "EAD" },
-                        { value: "TODOS", label: "TODOS OS ALUNOS" },
-                      ]}
-                    />
-                  </label>
-
-                  <label>
-                    Digite <strong>{confirmacaoEsperada}</strong>
-                    <input
-                      value={confirmacaoDev}
-                      onChange={(e) => setConfirmacaoDev(e.target.value)}
-                      placeholder={confirmacaoEsperada}
-                      disabled={limpandoDev}
-                      autoComplete="off"
-                    />
-                  </label>
-                </div>
-
-                <button
-                  type="button"
-                  className="settings-dev-delete"
-                  onClick={() => void limparAlunosDev()}
-                  disabled={
-                    limpandoDev ||
-                    confirmacaoDev.trim().toUpperCase() !== confirmacaoEsperada
-                  }
-                >
-                  {limpandoDev
-                    ? "Limpando..."
-                    : unidadeDev === "TODOS"
-                      ? "☢ Limpar todos os alunos"
-                      : `⊘ Limpar alunos da ${unidadeDev}`}
-                </button>
-              </div>
-
-              {mensagemDev && (
-                <div className="settings-dev-message">{mensagemDev}</div>
-              )}
-            </section>
+            <FerramentasDevSection
+              unidadeDev={unidadeDev}
+              setUnidadeDev={setUnidadeDev}
+              confirmacaoDev={confirmacaoDev}
+              setConfirmacaoDev={setConfirmacaoDev}
+              limpandoDev={limpandoDev}
+              mensagemDev={mensagemDev}
+              setMensagemDev={setMensagemDev}
+              confirmacaoEsperada={confirmacaoEsperada}
+              limparAlunosDev={limparAlunosDev}
+            />
           )}
         </>
       )}
