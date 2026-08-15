@@ -1,4 +1,4 @@
-import type { SheetsResultadoSync } from "../hooks/useGoogleSheetsPeriodo";
+import type { SheetsResultadoSync } from "./model";
 
 type Props = {
   codigoPeriodo?: string;

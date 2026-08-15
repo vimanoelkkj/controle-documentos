@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import type { AbaPrevia, SheetsPrevia } from "../hooks/useGoogleSheetsPeriodo";
+import type { AbaPrevia, SheetsPrevia } from "./model";
 import { GoogleSheetsCourseMap } from "./GoogleSheetsCourseMap";
 
 type Props = {

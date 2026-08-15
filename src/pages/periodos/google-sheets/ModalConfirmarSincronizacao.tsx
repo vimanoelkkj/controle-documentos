@@ -1,4 +1,4 @@
-import type { SheetsPrevia } from "../hooks/useGoogleSheetsPeriodo";
+import type { SheetsPrevia } from "./model";
 
 type Props = {
   codigoPeriodo?: string;

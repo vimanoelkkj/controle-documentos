@@ -3,7 +3,7 @@ import type {
   SheetsPrevia,
   SheetsStatus,
   AbaPrevia,
-} from "../hooks/useGoogleSheetsPeriodo";
+} from "./model";
 import { GoogleSheetsPreview } from "./GoogleSheetsPreview";
 
 type Props = {

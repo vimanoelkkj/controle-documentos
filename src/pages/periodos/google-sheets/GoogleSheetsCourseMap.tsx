@@ -1,5 +1,5 @@
 import AppSelect from "../../../components/AppSelect";
-import type { SheetsPrevia } from "../hooks/useGoogleSheetsPeriodo";
+import type { SheetsPrevia } from "./model";
 
 type Props = {
   cursosPendentes: SheetsPrevia["cursos_pendentes"];
