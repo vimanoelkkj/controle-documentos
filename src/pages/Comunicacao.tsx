@@ -2,151 +2,15 @@ import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
+import type { AlunoApi, HistoricoComunicacao } from "./comunicacao/model";
+import { useHistoricoComunicacao } from "./comunicacao/hooks/useHistoricoComunicacao";
 
-type AlunoApi = {
-  ra: string;
-  nome: string;
-  email: string | null;
-  email_outro: string | null;
-  curso: string;
-  unidade: string;
-  identidade: number;
-  cpf: number;
-  certidao: number;
-  residencia: number;
-  titulo: number;
-  ensino_medio: number;
-  contrato: number;
-  status: "ATIVO" | "CANCELADO";
-};
-
-type DocumentoDef = {
-  campo: keyof Pick<
-    AlunoApi,
-    | "identidade"
-    | "cpf"
-    | "certidao"
-    | "residencia"
-    | "titulo"
-    | "ensino_medio"
-    | "contrato"
-  >;
-  curto: string;
-  email: string;
-  prioritario?: boolean;
-};
-
-type Grupo = {
-  chave: string;
-  documentos: DocumentoDef[];
-  alunos: AlunoApi[];
-};
-
-type HistoricoComunicacao = {
-  id: number;
-  criado_em: string;
-  grupo_chave: string;
-  unidade: string;
-  documentos: string[];
-  quantidade_alunos: number;
-  quantidade_emails: number;
-  assunto: string;
-  prazo: string;
-  tipo_destinatario: string;
-  ras: string[];
-};
-
-const DOCUMENTOS: DocumentoDef[] = [
-  { campo: "identidade", curto: "Identidade", email: "IDENTIDADE" },
-  { campo: "cpf", curto: "CPF", email: "CPF" },
-  {
-    campo: "certidao",
-    curto: "Certidão de Registro Civil",
-    email: "CERTIDÃO DE REGISTRO CIVIL (NASCIMENTO OU CASAMENTO)",
-  },
-  {
-    campo: "residencia",
-    curto: "Comprovante de Residência",
-    email: "COMPROVANTE DE RESIDÊNCIA",
-  },
-  {
-    campo: "titulo",
-    curto: "Título de Eleitor",
-    email: "TÍTULO DE ELEITOR",
-  },
-  {
-    campo: "ensino_medio",
-    curto: "Histórico do Ensino Médio",
-    email: "HISTÓRICO ESCOLAR DO ENSINO MÉDIO (DOCUMENTO PRIORITÁRIO)",
-    prioritario: true,
-  },
-  {
-    campo: "contrato",
-    curto: "Contrato",
-    email: "CONTRATO DE MATRÍCULA (DOCUMENTO PRIORITÁRIO)",
-    prioritario: true,
-  },
-];
-
-function normalizarEmail(valor: string | null | undefined) {
-  const email = (valor || "").trim();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "";
-}
-
-function formatarPrazo(valor: string) {
-  const numeros = valor.replace(/\D/g, "").slice(0, 4);
-  if (numeros.length <= 2) return numeros;
-  return `${numeros.slice(0, 2)}/${numeros.slice(2)}`;
-}
-
-function criarGrupos(alunos: AlunoApi[]): Grupo[] {
-  const mapa = new Map<string, Grupo>();
-
-  alunos
-    .filter((aluno) => aluno.status === "ATIVO")
-    .forEach((aluno) => {
-      const pendentes = DOCUMENTOS.filter(
-        (documento) => aluno[documento.campo] !== 1,
-      );
-
-      if (pendentes.length === 0) return;
-
-      // A chave representa a combinação EXATA. Alguém que deve só
-      // Contrato nunca cai no grupo Contrato + Histórico.
-      const chave = DOCUMENTOS.map((documento) =>
-        aluno[documento.campo] === 1 ? "0" : "1",
-      ).join("");
-
-      const existente = mapa.get(chave);
-
-      if (existente) {
-        existente.alunos.push(aluno);
-      } else {
-        mapa.set(chave, {
-          chave,
-          documentos: pendentes,
-          alunos: [aluno],
-        });
-      }
-    });
-
-  return [...mapa.values()]
-    .map((grupo) => ({
-      ...grupo,
-      alunos: [...grupo.alunos].sort((a, b) =>
-        a.nome.localeCompare(b.nome, "pt-BR"),
-      ),
-    }))
-    .sort(
-      (a, b) =>
-        b.alunos.length - a.alunos.length ||
-        a.documentos.length - b.documentos.length,
-    );
-}
-
-async function copiar(texto: string) {
-  await navigator.clipboard.writeText(texto);
-}
+import {
+  copiar,
+  criarGrupos,
+  formatarPrazo,
+  normalizarEmail,
+} from "./comunicacao/utils";
 
 function Comunicacao() {
   const { modoApresentacao } = useAuth();
@@ -161,9 +25,13 @@ function Comunicacao() {
   const [prazo, setPrazo] = useState("01/07");
   const [assunto, setAssunto] = useState("Documentação pendente - Matrícula");
   const [feedback, setFeedback] = useState("");
-  const [historico, setHistorico] = useState<HistoricoComunicacao[]>([]);
-  const [historicoErro, setHistoricoErro] = useState("");
-  const [registrandoHistorico, setRegistrandoHistorico] = useState(false);
+  const {
+    historico,
+    historicoErro,
+    registrandoHistorico,
+    carregarHistorico,
+    registrarCobranca: registrarCobrancaNoHistorico,
+  } = useHistoricoComunicacao();
   const emailCardRef = useRef<HTMLElement | null>(null);
   const [alturaMaximaAlunos, setAlturaMaximaAlunos] = useState<number | null>(
     null,
@@ -199,32 +67,6 @@ function Comunicacao() {
       .then((dados) => setAlunos(dados))
       .catch(() => setErro("Não foi possível carregar os alunos."))
       .finally(() => setCarregando(false));
-  }, []);
-
-  async function carregarHistorico() {
-    try {
-      const resposta = await fetch("/api/comunicacoes?limit=100");
-      if (!resposta.ok) {
-        const dados = (await resposta.json().catch(() => ({}))) as {
-          erro?: string;
-        };
-        throw new Error(dados.erro || "Não foi possível carregar o histórico.");
-      }
-
-      const dados = (await resposta.json()) as HistoricoComunicacao[];
-      setHistorico(dados);
-      setHistoricoErro("");
-    } catch (erroAtual) {
-      setHistoricoErro(
-        erroAtual instanceof Error
-          ? erroAtual.message
-          : "Não foi possível carregar o histórico.",
-      );
-    }
-  }
-
-  useEffect(() => {
-    void carregarHistorico();
   }, []);
 
   const unidades = useMemo(
@@ -329,7 +171,7 @@ function Comunicacao() {
     selecionadosSemInstitucional === 0 &&
     emailsInstitucionaisInvalidos.length === 0;
 
-  const cobrancasDaCombinacao = useMemo(
+  const cobrancasDaCombinacao = useMemo<HistoricoComunicacao[]>(
     () => historico.filter((registro) => registro.grupo_chave === grupo?.chave),
     [historico, grupo?.chave],
   );
@@ -454,50 +296,30 @@ ${textoEmail}`;
       return;
     }
 
-    setRegistrandoHistorico(true);
-
     try {
-      const resposta = await fetch("/api/comunicacoes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          grupo_chave: grupo.chave,
-          unidade,
-          documentos: grupo.documentos.map((documento) => documento.curto),
-          quantidade_alunos: alunosSelecionados.length,
-          quantidade_emails: emailsInstitucionais.length,
-          assunto: assunto || "Documentação pendente - Matrícula",
-          prazo,
-          tipo_destinatario: "institucional",
-          ras: alunosSelecionados.map((aluno) => aluno.ra),
-        }),
+      await registrarCobrancaNoHistorico({
+        grupo_chave: grupo.chave,
+        unidade,
+        documentos: grupo.documentos.map((documento) => documento.curto),
+        quantidade_alunos: alunosSelecionados.length,
+        quantidade_emails: emailsInstitucionais.length,
+        assunto: assunto || "Documentação pendente - Matrícula",
+        prazo,
+        tipo_destinatario: "institucional",
+        ras: alunosSelecionados.map((aluno) => aluno.ra),
       });
 
-      const dados = (await resposta.json().catch(() => ({}))) as {
-        erro?: string;
-      };
-
-      if (!resposta.ok) {
-        throw new Error(dados.erro || "Não foi possível registrar a cobrança.");
-      }
-
       setFeedback(
-        `✓ Cobrança registrada no histórico para ${alunosSelecionados.length} aluno${
-          alunosSelecionados.length === 1 ? "" : "s"
-        }.`,
+        `✓ Cobrança registrada no histórico para ${
+          alunosSelecionados.length
+        } aluno${alunosSelecionados.length === 1 ? "" : "s"}.`,
       );
-
-      await carregarHistorico();
-    } catch (erroAtual) {
+    } catch (erro) {
       setFeedback(
-        erroAtual instanceof Error
-          ? `⚠ ${erroAtual.message}`
+        erro instanceof Error
+          ? `⚠ ${erro.message}`
           : "⚠ Não foi possível registrar a cobrança.",
       );
-    } finally {
-      setRegistrandoHistorico(false);
     }
   }
 
