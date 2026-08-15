@@ -12,6 +12,7 @@ import { useAcoesComunicacao } from "./comunicacao/hooks/useAcoesComunicacao";
 import { ListaAlunos } from "./comunicacao/components/ListaAlunos";
 import { useGruposComunicacao } from "./comunicacao/hooks/useGruposComunicacao";
 import { useDestinatariosComunicacao } from "./comunicacao/hooks/useDestinatariosComunicacao";
+import { PainelAcoesComunicacao } from "./comunicacao/components/PainelAcoesComunicacao";
 
 function Comunicacao() {
   const { modoApresentacao } = useAuth();
@@ -289,122 +290,23 @@ function Comunicacao() {
                   </span>
                 ))}
               </div>
-
-              <div className="communication-actions">
-                {modoApresentacao ? (
-                  <div>
-                    <span>MODO APRESENTAÇÃO</span>
-                    <strong>
-                      Dados pessoais e ações de comunicação ocultos
-                    </strong>
-                    <small>
-                      A estrutura da combinação continua disponível apenas para
-                      demonstração.
-                    </small>
-                  </div>
-                ) : (
-                  <>
-                    <div>
-                      <span>DESTINATÁRIOS</span>
-                      <strong>
-                        {alunosSelecionados.length} alunos selecionados
-                      </strong>
-                      <small>
-                        {selecionadosComInstitucional} com e-mail institucional
-                        • {selecionadosSemInstitucional} sem institucional •{" "}
-                        {emailsAlternativos.length} alternativos
-                      </small>
-                    </div>
-
-                    <div className="communication-action-buttons">
-                      <button onClick={() => copiarEmails("institucional")}>
-                        Copiar institucionais
-                      </button>
-
-                      <button onClick={() => copiarEmails("alternativo")}>
-                        Copiar alternativos
-                      </button>
-
-                      <button onClick={() => copiarEmails("ambos")}>
-                        Copiar ambos
-                      </button>
-
-                      <button
-                        className="communication-outlook-button"
-                        onClick={copiarPacoteOutlook}
-                        title="Copia CCO, assunto e mensagem para a área de transferência"
-                      >
-                        Copiar pacote
-                      </button>
-
-                      <button
-                        className="communication-register-button"
-                        onClick={registrarCobranca}
-                        disabled={
-                          registrandoHistorico ||
-                          alunosSelecionados.length === 0
-                        }
-                        title="Use depois de concluir o envio para registrar a cobrança no histórico"
-                      >
-                        {registrandoHistorico
-                          ? "Registrando..."
-                          : "Registrar cobrança"}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-              {feedback && (
-                <div className="communication-feedback">{feedback}</div>
-              )}
-              {!modoApresentacao && (
-                <div
-                  className={`communication-validation ${validacaoOk ? "ok" : "warning"}`}
-                >
-                  <div>
-                    <span>VALIDAÇÃO DOS DESTINATÁRIOS</span>
-                    <strong>
-                      {validacaoOk
-                        ? "Lista pronta para comunicação"
-                        : "Revise a lista antes de copiar"}
-                    </strong>
-                  </div>
-
-                  <div className="communication-validation-items">
-                    <span
-                      className={
-                        selecionadosSemInstitucional === 0 ? "ok" : "warning"
-                      }
-                    >
-                      {selecionadosSemInstitucional === 0 ? "✓" : "!"}{" "}
-                      {selecionadosSemInstitucional} sem e-mail institucional
-                    </span>
-
-                    <span
-                      className={
-                        emailsInstitucionaisInvalidos.length === 0
-                          ? "ok"
-                          : "warning"
-                      }
-                    >
-                      {emailsInstitucionaisInvalidos.length === 0 ? "✓" : "!"}{" "}
-                      {emailsInstitucionaisInvalidos.length} e-mail(is)
-                      inválido(s)
-                    </span>
-
-                    <span
-                      className={
-                        emailsInstitucionaisDuplicados === 0
-                          ? "ok"
-                          : "attention"
-                      }
-                    >
-                      {emailsInstitucionaisDuplicados === 0 ? "✓" : "!"}{" "}
-                      {emailsInstitucionaisDuplicados} duplicado(s)
-                    </span>
-                  </div>
-                </div>
-              )}
+              <PainelAcoesComunicacao
+                modoApresentacao={modoApresentacao}
+                quantidadeSelecionados={alunosSelecionados.length}
+                selecionadosComInstitucional={selecionadosComInstitucional}
+                selecionadosSemInstitucional={selecionadosSemInstitucional}
+                quantidadeAlternativos={emailsAlternativos.length}
+                emailsInstitucionaisInvalidos={
+                  emailsInstitucionaisInvalidos.length
+                }
+                emailsInstitucionaisDuplicados={emailsInstitucionaisDuplicados}
+                validacaoOk={validacaoOk}
+                feedback={feedback}
+                registrandoHistorico={registrandoHistorico}
+                copiarEmails={copiarEmails}
+                copiarPacoteOutlook={copiarPacoteOutlook}
+                registrarCobranca={registrarCobranca}
+              />
               <div
                 className={`communication-content-grid ${
                   modoApresentacao ? "presentation-mode" : ""
