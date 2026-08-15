@@ -1,9 +1,5 @@
-type PerfilUsuario = "ADMIN" | "EDITOR" | "VISUALIZADOR";
-
-type UsuarioAutenticado = {
-  id: number;
-  perfil: PerfilUsuario;
-};
+import { type PerfilUsuario, type UsuarioSessao } from "./auth";
+import { emModoApresentacao } from "../middleware/autorizacao";
 
 type EventoAuditoriaUsuario = {
   acao: string;
@@ -15,7 +11,7 @@ type UsuariosRouteContext = {
   request: Request;
   url: URL;
   db: D1Database;
-  usuarioAtual: UsuarioAutenticado;
+  usuarioAtual: UsuarioSessao;
   hashSenha: (senha: string) => Promise<{ hash: string; salt: string }>;
   obterPeriodoAuditoriaId: () => Promise<number | null>;
   registrarAuditoria: (
@@ -37,6 +33,10 @@ function respostaSemPermissao() {
   );
 }
 
+function podeGerenciarUsuarios(usuario: UsuarioSessao) {
+  return usuario.perfil === "ADMIN" && !emModoApresentacao(usuario);
+}
+
 export async function handleUsuariosRoute({
   request,
   url,
@@ -47,7 +47,7 @@ export async function handleUsuariosRoute({
   registrarAuditoria,
 }: UsuariosRouteContext): Promise<Response | null> {
   if (url.pathname === "/api/usuarios") {
-    if (usuarioAtual.perfil !== "ADMIN") return respostaSemPermissao();
+    if (!podeGerenciarUsuarios(usuarioAtual)) return respostaSemPermissao();
 
     if (request.method === "GET") {
       const usuarios = await db
@@ -89,6 +89,14 @@ export async function handleUsuariosRoute({
       if (!/^[a-z0-9._-]{3,40}$/i.test(username)) {
         return Response.json(
           { erro: "Nome de usuário inválido." },
+          { status: 400 },
+        );
+      }
+      if (modoApresentacao && perfil !== "VISUALIZADOR") {
+        return Response.json(
+          {
+            erro: "Modo apresentação é exclusivo para usuários visualizadores.",
+          },
           { status: 400 },
         );
       }
@@ -145,7 +153,7 @@ export async function handleUsuariosRoute({
   if (!rotaUsuario || !["PUT", "DELETE"].includes(request.method)) {
     return null;
   }
-  if (usuarioAtual.perfil !== "ADMIN") return respostaSemPermissao();
+  if (!podeGerenciarUsuarios(usuarioAtual)) return respostaSemPermissao();
 
   const id = Number(rotaUsuario[1]);
 
@@ -205,6 +213,16 @@ export async function handleUsuariosRoute({
         : body.modo_apresentacao
           ? 1
           : 0;
+
+    if (modoApresentacao && perfil !== "VISUALIZADOR") {
+      return Response.json(
+        {
+          erro: "Modo apresentação é exclusivo para usuários visualizadores.",
+        },
+        { status: 400 },
+      );
+    }
+
     const deixaDeSerAdminAtivo =
       atual.perfil === "ADMIN" &&
       atual.ativo === 1 &&
