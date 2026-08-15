@@ -203,7 +203,7 @@ export function useGoogleSheetsPeriodo({
     return () => {
       ativo = false;
     };
-  }, [periodoAtual]);
+  }, [periodoAtual?.id]);
 
   async function salvarSheets() {
     if (!periodoAtual) return;
