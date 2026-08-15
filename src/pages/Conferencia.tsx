@@ -232,6 +232,9 @@ function Conferencia() {
     pendenciasDashboard,
   });
 
+  const { entregues, pendentes, statusResumo, percentual, iniciais } =
+    useResumoAluno(alunoSelecionado);
+
   if (carregando) {
     return (
       <section className="conference-page">
@@ -255,9 +258,6 @@ function Conferencia() {
     setStatus("salvo");
     window.history.replaceState(null, "", "/conferencia");
   }
-
-  const { entregues, pendentes, statusResumo, percentual, iniciais } =
-    useResumoAluno(alunoSelecionado);
 
   function fecharModalAnimado(
     nome: string,
