@@ -1179,38 +1179,54 @@ html[data-theme="light"] .period-preview-status-arrow {
 }
 
 .settings-password-modal {
-  width: min(520px, 100%);
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(680px, calc(100dvh - 32px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-password-modal .modal-cabecalho,
+.settings-password-modal .modal-acoes {
+  flex: 0 0 auto;
 }
 
 .settings-password-modal-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 22px 24px;
 }
 
-.settings-password-modal-content label {
-  display: grid;
-  gap: 8px;
+.settings-password-modal-content > label {
+  display: block;
+  margin-bottom: 8px;
   color: #9fb1bf;
   font-size: 12px;
   font-weight: 800;
 }
 
 .settings-password-field {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  position: relative;
+  min-width: 0;
 }
 
 .settings-password-field input {
+  width: 100%;
   min-width: 0;
-  height: 42px;
-  padding: 0 12px;
-
+  height: 44px;
+  padding: 0 86px 0 12px;
   border: 1px solid #2d4353;
-  border-radius: 9px;
+  border-radius: 10px;
   outline: none;
-
   color: #eef5f9;
   background: #0b171f;
+  font: inherit;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 }
 
 .settings-password-field input:focus {
@@ -1218,19 +1234,84 @@ html[data-theme="light"] .period-preview-status-arrow {
   box-shadow: 0 0 0 3px rgba(88, 183, 244, 0.1);
 }
 
-.settings-password-field button {
-  padding: 0 14px;
+.settings-password-field input:disabled {
+  opacity: 0.66;
+  cursor: not-allowed;
+}
 
-  border: 1px solid #304858;
-  border-radius: 9px;
-
+.settings-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  min-width: 72px;
+  height: 32px;
+  padding: 0 10px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 7px;
   color: #9ed8ff;
   background: #172631;
-
-  font-size: 12px;
+  font: inherit;
+  font-size: 11px;
   font-weight: 800;
-
   cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.settings-password-toggle:hover:not(:disabled) {
+  color: #c9eaff;
+  background: #203543;
+}
+
+.settings-password-toggle:focus-visible {
+  outline: 2px solid #58b7f4;
+  outline-offset: 1px;
+}
+
+.settings-password-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.settings-password-hint {
+  min-height: 18px;
+  margin-top: 8px;
+  color: #8197a6;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.settings-password-hint.is-valid {
+  color: #6fd892;
+}
+
+.settings-password-modal .modal-erro {
+  margin-top: 12px;
+}
+
+.settings-password-actions {
+  gap: 10px;
+}
+
+.settings-password-actions .botao-cancelar,
+.settings-password-actions .botao-cadastrar {
+  min-height: 40px;
+}
+
+.settings-password-actions .botao-cadastrar {
+  min-width: 160px;
+}
+
+.settings-password-actions .botao-cadastrar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+html[data-theme="light"] .settings-password-modal-content > label {
+  color: #536d7d;
 }
 
 html[data-theme="light"] .settings-password-field input {
@@ -1248,20 +1329,55 @@ html[data-theme="light"] .settings-password-field input:focus {
   box-shadow: 0 0 0 3px rgba(88, 174, 227, 0.12);
 }
 
-html[data-theme="light"] .settings-password-field button {
+html[data-theme="light"] .settings-password-toggle {
   color: #347da8;
-  background: #f5fafc;
-  border-color: #cbdde7;
+  background: #eef6fa;
 }
 
-html[data-theme="light"] .settings-password-field button:hover:not(:disabled) {
-  background: #eaf4f9;
+html[data-theme="light"] .settings-password-toggle:hover:not(:disabled) {
+  color: #246b95;
+  background: #e2f0f7;
 }
 
+html[data-theme="light"] .settings-password-hint {
+  color: #718694;
+}
+
+html[data-theme="light"] .settings-password-hint.is-valid {
+  color: #2f8c50;
+}
+
+html[data-theme="black"] .settings-password-field input {
+  color: #edf1f3;
+  background: #080808;
+  border-color: #383838;
+}
+
+html[data-theme="black"] .settings-password-field input:focus {
+  border-color: #5aa9d8;
+  box-shadow: 0 0 0 3px rgba(90, 169, 216, 0.11);
+}
+
+html[data-theme="black"] .settings-password-toggle {
+  color: #b9dff5;
+  background: #171717;
+}
+
+html[data-theme="black"] .settings-password-toggle:hover:not(:disabled) {
+  background: #222222;
+}
+
+/* Neutraliza o autofill no formulario de usuarios e no modal de senha. */
 html[data-theme="light"] .settings-user-form input:-webkit-autofill,
 html[data-theme="light"] .settings-user-form input:-webkit-autofill:hover,
 html[data-theme="light"] .settings-user-form input:-webkit-autofill:focus,
-html[data-theme="light"] .settings-user-form input:-webkit-autofill:active {
+html[data-theme="light"] .settings-user-form input:-webkit-autofill:active,
+html[data-theme="light"] .settings-password-field input:-webkit-autofill,
+html[data-theme="light"] .settings-password-field input:-webkit-autofill:hover,
+html[data-theme="light"] .settings-password-field input:-webkit-autofill:focus,
+html[data-theme="light"]
+  .settings-password-field
+  input:-webkit-autofill:active {
   -webkit-text-fill-color: #263946;
   -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
   box-shadow: 0 0 0 1000px #ffffff inset;
@@ -1271,7 +1387,11 @@ html[data-theme="light"] .settings-user-form input:-webkit-autofill:active {
 html[data-theme="dark"] .settings-user-form input:-webkit-autofill,
 html[data-theme="dark"] .settings-user-form input:-webkit-autofill:hover,
 html[data-theme="dark"] .settings-user-form input:-webkit-autofill:focus,
-html[data-theme="dark"] .settings-user-form input:-webkit-autofill:active {
+html[data-theme="dark"] .settings-user-form input:-webkit-autofill:active,
+html[data-theme="dark"] .settings-password-field input:-webkit-autofill,
+html[data-theme="dark"] .settings-password-field input:-webkit-autofill:hover,
+html[data-theme="dark"] .settings-password-field input:-webkit-autofill:focus,
+html[data-theme="dark"] .settings-password-field input:-webkit-autofill:active {
   -webkit-text-fill-color: #eef5f9;
   -webkit-box-shadow: 0 0 0 1000px #0b171f inset;
   box-shadow: 0 0 0 1000px #0b171f inset;
@@ -1281,7 +1401,13 @@ html[data-theme="dark"] .settings-user-form input:-webkit-autofill:active {
 html[data-theme="black"] .settings-user-form input:-webkit-autofill,
 html[data-theme="black"] .settings-user-form input:-webkit-autofill:hover,
 html[data-theme="black"] .settings-user-form input:-webkit-autofill:focus,
-html[data-theme="black"] .settings-user-form input:-webkit-autofill:active {
+html[data-theme="black"] .settings-user-form input:-webkit-autofill:active,
+html[data-theme="black"] .settings-password-field input:-webkit-autofill,
+html[data-theme="black"] .settings-password-field input:-webkit-autofill:hover,
+html[data-theme="black"] .settings-password-field input:-webkit-autofill:focus,
+html[data-theme="black"]
+  .settings-password-field
+  input:-webkit-autofill:active {
   -webkit-text-fill-color: #edf1f3;
   -webkit-box-shadow: 0 0 0 1000px #080808 inset !important;
   box-shadow: 0 0 0 1000px #080808 inset !important;
@@ -1289,22 +1415,63 @@ html[data-theme="black"] .settings-user-form input:-webkit-autofill:active {
   border-color: #383838;
 }
 
-.settings-user-form input:autofill {
+.settings-user-form input:autofill,
+.settings-password-field input:autofill {
   color: #eef5f9;
   background: #0b171f;
   box-shadow: 0 0 0 1000px #0b171f inset !important;
 }
 
-html[data-theme="light"] .settings-user-form input:autofill {
+html[data-theme="light"] .settings-user-form input:autofill,
+html[data-theme="light"] .settings-password-field input:autofill {
   color: #263946;
   background: #fff;
   box-shadow: 0 0 0 1000px #fff inset !important;
 }
 
-html[data-theme="black"] .settings-user-form input:autofill {
+html[data-theme="black"] .settings-user-form input:autofill,
+html[data-theme="black"] .settings-password-field input:autofill {
   color: #edf1f3;
   background: #080808;
   box-shadow: 0 0 0 1000px #080808 inset !important;
   border-color: #383838;
 }
 
+@media (max-width: 560px) {
+  .settings-password-modal {
+    width: min(100%, calc(100vw - 20px));
+    max-height: calc(100dvh - 20px);
+  }
+
+  .settings-password-modal-content {
+    padding: 18px;
+  }
+
+  .settings-password-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .settings-password-actions .botao-cancelar,
+  .settings-password-actions .botao-cadastrar {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (min-width: 561px) and (max-height: 800px) {
+  .settings-password-modal {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .settings-password-modal-content {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .settings-password-modal .modal-cabecalho,
+  .settings-password-modal .modal-acoes {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
