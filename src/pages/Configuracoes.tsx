@@ -7,17 +7,9 @@ import { useBackup } from "./configuracoes/hooks/useBackup";
 import { BackupSection } from "./configuracoes/components/BackupSection";
 import { useFerramentasDev } from "./configuracoes/hooks/useFerramentasDev";
 import { FerramentasDevSection } from "./configuracoes/components/FerramentasDevSection";
-
-type UsuarioLista = {
-  id: number;
-  nome: string;
-  email: string;
-  username: string;
-  perfil: Perfil;
-  ativo: number;
-  modo_apresentacao: number;
-  criado_em: string;
-};
+import { useRedefinirSenha } from "./configuracoes/hooks/useRedefinirSenha";
+import { ModalRedefinirSenha } from "./configuracoes/components/ModalRedefinirSenha";
+import type { UsuarioLista } from "./configuracoes/model";
 
 function Configuracoes() {
   const { admin } = useAuth();
@@ -31,11 +23,19 @@ function Configuracoes() {
   const [modoApresentacao, setModoApresentacao] = useState(false);
   const [erro, setErro] = useState("");
 
-  const [usuarioSenha, setUsuarioSenha] = useState<UsuarioLista | null>(null);
-  const [novaSenha, setNovaSenha] = useState("");
-  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
-  const [salvandoSenha, setSalvandoSenha] = useState(false);
-  const [erroSenha, setErroSenha] = useState("");
+  const {
+    usuarioSenha,
+    novaSenha,
+    setNovaSenha,
+    mostrarNovaSenha,
+    setMostrarNovaSenha,
+    salvandoSenha,
+    erroSenha,
+    setErroSenha,
+    abrirModalSenha,
+    fecharModalSenha,
+    salvarNovaSenha,
+  } = useRedefinirSenha();
   const [usuarioExcluir, setUsuarioExcluir] = useState<UsuarioLista | null>(
     null,
   );
@@ -201,10 +201,7 @@ function Configuracoes() {
                     type="button"
                     className="settings-password-button"
                     onClick={() => {
-                      setUsuarioSenha(u);
-                      setNovaSenha("");
-                      setMostrarNovaSenha(false);
-                      setErroSenha("");
+                      abrirModalSenha(u);
                     }}
                   >
                     ⌁ Senha
@@ -369,109 +366,19 @@ function Configuracoes() {
           )}
         </>
       )}
-
       {usuarioSenha && (
-        <div className="modal-overlay">
-          <div className="modal-novo-aluno settings-password-modal">
-            <div className="modal-cabecalho">
-              <div>
-                <span className="modal-eyebrow">SEGURANÇA</span>
-                <h2>Redefinir senha</h2>
-                <p>
-                  Defina uma nova senha para{" "}
-                  <strong>{usuarioSenha.nome}</strong>.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="modal-fechar"
-                onClick={() => setUsuarioSenha(null)}
-                disabled={salvandoSenha}
-                aria-label="Fechar"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="settings-password-modal-content">
-              <label>
-                Nova senha
-                <div className="settings-password-field">
-                  <input
-                    type={mostrarNovaSenha ? "text" : "password"}
-                    value={novaSenha}
-                    onChange={(e) => {
-                      setNovaSenha(e.target.value);
-                      setErroSenha("");
-                    }}
-                    minLength={8}
-                    autoFocus
-                    disabled={salvandoSenha}
-                    placeholder="Mínimo de 8 caracteres"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setMostrarNovaSenha((valor) => !valor)}
-                    disabled={salvandoSenha}
-                  >
-                    {mostrarNovaSenha ? "Ocultar" : "Mostrar"}
-                  </button>
-                </div>
-              </label>
-
-              {erroSenha && <div className="modal-erro">{erroSenha}</div>}
-            </div>
-
-            <div className="modal-acoes">
-              <button
-                type="button"
-                className="botao-cancelar"
-                onClick={() => setUsuarioSenha(null)}
-                disabled={salvandoSenha}
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="button"
-                className="botao-cadastrar"
-                disabled={salvandoSenha || novaSenha.length < 8}
-                onClick={async () => {
-                  if (novaSenha.length < 8) {
-                    setErroSenha("A senha deve ter pelo menos 8 caracteres.");
-                    return;
-                  }
-
-                  setSalvandoSenha(true);
-                  setErroSenha("");
-
-                  try {
-                    await api.put<{ sucesso: boolean }>(
-                      `/api/usuarios/${usuarioSenha.id}`,
-                      { senha: novaSenha },
-                    );
-
-                    setUsuarioSenha(null);
-                    setNovaSenha("");
-                    void carregar();
-                  } catch (erro) {
-                    setErroSenha(
-                      erro instanceof Error
-                        ? erro.message
-                        : "Não foi possível alterar a senha.",
-                    );
-                  } finally {
-                    setSalvandoSenha(false);
-                  }
-                }}
-              >
-                {salvandoSenha ? "Salvando..." : "Salvar nova senha"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ModalRedefinirSenha
+          usuario={usuarioSenha}
+          novaSenha={novaSenha}
+          setNovaSenha={setNovaSenha}
+          mostrarNovaSenha={mostrarNovaSenha}
+          setMostrarNovaSenha={setMostrarNovaSenha}
+          salvandoSenha={salvandoSenha}
+          erroSenha={erroSenha}
+          setErroSenha={setErroSenha}
+          aoFechar={fecharModalSenha}
+          aoSalvar={salvarNovaSenha}
+        />
       )}
       {usuarioExcluir && (
         <div className="modal-overlay">
