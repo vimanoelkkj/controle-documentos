@@ -1,4 +1,5 @@
 import type { UsuarioSessao } from "./auth";
+import { emModoApresentacao } from "../middleware/autorizacao";
 
 interface BackupEnv {
   CLOUDFLARE_ACCOUNT_ID?: string;
@@ -47,8 +48,8 @@ function aguardar(ms: number) {
 function backupConfigurado(env: BackupEnv) {
   return Boolean(
     env.CLOUDFLARE_ACCOUNT_ID?.trim() &&
-      env.CLOUDFLARE_API_TOKEN?.trim() &&
-      env.D1_DATABASE_ID?.trim(),
+    env.CLOUDFLARE_API_TOKEN?.trim() &&
+    env.D1_DATABASE_ID?.trim(),
   );
 }
 
@@ -127,7 +128,11 @@ export async function handleBackupRoute({
   registrarAuditoria,
 }: BackupRouteContext): Promise<Response | null> {
   if (url.pathname === "/api/admin/backup/status" && request.method === "GET") {
-    if (usuarioAtual?.perfil !== "ADMIN") {
+    if (
+      !usuarioAtual ||
+      usuarioAtual.perfil !== "ADMIN" ||
+      emModoApresentacao(usuarioAtual)
+    ) {
       return Response.json(
         { erro: "Apenas administradores podem acessar o backup." },
         { status: 403 },
@@ -139,7 +144,11 @@ export async function handleBackupRoute({
   if (url.pathname !== "/api/admin/backup" || request.method !== "POST") {
     return null;
   }
-  if (usuarioAtual?.perfil !== "ADMIN") {
+  if (
+    !usuarioAtual ||
+    usuarioAtual.perfil !== "ADMIN" ||
+    emModoApresentacao(usuarioAtual)
+  ) {
     return Response.json(
       { erro: "Apenas administradores podem gerar backups." },
       { status: 403 },
@@ -155,6 +164,11 @@ export async function handleBackupRoute({
         "Exportacao manual do banco D1 solicitada pelo painel administrativo.",
     });
     const exportacao = await solicitarExportacaoD1(env);
+    await registrarAuditoria(periodoId, {
+      acao: "BACKUP",
+      entidade: "BANCO_D1",
+      descricao: "Exportacao manual do banco D1 concluida com sucesso.",
+    });
     return Response.json({
       sucesso: true,
       arquivo: exportacao.arquivo,
