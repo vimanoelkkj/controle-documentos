@@ -7,12 +7,9 @@ import type { AlunoApi, HistoricoComunicacao } from "./comunicacao/model";
 import { useHistoricoComunicacao } from "./comunicacao/hooks/useHistoricoComunicacao";
 import { criarTextoEmail } from "./comunicacao/mensagens";
 import { HistoricoComunicacoes } from "./comunicacao/components/HistoricoComunicacoes";
+import { CartaoEmail } from "./comunicacao/components/CartaoEmail";
 import { useAcoesComunicacao } from "./comunicacao/hooks/useAcoesComunicacao";
-import {
-  criarGrupos,
-  formatarPrazo,
-  normalizarEmail,
-} from "./comunicacao/utils";
+import { criarGrupos, normalizarEmail } from "./comunicacao/utils";
 
 function Comunicacao() {
   const { modoApresentacao } = useAuth();
@@ -323,7 +320,6 @@ function Comunicacao() {
           />
         </label>
       </div>
-
       <div className="communication-grid">
         <ListaGrupos
           grupos={grupos}
@@ -507,113 +503,18 @@ function Comunicacao() {
                 }`}
               >
                 {!modoApresentacao && (
-                  <section
-                    ref={emailCardRef}
-                    className="communication-email-card"
-                  >
-                    <div className="communication-email-settings">
-                      <label className="communication-deadline-field">
-                        <span>
-                          Data limite <small>DD/MM</small>
-                        </span>
-                        <input
-                          value={prazo}
-                          onChange={(e) =>
-                            setPrazo(formatarPrazo(e.target.value))
-                          }
-                          placeholder="__/__"
-                          inputMode="numeric"
-                          maxLength={5}
-                          aria-label="Data limite no formato dia e mês"
-                        />
-                      </label>
-                      <label className="communication-subject-field">
-                        <span>
-                          Assunto <small>do e-mail</small>
-                        </span>
-                        <input
-                          value={assunto}
-                          onChange={(e) => setAssunto(e.target.value)}
-                          placeholder="Ex.: Documentação pendente — Matrícula"
-                        />
-                      </label>
-                      {!modoApresentacao && (
-                        <div className="communication-copy-stack">
-                          <button type="button" onClick={copiarAssunto}>
-                            Copiar assunto
-                          </button>
-
-                          <button type="button" onClick={copiarComunicado}>
-                            Copiar texto
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <div className="communication-preview">
-                      <div className="communication-preview-top">
-                        <div className="communication-preview-heading">
-                          <div className="communication-preview-icon">✉</div>
-                          <div>
-                            <span>PRÉVIA DA MENSAGEM</span>
-                            <strong>{assunto || "Sem assunto"}</strong>
-                            <small>
-                              Para: {alunosSelecionados.length} destinatário(s)
-                            </small>
-                          </div>
-                        </div>
-                        <span className="communication-preview-count">
-                          {grupo.documentos.length} pendência(s)
-                        </span>
-                      </div>
-
-                      <div className="communication-email-body">
-                        <p className="communication-warning">
-                          ⚠️ <b>ATENÇÃO! NÃO RESPONDER A ESTE E-MAIL.</b> MANDE
-                          A SUA RESPOSTA PARA O E-MAIL ABAIXO⬇️:
-                        </p>
-                        <p className="communication-address">
-                          matriculadecalouro@fumec.br
-                        </p>
-                        <p>Prezado(a), boa tarde.</p>
-                        <p>
-                          Informo que em verificação ao nosso sistema a sua
-                          matrícula está pendente alguns documentos importantes.
-                          Peço que realize o envio dos mesmos o mais rápido
-                          possível via e-mail para{" "}
-                          <b>matriculadecalouro@fumec.br</b> ou, se preferir,
-                          pode comparecer pessoalmente na secretaria acadêmica
-                          até o dia <b>{prazo || "___/___"}</b>. Informo que a
-                          não apresentação destes documentos poderá resultar no
-                          bloqueio da sua matrícula. Segue lista abaixo:
-                        </p>
-
-                        <ul>
-                          {grupo.documentos.map((documento) => (
-                            <li
-                              key={documento.campo}
-                              className={
-                                documento.prioritario ? "priority" : ""
-                              }
-                            >
-                              {documento.email};
-                            </li>
-                          ))}
-                        </ul>
-
-                        {temContrato && (
-                          <p>
-                            Caso esteja pendente o{" "}
-                            <b className="communication-priority-text">
-                              CONTRATO DE MATRÍCULA
-                            </b>{" "}
-                            assinado, você irá receber no seu e-mail o link para
-                            o portal de visualização e assinatura do contrato.
-                            Caso contrário, desconsidere as orientações.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </section>
+                  <CartaoEmail
+                    emailCardRef={emailCardRef}
+                    grupo={grupo}
+                    prazo={prazo}
+                    setPrazo={setPrazo}
+                    assunto={assunto}
+                    setAssunto={setAssunto}
+                    quantidadeDestinatarios={alunosSelecionados.length}
+                    temContrato={temContrato}
+                    copiarAssunto={copiarAssunto}
+                    copiarComunicado={copiarComunicado}
+                  />
                 )}
                 <section
                   className="communication-students-card"
