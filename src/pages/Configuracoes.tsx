@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth, type Perfil } from "../contexts/auth";
 import AppSelect from "../components/AppSelect";
 import { api } from "../lib/api";
+import { useBackup } from "./configuracoes/hooks/useBackup";
+import { BackupSection } from "./configuracoes/components/BackupSection";
 
 type UsuarioLista = {
   id: number;
@@ -16,12 +18,6 @@ type UsuarioLista = {
 };
 
 type UnidadeDev = "FACE" | "FEA" | "FCH" | "EAD" | "TODOS";
-
-type BackupGerado = {
-  arquivo: string;
-  download_url: string;
-  expira_em_segundos: number;
-};
 
 function Configuracoes() {
   const { admin } = useAuth();
@@ -41,7 +37,7 @@ function Configuracoes() {
   const [salvandoSenha, setSalvandoSenha] = useState(false);
   const [erroSenha, setErroSenha] = useState("");
   const [usuarioExcluir, setUsuarioExcluir] = useState<UsuarioLista | null>(
-    null
+    null,
   );
   const [confirmacaoExcluir, setConfirmacaoExcluir] = useState("");
   const [excluindoUsuario, setExcluindoUsuario] = useState(false);
@@ -52,12 +48,14 @@ function Configuracoes() {
   const [confirmacaoDev, setConfirmacaoDev] = useState("");
   const [limpandoDev, setLimpandoDev] = useState(false);
   const [mensagemDev, setMensagemDev] = useState("");
-  const [backupConfigurado, setBackupConfigurado] = useState<boolean | null>(
-    null
-  );
-  const [gerandoBackup, setGerandoBackup] = useState(false);
-  const [erroBackup, setErroBackup] = useState("");
-  const [backupGerado, setBackupGerado] = useState<BackupGerado | null>(null);
+  const {
+    backupConfigurado,
+    gerandoBackup,
+    erroBackup,
+    backupGerado,
+    verificarBackup,
+    gerarBackup,
+  } = useBackup({ admin });
 
   const carregar = useCallback(async () => {
     if (!admin) return;
@@ -66,7 +64,7 @@ function Configuracoes() {
       setUsuarios(await api.get<UsuarioLista[]>("/api/usuarios"));
     } catch (erro) {
       setErro(
-        erro instanceof Error ? erro.message : "Erro ao carregar usuários."
+        erro instanceof Error ? erro.message : "Erro ao carregar usuários.",
       );
     }
   }, [admin]);
@@ -79,27 +77,11 @@ function Configuracoes() {
 
     try {
       const d = await api.get<{ habilitado?: boolean }>(
-        "/api/dev/alunos-reset/status"
+        "/api/dev/alunos-reset/status",
       );
       setDevHabilitado(Boolean(d.habilitado));
     } catch {
       setDevHabilitado(false);
-    }
-  }, [admin]);
-
-  const verificarBackup = useCallback(async () => {
-    if (!admin) {
-      setBackupConfigurado(null);
-      return;
-    }
-
-    try {
-      const d = await api.get<{ configurado?: boolean }>(
-        "/api/admin/backup/status"
-      );
-      setBackupConfigurado(Boolean(d.configurado));
-    } catch {
-      setBackupConfigurado(false);
     }
   }, [admin]);
 
@@ -108,25 +90,6 @@ function Configuracoes() {
     void verificarFerramentasDev();
     void verificarBackup();
   }, [carregar, verificarFerramentasDev, verificarBackup]);
-
-  async function gerarBackup() {
-    setGerandoBackup(true);
-    setErroBackup("");
-    setBackupGerado(null);
-
-    try {
-      const d = await api.post<BackupGerado>("/api/admin/backup");
-      setBackupGerado(d);
-    } catch (erro) {
-      setErroBackup(
-        erro instanceof Error
-          ? erro.message
-          : "Não foi possível acessar o serviço de backup."
-      );
-    } finally {
-      setGerandoBackup(false);
-    }
-  }
 
   async function criar(e: FormEvent) {
     e.preventDefault();
@@ -160,7 +123,7 @@ function Configuracoes() {
       await api.put<{ sucesso: boolean }>(`/api/usuarios/${id}`, dados);
     } catch (erro) {
       setErro(
-        erro instanceof Error ? erro.message : "Erro ao alterar usuário."
+        erro instanceof Error ? erro.message : "Erro ao alterar usuário.",
       );
       return;
     }
@@ -180,7 +143,7 @@ function Configuracoes() {
 
     try {
       await api.delete<{ sucesso: boolean }>(
-        `/api/usuarios/${usuarioExcluir.id}`
+        `/api/usuarios/${usuarioExcluir.id}`,
       );
 
       setUsuarioExcluir(null);
@@ -192,7 +155,7 @@ function Configuracoes() {
       setErroExcluir(
         erro instanceof Error
           ? erro.message
-          : "Não foi possível excluir o usuário."
+          : "Não foi possível excluir o usuário.",
       );
     } finally {
       setExcluindoUsuario(false);
@@ -221,14 +184,14 @@ function Configuracoes() {
       setMensagemDev(
         `✓ ${d.removidos ?? 0} aluno(s) removido(s) de ${
           d.unidade === "TODOS" ? "todas as unidades" : d.unidade
-        } no período ${d.periodo ?? "atual"}.`
+        } no período ${d.periodo ?? "atual"}.`,
       );
       setConfirmacaoDev("");
     } catch (erro) {
       setMensagemDev(
         erro instanceof Error
           ? erro.message
-          : "Não foi possível acessar a ferramenta de desenvolvimento."
+          : "Não foi possível acessar a ferramenta de desenvolvimento.",
       );
     } finally {
       setLimpandoDev(false);
@@ -428,88 +391,13 @@ function Configuracoes() {
             <button type="submit">Criar usuário</button>
           </form>
 
-          <section className="settings-backup">
-            <div className="settings-backup-head">
-              <div className="settings-backup-title">
-                <span className="settings-backup-icon">
-                  <AppIcon name="document" size={22} />
-                </span>
-                <div>
-                  <span>PROTEÇÃO DOS DADOS</span>
-                  <h2>Backup do banco</h2>
-                  <p>
-                    Gere uma cópia SQL completa do D1 para guardar fora do
-                    repositório. O arquivo contém dados pessoais e hashes de
-                    senha.
-                  </p>
-                </div>
-              </div>
-              <strong className={backupConfigurado ? "ready" : "pending"}>
-                <i aria-hidden="true" />
-                {backupConfigurado === null
-                  ? "VERIFICANDO"
-                  : backupConfigurado
-                  ? "CONFIGURADO"
-                  : "PENDENTE"}
-              </strong>
-            </div>
-
-            <div className="settings-backup-action">
-              <div className="settings-backup-action-copy">
-                <span className="settings-backup-action-icon">
-                  <AppIcon name="audit" size={18} />
-                </span>
-                <div>
-                  <strong>Exportação manual segura</strong>
-                  <span>
-                    A Cloudflare pode deixar o banco indisponível por alguns
-                    instantes durante a exportação.
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => void gerarBackup()}
-                disabled={!backupConfigurado || gerandoBackup}
-              >
-                {gerandoBackup ? "Gerando backup..." : "Gerar backup agora"}
-              </button>
-            </div>
-
-            {backupConfigurado === false && (
-              <div className="settings-backup-message warning">
-                <AppIcon name="info" size={16} />
-                <span>
-                  <strong>Configuração necessária</strong>
-                  Adicione as três credenciais protegidas no Worker para
-                  habilitar o botão.
-                </span>
-              </div>
-            )}
-
-            {erroBackup && (
-              <div className="settings-backup-message error">{erroBackup}</div>
-            )}
-
-            {backupGerado && (
-              <div className="settings-backup-result">
-                <div>
-                  <strong>✓ Backup pronto</strong>
-                  <span>
-                    {backupGerado.arquivo} · link válido por 1 hora · use Ctrl+S
-                    para salvar
-                  </span>
-                </div>
-                <a
-                  href={backupGerado.download_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Abrir arquivo SQL
-                </a>
-              </div>
-            )}
-          </section>
+          <BackupSection
+            backupConfigurado={backupConfigurado}
+            gerandoBackup={gerandoBackup}
+            erroBackup={erroBackup}
+            backupGerado={backupGerado}
+            gerarBackup={gerarBackup}
+          />
 
           {devHabilitado && (
             <section className="settings-dev-tools">
@@ -572,8 +460,8 @@ function Configuracoes() {
                   {limpandoDev
                     ? "Limpando..."
                     : unidadeDev === "TODOS"
-                    ? "☢ Limpar todos os alunos"
-                    : `⊘ Limpar alunos da ${unidadeDev}`}
+                      ? "☢ Limpar todos os alunos"
+                      : `⊘ Limpar alunos da ${unidadeDev}`}
                 </button>
               </div>
 
@@ -665,7 +553,7 @@ function Configuracoes() {
                   try {
                     await api.put<{ sucesso: boolean }>(
                       `/api/usuarios/${usuarioSenha.id}`,
-                      { senha: novaSenha }
+                      { senha: novaSenha },
                     );
 
                     setUsuarioSenha(null);
@@ -675,7 +563,7 @@ function Configuracoes() {
                     setErroSenha(
                       erro instanceof Error
                         ? erro.message
-                        : "Não foi possível alterar a senha."
+                        : "Não foi possível alterar a senha.",
                     );
                   } finally {
                     setSalvandoSenha(false);
