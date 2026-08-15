@@ -169,7 +169,9 @@ export const DOCUMENTO_DASHBOARD_POR_CAMPO: Record<string, string> = {
   contrato: "CONTRATO",
 };
 
-export function statusDocumentalAluno(aluno: Aluno) {
+export type StatusResumo = "COMPLETO" | "PARCIAL" | "CRITICO";
+
+export function statusDocumentalAluno(aluno: Aluno): StatusResumo {
   const entregues = aluno.documentos.filter(
     (documento) => documento.entregue,
   ).length;

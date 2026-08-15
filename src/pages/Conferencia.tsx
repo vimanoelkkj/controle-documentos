@@ -24,11 +24,8 @@ import { useLayoutConferencia } from "./conferencia/hooks/useLayoutConferencia";
 import { useAtalhosConferencia } from "./conferencia/hooks/useAtalhosConferencia";
 import { useDocumentosAluno } from "./conferencia/hooks/useDocumentosAluno";
 import { useGerenciamentoAluno } from "./conferencia/hooks/useGerenciamentoAluno";
-import {
-  statusDocumentalAluno,
-  type FiltroStatus,
-  type Unidade,
-} from "./conferencia/model";
+import { useResumoAluno } from "./conferencia/hooks/useResumoAluno";
+import { type FiltroStatus, type Unidade } from "./conferencia/model";
 
 import { useEffect, useRef, useState } from "react";
 function Conferencia() {
@@ -259,26 +256,8 @@ function Conferencia() {
     window.history.replaceState(null, "", "/conferencia");
   }
 
-  const entregues = alunoSelecionado.documentos.filter(
-    (documento) => documento.entregue,
-  );
-
-  const pendentes = alunoSelecionado.documentos.filter(
-    (documento) => !documento.entregue,
-  );
-
-  const statusResumo = statusDocumentalAluno(alunoSelecionado);
-
-  const percentual = Math.round(
-    (entregues.length / alunoSelecionado.documentos.length) * 100,
-  );
-
-  const iniciais = alunoSelecionado.nome
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join("");
+  const { entregues, pendentes, statusResumo, percentual, iniciais } =
+    useResumoAluno(alunoSelecionado);
 
   function fecharModalAnimado(
     nome: string,
