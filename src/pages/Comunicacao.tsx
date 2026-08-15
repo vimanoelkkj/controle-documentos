@@ -1,17 +1,17 @@
 import AppIcon from "../components/AppIcon";
 import { ListaGrupos } from "./comunicacao/components/ListaGrupos";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
-import type { AlunoApi, HistoricoComunicacao } from "./comunicacao/model";
+import type { AlunoApi } from "./comunicacao/model";
 import { useHistoricoComunicacao } from "./comunicacao/hooks/useHistoricoComunicacao";
 import { criarTextoEmail } from "./comunicacao/mensagens";
 import { HistoricoComunicacoes } from "./comunicacao/components/HistoricoComunicacoes";
 import { CartaoEmail } from "./comunicacao/components/CartaoEmail";
 import { useAcoesComunicacao } from "./comunicacao/hooks/useAcoesComunicacao";
-import { normalizarEmail } from "./comunicacao/utils";
 import { ListaAlunos } from "./comunicacao/components/ListaAlunos";
 import { useGruposComunicacao } from "./comunicacao/hooks/useGruposComunicacao";
+import { useDestinatariosComunicacao } from "./comunicacao/hooks/useDestinatariosComunicacao";
 
 function Comunicacao() {
   const { modoApresentacao } = useAuth();
@@ -87,91 +87,27 @@ function Comunicacao() {
     setBuscaAluno("");
   }, [grupo]);
 
-  const alunosVisiveis = useMemo(() => {
-    if (!grupo) return [];
-    const termo = buscaAluno.trim().toLocaleLowerCase("pt-BR");
-    return grupo.alunos.filter(
-      (aluno) =>
-        !termo ||
-        `${aluno.nome} ${aluno.ra} ${aluno.curso} ${aluno.email || ""} ${
-          aluno.email_outro || ""
-        }`
-          .toLocaleLowerCase("pt-BR")
-          .includes(termo),
-    );
-  }, [grupo, buscaAluno]);
-
-  const alunosSelecionados =
-    grupo?.alunos.filter((aluno) => selecionados.has(aluno.ra)) || [];
-
-  const emailsInstitucionais = [
-    ...new Set(
-      alunosSelecionados.map((a) => normalizarEmail(a.email)).filter(Boolean),
-    ),
-  ];
-
-  const emailsAlternativos = [
-    ...new Set(
-      alunosSelecionados
-        .map((a) => normalizarEmail(a.email_outro))
-        .filter(Boolean),
-    ),
-  ];
-
-  const selecionadosComInstitucional = alunosSelecionados.filter((a) =>
-    normalizarEmail(a.email),
-  ).length;
-  const selecionadosSemInstitucional =
-    alunosSelecionados.length - selecionadosComInstitucional;
-
-  const emailsInstitucionaisBrutos = alunosSelecionados
-    .map((a) => (a.email || "").trim())
-    .filter(Boolean);
-
-  const emailsInstitucionaisInvalidos = emailsInstitucionaisBrutos.filter(
-    (email) => !normalizarEmail(email),
-  );
-
-  const emailsInstitucionaisDuplicados =
-    emailsInstitucionaisBrutos.length -
-    new Set(emailsInstitucionaisBrutos.map((email) => email.toLowerCase()))
-      .size;
-
-  const validacaoOk =
-    alunosSelecionados.length > 0 &&
-    selecionadosSemInstitucional === 0 &&
-    emailsInstitucionaisInvalidos.length === 0;
-
-  const cobrancasDaCombinacao = useMemo<HistoricoComunicacao[]>(
-    () => historico.filter((registro) => registro.grupo_chave === grupo?.chave),
-    [historico, grupo?.chave],
-  );
-
-  const cobrancasPorRa = useMemo(() => {
-    const mapa = new Map<string, { quantidade: number; ultima: string }>();
-    cobrancasDaCombinacao.forEach((registro) => {
-      (registro.ras || []).forEach((ra) => {
-        const atual = mapa.get(ra);
-        if (!atual) mapa.set(ra, { quantidade: 1, ultima: registro.criado_em });
-        else {
-          atual.quantidade += 1;
-          if (new Date(registro.criado_em) > new Date(atual.ultima))
-            atual.ultima = registro.criado_em;
-        }
-      });
-    });
-    return mapa;
-  }, [cobrancasDaCombinacao]);
-
-  const alunosJaCobrados =
-    grupo?.alunos.filter((aluno) => cobrancasPorRa.has(aluno.ra)) || [];
-  const alunosNaoCobrados =
-    grupo?.alunos.filter((aluno) => !cobrancasPorRa.has(aluno.ra)) || [];
-  const ultimaCobrancaGrupo = cobrancasDaCombinacao[0]?.criado_em || "";
-
-  const temContrato =
-    grupo?.documentos.some((documento) => documento.campo === "contrato") ??
-    false;
+  const {
+    alunosVisiveis,
+    alunosSelecionados,
+    emailsInstitucionais,
+    emailsAlternativos,
+    selecionadosComInstitucional,
+    selecionadosSemInstitucional,
+    emailsInstitucionaisInvalidos,
+    emailsInstitucionaisDuplicados,
+    validacaoOk,
+    cobrancasPorRa,
+    alunosJaCobrados,
+    alunosNaoCobrados,
+    ultimaCobrancaGrupo,
+    temContrato,
+  } = useDestinatariosComunicacao({
+    grupo,
+    buscaAluno,
+    selecionados,
+    historico,
+  });
 
   const textoEmail = criarTextoEmail(grupo, prazo);
 
