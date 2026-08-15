@@ -4,9 +4,9 @@ import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
 import type { AlunoApi, HistoricoComunicacao } from "./comunicacao/model";
 import { useHistoricoComunicacao } from "./comunicacao/hooks/useHistoricoComunicacao";
-
+import { criarTextoEmail } from "./comunicacao/mensagens";
+import { useAcoesComunicacao } from "./comunicacao/hooks/useAcoesComunicacao";
 import {
-  copiar,
   criarGrupos,
   formatarPrazo,
   normalizarEmail,
@@ -202,22 +202,7 @@ function Comunicacao() {
     grupo?.documentos.some((documento) => documento.campo === "contrato") ??
     false;
 
-  const textoEmail = grupo
-    ? `⚠️ ATENÇÃO! NÃO RESPONDER A ESTE E-MAIL. MANDE A SUA RESPOSTA PARA O E-MAIL ABAIXO⬇️:
-
-matriculadecalouro@fumec.br
-
-Prezado(a), boa tarde.
-Informo que em verificação ao nosso sistema a sua matrícula está pendente alguns documentos importantes. Peço que realize o envio dos mesmos o mais rápido possível via e-mail para matriculadecalouro@fumec.br ou, se preferir, pode comparecer pessoalmente na secretaria acadêmica até o dia ${prazo || "___/___"}. Informo que a não apresentação destes documentos poderá resultar no bloqueio da sua matrícula. Segue lista abaixo:
-
-${grupo.documentos.map((documento) => `${documento.email};`).join("\n")}${
-        temContrato
-          ? `
-
-Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no seu e-mail o link para o portal de visualização e assinatura do contrato. Caso contrário, desconsidere as orientações.`
-          : ""
-      }`
-    : "";
+  const textoEmail = criarTextoEmail(grupo, prazo);
 
   function selecionarGrupo(chave: string) {
     setGrupoSelecionado(chave);
@@ -233,60 +218,14 @@ Caso esteja pendente o CONTRATO DE MATRÍCULA assinado, você irá receber no se
     });
   }
 
-  async function copiarEmails(tipo: "institucional" | "alternativo" | "ambos") {
-    let lista: string[] = [];
-    if (tipo === "institucional") lista = emailsInstitucionais;
-    if (tipo === "alternativo") lista = emailsAlternativos;
-    if (tipo === "ambos")
-      lista = [...new Set([...emailsInstitucionais, ...emailsAlternativos])];
-
-    if (!lista.length) {
-      setFeedback("Nenhum e-mail válido nos alunos selecionados.");
-      return;
-    }
-
-    await copiar(lista.join("; "));
-    setFeedback(
-      `✓ ${lista.length} e-mail${lista.length === 1 ? "" : "s"} copiado${
-        lista.length === 1 ? "" : "s"
-      } para colar no CCO do Outlook.`,
-    );
-  }
-
-  async function copiarComunicado() {
-    await copiar(textoEmail);
-    setFeedback("✓ Texto do comunicado copiado.");
-  }
-
-  async function copiarAssunto() {
-    await copiar(assunto || "Documentação pendente - Matrícula");
-    setFeedback("✓ Assunto copiado.");
-  }
-
-  async function copiarPacoteOutlook() {
-    if (!emailsInstitucionais.length) {
-      setFeedback(
-        "Nenhum e-mail institucional válido nos alunos selecionados.",
-      );
-      return;
-    }
-
-    const pacote = `CCO:
-${emailsInstitucionais.join("; ")}
-
-ASSUNTO:
-${assunto || "Documentação pendente - Matrícula"}
-
-MENSAGEM:
-${textoEmail}`;
-
-    await copiar(pacote);
-    setFeedback(
-      `✓ Pacote Outlook copiado: ${emailsInstitucionais.length} destinatário${
-        emailsInstitucionais.length === 1 ? "" : "s"
-      }, assunto e mensagem.`,
-    );
-  }
+  const { copiarEmails, copiarComunicado, copiarAssunto, copiarPacoteOutlook } =
+    useAcoesComunicacao({
+      emailsInstitucionais,
+      emailsAlternativos,
+      assunto,
+      textoEmail,
+      setFeedback,
+    });
 
   async function registrarCobranca() {
     if (!grupo || alunosSelecionados.length === 0) {
