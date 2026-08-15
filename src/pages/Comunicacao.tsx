@@ -1,7 +1,5 @@
-import AppIcon from "../components/AppIcon";
 import { ListaGrupos } from "./comunicacao/components/ListaGrupos";
 import { useEffect, useRef, useState } from "react";
-import AppSelect from "../components/AppSelect";
 import { useAuth } from "../contexts/auth";
 import type { AlunoApi } from "./comunicacao/model";
 import { useHistoricoComunicacao } from "./comunicacao/hooks/useHistoricoComunicacao";
@@ -14,6 +12,7 @@ import { useGruposComunicacao } from "./comunicacao/hooks/useGruposComunicacao";
 import { useDestinatariosComunicacao } from "./comunicacao/hooks/useDestinatariosComunicacao";
 import { PainelAcoesComunicacao } from "./comunicacao/components/PainelAcoesComunicacao";
 import { ResumoCombinacao } from "./comunicacao/components/ResumoCombinacao";
+import { CabecalhoComunicacao } from "./comunicacao/components/CabecalhoComunicacao";
 
 function Comunicacao() {
   const { modoApresentacao } = useAuth();
@@ -185,51 +184,14 @@ function Comunicacao() {
 
   return (
     <section className="communication-page">
-      <header className="communication-header">
-        <div>
-          <span className="communication-eyebrow">CENTRAL DE COMUNICAÇÃO</span>
-          <div className="page-title-row">
-            <span className="page-title-icon">
-              <AppIcon name="mail" size={22} />
-            </span>
-            <h1>Cobrança de documentos</h1>
-          </div>
-          <p>
-            Grupos automáticos por combinação exata de pendências. Escolha um
-            grupo, revise os alunos e copie os destinatários para o Outlook.
-          </p>
-        </div>
-
-        <div className="communication-summary">
-          <strong>{grupos.length}</strong>
-          <span>combinações encontradas</span>
-        </div>
-      </header>
-
-      <div className="communication-toolbar">
-        <label>
-          Unidade
-          <AppSelect
-            value={unidade}
-            onChange={setUnidade}
-            ariaLabel="Filtrar comunicação por unidade"
-            options={[
-              { value: "TODAS", label: "Todas as unidades" },
-              ...unidades.map((item) => ({ value: item, label: item })),
-            ]}
-          />
-        </label>
-
-        <label className="communication-search">
-          Buscar combinação
-          <input
-            type="search"
-            value={buscaGrupo}
-            onChange={(e) => setBuscaGrupo(e.target.value)}
-            placeholder="Ex.: Contrato, CPF, Histórico..."
-          />
-        </label>
-      </div>
+      <CabecalhoComunicacao
+        quantidadeGrupos={grupos.length}
+        unidade={unidade}
+        setUnidade={setUnidade}
+        unidades={unidades}
+        buscaGrupo={buscaGrupo}
+        setBuscaGrupo={setBuscaGrupo}
+      />
       <div className="communication-grid">
         <ListaGrupos
           grupos={grupos}
