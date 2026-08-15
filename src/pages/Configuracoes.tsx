@@ -9,6 +9,8 @@ import { useFerramentasDev } from "./configuracoes/hooks/useFerramentasDev";
 import { FerramentasDevSection } from "./configuracoes/components/FerramentasDevSection";
 import { useRedefinirSenha } from "./configuracoes/hooks/useRedefinirSenha";
 import { ModalRedefinirSenha } from "./configuracoes/components/ModalRedefinirSenha";
+import { useExcluirUsuario } from "./configuracoes/hooks/useExcluirUsuario";
+import { ModalExcluirUsuario } from "./configuracoes/components/ModalExcluirUsuario";
 import type { UsuarioLista } from "./configuracoes/model";
 
 function Configuracoes() {
@@ -36,12 +38,6 @@ function Configuracoes() {
     fecharModalSenha,
     salvarNovaSenha,
   } = useRedefinirSenha();
-  const [usuarioExcluir, setUsuarioExcluir] = useState<UsuarioLista | null>(
-    null,
-  );
-  const [confirmacaoExcluir, setConfirmacaoExcluir] = useState("");
-  const [excluindoUsuario, setExcluindoUsuario] = useState(false);
-  const [erroExcluir, setErroExcluir] = useState("");
 
   const {
     devHabilitado,
@@ -76,6 +72,20 @@ function Configuracoes() {
       );
     }
   }, [admin]);
+
+  const {
+    usuarioExcluir,
+    confirmacaoExcluir,
+    setConfirmacaoExcluir,
+    excluindoUsuario,
+    erroExcluir,
+    setErroExcluir,
+    abrirModalExcluir,
+    fecharModalExcluir,
+    excluirUsuario,
+  } = useExcluirUsuario({
+    aoExcluir: carregar,
+  });
 
   useEffect(() => {
     void carregar();
@@ -121,37 +131,6 @@ function Configuracoes() {
     }
 
     void carregar();
-  }
-
-  async function excluirUsuario() {
-    if (!usuarioExcluir) return;
-
-    if (confirmacaoExcluir.trim().toUpperCase() !== "EXCLUIR") {
-      return;
-    }
-
-    setExcluindoUsuario(true);
-    setErroExcluir("");
-
-    try {
-      await api.delete<{ sucesso: boolean }>(
-        `/api/usuarios/${usuarioExcluir.id}`,
-      );
-
-      setUsuarioExcluir(null);
-      setConfirmacaoExcluir("");
-      setErroExcluir("");
-
-      await carregar();
-    } catch (erro) {
-      setErroExcluir(
-        erro instanceof Error
-          ? erro.message
-          : "Não foi possível excluir o usuário.",
-      );
-    } finally {
-      setExcluindoUsuario(false);
-    }
   }
 
   return (
@@ -247,9 +226,7 @@ function Configuracoes() {
                     type="button"
                     className="settings-user-delete"
                     onClick={() => {
-                      setUsuarioExcluir(u);
-                      setConfirmacaoExcluir("");
-                      setErroExcluir("");
+                      abrirModalExcluir(u);
                     }}
                   >
                     <span aria-hidden="true">×</span>
@@ -381,102 +358,16 @@ function Configuracoes() {
         />
       )}
       {usuarioExcluir && (
-        <div className="modal-overlay">
-          <div className="modal-novo-aluno settings-delete-user-modal">
-            <div className="modal-cabecalho">
-              <div>
-                <span className="modal-eyebrow">CONTROLE DE ACESSO</span>
-                <h2>Excluir usuário</h2>
-
-                <p>
-                  Você está prestes a excluir permanentemente{" "}
-                  <strong>{usuarioExcluir.nome}</strong>.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="modal-fechar"
-                onClick={() => setUsuarioExcluir(null)}
-                disabled={excluindoUsuario}
-                aria-label="Fechar"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="settings-delete-user-content">
-              <div className="settings-delete-user-target">
-                <div className="sidebar-user-avatar">
-                  {usuarioExcluir.nome[0]}
-                </div>
-
-                <div>
-                  <strong>{usuarioExcluir.nome}</strong>
-                  <span>
-                    @{usuarioExcluir.username} · {usuarioExcluir.email}
-                  </span>
-                </div>
-              </div>
-
-              <div className="settings-delete-user-warning">
-                <strong>Esta ação não poderá ser desfeita.</strong>
-
-                <span>
-                  O acesso será removido e todas as sessões desse usuário serão
-                  encerradas. Os registros históricos de auditoria serão
-                  preservados.
-                </span>
-              </div>
-
-              <div className="settings-delete-user-confirm">
-                <div className="settings-delete-user-confirm-copy">
-                  <strong>Confirmação de segurança</strong>
-                  <span>
-                    Digite <b>EXCLUIR</b> abaixo para confirmar a exclusão.
-                  </span>
-                </div>
-
-                <input
-                  value={confirmacaoExcluir}
-                  onChange={(e) => {
-                    setConfirmacaoExcluir(e.target.value);
-                    setErroExcluir("");
-                  }}
-                  placeholder="Digite EXCLUIR"
-                  autoComplete="off"
-                  autoFocus
-                  disabled={excluindoUsuario}
-                />
-              </div>
-
-              {erroExcluir && <div className="modal-erro">{erroExcluir}</div>}
-            </div>
-
-            <div className="modal-acoes">
-              <button
-                type="button"
-                className="botao-cancelar"
-                onClick={() => setUsuarioExcluir(null)}
-                disabled={excluindoUsuario}
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="button"
-                className="settings-delete-user-confirm-button"
-                disabled={
-                  excluindoUsuario ||
-                  confirmacaoExcluir.trim().toUpperCase() !== "EXCLUIR"
-                }
-                onClick={() => void excluirUsuario()}
-              >
-                {excluindoUsuario ? "Excluindo..." : "Excluir permanentemente"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ModalExcluirUsuario
+          usuario={usuarioExcluir}
+          confirmacaoExcluir={confirmacaoExcluir}
+          setConfirmacaoExcluir={setConfirmacaoExcluir}
+          excluindoUsuario={excluindoUsuario}
+          erroExcluir={erroExcluir}
+          setErroExcluir={setErroExcluir}
+          aoFechar={fecharModalExcluir}
+          aoExcluir={excluirUsuario}
+        />
       )}
     </section>
   );
