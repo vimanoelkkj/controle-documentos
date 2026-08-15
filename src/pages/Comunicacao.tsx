@@ -9,8 +9,9 @@ import { criarTextoEmail } from "./comunicacao/mensagens";
 import { HistoricoComunicacoes } from "./comunicacao/components/HistoricoComunicacoes";
 import { CartaoEmail } from "./comunicacao/components/CartaoEmail";
 import { useAcoesComunicacao } from "./comunicacao/hooks/useAcoesComunicacao";
-import { criarGrupos, normalizarEmail } from "./comunicacao/utils";
+import { normalizarEmail } from "./comunicacao/utils";
 import { ListaAlunos } from "./comunicacao/components/ListaAlunos";
+import { useGruposComunicacao } from "./comunicacao/hooks/useGruposComunicacao";
 
 function Comunicacao() {
   const { modoApresentacao } = useAuth();
@@ -69,43 +70,13 @@ function Comunicacao() {
       .finally(() => setCarregando(false));
   }, []);
 
-  const unidades = useMemo(
-    () =>
-      [...new Set(alunos.map((aluno) => aluno.unidade))]
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, "pt-BR")),
-    [alunos],
-  );
-
-  const grupos = useMemo(() => {
-    const base =
-      unidade === "TODAS"
-        ? alunos
-        : alunos.filter((aluno) => aluno.unidade === unidade);
-
-    const termo = buscaGrupo.trim().toLocaleLowerCase("pt-BR");
-
-    return criarGrupos(base).filter(
-      (grupo) =>
-        !termo ||
-        grupo.documentos.some((documento) =>
-          documento.curto.toLocaleLowerCase("pt-BR").includes(termo),
-        ),
-    );
-  }, [alunos, unidade, buscaGrupo]);
-
-  useEffect(() => {
-    if (!grupos.length) {
-      setGrupoSelecionado("");
-      return;
-    }
-
-    if (!grupos.some((grupo) => grupo.chave === grupoSelecionado)) {
-      setGrupoSelecionado(grupos[0].chave);
-    }
-  }, [grupos, grupoSelecionado]);
-
-  const grupo = grupos.find((item) => item.chave === grupoSelecionado);
+  const { unidades, grupos, grupo } = useGruposComunicacao({
+    alunos,
+    unidade,
+    buscaGrupo,
+    grupoSelecionado,
+    setGrupoSelecionado,
+  });
 
   useEffect(() => {
     if (!grupo) {
