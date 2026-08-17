@@ -307,6 +307,28 @@ function Comunicacao() {
     ),
   ];
 
+  // Para "Copiar ambos", preserva cada aluno como um par:
+  // institucional -> pessoal -> próximo aluno.
+  // Duplicados são removidos sem destruir essa ordem.
+  const emailsAmbos = (() => {
+    const vistos = new Set<string>();
+    const resultado: string[] = [];
+
+    for (const aluno of alunosSelecionados) {
+      const par = [normalizarEmail(aluno.email), normalizarEmail(aluno.email_outro)];
+
+      for (const email of par) {
+        if (!email) continue;
+        const chave = email.toLowerCase();
+        if (vistos.has(chave)) continue;
+        vistos.add(chave);
+        resultado.push(email);
+      }
+    }
+
+    return resultado;
+  })();
+
   const selecionadosComInstitucional = alunosSelecionados.filter((a) =>
     normalizarEmail(a.email),
   ).length;
@@ -378,14 +400,25 @@ function Comunicacao() {
     });
   }
 
-  const { copiarEmails, copiarComunicado, copiarAssunto, copiarPacoteOutlook } =
-    useAcoesComunicacao({
+  const {
+    copiarEmails,
+    copiarComunicado,
+    copiarAssunto,
+    copiarPacoteOutlook,
+    obterResumoLotes,
+  } = useAcoesComunicacao({
       emailsInstitucionais,
       emailsAlternativos,
+      emailsAmbos,
       assunto,
       textoEmail,
       setFeedback,
     });
+
+  const resumoLotesInstitucionais = obterResumoLotes("institucional");
+  const resumoLotesAlternativos = obterResumoLotes("alternativo");
+  const resumoLotesAmbos = obterResumoLotes("ambos");
+  const resumoLotesPacote = obterResumoLotes("pacote");
 
   async function registrarCobranca() {
     if (!grupo || alunosSelecionados.length === 0) {
@@ -662,29 +695,74 @@ function Comunicacao() {
                         <small>
                           {selecionadosComInstitucional} com e-mail institucional
                           • {selecionadosSemInstitucional} sem institucional •{" "}
-                          {emailsAlternativos.length} alternativos
+                          {emailsAlternativos.length} alternativos • limite de 490 por lote
                         </small>
                       </div>
 
                       <div className="communication-action-buttons">
-                        <button onClick={() => copiarEmails("institucional")}>
-                          Copiar institucionais
+                        <button
+                          onClick={() => copiarEmails("institucional")}
+                          title={
+                            resumoLotesInstitucionais.quantidadeLotes > 1
+                              ? `Copiar lote ${resumoLotesInstitucionais.loteAtual} de ${resumoLotesInstitucionais.quantidadeLotes}`
+                              : "Copiar e-mails institucionais"
+                          }
+                        >
+                          <span className="communication-action-label">Copiar institucionais</span>
+                          {resumoLotesInstitucionais.quantidadeLotes > 1 && (
+                            <span className="communication-lot-badge">
+                              {resumoLotesInstitucionais.loteAtual}/{resumoLotesInstitucionais.quantidadeLotes}
+                            </span>
+                          )}
                         </button>
 
-                        <button onClick={() => copiarEmails("alternativo")}>
-                          Copiar alternativos
+                        <button
+                          onClick={() => copiarEmails("alternativo")}
+                          title={
+                            resumoLotesAlternativos.quantidadeLotes > 1
+                              ? `Copiar lote ${resumoLotesAlternativos.loteAtual} de ${resumoLotesAlternativos.quantidadeLotes}`
+                              : "Copiar e-mails alternativos"
+                          }
+                        >
+                          <span className="communication-action-label">Copiar alternativos</span>
+                          {resumoLotesAlternativos.quantidadeLotes > 1 && (
+                            <span className="communication-lot-badge">
+                              {resumoLotesAlternativos.loteAtual}/{resumoLotesAlternativos.quantidadeLotes}
+                            </span>
+                          )}
                         </button>
 
-                        <button onClick={() => copiarEmails("ambos")}>
-                          Copiar ambos
+                        <button
+                          onClick={() => copiarEmails("ambos")}
+                          title={
+                            resumoLotesAmbos.quantidadeLotes > 1
+                              ? `Copiar lote ${resumoLotesAmbos.loteAtual} de ${resumoLotesAmbos.quantidadeLotes}`
+                              : "Copiar todos os e-mails"
+                          }
+                        >
+                          <span className="communication-action-label">Copiar ambos</span>
+                          {resumoLotesAmbos.quantidadeLotes > 1 && (
+                            <span className="communication-lot-badge">
+                              {resumoLotesAmbos.loteAtual}/{resumoLotesAmbos.quantidadeLotes}
+                            </span>
+                          )}
                         </button>
 
                         <button
                           className="communication-outlook-button"
                           onClick={copiarPacoteOutlook}
-                          title="Copia CCO, assunto e mensagem para a área de transferência"
+                          title={
+                            resumoLotesPacote.quantidadeLotes > 1
+                              ? `Copiar pacote Outlook do lote ${resumoLotesPacote.loteAtual} de ${resumoLotesPacote.quantidadeLotes}`
+                              : "Copia CCO, assunto e mensagem para a área de transferência"
+                          }
                         >
-                          Copiar pacote
+                          <span className="communication-action-label">Copiar pacote</span>
+                          {resumoLotesPacote.quantidadeLotes > 1 && (
+                            <span className="communication-lot-badge">
+                              {resumoLotesPacote.loteAtual}/{resumoLotesPacote.quantidadeLotes}
+                            </span>
+                          )}
                         </button>
 
                         <button

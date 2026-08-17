@@ -3257,3 +3257,113 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
   font-size: 13px !important;
   font-weight: 500 !important;
 }
+
+/* =========================================================
+   V25.0 — lotes do Outlook sem sequestrar o layout
+   Mantém a página estável e mostra o progresso em um badge compacto.
+   ========================================================= */
+
+/* O topo precisa caber na largura REAL da coluna central, não na viewport. */
+.communication-detail-top {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px) !important;
+  column-gap: clamp(28px, 3vw, 48px) !important;
+  justify-content: stretch !important;
+  align-items: start !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.communication-detail-primary,
+.communication-detail-top .communication-history {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.communication-detail-top .communication-history {
+  justify-self: stretch !important;
+  margin: 0 !important;
+}
+
+.communication-detail-top .communication-history-item {
+  grid-template-columns: minmax(0, 1fr) 46px 46px !important;
+  gap: 12px !important;
+}
+
+/* Destinatários ocupam somente a largura disponível dentro do detalhe. */
+.communication-recipient-block {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+.communication-actions {
+  display: grid !important;
+  grid-template-columns: minmax(250px, 330px) minmax(0, 1fr) !important;
+  gap: 28px !important;
+  align-items: end !important;
+  min-width: 0 !important;
+}
+
+.communication-actions > div:first-child {
+  min-width: 0 !important;
+}
+
+.communication-action-buttons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 8px 18px !important;
+  min-width: 0 !important;
+}
+
+.communication-action-buttons button {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  min-height: 30px !important;
+  padding: 0 2px 4px !important;
+  white-space: nowrap !important;
+}
+
+.communication-action-label {
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  letter-spacing: normal !important;
+}
+
+.communication-lot-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 28px !important;
+  height: 18px !important;
+  padding: 0 6px !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--comm-blue) 10%, transparent) !important;
+  color: var(--comm-blue) !important;
+  font-size: 9.5px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+.communication-feedback {
+  max-width: 100% !important;
+}
+
+@media (max-width: 1320px) {
+  .communication-detail-top {
+    grid-template-columns: 1fr !important;
+    row-gap: 24px !important;
+  }
+
+  .communication-actions {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+}
