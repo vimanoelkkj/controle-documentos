@@ -173,6 +173,7 @@ function Comunicacao() {
   const [buscaGrupo, setBuscaGrupo] = useState("");
   const [buscaAluno, setBuscaAluno] = useState("");
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
+  const [mostrarCobrados, setMostrarCobrados] = useState(false);
   const [prazo, setPrazo] = useState("01/07");
   const [assunto, setAssunto] = useState("Documentação pendente - Matrícula");
   const [feedback, setFeedback] = useState("");
@@ -267,29 +268,6 @@ function Comunicacao() {
 
   const grupo = grupos.find((item) => item.chave === grupoSelecionado);
 
-  useEffect(() => {
-    if (!grupo) {
-      setSelecionados(new Set());
-      return;
-    }
-    setSelecionados(new Set(grupo.alunos.map((aluno) => aluno.ra)));
-    setBuscaAluno("");
-  }, [grupo]);
-
-  const alunosVisiveis = useMemo(() => {
-    if (!grupo) return [];
-    const termo = buscaAluno.trim().toLocaleLowerCase("pt-BR");
-    return grupo.alunos.filter(
-      (aluno) =>
-        !termo ||
-        `${aluno.nome} ${aluno.ra} ${aluno.curso} ${aluno.email || ""} ${
-          aluno.email_outro || ""
-        }`
-          .toLocaleLowerCase("pt-BR")
-          .includes(termo),
-    );
-  }, [grupo, buscaAluno]);
-
   const alunosSelecionados =
     grupo?.alunos.filter((aluno) => selecionados.has(aluno.ra)) || [];
 
@@ -378,6 +356,45 @@ function Comunicacao() {
     grupo?.alunos.filter((aluno) => cobrancasPorRa.has(aluno.ra)) || [];
   const alunosNaoCobrados =
     grupo?.alunos.filter((aluno) => !cobrancasPorRa.has(aluno.ra)) || [];
+
+
+  // Por padrão, a lista funciona como uma fila de cobrança: quem já foi
+  // cobrado some. O usuário pode reexibir esses alunos quando quiser.
+  const alunosVisiveis = useMemo(() => {
+    if (!grupo) return [];
+    const termo = buscaAluno.trim().toLocaleLowerCase("pt-BR");
+
+    return grupo.alunos.filter((aluno) => {
+      if (!mostrarCobrados && cobrancasPorRa.has(aluno.ra)) return false;
+
+      return (
+        !termo ||
+        `${aluno.nome} ${aluno.ra} ${aluno.curso} ${aluno.email || ""} ${
+          aluno.email_outro || ""
+        }`
+          .toLocaleLowerCase("pt-BR")
+          .includes(termo)
+      );
+    });
+  }, [grupo, buscaAluno, mostrarCobrados, cobrancasPorRa]);
+
+  useEffect(() => {
+    if (!grupo) {
+      setSelecionados(new Set());
+      return;
+    }
+
+    // Mantém selecionada a fila ativa. Quando uma cobrança é registrada e o
+    // histórico atualiza, os cobrados saem da seleção junto com a lista.
+    setSelecionados(
+      new Set(
+        grupo.alunos
+          .filter((aluno) => !cobrancasPorRa.has(aluno.ra))
+          .map((aluno) => aluno.ra),
+      ),
+    );
+    setBuscaAluno("");
+  }, [grupo?.chave, cobrancasPorRa]);
   const ultimaCobrancaGrupo = cobrancasDaCombinacao[0]?.criado_em || "";
 
   const temContrato =
@@ -964,7 +981,7 @@ function Comunicacao() {
                       <strong>
                         {modoApresentacao
                           ? `${grupo.alunos.length} aluno(s)`
-                          : `${selecionados.size}/${grupo.alunos.length} selecionados`}
+                          : `${selecionados.size}/${alunosVisiveis.length} visíveis selecionados`}
                       </strong>
                     </div>
                     <input
@@ -985,7 +1002,7 @@ function Comunicacao() {
                         type="button"
                         onClick={() =>
                           setSelecionados(
-                            new Set(grupo.alunos.map((aluno) => aluno.ra)),
+                            new Set(alunosVisiveis.map((aluno) => aluno.ra)),
                           )
                         }
                       >
@@ -1007,6 +1024,15 @@ function Comunicacao() {
                         onClick={() => setSelecionados(new Set())}
                       >
                         Limpar seleção
+                      </button>
+                      <button
+                        type="button"
+                        className={mostrarCobrados ? "is-active" : ""}
+                        onClick={() => setMostrarCobrados((valor) => !valor)}
+                      >
+                        {mostrarCobrados
+                          ? "Ocultar cobrados"
+                          : `Mostrar cobrados (${alunosJaCobrados.length})`}
                       </button>
                     </div>
                   )}

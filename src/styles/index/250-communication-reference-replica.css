@@ -3259,111 +3259,225 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
 }
 
 /* =========================================================
-   V25.0 — lotes do Outlook sem sequestrar o layout
-   Mantém a página estável e mostra o progresso em um badge compacto.
+   V25.1 — lotes do Outlook sem alterar a geometria da tela
+   Mantém o layout V23/V24 intacto e acrescenta apenas o contador.
    ========================================================= */
-
-/* O topo precisa caber na largura REAL da coluna central, não na viewport. */
-.communication-detail-top {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px) !important;
-  column-gap: clamp(28px, 3vw, 48px) !important;
-  justify-content: stretch !important;
-  align-items: start !important;
-  width: 100% !important;
-  min-width: 0 !important;
-}
-
-.communication-detail-primary,
-.communication-detail-top .communication-history {
-  min-width: 0 !important;
-  width: 100% !important;
-  max-width: none !important;
-}
-
-.communication-detail-top .communication-history {
-  justify-self: stretch !important;
-  margin: 0 !important;
-}
-
-.communication-detail-top .communication-history-item {
-  grid-template-columns: minmax(0, 1fr) 46px 46px !important;
-  gap: 12px !important;
-}
-
-/* Destinatários ocupam somente a largura disponível dentro do detalhe. */
-.communication-recipient-block {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-}
-
-.communication-actions {
-  display: grid !important;
-  grid-template-columns: minmax(250px, 330px) minmax(0, 1fr) !important;
-  gap: 28px !important;
-  align-items: end !important;
-  min-width: 0 !important;
-}
-
-.communication-actions > div:first-child {
-  min-width: 0 !important;
-}
-
-.communication-action-buttons {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: flex-start !important;
-  align-items: center !important;
-  gap: 8px 18px !important;
-  min-width: 0 !important;
-}
-
 .communication-action-buttons button {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  min-width: 0 !important;
-  min-height: 30px !important;
-  padding: 0 2px 4px !important;
-  white-space: nowrap !important;
+  position: relative !important;
 }
 
 .communication-action-label {
   color: inherit !important;
-  font-size: inherit !important;
-  font-weight: inherit !important;
-  letter-spacing: normal !important;
+  font: inherit !important;
+  letter-spacing: inherit !important;
 }
 
 .communication-lot-badge {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 28px !important;
-  height: 18px !important;
-  padding: 0 6px !important;
+  min-width: 25px !important;
+  height: 16px !important;
+  margin-left: 5px !important;
+  padding: 0 5px !important;
+  border: 0 !important;
   border-radius: 999px !important;
   background: color-mix(in srgb, var(--comm-blue) 10%, transparent) !important;
   color: var(--comm-blue) !important;
-  font-size: 9.5px !important;
+  font-size: 9px !important;
   font-weight: 800 !important;
-  line-height: 1 !important;
+  line-height: 16px !important;
   letter-spacing: 0 !important;
+  white-space: nowrap !important;
 }
 
-.communication-feedback {
-  max-width: 100% !important;
+/* =========================================================
+   V25.2 — Comunicação: impede o resumo da combinação de ser esmagado
+   O histórico não pode roubar a largura do bloco principal.
+   ========================================================= */
+.communication-detail {
+  container-type: inline-size;
 }
 
-@media (max-width: 1320px) {
+.communication-detail-top {
+  grid-template-columns: minmax(420px, 1fr) minmax(340px, 480px) !important;
+  column-gap: 48px !important;
+}
+
+.communication-detail-primary {
+  min-width: 420px !important;
+  max-width: none !important;
+}
+
+.communication-detail-primary .communication-detail-header,
+.communication-detail-primary .communication-detail-header > div {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.communication-detail-primary .communication-detail-header p {
+  width: min(560px, 100%) !important;
+  max-width: 560px !important;
+}
+
+.communication-detail-primary .communication-tags {
+  width: min(680px, 100%) !important;
+  max-width: 680px !important;
+}
+
+.communication-detail-top .communication-history {
+  width: 100% !important;
+  max-width: 480px !important;
+}
+
+/* Se a área de detalhe não comportar as duas colunas com dignidade,
+   o histórico desce. Assim o resumo nunca vira uma coluna de 150px. */
+@container (max-width: 920px) {
   .communication-detail-top {
-    grid-template-columns: 1fr !important;
-    row-gap: 24px !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 28px !important;
   }
 
-  .communication-actions {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
+  .communication-detail-primary {
+    min-width: 0 !important;
+    width: 100% !important;
   }
+
+  .communication-detail-top .communication-history {
+    width: 100% !important;
+    max-width: none !important;
+    justify-self: stretch !important;
+  }
+}
+
+/* =========================================================
+   V25.3 — Comunicação: histórico não ultrapassa a borda direita
+   O grid ocupa somente a largura disponível do detalhe.
+   ========================================================= */
+.communication-detail-top {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 320px) !important;
+  justify-content: stretch !important;
+  align-items: start !important;
+  column-gap: 36px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+.communication-detail-primary {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.communication-detail-top .communication-history {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 320px !important;
+  margin: 0 !important;
+  justify-self: stretch !important;
+}
+
+/* Quando o espaço útil realmente ficar curto, empilha em vez de cortar. */
+@container (max-width: 820px) {
+  .communication-detail-top {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 28px !important;
+  }
+
+  .communication-detail-top .communication-history {
+    max-width: none !important;
+  }
+}
+
+/* =========================================================
+   V25.4 — Comunicação: 100% de zoom mantém a composição do 90%
+   Em larguras intermediárias, reduz primeiro a lista lateral e o
+   histórico. O resumo da combinação nunca vira uma coluna estreita.
+   ========================================================= */
+@media (min-width: 1100px) and (max-width: 1650px) {
+  .communication-grid {
+    grid-template-columns: 350px minmax(0, 1fr) !important;
+    gap: 36px !important;
+    width: 100% !important;
+  }
+
+  .communication-detail {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .communication-detail-top {
+    display: grid !important;
+    grid-template-columns: minmax(500px, 1fr) minmax(260px, 300px) !important;
+    column-gap: 32px !important;
+    justify-content: stretch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .communication-detail-primary {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .communication-detail-primary .communication-detail-header,
+  .communication-detail-primary .communication-detail-header > div {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .communication-detail-primary .communication-detail-header p {
+    width: auto !important;
+    max-width: 620px !important;
+  }
+
+  .communication-detail-primary .communication-tags {
+    width: 100% !important;
+    max-width: 760px !important;
+  }
+
+  .communication-detail-top .communication-history {
+    width: 100% !important;
+    max-width: 300px !important;
+    min-width: 0 !important;
+    justify-self: end !important;
+  }
+
+  .communication-detail-top .communication-history-item {
+    grid-template-columns: minmax(0, 1fr) 42px 42px !important;
+    gap: 10px !important;
+  }
+}
+
+/* Se nem 500px para o resumo couberem, empilha o histórico.
+   É preferível descer a lateral a esmagar o conteúdo principal. */
+@media (min-width: 901px) and (max-width: 1240px) {
+  .communication-grid {
+    grid-template-columns: 320px minmax(0, 1fr) !important;
+    gap: 28px !important;
+  }
+
+  .communication-detail-top {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 28px !important;
+  }
+
+  .communication-detail-top .communication-history {
+    width: min(620px, 100%) !important;
+    max-width: 620px !important;
+    justify-self: start !important;
+  }
+}
+
+/* Filtro da fila de cobrança: destaque discreto quando os já cobrados estão visíveis. */
+.communication-select-actions button.is-active {
+  color: var(--primary, #2563eb);
+  font-weight: 700;
 }
