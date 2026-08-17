@@ -1,3 +1,5 @@
+import { obterCookie } from "../utils/cookies";
+
 export type PeriodoContexto = {
   id: number;
   codigo: string;
@@ -5,15 +7,6 @@ export type PeriodoContexto = {
   criado_em: string;
   atualizado_em: string;
 };
-
-function obterCookie(request: Request, nome: string) {
-  const cookies = request.headers.get("Cookie") || "";
-  for (const parte of cookies.split(";")) {
-    const [chave, ...valor] = parte.trim().split("=");
-    if (chave === nome) return decodeURIComponent(valor.join("="));
-  }
-  return null;
-}
 
 export async function obterPeriodoAtual(
   request: Request,

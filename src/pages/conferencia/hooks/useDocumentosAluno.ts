@@ -65,25 +65,36 @@ import {
     );
   
     function alternarDocumento(nomeDocumento: string) {
-      setAlunosEmEdicao((estadoAtual) =>
-        estadoAtual.map((aluno) => {
-          if (aluno.ra !== raSelecionado) {
-            return aluno;
-          }
-  
-          return {
-            ...aluno,
-            documentos: aluno.documentos.map((documento) =>
-              documento.nome === nomeDocumento
-                ? {
-                    ...documento,
-                    entregue: !documento.entregue,
-                  }
-                : documento,
-            ),
-          };
-        }),
-      );
+      setAlunosEmEdicao((estadoAtual) => {
+        const indiceAluno = estadoAtual.findIndex(
+          (aluno) => aluno.ra === raSelecionado,
+        );
+
+        if (indiceAluno < 0) return estadoAtual;
+
+        const alunoAtual = estadoAtual[indiceAluno];
+        const indiceDocumento = alunoAtual.documentos.findIndex(
+          (documento) => documento.nome === nomeDocumento,
+        );
+
+        if (indiceDocumento < 0) return estadoAtual;
+
+        const documentos = alunoAtual.documentos.slice();
+        const documentoAtual = documentos[indiceDocumento];
+
+        documentos[indiceDocumento] = {
+          ...documentoAtual,
+          entregue: !documentoAtual.entregue,
+        };
+
+        const proximoEstado = estadoAtual.slice();
+        proximoEstado[indiceAluno] = {
+          ...alunoAtual,
+          documentos,
+        };
+
+        return proximoEstado;
+      });
   
       setStatus("pendente");
       setErroSalvamento("");

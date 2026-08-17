@@ -1,0 +1,3259 @@
+/* =========================================================
+   Comunicação V17 — referência Conferência / Dashboard
+   Fundo contínuo, zero cards, zero linhas estruturais.
+   Bordas existem somente onde há controle interativo real.
+   ========================================================= */
+
+.communication-page {
+  --comm-bg: #f4f7fb;
+  --comm-surface-soft: #eef3f8;
+  --comm-surface-active: #e7f1ff;
+  --comm-text: #152238;
+  --comm-muted: #6b7f99;
+  --comm-faint: #8da0b7;
+  --comm-blue: #0b6df6;
+  --comm-blue-dark: #075bcf;
+  --comm-green: #18864b;
+  --comm-green-bg: #edf9f1;
+  --comm-amber: #a86a00;
+  --comm-amber-bg: #fff7e6;
+  --comm-danger: #c63f3f;
+
+  min-height: 100%;
+  padding: 0 32px 36px;
+  background: transparent;
+  color: var(--comm-text);
+  font: inherit;
+}
+
+/* ---------- cabeçalho ---------- */
+.communication-header {
+  display: grid;
+  gap: 6px;
+  margin: 24px 0 34px;
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.communication-header h1 {
+  margin: 0;
+  color: var(--comm-text);
+  font-size: 28px;
+  font-weight: 760;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+
+.communication-header p {
+  margin: 0;
+  color: var(--comm-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.communication-eyebrow,
+.communication-summary,
+.communication-header .page-title-icon {
+  display: none !important;
+}
+
+.communication-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.communication-section-tab {
+  position: relative;
+  height: 38px;
+  padding: 0 2px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--comm-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: default;
+}
+
+.communication-section-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--comm-blue);
+}
+
+.communication-section-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #e8f1ff;
+  color: var(--comm-blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------- filtros: integrados ao fundo ---------- */
+.communication-toolbar {
+  width: min(760px, 100%);
+  display: grid;
+  grid-template-columns: minmax(210px, .72fr) minmax(280px, 1.28fr);
+  gap: 18px;
+  margin: 0 0 22px;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.communication-toolbar label,
+.communication-search {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: var(--comm-muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.communication-toolbar input,
+.communication-toolbar button,
+.communication-toolbar [role="combobox"],
+.communication-toolbar select,
+.communication-search input {
+  min-height: 40px;
+  box-sizing: border-box;
+  border: 0 !important;
+  border-radius: 8px !important;
+  outline: 0;
+  background: var(--comm-surface-soft) !important;
+  box-shadow: none !important;
+  color: var(--comm-text);
+}
+
+.communication-search input {
+  width: 100%;
+  padding: 0 13px;
+}
+
+.communication-search input::placeholder,
+.communication-students-header input::placeholder {
+  color: #8799ae;
+}
+
+/* ---------- layout principal ---------- */
+.communication-grid {
+  display: grid;
+  grid-template-columns: minmax(270px, 330px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  min-width: 0;
+}
+
+.communication-groups,
+.communication-detail,
+.communication-content-grid,
+.communication-email-card,
+.communication-students-card,
+.communication-history,
+.communication-preview,
+.communication-actions,
+.communication-validation,
+.communication-detail-header {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ---------- combinações: lista solta ---------- */
+.communication-groups {
+  min-width: 0;
+  padding: 0;
+}
+
+.communication-panel-title {
+  margin: 0 0 14px;
+  padding: 0 0 0 2px;
+}
+
+.communication-panel-title span {
+  color: var(--comm-muted);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: .08em;
+}
+
+.communication-panel-title strong {
+  display: none !important;
+}
+
+.communication-group-list {
+  max-height: 490px;
+  display: grid;
+  gap: 7px;
+  padding: 0 8px 0 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #b9c5d3 transparent;
+}
+
+.communication-group-card {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transform: none !important;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.communication-group-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 2px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.communication-group-card:hover {
+  background: rgba(231, 241, 255, .52) !important;
+  transform: none !important;
+}
+
+.communication-group-card.active {
+  background: var(--comm-surface-active) !important;
+}
+
+.communication-group-card.active::before {
+  background: var(--comm-blue);
+}
+
+.communication-group-copy {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.communication-group-copy > strong {
+  color: var(--comm-text);
+  font-size: 12.5px;
+  line-height: 1.25;
+}
+
+.communication-group-copy > span {
+  color: var(--comm-muted);
+  font-size: 10.5px;
+}
+
+.communication-group-count {
+  color: var(--comm-blue);
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.communication-mini-tags,
+.communication-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.communication-mini-tags span,
+.communication-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  padding: 0 8px;
+  border: 0 !important;
+  border-radius: 999px;
+  background: #eaf0f6;
+  color: #546982;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.communication-mini-tags span.priority,
+.communication-tags span.priority {
+  background: var(--comm-amber-bg);
+  color: var(--comm-amber);
+}
+
+/* ---------- detalhe ---------- */
+.communication-detail {
+  min-width: 0;
+  padding: 0;
+}
+
+.communication-empty {
+  padding: 28px 0;
+  color: var(--comm-muted);
+}
+
+.communication-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0;
+}
+
+.communication-detail-header > div {
+  min-width: 0;
+}
+
+.communication-detail-header > div > span {
+  display: none;
+}
+
+.communication-detail-header h2 {
+  margin: 0;
+  color: var(--comm-text);
+  font-size: 19px;
+  font-weight: 760;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+}
+
+.communication-detail-header p {
+  max-width: 760px;
+  margin: 6px 0 0;
+  color: var(--comm-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.communication-big-count {
+  color: var(--comm-blue);
+  font-size: 19px;
+  font-weight: 760;
+}
+
+.communication-charge-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.communication-charge-summary span,
+.communication-validation-items span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.communication-charge-summary span:nth-child(1) {
+  background: var(--comm-green-bg);
+  color: var(--comm-green);
+}
+
+.communication-charge-summary span:nth-child(2) {
+  background: var(--comm-amber-bg);
+  color: var(--comm-amber);
+}
+
+.communication-charge-summary span:nth-child(n+3) {
+  background: #edf1f6;
+  color: var(--comm-muted);
+}
+
+.communication-tags {
+  margin: 14px 0 16px;
+}
+
+/* ---------- destinatários e ações: só tipografia ---------- */
+.communication-actions {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 18px 0 0;
+  padding: 0;
+}
+
+.communication-actions > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.communication-actions span,
+.communication-validation > div:first-child > span,
+.communication-preview-heading span,
+.communication-students-header span,
+.communication-history-header span {
+  color: var(--comm-muted);
+  font-size: 9.5px;
+  font-weight: 760;
+  letter-spacing: .06em;
+}
+
+.communication-actions strong,
+.communication-validation strong {
+  color: var(--comm-text);
+  font-size: 12px;
+}
+
+.communication-actions small {
+  color: var(--comm-muted);
+  font-size: 10px;
+}
+
+.communication-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.communication-action-buttons button,
+.communication-copy-stack button,
+.communication-select-actions button,
+.communication-history-header button {
+  position: relative;
+  min-height: 32px;
+  padding: 0 2px 5px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--comm-blue);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transform: none !important;
+}
+
+.communication-action-buttons button:hover,
+.communication-copy-stack button:hover,
+.communication-select-actions button:hover,
+.communication-history-header button:hover {
+  color: var(--comm-blue-dark);
+  transform: none !important;
+}
+
+.communication-register-button::after,
+.communication-outlook-button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--comm-blue);
+}
+
+.communication-action-buttons button:disabled,
+.communication-select-actions button:disabled {
+  opacity: .42;
+  cursor: default;
+}
+
+/* ---------- validação ---------- */
+.communication-validation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 14px 0 20px;
+  padding: 0;
+}
+
+.communication-validation > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.communication-validation-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.communication-validation-items .ok {
+  background: var(--comm-green-bg);
+  color: var(--comm-green);
+}
+
+.communication-validation-items .warning,
+.communication-validation-items .attention {
+  background: var(--comm-amber-bg);
+  color: var(--comm-amber);
+}
+
+.communication-feedback {
+  margin: 10px 0;
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--comm-blue);
+  font-size: 11px;
+}
+
+/* ---------- editor + alunos ---------- */
+.communication-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, .92fr);
+  gap: 34px;
+  align-items: start;
+  min-width: 0;
+  padding: 0;
+}
+
+.communication-content-grid.presentation-mode {
+  grid-template-columns: 1fr;
+}
+
+.communication-email-card {
+  min-width: 0;
+  padding: 0;
+}
+
+.communication-email-settings {
+  display: grid;
+  grid-template-columns: 88px minmax(210px, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+
+.communication-email-settings label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.communication-email-settings label > span {
+  color: var(--comm-muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.communication-email-settings label small {
+  color: var(--comm-faint);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.communication-email-settings input,
+.communication-students-header input {
+  width: 100%;
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 0 !important;
+  border-radius: 8px !important;
+  outline: 0;
+  background: var(--comm-surface-soft) !important;
+  box-shadow: none !important;
+  color: var(--comm-text);
+  font: inherit;
+  font-size: 11px;
+}
+
+.communication-deadline-field input {
+  text-align: center;
+  font-weight: 700;
+}
+
+.communication-copy-stack {
+  display: flex;
+  gap: 14px;
+  align-items: end;
+}
+
+/* A prévia não é um card: é conteúdo editorial sobre o próprio fundo. */
+.communication-preview {
+  padding: 0;
+}
+
+.communication-preview-top {
+  margin-bottom: 14px;
+}
+
+.communication-preview-heading {
+  display: grid;
+  gap: 4px;
+}
+
+.communication-preview-icon,
+.communication-preview-count {
+  display: none !important;
+}
+
+.communication-preview-heading strong {
+  display: none;
+}
+
+.communication-preview-heading small {
+  display: none;
+}
+
+.communication-email-body {
+  color: #29384c;
+  font-size: 10.8px;
+  line-height: 1.55;
+}
+
+.communication-email-body p {
+  margin: 0 0 12px;
+}
+
+.communication-email-body ul {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.communication-email-body li {
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.communication-email-body li::before {
+  content: "•";
+  margin-right: 7px;
+  color: var(--comm-blue);
+}
+
+.communication-email-body li.priority,
+.communication-priority-text {
+  color: var(--comm-danger);
+}
+
+.communication-warning {
+  color: var(--comm-danger);
+}
+
+.communication-address {
+  color: var(--comm-blue);
+  font-weight: 650;
+}
+
+/* ---------- alunos: lista livre, sem linhas ---------- */
+.communication-students-card {
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.communication-students-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, .72fr);
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.communication-students-header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.communication-students-header strong {
+  color: var(--comm-text);
+  font-size: 11.5px;
+}
+
+.communication-select-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0 0 8px;
+}
+
+.communication-student-list {
+  max-height: 420px;
+  display: grid;
+  gap: 3px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #b9c5d3 transparent;
+}
+
+.communication-student {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  padding: 9px 6px;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.communication-student:hover {
+  background: rgba(231, 241, 255, .38) !important;
+  border-radius: 7px;
+}
+
+.communication-student input {
+  margin-top: 2px;
+  accent-color: var(--comm-blue);
+}
+
+.communication-student > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.communication-student strong {
+  color: var(--comm-text);
+  font-size: 11px;
+}
+
+.communication-student span,
+.communication-student small {
+  color: var(--comm-muted);
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+.communication-charged-badge {
+  width: fit-content;
+  color: var(--comm-green) !important;
+  font-weight: 650;
+}
+
+/* ---------- histórico: tabela visual sem caixa/linhas ---------- */
+.communication-history {
+  grid-column: 1 / -1;
+  margin-top: 28px;
+  padding: 0;
+}
+
+.communication-history-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.communication-history-header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.communication-history-header strong {
+  color: var(--comm-text);
+  font-size: 15px;
+}
+
+.communication-history-list {
+  display: grid;
+  gap: 2px;
+}
+
+.communication-history-item {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.8fr) 72px 72px;
+  gap: 18px;
+  align-items: center;
+  min-height: 46px;
+  padding: 5px 2px;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.communication-history-item > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.communication-history-item > div:first-child strong {
+  color: var(--comm-text);
+  font-size: 10.5px;
+}
+
+.communication-history-item > div:first-child span {
+  color: var(--comm-muted);
+  font-size: 9.5px;
+}
+
+.communication-history-numbers {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.communication-history-numbers strong {
+  color: var(--comm-blue);
+  font-size: 11px;
+}
+
+.communication-history-numbers span {
+  color: var(--comm-muted);
+  font-size: 8.5px;
+}
+
+.communication-history-error,
+.communication-history-empty {
+  padding: 14px 0;
+  color: var(--comm-muted);
+  font-size: 11px;
+}
+
+/* ---------- dark/black: mantém a mesma gramática ---------- */
+html[data-theme="dark"] .communication-page,
+html[data-theme="black"] .communication-page {
+  --comm-surface-soft: rgba(255,255,255,.055);
+  --comm-surface-active: rgba(55,137,255,.13);
+  --comm-text: #e7eef8;
+  --comm-muted: #9eacc0;
+  --comm-faint: #7f90a7;
+  --comm-green-bg: rgba(35,148,84,.14);
+  --comm-amber-bg: rgba(210,146,24,.14);
+}
+
+html[data-theme="dark"] .communication-mini-tags span,
+html[data-theme="dark"] .communication-tags span,
+html[data-theme="black"] .communication-mini-tags span,
+html[data-theme="black"] .communication-tags span {
+  background: rgba(255,255,255,.07);
+}
+
+/* ---------- responsividade ---------- */
+@media (max-width: 1220px) {
+  .communication-grid {
+    grid-template-columns: 285px minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .communication-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .communication-students-card {
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .communication-page {
+    padding-inline: 20px;
+  }
+
+  .communication-toolbar,
+  .communication-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .communication-group-list {
+    max-height: 340px;
+  }
+
+  .communication-actions,
+  .communication-validation {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .communication-action-buttons,
+  .communication-validation-items {
+    justify-content: flex-start;
+  }
+
+  .communication-email-settings,
+  .communication-students-header {
+    grid-template-columns: 1fr;
+  }
+
+  .communication-history-item {
+    grid-template-columns: minmax(0, 1fr) 58px 58px;
+  }
+}
+
+/* =========================================================
+   V17.1 — polimento após revisão visual
+   Corrige escala, alinhamento e resquícios da interface antiga.
+   ========================================================= */
+
+.communication-page {
+  padding-top: 1px !important;
+  font-size: 14px !important;
+}
+
+/* Cabeçalho volta a ter a presença da Conferência */
+.communication-header {
+  margin-top: 28px !important;
+  margin-bottom: 34px !important;
+}
+
+.communication-header h1 {
+  font-size: 30px !important;
+}
+
+.communication-header p {
+  font-size: 14px !important;
+}
+
+/* A área principal não ocupa a tela inteira sem controle.
+   Mantém a leitura agrupada em vez de mandar contagens/ações para o horizonte. */
+.communication-grid {
+  grid-template-columns: 360px minmax(0, 1fr) !important;
+  gap: 42px !important;
+  max-width: 1540px !important;
+}
+
+.communication-detail {
+  max-width: 1120px !important;
+}
+
+/* Combinações mais largas e legíveis */
+.communication-group-list {
+  max-height: 560px !important;
+}
+
+.communication-group-card {
+  min-height: 82px !important;
+  padding: 14px 16px 14px 16px !important;
+}
+
+.communication-group-copy > strong {
+  font-size: 13.5px !important;
+}
+
+.communication-group-copy > span {
+  font-size: 11.5px !important;
+}
+
+.communication-group-count {
+  font-size: 14px !important;
+}
+
+/* Mantém a contagem junto do título, não no extremo direito da tela */
+.communication-detail-header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  max-width: 960px !important;
+}
+
+.communication-big-count {
+  align-self: start !important;
+  margin-top: 1px !important;
+  padding: 5px 8px !important;
+  border-radius: 8px !important;
+  background: #e8f1ff !important;
+  font-size: 18px !important;
+}
+
+.communication-detail-header h2 {
+  font-size: 20px !important;
+}
+
+.communication-detail-header p {
+  font-size: 12px !important;
+}
+
+.communication-tags {
+  max-width: 960px !important;
+  margin-top: 16px !important;
+}
+
+.communication-mini-tags span,
+.communication-tags span {
+  min-height: 25px !important;
+  padding-inline: 9px !important;
+  font-size: 10.5px !important;
+}
+
+/* Destinatários + validação passam a formar um bloco coeso */
+.communication-recipient-block {
+  max-width: 1080px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  margin: 20px 0 24px !important;
+}
+
+.communication-actions {
+  margin: 0 !important;
+  align-items: center !important;
+}
+
+.communication-actions > div:first-child {
+  min-width: 320px !important;
+}
+
+.communication-action-buttons {
+  justify-content: flex-start !important;
+  gap: 16px !important;
+}
+
+.communication-action-buttons button,
+.communication-copy-stack button,
+.communication-select-actions button,
+.communication-history-header button {
+  font-size: 11px !important;
+}
+
+.communication-validation {
+  margin: 0 !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 26px !important;
+}
+
+.communication-validation > div:first-child {
+  min-width: 260px !important;
+}
+
+.communication-validation-items {
+  justify-content: flex-start !important;
+}
+
+/* Remove qualquer borda/linha herdada que ainda sobreviva na implementação */
+.communication-page *,
+.communication-page *::before,
+.communication-page *::after {
+  box-shadow: none;
+}
+
+.communication-detail,
+.communication-content-grid,
+.communication-email-card,
+.communication-preview,
+.communication-preview-top,
+.communication-email-body,
+.communication-students-card,
+.communication-students-header,
+.communication-student-list,
+.communication-student,
+.communication-history,
+.communication-history-header,
+.communication-history-list,
+.communication-history-item {
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+}
+
+/* Editor e alunos começam na mesma linha */
+.communication-content-grid {
+  grid-template-columns: minmax(0, 1.05fr) minmax(410px, .95fr) !important;
+  gap: 42px !important;
+  align-items: start !important;
+}
+
+.communication-email-settings {
+  margin-bottom: 18px !important;
+}
+
+.communication-email-settings label > span {
+  font-size: 11px !important;
+}
+
+.communication-email-settings input,
+.communication-students-header input {
+  min-height: 42px !important;
+  font-size: 12px !important;
+}
+
+/* 'Prévia da mensagem' não é faixa, apenas heading */
+.communication-preview {
+  margin-top: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.communication-preview-top {
+  margin: 0 0 16px !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.communication-preview-heading {
+  padding: 0 !important;
+}
+
+.communication-preview-heading span {
+  font-size: 10px !important;
+}
+
+/* Mata o último card branco interno da mensagem */
+.communication-email-body {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  font-size: 11.5px !important;
+  line-height: 1.6 !important;
+}
+
+/* O aviso deixa de ser caixa vermelha */
+.communication-warning {
+  padding: 0 !important;
+  margin-bottom: 12px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--comm-danger) !important;
+}
+
+.communication-address {
+  display: inline !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+/* Remove qualquer fundo legado na faixa de preview */
+.communication-preview-top,
+.communication-preview-heading,
+.communication-preview-heading > div,
+.communication-email-body p,
+.communication-email-body ul,
+.communication-email-body li {
+  background: transparent !important;
+}
+
+/* Lista de alunos: maior, mais respirada e ainda sem divisórias */
+.communication-students-header {
+  margin-bottom: 14px !important;
+}
+
+.communication-students-header strong {
+  font-size: 12.5px !important;
+}
+
+.communication-select-actions {
+  gap: 18px !important;
+  margin-bottom: 10px !important;
+}
+
+.communication-student-list {
+  max-height: 500px !important;
+  gap: 4px !important;
+}
+
+.communication-student {
+  padding: 11px 8px !important;
+}
+
+.communication-student strong {
+  font-size: 12px !important;
+}
+
+.communication-student span,
+.communication-student small {
+  font-size: 10px !important;
+}
+
+/* Evita linha horizontal gigante herdada no início/fim das colunas */
+.communication-content-grid::before,
+.communication-content-grid::after,
+.communication-preview::before,
+.communication-preview::after,
+.communication-students-card::before,
+.communication-students-card::after,
+.communication-history::before,
+.communication-history::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Histórico ganha escala, mas continua sem tabela encaixotada */
+.communication-history {
+  margin-top: 34px !important;
+}
+
+.communication-history-header strong {
+  font-size: 16px !important;
+}
+
+.communication-history-item {
+  min-height: 50px !important;
+}
+
+.communication-history-item > div:first-child strong {
+  font-size: 11.5px !important;
+}
+
+.communication-history-item > div:first-child span {
+  font-size: 10px !important;
+}
+
+/* Em resoluções largas, não espalha demais os controles */
+@media (min-width: 1500px) {
+  .communication-page {
+    padding-right: 52px !important;
+  }
+
+  .communication-detail {
+    max-width: 1160px !important;
+  }
+}
+
+@media (max-width: 1220px) {
+  .communication-grid {
+    grid-template-columns: 320px minmax(0, 1fr) !important;
+    gap: 28px !important;
+  }
+
+  .communication-content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .communication-recipient-block {
+    max-width: 100% !important;
+  }
+}
+
+/* =========================================================
+   V17.2 — alinhamento/proporção final da Comunicação
+   - header igual ao padrão Conferência
+   - maior largura útil
+   - destinatários/validação compactos e coesos
+   - editor e alunos começam na mesma linha
+   - remove linhas herdadas remanescentes
+   ========================================================= */
+
+/* ---------- HEADER ---------- */
+.communication-header {
+  display: block !important;
+  width: fit-content !important;
+  max-width: 720px !important;
+  margin: 30px 0 38px !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+
+.communication-header h1 {
+  display: block !important;
+  margin: 0 !important;
+  font-size: 29px !important;
+  line-height: 1.15 !important;
+}
+
+.communication-header p {
+  display: block !important;
+  width: auto !important;
+  max-width: 620px !important;
+  margin: 7px 0 0 !important;
+  padding: 0 !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  text-align: left !important;
+  font-size: 13px !important;
+}
+
+/* ---------- MAIS LARGURA ÚTIL ---------- */
+.communication-page {
+  padding-right: 38px !important;
+}
+
+.communication-section-heading,
+.communication-toolbar,
+.communication-grid {
+  width: min(1680px, 100%) !important;
+  max-width: none !important;
+}
+
+.communication-toolbar {
+  width: min(860px, 100%) !important;
+  grid-template-columns: 250px minmax(360px, 1fr) !important;
+  gap: 22px !important;
+}
+
+.communication-grid {
+  grid-template-columns: 390px minmax(0, 1fr) !important;
+  gap: 44px !important;
+}
+
+.communication-detail {
+  width: 100% !important;
+  max-width: 1260px !important;
+}
+
+/* ---------- LISTA DE COMBINAÇÕES ---------- */
+.communication-group-list {
+  padding-right: 10px !important;
+}
+
+.communication-group-card {
+  min-height: 84px !important;
+}
+
+.communication-group-copy > strong {
+  font-size: 14px !important;
+}
+
+.communication-group-copy > span {
+  font-size: 11.5px !important;
+}
+
+/* ---------- DETALHE PRINCIPAL ---------- */
+.communication-detail-header {
+  max-width: 1080px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 20px !important;
+}
+
+.communication-detail-header h2 {
+  font-size: 21px !important;
+}
+
+.communication-big-count {
+  margin-left: 8px !important;
+}
+
+.communication-tags {
+  max-width: 1080px !important;
+}
+
+/* ---------- DESTINATÁRIOS / VALIDAÇÃO ---------- */
+.communication-recipient-block {
+  width: min(1120px, 100%) !important;
+  max-width: none !important;
+  gap: 14px !important;
+  margin: 22px 0 24px !important;
+}
+
+.communication-actions {
+  display: grid !important;
+  grid-template-columns: minmax(300px, .8fr) minmax(0, 1.2fr) !important;
+  gap: 24px !important;
+  align-items: end !important;
+}
+
+.communication-action-buttons {
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 15px !important;
+}
+
+.communication-action-buttons button {
+  font-size: 11.5px !important;
+  min-height: 34px !important;
+}
+
+.communication-validation {
+  display: grid !important;
+  grid-template-columns: minmax(260px, .7fr) minmax(0, 1.3fr) !important;
+  gap: 24px !important;
+  align-items: center !important;
+}
+
+.communication-validation-items {
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+
+/* ---------- COMPOSIÇÃO / ALUNOS ---------- */
+.communication-content-grid {
+  width: min(1240px, 100%) !important;
+  max-width: none !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(430px, .92fr) !important;
+  gap: 48px !important;
+  align-items: start !important;
+  margin-top: 0 !important;
+}
+
+.communication-email-card,
+.communication-students-card {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  align-self: start !important;
+}
+
+/* a linha editorial superior das duas colunas precisa coincidir */
+.communication-email-settings,
+.communication-students-header {
+  min-height: 60px !important;
+  margin-top: 0 !important;
+  margin-bottom: 14px !important;
+}
+
+.communication-email-settings {
+  grid-template-columns: 100px minmax(250px, 1fr) auto !important;
+  gap: 16px !important;
+}
+
+.communication-students-header {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .78fr) !important;
+  gap: 16px !important;
+}
+
+.communication-students-header input {
+  min-width: 220px !important;
+}
+
+/* ---------- REMOVE LINHAS REMANESCENTES ---------- */
+.communication-email-settings,
+.communication-select-actions,
+.communication-preview,
+.communication-preview-top,
+.communication-email-body,
+.communication-students-header,
+.communication-student-list,
+.communication-student,
+.communication-history,
+.communication-history-header,
+.communication-history-list,
+.communication-history-item {
+  border: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  outline: 0 !important;
+}
+
+.communication-email-settings::before,
+.communication-email-settings::after,
+.communication-select-actions::before,
+.communication-select-actions::after,
+.communication-preview-top::before,
+.communication-preview-top::after,
+.communication-student-list::before,
+.communication-student-list::after,
+.communication-students-header::before,
+.communication-students-header::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* ---------- PRÉVIA ---------- */
+.communication-preview-top {
+  margin: 0 0 18px !important;
+}
+
+.communication-preview-heading span {
+  font-size: 10.5px !important;
+}
+
+.communication-email-body {
+  font-size: 12px !important;
+  line-height: 1.62 !important;
+}
+
+.communication-email-body p {
+  margin-bottom: 13px !important;
+}
+
+.communication-warning {
+  line-height: 1.45 !important;
+}
+
+/* ---------- ALUNOS ---------- */
+.communication-select-actions {
+  margin: 0 0 10px !important;
+  padding: 0 !important;
+}
+
+.communication-student-list {
+  max-height: 500px !important;
+  padding-top: 2px !important;
+}
+
+.communication-student {
+  padding: 12px 8px !important;
+}
+
+.communication-student strong {
+  font-size: 12.5px !important;
+}
+
+.communication-student span,
+.communication-student small {
+  font-size: 10.5px !important;
+  line-height: 1.4 !important;
+}
+
+/* ---------- ESPAÇAMENTO ENTRE SEÇÕES ---------- */
+.communication-section-heading {
+  margin-bottom: 24px !important;
+}
+
+.communication-toolbar {
+  margin-bottom: 26px !important;
+}
+
+.communication-tags {
+  margin-bottom: 18px !important;
+}
+
+.communication-history {
+  margin-top: 38px !important;
+}
+
+/* ---------- TELAS MUITO LARGAS ---------- */
+@media (min-width: 1700px) {
+  .communication-grid {
+    grid-template-columns: 410px minmax(0, 1fr) !important;
+    gap: 48px !important;
+  }
+
+  .communication-detail {
+    max-width: 1320px !important;
+  }
+
+  .communication-content-grid {
+    width: min(1280px, 100%) !important;
+  }
+}
+
+/* ---------- RESPONSIVO ---------- */
+@media (max-width: 1320px) {
+  .communication-grid {
+    grid-template-columns: 330px minmax(0, 1fr) !important;
+    gap: 30px !important;
+  }
+
+  .communication-content-grid {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  .communication-actions,
+  .communication-validation {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================================
+   V17.3 — remove wrapper branco dos filtros e neutraliza
+   header superior encaixotado na Comunicação
+   ========================================================= */
+
+/* 1) BUSCA/FILTROS: nenhum wrapper branco por trás */
+.communication-toolbar,
+.communication-toolbar > label,
+.communication-search,
+.communication-toolbar > div {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.communication-toolbar > label,
+.communication-search {
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.communication-toolbar input,
+.communication-search input,
+.communication-toolbar [role="combobox"],
+.communication-toolbar select,
+.communication-toolbar button {
+  background: var(--comm-surface-soft) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* mata qualquer pseudo-elemento que esteja desenhando fundo/faixa */
+.communication-toolbar::before,
+.communication-toolbar::after,
+.communication-toolbar > label::before,
+.communication-toolbar > label::after,
+.communication-search::before,
+.communication-search::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* 2) HEADER GLOBAL: mesmo princípio visual da Conferência
+   Seletores amplos para neutralizar caixas herdadas sem alterar lógica. */
+body:has(.communication-page) .topbar,
+body:has(.communication-page) .app-topbar,
+body:has(.communication-page) .main-header,
+body:has(.communication-page) .layout-header,
+body:has(.communication-page) header[role="banner"],
+body:has(.communication-page) .period-toolbar,
+body:has(.communication-page) .period-toolbar--dashboard,
+body:has(.communication-page) .period-toolbar--communication,
+body:has(.communication-page) .header-toolbar {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+/* remove retângulo externo, mantendo somente os controles internos */
+body:has(.communication-page) .topbar::before,
+body:has(.communication-page) .topbar::after,
+body:has(.communication-page) .app-topbar::before,
+body:has(.communication-page) .app-topbar::after,
+body:has(.communication-page) .period-toolbar::before,
+body:has(.communication-page) .period-toolbar::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* qualquer container imediato que esteja criando a caixa longa do topo */
+body:has(.communication-page) .app-shell > header,
+body:has(.communication-page) .main-content > header,
+body:has(.communication-page) .content-shell > header {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Google Planilhas e Período continuam funcionais, mas sem "cartão externo" */
+body:has(.communication-page) .google-sheets-status,
+body:has(.communication-page) .sheets-status,
+body:has(.communication-page) .period-control,
+body:has(.communication-page) .period-selector {
+  box-shadow: none !important;
+}
+
+/* evita a borda horizontal longa herdada no topo da Comunicação */
+body:has(.communication-page) header {
+  border-bottom-color: transparent !important;
+}
+
+/* =========================================================
+   V20.2 — contadores das combinações no estilo da Conferência
+   Mesmo tratamento visual dos 7/7 e 0/7: somente texto.
+   ========================================================= */
+
+.communication-group-count {
+  display: inline !important;
+  place-items: initial !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  margin-top: 2px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+
+  color: #596b80 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+/* A combinação selecionada segue a linguagem do 7/7 completo:
+   destaque azul, mas ainda sem cápsula/card. */
+.communication-group-card.active .communication-group-count {
+  color: #0b6df6 !important;
+}
+
+/* Garante que regras antigas de tema não recriem o quadradinho. */
+html[data-theme="light"] .communication-group-count,
+html[data-theme="dark"] .communication-group-count,
+html[data-theme="black"] .communication-group-count {
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .communication-group-count,
+html[data-theme="dark"] .communication-group-count,
+html[data-theme="black"] .communication-group-count {
+  color: #596b80 !important;
+}
+
+html[data-theme="light"] .communication-group-card.active .communication-group-count,
+html[data-theme="dark"] .communication-group-card.active .communication-group-count,
+html[data-theme="black"] .communication-group-card.active .communication-group-count {
+  color: #0b6df6 !important;
+}
+
+/* =========================================================
+   V20.3 — documentos da combinação: somente texto semântico
+   Com Histórico/Contrato = vermelho; sem ambos = amarelo.
+   ========================================================= */
+.communication-tags {
+  gap: 18px !important;
+  align-items: center;
+}
+
+.communication-tags span {
+  display: inline !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 10.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+}
+
+/* Grupo sem Histórico e sem Contrato: todos os documentos em amarelo. */
+.communication-tags.no-priority span,
+.communication-tags.no-priority span.priority {
+  color: #b77900 !important;
+}
+
+/* Grupo contendo Histórico, Contrato ou ambos:
+   os prioritários ficam vermelhos; os demais continuam neutros. */
+.communication-tags.has-priority span {
+  color: #546982 !important;
+}
+
+.communication-tags.has-priority span.priority {
+  color: #d83a32 !important;
+}
+
+/* Neutraliza qualquer cápsula herdada pelos temas. */
+html[data-theme="light"] .communication-tags span,
+html[data-theme="dark"] .communication-tags span,
+html[data-theme="black"] .communication-tags span {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .communication-tags.no-priority span,
+html[data-theme="dark"] .communication-tags.no-priority span,
+html[data-theme="black"] .communication-tags.no-priority span {
+  color: #b77900 !important;
+}
+
+html[data-theme="light"] .communication-tags.has-priority span.priority,
+html[data-theme="dark"] .communication-tags.has-priority span.priority,
+html[data-theme="black"] .communication-tags.has-priority span.priority {
+  color: #d83a32 !important;
+}
+
+/* =========================================================
+   V20.4 — documentos comuns em amarelo
+   Os prioritários continuam vermelhos.
+   ========================================================= */
+.communication-tags.has-priority span:not(.priority) {
+  color: #b77900 !important;
+}
+
+html[data-theme="light"] .communication-tags.has-priority span:not(.priority),
+html[data-theme="dark"] .communication-tags.has-priority span:not(.priority),
+html[data-theme="black"] .communication-tags.has-priority span:not(.priority) {
+  color: #b77900 !important;
+}
+
+/* =========================================================
+   V20.5 — resumo de cobranças sem cards + espaçamento
+   ========================================================= */
+.communication-charge-summary {
+  gap: 18px !important;
+  margin-top: 10px !important;
+}
+
+.communication-charge-summary span {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 5px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 10.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.4 !important;
+}
+
+.communication-charge-summary span:nth-child(1) {
+  color: var(--comm-green) !important;
+}
+
+.communication-charge-summary span:nth-child(2) {
+  color: var(--comm-amber) !important;
+}
+
+.communication-charge-summary span:nth-child(n+3) {
+  color: var(--comm-muted) !important;
+}
+
+.communication-charge-summary span b {
+  margin: 0 !important;
+  font-weight: 760 !important;
+}
+
+/* =========================================================
+   V20.6 — remove pills restantes e corrige alinhamentos
+   ========================================================= */
+
+/* Contador grande da combinação: somente texto, sem card. */
+.communication-big-count {
+  display: inline !important;
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--comm-blue) !important;
+  font-size: 19px !important;
+  font-weight: 760 !important;
+  line-height: 1.2 !important;
+}
+
+/* "23 combinações": remove cápsula e alinha com "Cobranças". */
+.communication-section-heading {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 18px !important;
+}
+
+.communication-section-count {
+  display: inline !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--comm-blue) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  vertical-align: baseline !important;
+}
+
+/* O texto da aba e a contagem ficam na mesma linha visual. */
+.communication-section-tab {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  line-height: 1.2 !important;
+}
+
+/* Neutraliza regras de tema que possam recriar fundo/borda. */
+html[data-theme="light"] .communication-big-count,
+html[data-theme="dark"] .communication-big-count,
+html[data-theme="black"] .communication-big-count,
+html[data-theme="light"] .communication-section-count,
+html[data-theme="dark"] .communication-section-count,
+html[data-theme="black"] .communication-section-count {
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   V20.7 — remove redundâncias e últimos "cards" de ação/status
+   ========================================================= */
+
+/* Contador grande removido do JSX. Proteção para HMR/cache antigo. */
+.communication-big-count {
+  display: none !important;
+}
+
+/* Copiar pacote / Registrar cobrança:
+   somente ação textual, sem fundo, sem card, sem bloco colorido. */
+.communication-action-buttons .communication-outlook-button,
+.communication-action-buttons .communication-register-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 0 5px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  transform: none !important;
+}
+
+.communication-action-buttons .communication-outlook-button {
+  color: var(--comm-blue) !important;
+}
+
+.communication-action-buttons .communication-register-button {
+  color: var(--comm-green) !important;
+}
+
+/* Mantém só uma linha inferior fina como ação ativa/semântica,
+   sem virar card. */
+.communication-action-buttons .communication-outlook-button::after,
+.communication-action-buttons .communication-register-button::after {
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+}
+
+.communication-action-buttons .communication-outlook-button::after {
+  background: var(--comm-blue) !important;
+}
+
+.communication-action-buttons .communication-register-button::after {
+  background: var(--comm-green) !important;
+}
+
+/* Validação: remove todas as cápsulas verdes/amarelas.
+   Fica somente texto colorido. */
+.communication-validation-items {
+  gap: 18px !important;
+  align-items: baseline !important;
+}
+
+.communication-validation-items span {
+  display: inline !important;
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 10.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.4 !important;
+}
+
+.communication-validation-items .ok {
+  color: var(--comm-green) !important;
+}
+
+.communication-validation-items .warning,
+.communication-validation-items .attention {
+  color: var(--comm-amber) !important;
+}
+
+/* Neutraliza variações de tema que poderiam reintroduzir fundos. */
+html[data-theme="light"] .communication-action-buttons .communication-outlook-button,
+html[data-theme="dark"] .communication-action-buttons .communication-outlook-button,
+html[data-theme="black"] .communication-action-buttons .communication-outlook-button,
+html[data-theme="light"] .communication-action-buttons .communication-register-button,
+html[data-theme="dark"] .communication-action-buttons .communication-register-button,
+html[data-theme="black"] .communication-action-buttons .communication-register-button,
+html[data-theme="light"] .communication-validation-items span,
+html[data-theme="dark"] .communication-validation-items span,
+html[data-theme="black"] .communication-validation-items span {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* V20.8 — ações da comunicação sem sublinhado */
+.communication-action-buttons .communication-outlook-button::after,
+.communication-action-buttons .communication-register-button::after {
+  display: none !important;
+  content: none !important;
+}
+
+.communication-action-buttons .communication-outlook-button,
+.communication-action-buttons .communication-register-button {
+  padding-bottom: 0 !important;
+  border-bottom: 0 !important;
+}
+
+/* V20.9 — alinhamento uniforme das ações de destinatários */
+.communication-action-buttons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 24px !important;
+}
+
+.communication-action-buttons button,
+.communication-action-buttons .communication-outlook-button,
+.communication-action-buttons .communication-register-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  vertical-align: middle !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.communication-action-buttons button::before,
+.communication-action-buttons button::after {
+  vertical-align: middle !important;
+}
+
+/* V21.0 — lista de combinações sem card de seleção */
+.communication-group-item,
+.communication-group-item.active,
+.communication-group-item.is-active,
+.communication-group-item[aria-selected="true"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Mantém apenas a barra azul lateral para indicar a combinação ativa. */
+.communication-group-item.active::before,
+.communication-group-item.is-active::before,
+.communication-group-item[aria-selected="true"]::before {
+  border-radius: 999px !important;
+}
+
+/* Neutraliza fundos herdados por tema/hover sem remover a seleção visual. */
+html[data-theme="light"] .communication-group-item,
+html[data-theme="dark"] .communication-group-item,
+html[data-theme="black"] .communication-group-item,
+html[data-theme="light"] .communication-group-item:hover,
+html[data-theme="dark"] .communication-group-item:hover,
+html[data-theme="black"] .communication-group-item:hover {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* V21.1 — cores semânticas na lista "Combinações exatas" */
+.communication-mini-tags span {
+  color: #b77900 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.communication-mini-tags span.priority {
+  color: #d83a32 !important;
+}
+
+/* Mantém intacto o estilo já existente do grupo selecionado. */
+
+/* V21.2 — documentos da lista lateral: peso e espaçamento */
+.communication-mini-tags {
+  gap: 6px 12px !important;
+  row-gap: 6px !important;
+  column-gap: 12px !important;
+}
+
+.communication-mini-tags span {
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+}
+
+/* Aproxima a linha de documentos do restante das informações do grupo. */
+.communication-group-item .communication-mini-tags {
+  margin-top: 6px !important;
+  margin-bottom: 6px !important;
+}
+
+/* V21.4 — compactação vertical da lista "Combinações exatas" */
+.communication-group-item {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  margin-top: 0 !important;
+  margin-bottom: 2px !important;
+  min-height: 0 !important;
+}
+
+.communication-group-item h3,
+.communication-group-item h4,
+.communication-group-item .communication-group-title {
+  margin-top: 0 !important;
+  margin-bottom: 6px !important;
+}
+
+.communication-group-item .communication-mini-tags {
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+  row-gap: 4px !important;
+  column-gap: 12px !important;
+}
+
+.communication-group-item .communication-group-count,
+.communication-group-item .communication-group-students,
+.communication-group-item small {
+  margin-top: 4px !important;
+  margin-bottom: 0 !important;
+}
+
+/* Os grupos ficam mais próximos uns dos outros sem alterar a seleção atual. */
+.communication-groups-list,
+.communication-combinations-list {
+  row-gap: 2px !important;
+  gap: 2px !important;
+}
+
+/* V22.7 — Histórico de cobranças: maior SEM criar um vazio gigante */
+.communication-history {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin-top: 28px !important;
+}
+
+.communication-history-header {
+  margin-bottom: 10px !important;
+}
+
+.communication-history-list {
+  display: grid !important;
+  gap: 4px !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+.communication-history-item {
+  grid-template-columns: minmax(280px, 1fr) 82px 82px !important;
+  min-height: 54px !important;
+  padding: 8px 2px !important;
+}
+
+.communication-history-item > div:first-child strong {
+  font-size: 12px !important;
+}
+
+.communication-history-item > div:first-child span {
+  font-size: 10.5px !important;
+}
+
+.communication-history-numbers strong {
+  font-size: 13px !important;
+}
+
+.communication-history-numbers span {
+  font-size: 9.5px !important;
+}
+
+/* V22.8 — Prévia da cobrança: remove o "card" visual do rodapé */
+.communication-message-preview,
+.communication-preview,
+.communication-preview-body,
+.communication-preview-footer,
+.communication-message-preview::after,
+.communication-preview::after,
+.communication-preview-body::after {
+  box-shadow: none !important;
+}
+
+.communication-preview-footer,
+.communication-message-preview::after,
+.communication-preview::after,
+.communication-preview-body::after {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* V22.9 — remove definitivamente a faixa/card no rodapé da prévia */
+html[data-theme="light"] .communication-page .communication-email-body,
+html[data-theme="light"] .communication-page .communication-email-body p:last-child,
+html[data-theme="light"] .communication-page .communication-email-body::before,
+html[data-theme="light"] .communication-page .communication-email-body::after {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .communication-page .communication-email-body::before,
+html[data-theme="light"] .communication-page .communication-email-body::after {
+  content: none !important;
+  display: none !important;
+}
+
+html[data-theme="light"] .communication-page .communication-email-body p:last-child {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* =========================================================
+   V23.0 — histórico de cobranças ao lado da combinação
+   ========================================================= */
+.communication-detail-top {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, .95fr) !important;
+  gap: 42px !important;
+  align-items: start !important;
+  width: 100% !important;
+  margin-bottom: 18px !important;
+}
+
+.communication-detail-top .communication-detail-header {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.communication-detail-top .communication-history {
+  grid-column: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.communication-detail-top .communication-history-header {
+  margin: 0 0 8px !important;
+  align-items: start !important;
+}
+
+.communication-detail-top .communication-history-header strong {
+  font-size: 14px !important;
+}
+
+.communication-detail-top .communication-history-header span {
+  font-size: 9px !important;
+}
+
+.communication-detail-top .communication-history-list {
+  gap: 1px !important;
+  max-height: 210px !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+}
+
+.communication-detail-top .communication-history-item {
+  grid-template-columns: minmax(0, 1fr) 46px 46px !important;
+  gap: 12px !important;
+  min-height: 42px !important;
+  padding: 4px 0 !important;
+}
+
+.communication-detail-top .communication-history-item > div:first-child strong {
+  font-size: 10.5px !important;
+}
+
+.communication-detail-top .communication-history-item > div:first-child span {
+  font-size: 9px !important;
+}
+
+.communication-detail-top .communication-history-numbers strong {
+  font-size: 11px !important;
+}
+
+.communication-detail-top .communication-history-numbers span {
+  font-size: 8px !important;
+}
+
+@media (max-width: 1180px) {
+  .communication-detail-top {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
+/* =========================================================
+   V23.1 — histórico ocupa a faixa lateral direita da página
+   ========================================================= */
+
+/* Libera a área de detalhe para usar toda a largura disponível. */
+.communication-detail {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* O topo vira uma grade com:
+   1) bloco atual de "Todos os documentos" com largura controlada;
+   2) um respiro;
+   3) histórico ocupando a grande área vazia da direita. */
+.communication-detail-top {
+  display: grid !important;
+  grid-template-columns: minmax(560px, 760px) minmax(80px, 1fr) minmax(620px, 760px) !important;
+  gap: 0 !important;
+  align-items: start !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-bottom: 18px !important;
+}
+
+/* Mantém "Todos os documentos" no bloco esquerdo. */
+.communication-detail-top .communication-detail-header {
+  grid-column: 1 !important;
+  width: 100% !important;
+  max-width: 760px !important;
+}
+
+/* Histórico vai para a coluna lateral direita, exatamente na área livre. */
+.communication-detail-top .communication-history {
+  grid-column: 3 !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 6px 0 0 !important;
+  align-self: start !important;
+}
+
+.communication-detail-top .communication-history-header {
+  margin: 0 0 10px !important;
+}
+
+/* Aproveita a largura extra da coluna direita. */
+.communication-detail-top .communication-history-item {
+  grid-template-columns: minmax(320px, 1fr) 54px 54px !important;
+  gap: 18px !important;
+  min-height: 44px !important;
+  padding: 5px 0 !important;
+}
+
+.communication-detail-top .communication-history-list {
+  width: 100% !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
+}
+
+/* Em larguras menores, volta a empilhar sem quebrar o conteúdo. */
+@media (max-width: 1500px) {
+  .communication-detail-top {
+    grid-template-columns: minmax(520px, 1fr) 36px minmax(420px, 560px) !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .communication-detail-top {
+    grid-template-columns: 1fr !important;
+    gap: 22px !important;
+  }
+
+  .communication-detail-top .communication-detail-header,
+  .communication-detail-top .communication-history {
+    grid-column: 1 !important;
+    max-width: none !important;
+  }
+}
+
+/* =========================================================
+   V23.2 — empurra o histórico de cobranças para o canto direito
+   ========================================================= */
+.communication-detail-top {
+  display: flex !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+  max-width: none !important;
+  gap: 0 !important;
+}
+
+.communication-detail-top .communication-detail-header {
+  flex: 0 1 760px !important;
+  width: min(760px, 100%) !important;
+  max-width: 760px !important;
+}
+
+.communication-detail-top .communication-history {
+  flex: 0 0 560px !important;
+  width: 560px !important;
+  max-width: 560px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  justify-self: end !important;
+}
+
+.communication-detail-top .communication-history-list {
+  width: 100% !important;
+}
+
+@media (max-width: 1450px) {
+  .communication-detail-top .communication-history {
+    flex-basis: 480px !important;
+    width: 480px !important;
+    max-width: 480px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .communication-detail-top {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 22px !important;
+  }
+
+  .communication-detail-top .communication-detail-header,
+  .communication-detail-top .communication-history {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+  }
+}
+
+/* =========================================================
+   V23.3 — histórico realmente no extremo direito
+   ========================================================= */
+.communication-detail-top {
+  display: grid !important;
+  grid-template-columns: minmax(0, 760px) minmax(420px, 560px) !important;
+  justify-content: space-between !important;
+  column-gap: 64px !important;
+  align-items: start !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.communication-detail-primary {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 760px !important;
+}
+
+.communication-detail-primary .communication-detail-header {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.communication-detail-primary .communication-tags {
+  margin-top: 18px !important;
+}
+
+.communication-detail-top .communication-history {
+  width: 100% !important;
+  max-width: 560px !important;
+  margin: 0 !important;
+  justify-self: end !important;
+  align-self: start !important;
+}
+
+@media (max-width: 1500px) {
+  .communication-detail-top {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 500px) !important;
+    column-gap: 40px !important;
+  }
+
+  .communication-detail-top .communication-history {
+    max-width: 500px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .communication-detail-top {
+    grid-template-columns: 1fr !important;
+    row-gap: 24px !important;
+  }
+
+  .communication-detail-primary,
+  .communication-detail-top .communication-history {
+    max-width: none !important;
+    justify-self: stretch !important;
+  }
+}
+
+/* =========================================================
+   V23.4 — histórico sem barras de rolagem internas
+   Exibe todos os registros diretamente.
+   ========================================================= */
+.communication-detail-top .communication-history,
+.communication-detail-top .communication-history-list {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+.communication-detail-top .communication-history-list {
+  scrollbar-width: none !important;
+}
+
+.communication-detail-top .communication-history-list::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* =========================================================
+   V23.9 — alinhamento das duas colunas da Comunicação
+   Preview da mensagem e lista de alunos começam na mesma linha.
+   ========================================================= */
+
+/* Linha superior das duas colunas com a mesma altura visual. */
+.communication-email-settings,
+.communication-students-header {
+  min-height: 74px !important;
+  margin-bottom: 12px !important;
+}
+
+/* As ações ficam em uma segunda linha equivalente dos dois lados. */
+.communication-copy-stack,
+.communication-select-actions {
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 0 14px !important;
+}
+
+/* No lado esquerdo, os botões saem da linha dos inputs e passam
+   a ocupar a faixa inferior da área de configurações. */
+.communication-email-settings {
+  position: relative !important;
+  padding-bottom: 38px !important;
+}
+
+.communication-email-settings .communication-copy-stack {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  justify-content: flex-end !important;
+}
+
+/* No lado direito, reserva exatamente a mesma faixa antes da lista. */
+.communication-select-actions {
+  padding-top: 0 !important;
+}
+
+/* Ponto de partida igual para conteúdo principal das duas colunas. */
+.communication-preview,
+.communication-student-list {
+  margin-top: 0 !important;
+}
+
+/* Remove microdeslocamentos acumulados por overrides antigos. */
+.communication-preview-top,
+.communication-student-list {
+  padding-top: 0 !important;
+}
+
+/* =========================================================
+   V24.0 — corrige alinhamento Data limite / DD/MM / Assunto / ações
+   ========================================================= */
+
+/* A linha dos campos volta a ser uma grade limpa, sem empurrar labels. */
+.communication-email-settings {
+  display: grid !important;
+  grid-template-columns: 112px minmax(0, 1fr) !important;
+  column-gap: 16px !important;
+  row-gap: 10px !important;
+  align-items: end !important;
+  min-height: 0 !important;
+  margin-bottom: 14px !important;
+  padding-bottom: 0 !important;
+  position: static !important;
+}
+
+/* "Data limite" e "DD/MM" ficam na mesma linha do rótulo. */
+.communication-deadline-field > span {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+}
+
+.communication-deadline-field > span small {
+  display: inline !important;
+  margin: 0 !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+/* Assunto permanece alinhado com o campo de data. */
+.communication-subject-field {
+  min-width: 0 !important;
+}
+
+/* Botões ficam numa linha própria abaixo, alinhados à direita do assunto. */
+.communication-copy-stack {
+  position: static !important;
+  grid-column: 2 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 22px !important;
+}
+
+/* Garante mesma altura visual dos dois inputs. */
+.communication-deadline-field input,
+.communication-subject-field input {
+  min-height: 42px !important;
+  height: 42px !important;
+}
+
+/* =========================================================
+   V24.1 — botões de cópia no fluxo correto da coluna esquerda
+   ========================================================= */
+
+/* A grade contém SOMENTE Data limite + Assunto. */
+.communication-email-settings {
+  display: grid !important;
+  grid-template-columns: 112px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: end !important;
+  min-height: 0 !important;
+  margin: 0 0 10px !important;
+  padding: 0 !important;
+  position: static !important;
+}
+
+/* Mata definitivamente o layout antigo dos botões. */
+.communication-copy-stack {
+  position: static !important;
+  inset: auto !important;
+  grid-column: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Nova linha, pertencente apenas ao painel da mensagem. */
+.communication-copy-actions {
+  width: 100% !important;
+  min-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 24px !important;
+  margin: 0 0 18px !important;
+  padding: 0 !important;
+  position: static !important;
+}
+
+.communication-copy-actions button {
+  position: static !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--comm-blue) !important;
+  font: inherit !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+}
+
+/* A lista de alunos nunca pode receber/encobrir ações da coluna vizinha. */
+.communication-students-card {
+  position: relative !important;
+  isolation: isolate !important;
+}
+
+.communication-email-card {
+  position: relative !important;
+  isolation: isolate !important;
+  min-width: 0 !important;
+}
+
+/* =========================================================
+   V24.2 — reconstrói o bloco de edição sem grids conflitantes
+   ========================================================= */
+
+/* Os dois campos ficam obrigatoriamente na MESMA linha. */
+.communication-email-settings {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: flex-end !important;
+  gap: 16px !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: static !important;
+}
+
+.communication-email-settings .communication-deadline-field {
+  flex: 0 0 112px !important;
+  width: 112px !important;
+  min-width: 112px !important;
+  margin: 0 !important;
+}
+
+.communication-email-settings .communication-subject-field {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.communication-email-settings .communication-deadline-field,
+.communication-email-settings .communication-subject-field {
+  display: grid !important;
+  grid-template-rows: auto 42px !important;
+  gap: 7px !important;
+  align-self: end !important;
+}
+
+.communication-email-settings .communication-deadline-field input,
+.communication-email-settings .communication-subject-field input {
+  width: 100% !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  margin: 0 !important;
+}
+
+/* DD/MM fica ao lado de Data limite, sem quebrar a linha. */
+.communication-email-settings .communication-deadline-field > span {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 6px !important;
+  min-height: 14px !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Ações logo abaixo, ainda dentro da coluna esquerda. */
+.communication-copy-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 24px !important;
+  width: 100% !important;
+  min-height: 28px !important;
+  margin: 10px 0 18px !important;
+  padding: 0 !important;
+  position: static !important;
+}
+
+/* O cabeçalho dos alunos começa no mesmo topo dos campos da mensagem. */
+.communication-students-card {
+  align-self: start !important;
+}
+
+.communication-students-header {
+  min-height: 63px !important;
+  margin: 0 0 10px !important;
+  align-items: end !important;
+}
+
+.communication-select-actions {
+  min-height: 28px !important;
+  margin: 10px 0 18px !important;
+  align-items: center !important;
+}
+
+/* Preview e lista começam na mesma faixa vertical. */
+.communication-preview,
+.communication-student-list {
+  margin-top: 0 !important;
+}
+
+/* =========================================================
+   V24.3 — filtro de unidade da Comunicação igual à Conferência
+   ========================================================= */
+.communication-unit-filter-wrap {
+  min-width: 0 !important;
+}
+
+.communication-toolbar-label {
+  display: block !important;
+  margin: 0 0 7px !important;
+  color: var(--comm-muted) !important;
+  font-size: 10px !important;
+  font-weight: 650 !important;
+}
+
+.communication-unit-filter {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* No toolbar, o disclosure ocupa a mesma largura do antigo select. */
+.communication-toolbar .communication-unit-filter-wrap {
+  width: 100% !important;
+}
+
+/* Quando aberto, usa exatamente a lógica visual da Conferência:
+   bloco expandido, opções em linhas, radio e contagem à direita. */
+.communication-unit-filter.is-open {
+  background: var(--comm-surface-soft) !important;
+  border-radius: 10px !important;
+  padding: 0 8px 8px !important;
+}
+
+.communication-unit-filter .conference-replica-unit-trigger {
+  width: 100% !important;
+}
+
+.communication-unit-filter .conference-replica-unit-menu {
+  width: 100% !important;
+}
+
+.communication-unit-filter .conference-replica-unit-menu > button {
+  width: 100% !important;
+}
+
+/* O menu deixa de ser popup flutuante nesta tela e expande dentro do fluxo. */
+.communication-toolbar {
+  align-items: start !important;
+}
+
+.communication-unit-filter .conference-replica-unit-menu {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  margin-top: 4px !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   V24.4 — corrige aparência do filtro aberto/fechado
+   Mantém exatamente a geometria da Conferência, sem salto visual.
+   ========================================================= */
+.communication-unit-filter,
+.communication-unit-filter.is-open {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: var(--comm-surface-soft) !important;
+  overflow: hidden !important;
+}
+
+/* O trigger não muda de alinhamento nem de tamanho ao abrir. */
+.communication-unit-filter .conference-replica-unit-trigger,
+.communication-unit-filter.is-open .conference-replica-unit-trigger {
+  width: 100% !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 0 13px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--comm-text) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  text-align: left !important;
+}
+
+/* Texto sempre grudado à esquerda. */
+.communication-unit-filter .conference-replica-unit-trigger > span:first-child {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: block !important;
+  margin: 0 !important;
+  text-align: left !important;
+}
+
+/* Chevron fica fixo na extrema direita e apenas gira ao abrir. */
+.communication-unit-filter .conference-replica-chevron {
+  flex: 0 0 auto !important;
+  width: 16px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  color: #53677d !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+  transform: rotate(180deg) !important;
+  transform-origin: center !important;
+}
+
+.communication-unit-filter.is-open .conference-replica-chevron {
+  transform: rotate(0deg) !important;
+}
+
+/* Menu continua sendo disclosure embutido, sem parecer um segundo popup. */
+.communication-unit-filter .conference-replica-unit-menu {
+  position: static !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 2px 7px 8px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   V24.5 — abertura instantânea + animação suave do filtro
+   O menu fica montado; CSS anima a expansão sem delay de mount.
+   ========================================================= */
+.communication-unit-filter {
+  transition:
+    background-color 120ms ease,
+    border-radius 120ms ease !important;
+}
+
+.communication-unit-filter .conference-replica-unit-trigger {
+  transition:
+    background-color 110ms ease,
+    color 110ms ease !important;
+}
+
+.communication-unit-filter .conference-replica-chevron {
+  transition: transform 150ms cubic-bezier(.2, .8, .2, 1) !important;
+}
+
+/* Wrapper sempre montado: fechado ocupa 0px, aberto cresce suavemente. */
+.communication-unit-filter .communication-unit-disclosure {
+  display: grid !important;
+  grid-template-rows: 0fr !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 7px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(-4px) !important;
+  transition:
+    grid-template-rows 170ms cubic-bezier(.2, .8, .2, 1),
+    opacity 120ms ease,
+    transform 170ms cubic-bezier(.2, .8, .2, 1),
+    visibility 0s linear 170ms,
+    padding 170ms cubic-bezier(.2, .8, .2, 1) !important;
+}
+
+.communication-unit-filter.is-open .communication-unit-disclosure {
+  grid-template-rows: 1fr !important;
+  padding: 2px 7px 8px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+  transition:
+    grid-template-rows 170ms cubic-bezier(.2, .8, .2, 1),
+    opacity 110ms ease,
+    transform 170ms cubic-bezier(.2, .8, .2, 1),
+    visibility 0s linear 0s,
+    padding 170ms cubic-bezier(.2, .8, .2, 1) !important;
+}
+
+.communication-unit-disclosure-inner {
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+
+/* Evita qualquer animação antiga herdada da Conferência. */
+.communication-unit-filter .conference-replica-unit-menu {
+  animation: none !important;
+}
+
+/* Respeita preferência de movimento reduzido. */
+@media (prefers-reduced-motion: reduce) {
+  .communication-unit-filter,
+  .communication-unit-filter .conference-replica-unit-trigger,
+  .communication-unit-filter .conference-replica-chevron,
+  .communication-unit-filter .communication-unit-disclosure {
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   V24.6 — filtro sem delay perceptível + seta só gira
+   ========================================================= */
+
+/* Nada de visibility com atraso e nada de translate vertical.
+   O menu responde no mesmo frame do clique e só anima a altura/opacidade. */
+.communication-unit-filter .communication-unit-disclosure {
+  display: block !important;
+  width: 100% !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 7px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  transform: none !important;
+  transition:
+    max-height 135ms cubic-bezier(.2, .8, .2, 1),
+    opacity 80ms linear,
+    padding 135ms cubic-bezier(.2, .8, .2, 1) !important;
+  will-change: max-height, opacity !important;
+}
+
+.communication-unit-filter.is-open .communication-unit-disclosure {
+  max-height: 260px !important;
+  padding: 2px 7px 8px !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
+.communication-unit-disclosure-inner {
+  display: grid !important;
+  gap: 2px !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+/* Seta desenhada em CSS: não sobe, não desce, não troca de glifo.
+   Só rotaciona 180° em torno do próprio centro. */
+.communication-unit-filter .communication-unit-chevron {
+  position: relative !important;
+  width: 14px !important;
+  height: 14px !important;
+  flex: 0 0 14px !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  transform: rotate(0deg) !important;
+  transform-origin: 50% 50% !important;
+  transition: transform 125ms cubic-bezier(.2, .8, .2, 1) !important;
+}
+
+.communication-unit-filter .communication-unit-chevron::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-right: 1.6px solid #53677d !important;
+  border-bottom: 1.6px solid #53677d !important;
+  transform: translate(-50%, -65%) rotate(45deg) !important;
+  transform-origin: center !important;
+}
+
+.communication-unit-filter.is-open .communication-unit-chevron {
+  transform: rotate(180deg) !important;
+}
+
+/* Neutraliza regras antigas do chevron compartilhado da Conferência. */
+.communication-unit-filter .conference-replica-chevron,
+.communication-unit-filter.is-open .conference-replica-chevron {
+  translate: none !important;
+  top: auto !important;
+  bottom: auto !important;
+}
+
+/* O trigger também responde instantaneamente; sem transição de fundo que
+   possa dar sensação de atraso no clique. */
+.communication-unit-filter .conference-replica-unit-trigger {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .communication-unit-filter .communication-unit-disclosure,
+  .communication-unit-filter .communication-unit-chevron {
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   V24.7 — remove delay de React ao abrir o filtro
+   O estado aberto/fechado agora vive num componente isolado.
+   ========================================================= */
+.communication-unit-filter .communication-unit-disclosure {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  transform: none !important;
+  transition:
+    max-height 110ms ease-out,
+    opacity 70ms linear,
+    padding 110ms ease-out !important;
+}
+
+.communication-unit-filter.is-open .communication-unit-disclosure {
+  max-height: 260px !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* A seta só gira no próprio eixo. */
+.communication-unit-filter .communication-unit-chevron {
+  transform: rotate(0deg) !important;
+  transform-origin: 50% 50% !important;
+  transition: transform 110ms ease-out !important;
+}
+
+.communication-unit-filter.is-open .communication-unit-chevron {
+  transform: rotate(180deg) !important;
+}
+
+/* V24.9 — expansão sem corte: anima a altura real do conteúdo */
+.conference-replica-unit-filter .conference-unit-disclosure,
+.communication-unit-filter .communication-unit-disclosure {
+  display: grid !important;
+  grid-template-rows: 0fr !important;
+  max-height: none !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  transition:
+    grid-template-rows 150ms ease-out,
+    opacity 110ms ease-out,
+    padding-top 150ms ease-out,
+    padding-bottom 150ms ease-out !important;
+}
+
+.conference-replica-unit-filter .conference-unit-disclosure > *,
+.communication-unit-filter .communication-unit-disclosure > * {
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.conference-replica-unit-filter.is-open .conference-unit-disclosure,
+.communication-unit-filter.is-open .communication-unit-disclosure {
+  grid-template-rows: 1fr !important;
+  padding-top: 2px !important;
+  padding-bottom: 8px !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Evita qualquer animação de entrada concorrente cortar o final da expansão. */
+.conference-replica-unit-filter .conference-unit-disclosure,
+.communication-unit-filter .communication-unit-disclosure {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* =========================================================
+   V24.13 — Comunicação: mesmo fechamento suave da Conferência
+   Mantém a altura durante o fade e recolhe só no final.
+   ========================================================= */
+.communication-unit-filter.is-open .communication-unit-disclosure {
+  display: block !important;
+  max-height: none !important;
+  grid-template-rows: none !important;
+  padding: 2px 7px 8px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  overflow: hidden !important;
+  transform: translate3d(0, 0, 0) scaleY(1) !important;
+  transform-origin: top center !important;
+  transition:
+    opacity 100ms ease-out,
+    transform 120ms ease-out !important;
+}
+
+.communication-unit-filter.is-open.is-closing .communication-unit-disclosure {
+  max-height: none !important;
+  padding: 2px 7px 8px !important;
+  opacity: 0 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  transform: translate3d(0, -4px, 0) scaleY(.985) !important;
+}
+
+.communication-unit-filter.is-open.is-closing .communication-unit-chevron {
+  transform: rotate(0deg) !important;
+}
+
+.communication-unit-filter:not(.is-open) .communication-unit-disclosure {
+  display: block !important;
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* =========================================================
+   V24.14 — seleção espera o fechamento visual
+   A troca de unidade/dados acontece só depois do fade de 120ms.
+   ========================================================= */
+.conference-replica-unit-filter.is-closing .conference-replica-unit-menu button,
+.communication-unit-filter.is-closing .conference-replica-unit-menu button {
+  pointer-events: none !important;
+}
+
+/* =========================================================
+   V24.21 — Comunicação: elimina salto vertical ao trocar unidade
+   ========================================================= */
+
+/* Evita que o browser tente reposicionar a página automaticamente
+   quando o disclosure fecha e a lista de combinações é recalculada. */
+.communication-page,
+.communication-page * {
+  overflow-anchor: none;
+}
+
+/* A própria área rolável mantém sua posição explicitamente pelo JSX. */
+.app-content:has(.communication-page) {
+  overflow-anchor: none !important;
+}
+
+
+/* =========================================================
+   V24.23 — tipografia da Comunicação = Conferência
+   ========================================================= */
+.communication-page,
+.communication-page button,
+.communication-page input,
+.communication-page select,
+.communication-page textarea,
+.communication-page [role="combobox"] {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.communication-toolbar label,
+.communication-search,
+.communication-search input,
+.communication-unit-filter .conference-replica-unit-trigger,
+.communication-unit-filter .conference-replica-unit-menu > button {
+  font-family: "Inter", system-ui, sans-serif !important;
+}
+
+.communication-search input {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}

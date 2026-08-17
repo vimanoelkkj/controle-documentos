@@ -1795,10 +1795,6 @@ html[data-theme="light"] .settings-dev-message {
     grid-template-columns: 1fr;
   }
 
-  .settings-dev-fields {
-    grid-template-columns: 1fr;
-  }
-
   .settings-dev-delete {
     width: 100%;
   }
@@ -2029,4 +2025,296 @@ html[data-theme="light"]
   html[data-theme="light"] .modal-excluir-aluno * {
     transition-duration: 1ms !important;
   }
+}
+
+/* =========================================================
+   CONFIGURAÇÕES — BACKUP + FERRAMENTAS DEV / FLAT PASS
+   ========================================================= */
+.settings-backup,
+.settings-dev-tools,
+html[data-theme="light"] .settings-backup,
+html[data-theme="light"] .settings-dev-tools {
+  margin-top: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.settings-backup-head,
+.settings-backup-action,
+.settings-backup-result,
+.settings-dev-tools-head,
+.settings-dev-danger,
+html[data-theme="light"] .settings-backup-head,
+html[data-theme="light"] .settings-backup-action,
+html[data-theme="light"] .settings-backup-result,
+html[data-theme="light"] .settings-dev-tools-head {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.settings-backup-icon,
+.settings-backup-action-icon {
+  display: none !important;
+}
+
+.settings-backup-title,
+.settings-backup-action-copy {
+  gap: 0;
+}
+
+.settings-backup-action {
+  margin-top: 22px;
+}
+
+.settings-backup-action button,
+.settings-backup-result a,
+.settings-dev-delete {
+  min-height: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-weight: 700;
+  transform: none !important;
+}
+
+.settings-backup-action button:hover:not(:disabled),
+.settings-backup-result a:hover,
+.settings-dev-delete:hover:not(:disabled),
+.settings-backup-action button:focus-visible,
+.settings-backup-result a:focus-visible,
+.settings-dev-delete:focus-visible {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  text-decoration: none;
+}
+
+.settings-backup-message,
+.settings-backup-result,
+.settings-backup-message.warning,
+.settings-backup-message.error,
+html[data-theme="light"] .settings-backup-message,
+html[data-theme="light"] .settings-backup-result,
+html[data-theme="light"] .settings-backup-message.warning {
+  margin-top: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.settings-dev-tools {
+  margin-top: 42px;
+}
+
+.settings-dev-tools-head > strong,
+.settings-backup-head > strong {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.settings-dev-danger {
+  margin-top: 22px;
+  align-items: end;
+  gap: 16px;
+}
+
+.settings-dev-fields input,
+.settings-dev-fields .app-select-trigger {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.settings-dev-fields input:hover,
+.settings-dev-fields input:focus,
+.settings-dev-fields .app-select-trigger:hover,
+.settings-dev-fields .app-select-trigger:focus-visible {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+
+/* =========================================================
+   v24-75 — seletor DEV no mesmo padrão dos dropdowns do site
+   ========================================================= */
+.settings-dev-fields {
+  grid-template-columns: 220px minmax(280px, 1fr);
+  align-items: end;
+}
+
+.settings-dev-unit-select {
+  width: 220px;
+  max-width: 100%;
+}
+
+.settings-dev-unit-select .app-select-trigger,
+html[data-theme="light"] .settings-dev-unit-select .app-select-trigger,
+html[data-theme="black"] .settings-dev-unit-select .app-select-trigger {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 4px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.settings-dev-unit-select .app-select-trigger:hover:not(:disabled),
+.settings-dev-unit-select .app-select-trigger:focus-visible,
+.settings-dev-unit-select .app-select-trigger[aria-expanded="true"] {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  transform: none !important;
+}
+
+.settings-dev-unit-select .app-select-value {
+  text-align: left;
+}
+
+.settings-dev-unit-select .app-select-chevron {
+  margin-left: auto;
+  font-size: 9px;
+  opacity: .72;
+}
+
+/* O menu é portalizado no body. */
+.settings-dev-unit-menu,
+html[data-theme="light"] .settings-dev-unit-menu {
+  padding: 7px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: #eef4f8 !important;
+  box-shadow: 0 14px 34px rgba(31, 55, 78, .13) !important;
+  overflow: hidden !important;
+}
+
+.settings-dev-unit-menu .app-select-option {
+  position: relative;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-height: 36px !important;
+  padding: 7px 10px 7px 34px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: #526b7c !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-align: left !important;
+  transform: none !important;
+}
+
+.settings-dev-unit-menu .app-select-option::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid #9db7c8;
+  border-radius: 50%;
+  background: transparent;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+}
+
+.settings-dev-unit-menu .app-select-option:hover,
+.settings-dev-unit-menu .app-select-option.active {
+  color: #176fbd !important;
+  background: rgba(42, 139, 232, .07) !important;
+}
+
+.settings-dev-unit-menu .app-select-option.selected {
+  color: #0878df !important;
+  background: rgba(42, 139, 232, .10) !important;
+  font-weight: 600 !important;
+}
+
+.settings-dev-unit-menu .app-select-option.selected::before {
+  border-color: #2388e7;
+  background: #2388e7;
+  box-shadow: inset 0 0 0 3px #eef4f8;
+}
+
+html[data-theme="black"] .settings-dev-unit-menu {
+  border: 0 !important;
+  background: #14222c !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, .34) !important;
+}
+
+html[data-theme="black"] .settings-dev-unit-menu .app-select-option {
+  color: #c4d2dc !important;
+}
+
+html[data-theme="black"] .settings-dev-unit-menu .app-select-option.selected::before {
+  box-shadow: inset 0 0 0 3px #14222c;
+}
+
+@media (max-width: 900px) {
+  .settings-dev-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-dev-unit-select {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   v24-76 — selo DEV junto ao rótulo da seção
+   ========================================================= */
+.settings-dev-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-dev-eyebrow > span,
+.settings-dev-eyebrow > strong {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  line-height: 1;
+}
+
+.settings-dev-eyebrow > strong {
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+/* v24-78 — DEV sempre vermelho ao lado do rótulo */
+.settings-dev-eyebrow > strong {
+  color: #ef4444 !important;
+}
+
+html[data-theme="black"] .settings-dev-eyebrow > strong {
+  color: #ff5c5c !important;
 }

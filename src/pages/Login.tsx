@@ -187,14 +187,15 @@ function Login() {
             </div>
           )}
 
-          <button className="login-submit" type="submit" disabled={enviando}>
-            <span>
-              {enviando
-                ? "Aguarde..."
-                : bootstrap
-                  ? "Criar administrador"
-                  : "Entrar"}
-            </span>
+          <button
+            className={`login-submit${!bootstrap && !enviando ? " login-submit-arrow-only" : ""}`}
+            type="submit"
+            disabled={enviando}
+            aria-label={bootstrap ? "Criar administrador" : enviando ? "Aguarde..." : "Entrar"}
+          >
+            {(enviando || bootstrap) && (
+              <span>{enviando ? "Aguarde..." : "Criar administrador"}</span>
+            )}
             {!enviando && <span aria-hidden="true">→</span>}
           </button>
         </form>

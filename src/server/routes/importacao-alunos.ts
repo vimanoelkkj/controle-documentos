@@ -1,3 +1,4 @@
+import { normalizarCampo } from "../../lib/texto";
 type Unidade = "FACE" | "FEA" | "FCH" | "EAD";
 
 type AlunoImportacao = {
@@ -128,19 +129,17 @@ function separarAlunos(
   existentesPorRa: Map<string, AlunoExistente>,
   unidade: Unidade,
 ) {
-  const normalizar = (valor: string | null | undefined) =>
-    (valor ?? "").trim();
   const novos = alunos.filter((aluno) => !existentesPorRa.has(aluno.ra));
   const existentes = alunos.filter((aluno) => existentesPorRa.has(aluno.ra));
   const alterados = existentes.filter((aluno) => {
     const atual = existentesPorRa.get(aluno.ra)!;
     return (
       atual.status === "CANCELADO" ||
-      normalizar(atual.nome) !== normalizar(aluno.nome) ||
-      normalizar(atual.curso) !== normalizar(aluno.curso) ||
-      normalizar(atual.unidade) !== normalizar(unidade) ||
-      normalizar(atual.email) !== normalizar(aluno.email) ||
-      normalizar(atual.email_outro) !== normalizar(aluno.email_outro)
+      normalizarCampo(atual.nome) !== normalizarCampo(aluno.nome) ||
+      normalizarCampo(atual.curso) !== normalizarCampo(aluno.curso) ||
+      normalizarCampo(atual.unidade) !== normalizarCampo(unidade) ||
+      normalizarCampo(atual.email) !== normalizarCampo(aluno.email) ||
+      normalizarCampo(atual.email_outro) !== normalizarCampo(aluno.email_outro)
     );
   });
   const alteradosRa = new Set(alterados.map((aluno) => aluno.ra));

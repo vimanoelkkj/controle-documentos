@@ -308,6 +308,22 @@
   font-size: 13px;
 }
 
+/* Mesmo vermelho já usado por .dashboard-nav-bar.critical (ver
+   100-unified-headers-black-admin.css) — o texto só explica o que a
+   cor já queria dizer, em vez de inventar uma cor nova (âmbar) que
+   contradiria o vermelho como pendência crítica. */
+.dashboard-critical-tag {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border: 1px solid #6b2e33;
+  border-radius: 999px;
+  color: #ff8b91;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  background: #2b1417;
+}
+
 .dashboard-bar-track {
   height: 8px;
   overflow: hidden;
@@ -793,39 +809,76 @@
 }
 
 .statistics-histogram-track {
+  position: relative;
   display: flex;
   align-items: flex-end;
-  width: min(34px, 72%);
-  height: 180px;
+
+  width: min(30px, 64%);
+  height: 165px;
   margin: auto;
+
   overflow: hidden;
-  border-radius: 7px 7px 3px 3px;
-  background: #172632;
+  border: 1px solid #263c4b;
+  border-radius: 8px 8px 4px 4px;
+
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.025),
+    rgba(255, 255, 255, 0.055)
+  );
 }
 
 .statistics-histogram-bar {
   width: 100%;
-  border-radius: inherit;
-  background: linear-gradient(180deg, #75bce9 0%, #397fae 100%);
-  transition: height 0.25s ease;
+  min-height: 4px;
+
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, #78c7f3 0%, #3688bb 100%);
+
+  box-shadow: 0 -2px 10px rgba(72, 169, 224, 0.18);
+
+  transition:
+    height 0.25s ease,
+    filter 0.18s ease;
+}
+
+.statistics-histogram-column:hover .statistics-histogram-bar {
+  filter: brightness(1.1);
 }
 
 .statistics-histogram-bar.complete {
-  background: linear-gradient(180deg, #8ae1a5 0%, #4a9f66 100%);
+  background: linear-gradient(180deg, #82dfa0 0%, #43a867 100%);
+  box-shadow: 0 -2px 10px rgba(74, 190, 111, 0.18);
 }
 
 .statistics-histogram-bar.critical {
-  background: linear-gradient(180deg, #f58b8b 0%, #b84b4b 100%);
+  background: linear-gradient(180deg, #f18686 0%, #c44d4d 100%);
+  box-shadow: 0 -2px 10px rgba(210, 78, 78, 0.18);
+}
+
+.statistics-histogram-value {
+  margin-bottom: 7px;
+
+  color: #eef5f9;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .statistics-histogram-column strong {
+  margin-top: 8px;
+
   color: #dce6ed;
   font-size: 12px;
+  font-weight: 900;
 }
 
 .statistics-histogram-column small {
-  color: #667f91;
-  font-size: 11px;
+  margin-top: 2px;
+
+  color: #718a9b;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .statistics-document-list {
@@ -1273,11 +1326,6 @@ html[data-theme="light"] .communication-page h3 {
 
 html[data-theme="light"] .student-panel,
 html[data-theme="light"] .student-details,
-html[data-theme="light"] .dashboard-card,
-html[data-theme="light"] .dashboard-kpi,
-html[data-theme="light"] .dashboard-units-card,
-html[data-theme="light"] .dashboard-status-card,
-html[data-theme="light"] .dashboard-pendencias-card,
 html[data-theme="light"] .statistics-card,
 html[data-theme="light"] .statistics-kpi,
 html[data-theme="light"] .communication-students-card,
@@ -1294,9 +1342,33 @@ html[data-theme="light"] .modal-excluir-aluno {
   box-shadow: 0 12px 32px rgba(37, 61, 77, 0.08);
 }
 
+/* Cards do Dashboard separados do bloco acima — usam os tokens novos
+   (mesma linguagem do cabeçalho já redesenhado) em vez da sombra
+   pesada padrão do resto do sistema, que ainda não foi redesenhado. */
+html[data-theme="light"] .dashboard-card,
+html[data-theme="light"] .dashboard-kpi,
+html[data-theme="light"] .dashboard-units-card,
+html[data-theme="light"] .dashboard-status-card,
+html[data-theme="light"] .dashboard-pendencias-card {
+  color: var(--cds-text-primary);
+  border: 0.5px solid var(--cds-border);
+  background: var(--cds-surface-2);
+  box-shadow: none;
+  border-radius: var(--cds-radius-card);
+}
+
 html[data-theme="light"] .status-tabs button,
 html[data-theme="light"] .unit-tabs button {
   color: #58778a;
+}
+
+html[data-theme="light"] .status-tabs {
+  border-color: #c9dce8;
+  background: #f4f8fb;
+}
+
+html[data-theme="light"] .status-tabs button.active {
+  background: #dff1fc;
 }
 html[data-theme="light"] .student-card,
 html[data-theme="light"] .student-search,
@@ -1330,6 +1402,37 @@ html[data-theme="light"] .student-card.active {
   background: #dff1fc;
 }
 
+/* Trilha e cores da barra de progresso da lista — sem isto ela usava
+   o azul-marinho escuro do tema dark por padrão, aparecendo como uma
+   linha escura destoante em cima do card branco. */
+html[data-theme="light"] .student-card-progress-track {
+  background: #e2e9ef;
+}
+
+html[data-theme="light"] .student-card-progress-value--critico {
+  background: #d83d48;
+}
+
+html[data-theme="light"] .student-card-progress-value--parcial {
+  background: #d7aa25;
+}
+
+html[data-theme="light"] .student-card-progress-value--completo {
+  background: #47b86b;
+}
+
+html[data-theme="light"] .student-card-fraction--critico {
+  color: #b4232d;
+}
+
+html[data-theme="light"] .student-card-fraction--parcial {
+  color: #a87b00;
+}
+
+html[data-theme="light"] .student-card-fraction--completo {
+  color: #2f8c50;
+}
+
 /* Ações mais suaves no modo claro. */
 html[data-theme="light"] .botao-importar-cancelados {
   color: #a9443a;
@@ -1340,6 +1443,23 @@ html[data-theme="light"] .botao-importar-cancelados {
 html[data-theme="light"] .botao-importar-cancelados:hover {
   border-color: #db9289;
   background: #fde4e1;
+}
+
+/* Precisa repetir o seletor com [data-theme="light"] pra empatar em
+   especificidade com a regra acima — uma classe modificadora sozinha
+   (.botao-importar-cancelados--discreto) nunca vence um seletor com
+   atributo + classe, então sem isso o botão "discreto" nunca aparecia
+   discreto no tema claro, só no dark. */
+html[data-theme="light"] .botao-importar-cancelados--discreto {
+  border-color: transparent;
+  color: #c0463a;
+  background: transparent;
+}
+
+html[data-theme="light"] .botao-importar-cancelados--discreto:hover {
+  border-color: transparent;
+  color: #a9443a;
+  background: #fdeceb;
 }
 
 html[data-theme="light"] .botao-novo-aluno {
@@ -1377,6 +1497,58 @@ html[data-theme="light"] .statistics-document-meter > div,
 html[data-theme="light"] .statistics-combination-track,
 html[data-theme="light"] .statistics-course-progress > div,
 html[data-theme="light"] .statistics-histogram-track {
-  background: #e5edf2;
+  border: 0;
+  background: rgba(82, 109, 126, 0.06);
 }
 
+/* =========================================================
+   MODO CLARO — ÍCONE E BADGE DO CARD DE DOCUMENTO
+   As cores base de .document-card/.summary-card em modo claro já são
+   definidas por 40-log-and-light-pages.css (é de lá que vêm as capturas
+   de tela que usei de referência) — não repito essas aqui. As cores por
+   estado (crítico/parcial/completo) já são definidas por
+   90-responsive-and-controls.css, para os dois temas. Aqui fica só o
+   que é novo: o chip do ícone e o badge de check, que nenhum dos dois
+   arquivos cobre porque essas classes não existiam antes.
+
+   Os seletores levam ".document-card" na frente pelo mesmo motivo do
+   tema escuro: são <span>, e "html[data-theme=light] .document-card
+   span" (em 40-log-and-light-pages.css) tem mais especificidade que a
+   classe sozinha.
+   ========================================================= */
+html[data-theme="light"] .document-card .document-card-icon-wrap {
+  color: #2f7fb0;
+  background: #e7f1f8;
+}
+
+html[data-theme="light"]
+  .document-card.delivered
+  .document-card-icon-wrap {
+  color: #2f9955;
+  background: #e3f5e8;
+}
+
+html[data-theme="light"] .document-card .document-card-badge {
+  border-color: #ffffff;
+  color: #ffffff;
+  background: #aab8c2;
+}
+
+html[data-theme="light"] .document-card.delivered .document-card-badge {
+  border-color: #eef8f0;
+  background: #4caf6f;
+}
+
+/* Cor da barra de progresso por estado — única coisa nova aqui, o
+   resto do progress-track/value já é coberto em outros arquivos. */
+html[data-theme="light"] .progress-value--critico {
+  background: #e05a5a;
+}
+
+html[data-theme="light"] .progress-value--parcial {
+  background: #e0b93f;
+}
+
+html[data-theme="light"] .progress-value--completo {
+  background: #4caf6f;
+}

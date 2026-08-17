@@ -258,6 +258,12 @@ html[data-theme="light"] .dashboard-card-header {
   border-color: #d8e2e9;
 }
 
+html[data-theme="light"] .dashboard-critical-tag {
+  border-color: #f0aaa3;
+  color: #b4232d;
+  background: #fff0ee;
+}
+
 html[data-theme="light"] .dashboard-donut-track {
   stroke: #e4edf2;
 }
@@ -325,6 +331,18 @@ html[data-theme="light"] .student-tags span {
   color: #4f6a7a;
   border-color: #cbd9e2;
   background: #f3f8fb;
+}
+
+html[data-theme="light"] .student-tag-active {
+  color: #2f7047 !important;
+  border-color: #addabb !important;
+  background: #edf9f0 !important;
+}
+
+html[data-theme="light"] .student-tag-cancelled {
+  color: #b43d3d !important;
+  border-color: #efb4b4 !important;
+  background: #fff1f1 !important;
 }
 
 html[data-theme="light"] .document-progress-label,
@@ -790,3 +808,67 @@ html[data-theme="light"] .communication-empty {
   color: #667f90;
 }
 
+html[data-theme="light"] .conference-header {
+  border-color: #d5e2e9;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(42, 76, 96, 0.07);
+}
+
+html[data-theme="black"] .conference-header {
+  border-color: #303030;
+  background: #0d0d0d;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+html[data-theme="light"] .unit-filter-trigger {
+  color: #52758a;
+  border-color: #c6dbe7;
+  background: #f7fbfd;
+}
+
+html[data-theme="light"] .unit-filter-trigger:hover,
+html[data-theme="light"] .unit-filter-trigger[aria-expanded="true"] {
+  border-color: #74b9df;
+  background: #eef8fd;
+}
+
+html[data-theme="light"] .unit-filter-trigger.has-selection {
+  color: #176d9f;
+  border-color: #69b5df;
+  background: #e8f6fd;
+}
+
+html[data-theme="light"] .unit-filter-trigger > strong {
+  color: #365b70;
+  background: #e6f0f5;
+}
+
+html[data-theme="light"] .unit-filter-popover {
+  border-color: #cbdde7;
+  background: #ffffff;
+  box-shadow: 0 14px 32px rgba(42, 76, 96, 0.14);
+}
+
+html[data-theme="light"] .unit-filter-popover button {
+  color: #52758a;
+}
+
+html[data-theme="light"] .unit-filter-popover button:hover {
+  color: #214c64;
+  background: #f0f7fb;
+}
+
+html[data-theme="light"] .unit-filter-popover button.active {
+  color: #176d9f;
+  background: #e5f4fc;
+}
+
+html[data-theme="light"] .unit-filter-popover button strong {
+  color: #52758a;
+  background: #edf3f6;
+}
+
+html[data-theme="light"] .unit-filter-popover button.active strong {
+  color: #176d9f;
+  background: #d7edf9;
+}

@@ -1,0 +1,736 @@
+/* =========================================================
+   CONFERÊNCIA — DIRECTORY / PAINEL OPERACIONAL
+   Estrutura baseada no mockup aprovado após a V12.5.
+   ========================================================= */
+
+.conference-page--directory {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.conference-page--directory > .conference-grid--directory {
+  grid-template-columns: minmax(380px, 34%) minmax(0, 1fr) !important;
+  gap: 12px !important;
+}
+
+.conference-grid--directory > .student-panel,
+.conference-grid--directory > .student-details {
+  background: #fff !important;
+  border: 1px solid #e3eaf2 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 5px 18px rgba(30, 55, 90, .035) !important;
+}
+
+/* ---------- lista / diretório ---------- */
+.conference-grid--directory .student-panel--directory {
+  display: grid !important;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.conference-grid--directory .student-panel-header--cohesive {
+  padding: 14px 14px 8px !important;
+}
+
+.conference-grid--directory .student-panel-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 40px auto 40px !important;
+  gap: 8px !important;
+}
+
+.conference-grid--directory .student-search-shell,
+.conference-grid--directory .student-toolbar-icon,
+.conference-grid--directory .student-toolbar-add,
+.conference-grid--directory .student-toolbar-more {
+  height: 40px !important;
+  border-radius: 9px !important;
+}
+
+.conference-grid--directory .status-tabs {
+  margin: 0 14px 7px !important;
+  min-height: 36px !important;
+}
+
+.conference-grid--directory .unit-filter {
+  margin: 0 14px 9px !important;
+}
+
+.conference-grid--directory .student-directory-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  padding: 0 14px;
+  border-top: 1px solid #edf1f6;
+  border-bottom: 1px solid #edf1f6;
+  color: #496079;
+  font-size: 11px;
+}
+
+.conference-grid--directory .student-directory-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.conference-grid--directory .student-directory-heading span {
+  font-weight: 650;
+}
+
+.conference-grid--directory .student-directory-heading strong {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #edf5fb;
+  color: #1570ad;
+  font-size: 12px;
+}
+
+.conference-grid--directory .student-directory-heading button {
+  border: 0;
+  background: transparent;
+  color: #2879c5;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.conference-grid--directory .student-list--directory {
+  min-height: 0 !important;
+  padding: 7px !important;
+  overflow-y: auto !important;
+}
+
+.conference-grid--directory .student-card--directory {
+  width: 100% !important;
+  min-height: 72px !important;
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 8px 9px !important;
+  margin: 0 0 4px !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  text-align: left !important;
+  transition: background-color 80ms ease, border-color 80ms ease !important;
+}
+
+.conference-grid--directory .student-card--directory:hover {
+  background: #f6f9fc !important;
+}
+
+.conference-grid--directory .student-card--directory.active {
+  background: #edf6fd !important;
+  border-color: #d9ebf8 !important;
+  box-shadow: none !important;
+}
+
+.conference-grid--directory .student-card-avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #eef5fb;
+  color: #3d78a5;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.conference-grid--directory .student-card--directory.active .student-card-avatar {
+  background: #dceefe;
+  color: #0869c6;
+}
+
+.conference-grid--directory .student-card-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.conference-grid--directory .student-card-copy strong {
+  overflow: hidden;
+  color: #172333;
+  font-size: 14px !important;
+  font-weight: 720 !important;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conference-grid--directory .student-card-copy small,
+.conference-grid--directory .student-card-copy span {
+  overflow: hidden;
+  color: #6d8095;
+  font-size: 11.5px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conference-grid--directory .student-card-side {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 1px 0;
+}
+
+.conference-grid--directory .student-list-status {
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.conference-grid--directory .student-list-status--completo {
+  background: #e8f7ed;
+  color: #28854a;
+}
+
+.conference-grid--directory .student-list-status--parcial {
+  background: #fff5dc;
+  color: #a96709;
+}
+
+.conference-grid--directory .student-list-status--critico {
+  background: #fff0f1;
+  color: #c44752;
+}
+
+.conference-grid--directory .student-card-side small {
+  color: #57708a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+.conference-grid--directory .student-pagination {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #edf1f6;
+  font-family: "Inter", sans-serif;
+}
+
+.conference-grid--directory .student-pagination button {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #dce6f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #31506f;
+  cursor: pointer;
+  transition: background-color 90ms ease, border-color 90ms ease, color 90ms ease;
+}
+
+.conference-grid--directory .student-pagination button svg {
+  display: block;
+}
+
+.conference-grid--directory .student-pagination button:hover:not(:disabled) {
+  background: #f7fafc;
+  border-color: #cbd8e5;
+  color: #163a5e;
+}
+
+.conference-grid--directory .student-pagination button:disabled {
+  background: #fbfcfd;
+  border-color: #edf1f5;
+  color: #c6d0da;
+  opacity: 1;
+  cursor: default;
+}
+
+.conference-grid--directory .student-pagination span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #8a9bad;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.conference-grid--directory .student-pagination strong {
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-radius: 8px;
+  background: #eaf4fe;
+  color: #0d6cc7;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.conference-grid--directory .student-pagination i {
+  font-style: normal;
+  color: #c4cfda;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+html[data-theme="dark"] .conference-grid--directory .student-pagination button,
+html[data-theme="black"] .conference-grid--directory .student-pagination button {
+  background: var(--minimal-surface, #111b25);
+  border-color: var(--minimal-border, #263746);
+  color: var(--minimal-text, #dce7ef);
+}
+
+html[data-theme="dark"] .conference-grid--directory .student-pagination button:disabled,
+html[data-theme="black"] .conference-grid--directory .student-pagination button:disabled {
+  opacity: .42;
+}
+
+/* ---------- ficha do aluno ---------- */
+.conference-grid--directory .student-details--directory {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+  overflow: hidden !important;
+}
+
+.conference-grid--directory .directory-profile-header {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 11px;
+}
+
+.conference-grid--directory .directory-profile-avatar {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eaf3ff;
+  color: #176dd0;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.conference-grid--directory .directory-profile-copy {
+  min-width: 0;
+}
+
+.conference-grid--directory .directory-profile-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.conference-grid--directory .directory-profile-title h2 {
+  overflow: hidden;
+  margin: 0;
+  color: #111d2d;
+  font-size: clamp(21px, 1.35vw, 22px);
+  font-weight: 760;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conference-grid--directory .directory-profile-copy p {
+  margin: 4px 0 0;
+  color: #6c8095;
+  font-size: 12px;
+}
+
+.conference-grid--directory .directory-profile-score {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.conference-grid--directory .directory-profile-score strong {
+  color: #172333;
+  font-size: 16px;
+}
+
+.conference-grid--directory .directory-profile-score span {
+  color: #7c8ea2;
+  font-size: 11px;
+}
+
+.conference-grid--directory .directory-profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 20px 12px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.conference-grid--directory .directory-profile-actions button {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #176bc3;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.conference-grid--directory .directory-profile-actions button:hover {
+  background: #f1f6fb;
+}
+
+.conference-grid--directory .directory-profile-actions button.danger {
+  color: #d5404e;
+}
+
+.conference-grid--directory .directory-profile-actions button.danger:hover {
+  background: #fff3f4;
+}
+
+.conference-grid--directory .directory-details-scroll {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 15px 20px 16px;
+}
+
+.conference-grid--directory .directory-info-section,
+.conference-grid--directory .directory-documents-section {
+  min-width: 0;
+}
+
+.conference-grid--directory .directory-documents-section {
+  margin-top: 17px;
+  padding-top: 15px;
+  border-top: 1px solid #edf1f6;
+}
+
+.conference-grid--directory .directory-section-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.conference-grid--directory .directory-section-title > div {
+  display: grid;
+  gap: 2px;
+}
+
+.conference-grid--directory .directory-section-title span {
+  color: #7690a9;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.conference-grid--directory .directory-section-title h3 {
+  margin: 0;
+  color: #1a2634;
+  font-size: 16px;
+  font-weight: 760;
+}
+
+.conference-grid--directory .directory-section-title small {
+  color: #72869b;
+  font-size: 11px;
+}
+
+.conference-grid--directory .directory-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+  margin: 0;
+}
+
+.conference-grid--directory .directory-info-grid > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  border-bottom: 1px solid #f0f3f7;
+}
+
+.conference-grid--directory .directory-info-grid dt {
+  color: #7b8da0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.conference-grid--directory .directory-info-grid dd {
+  overflow: hidden;
+  margin: 0;
+  color: #27394c;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conference-grid--directory .directory-document-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+}
+
+.conference-grid--directory .directory-document-row {
+  position: relative;
+  min-width: 0;
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #eef2f6;
+  cursor: pointer;
+}
+
+.conference-grid--directory .directory-document-row input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.conference-grid--directory .directory-document-icon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: #f1f5f9;
+  color: #687e94;
+}
+
+.conference-grid--directory .directory-document-row.delivered .directory-document-icon {
+  background: #eaf7ef;
+  color: #279052;
+}
+
+.conference-grid--directory .directory-document-row strong {
+  overflow: hidden;
+  color: #27384a;
+  font-size: 13px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conference-grid--directory .directory-document-state {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #9b6e22;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+
+.conference-grid--directory .directory-document-row.delivered .directory-document-state {
+  color: #39905a;
+}
+
+.conference-grid--directory .directory-document-state i {
+  width: 13px;
+  height: 13px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff3dd;
+  font-style: normal;
+  font-size: 8px;
+}
+
+.conference-grid--directory .directory-document-row.delivered .directory-document-state i {
+  background: #e3f5e9;
+}
+
+.conference-grid--directory .directory-document-row:hover {
+  background: #fbfcfe;
+}
+
+.conference-grid--directory .directory-document-row:has(input:focus-visible) {
+  outline: 2px solid rgba(45, 128, 209, .22);
+  outline-offset: 1px;
+}
+
+.conference-grid--directory .directory-savebar {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 20px;
+  border-top: 1px solid #edf1f6;
+  background: #fff;
+}
+
+.conference-grid--directory .directory-savebar > span {
+  color: #74889b;
+  font-size: 11px;
+}
+
+.conference-grid--directory .directory-savebar > span.pending { color: #657c91; }
+.conference-grid--directory .directory-savebar > span.saved { color: #3a8b59; }
+.conference-grid--directory .directory-savebar > span.error { color: #cf4350; }
+
+.conference-grid--directory .directory-savebar > div {
+  display: flex;
+  gap: 7px;
+}
+
+.conference-grid--directory .directory-savebar .secondary-action,
+.conference-grid--directory .directory-savebar .primary-action {
+  min-height: 34px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.conference-grid--directory .directory-savebar .secondary-action:not(:disabled) {
+  background: #fff !important;
+  border-color: #d9e2ec !important;
+  color: #223047 !important;
+}
+
+.conference-grid--directory .directory-savebar .secondary-action:hover:not(:disabled) {
+  background: #f6f9fc !important;
+  border-color: #b8c7d9 !important;
+  color: #172033 !important;
+}
+
+.conference-grid--directory .directory-savebar .primary-action {
+  background: #0f6ef8 !important;
+  border-color: #0f6ef8 !important;
+  color: #fff !important;
+}
+
+.conference-grid--directory .directory-savebar .primary-action:hover:not(:disabled) {
+  background: #075fdc !important;
+  border-color: #075fdc !important;
+}
+
+/* ---------- dark / black ---------- */
+[data-theme="dark"] .conference-grid--directory > .student-panel,
+[data-theme="dark"] .conference-grid--directory > .student-details,
+[data-theme="black"] .conference-grid--directory > .student-panel,
+[data-theme="black"] .conference-grid--directory > .student-details {
+  background: var(--minimal-surface, #111a22) !important;
+  border-color: var(--minimal-border, #25333f) !important;
+}
+
+[data-theme="dark"] .conference-grid--directory .student-card-copy strong,
+[data-theme="dark"] .conference-grid--directory .directory-profile-title h2,
+[data-theme="dark"] .conference-grid--directory .directory-section-title h3,
+[data-theme="dark"] .conference-grid--directory .directory-document-row strong,
+[data-theme="dark"] .conference-grid--directory .directory-info-grid dd,
+[data-theme="black"] .conference-grid--directory .student-card-copy strong,
+[data-theme="black"] .conference-grid--directory .directory-profile-title h2,
+[data-theme="black"] .conference-grid--directory .directory-section-title h3,
+[data-theme="black"] .conference-grid--directory .directory-document-row strong,
+[data-theme="black"] .conference-grid--directory .directory-info-grid dd {
+  color: #e7eef5 !important;
+}
+
+[data-theme="dark"] .conference-grid--directory .student-card--directory:hover,
+[data-theme="black"] .conference-grid--directory .student-card--directory:hover {
+  background: rgba(255,255,255,.035) !important;
+}
+
+[data-theme="dark"] .conference-grid--directory .student-card--directory.active,
+[data-theme="black"] .conference-grid--directory .student-card--directory.active {
+  background: rgba(42, 131, 207, .13) !important;
+  border-color: rgba(68, 151, 218, .2) !important;
+}
+
+[data-theme="dark"] .conference-grid--directory .directory-savebar,
+[data-theme="black"] .conference-grid--directory .directory-savebar {
+  background: transparent;
+  border-top-color: var(--minimal-border, #25333f);
+}
+
+@media (max-width: 1280px) {
+  .conference-page--directory > .conference-grid--directory {
+    grid-template-columns: minmax(340px, 36%) minmax(0, 1fr) !important;
+  }
+
+  .conference-grid--directory .student-toolbar-add span {
+    display: none;
+  }
+
+  .conference-grid--directory .student-toolbar-add {
+    width: 40px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+
+  .conference-grid--directory .directory-info-grid,
+  .conference-grid--directory .directory-document-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- V13.1 — legibilidade tipográfica ---------- */
+.conference-grid--directory .student-completion-badge {
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  padding: 5px 8px !important;
+}
+
+.conference-grid--directory .student-directory-heading {
+  font-size: 12px;
+}
+
+.conference-grid--directory .student-directory-heading strong {
+  font-size: 11px;
+}
+
+.conference-grid--directory .directory-profile-score strong {
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.conference-grid--directory .directory-profile-score span {
+  font-size: 11px;
+}
+
+.conference-grid--directory .directory-section-title small {
+  font-size: 11px;
+}
+
+.conference-grid--directory .student-pagination span,
+.conference-grid--directory .student-pagination strong {
+  font-size: 11px;
+}

@@ -31,6 +31,8 @@ export function PainelAcoesComunicacao({
   copiarPacoteOutlook,
   registrarCobranca,
 }: Props) {
+  const feedbackSucesso = feedback.startsWith("✓");
+  const textoFeedback = feedback.replace(/^✓\s*/, "");
   return (
     <>
       <div className="communication-actions">
@@ -99,7 +101,21 @@ export function PainelAcoesComunicacao({
         )}
       </div>
 
-      {feedback && <div className="communication-feedback">{feedback}</div>}
+      {feedback && (
+        <div
+          className={`communication-feedback ${
+            feedbackSucesso ? "success" : "warning"
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="communication-feedback-icon" aria-hidden="true">
+            {feedbackSucesso ? "✓" : "!"}
+          </span>
+
+          <span>{textoFeedback}</span>
+        </div>
+      )}
 
       {!modoApresentacao && (
         <div

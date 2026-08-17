@@ -1,0 +1,55 @@
+/* =========================================================
+   V24.107 · shell escuro contínuo
+   Sidebar e barra superior deixam de parecer painéis/cards
+   e passam a usar a própria superfície da página.
+   ========================================================= */
+
+/* ESCURO */
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app-layout,
+html[data-theme="dark"] .app-main-column,
+html[data-theme="dark"] .app-main-column > .app-content,
+html[data-theme="dark"] .sidebar,
+html[data-theme="dark"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+  background: #081018 !important;
+}
+
+html[data-theme="dark"] .sidebar {
+  --conference-surface: #081018 !important;
+  border-right: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .sidebar .sidebar-brand,
+html[data-theme="dark"] .sidebar .sidebar-nav,
+html[data-theme="dark"] .sidebar .sidebar-footer,
+html[data-theme="dark"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* PRETO / OLED */
+html[data-theme="black"] body,
+html[data-theme="black"] .app-layout,
+html[data-theme="black"] .app-main-column,
+html[data-theme="black"] .app-main-column > .app-content,
+html[data-theme="black"] .sidebar,
+html[data-theme="black"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+  background: #000 !important;
+}
+
+html[data-theme="black"] .sidebar {
+  --conference-surface: #000 !important;
+  border-right: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="black"] .sidebar .sidebar-brand,
+html[data-theme="black"] .sidebar .sidebar-nav,
+html[data-theme="black"] .sidebar .sidebar-footer,
+html[data-theme="black"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}

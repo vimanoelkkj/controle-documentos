@@ -1,0 +1,1134 @@
+/* =========================================================
+   DASHBOARD V16 — identidade da Conferência
+   Mockup aprovado: superfície contínua, sem cards isolados.
+   ========================================================= */
+
+.dashboard-v16 {
+  --dash-bg: #f4f7fa;
+  --dash-text: #172437;
+  --dash-muted: #718198;
+  --dash-line: #e3e9ef;
+  --dash-blue: #1974f5;
+  --dash-blue-soft: #e7f1fd;
+  --dash-green: #14a34a;
+  --dash-green-soft: #e4f7ea;
+  --dash-amber: #f2a30f;
+  --dash-amber-soft: #fff1d8;
+  --dash-red: #f23d43;
+  --dash-red-soft: #ffe7e8;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 36px;
+  padding: 0 0 30px;
+  color: var(--dash-text);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.dashboard-v16 *,
+.dashboard-v16 *::before,
+.dashboard-v16 *::after {
+  box-sizing: border-box;
+}
+
+/* Dashboard usa exatamente a mesma geometria de cabecalho da Conferencia.
+   O AppLayout aplica period-toolbar--conference-replica nas duas rotas. */
+body:has(.dashboard-v16) .app-content {
+  padding: 0 48px 22px !important;
+}
+
+.dashboard-v16-title {
+  display: grid;
+  gap: 0;
+  padding: 26px 0 22px;
+}
+
+.dashboard-v16-title h1 {
+  margin: 0 !important;
+  color: #172437 !important;
+  font-size: 28px !important;
+  font-weight: 650 !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0 !important;
+}
+
+.dashboard-v16-title p {
+  margin: 8px 0 0 !important;
+  color: #6c7a8f !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+}
+
+/* =========================================================
+   MÉTRICAS — sem cards, apenas informação sobre a superfície.
+   ========================================================= */
+.dashboard-v16-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(22px, 3vw, 52px);
+  align-items: center;
+  padding: 4px 10px 8px;
+}
+
+.dashboard-v16-metric {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  border: 0;
+  background: transparent;
+}
+
+.dashboard-v16-metric-icon {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.dashboard-v16-metric > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.dashboard-v16-metric small {
+  overflow: hidden;
+  color: #61748e;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-v16-metric strong {
+  color: #101c2e;
+  font-size: clamp(24px, 2vw, 30px);
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -.025em;
+}
+
+.dashboard-v16-metric em {
+  color: #72839a;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.dashboard-v16-metric.metric-blue .dashboard-v16-metric-icon {
+  color: var(--dash-blue);
+  background: var(--dash-blue-soft);
+}
+
+.dashboard-v16-metric.metric-green .dashboard-v16-metric-icon {
+  color: var(--dash-green);
+  background: var(--dash-green-soft);
+}
+
+.dashboard-v16-metric.metric-amber .dashboard-v16-metric-icon {
+  color: var(--dash-amber);
+  background: var(--dash-amber-soft);
+}
+
+.dashboard-v16-metric.metric-red .dashboard-v16-metric-icon {
+  color: var(--dash-red);
+  background: var(--dash-red-soft);
+}
+
+.dashboard-v16-metric.metric-green em { color: var(--dash-green); }
+.dashboard-v16-metric.metric-amber em { color: var(--dash-amber); }
+.dashboard-v16-metric.metric-red em { color: var(--dash-red); }
+
+.dashboard-v16-pie-icon {
+  position: relative;
+}
+
+.dashboard-v16-pie-icon::before {
+  content: "";
+  width: 23px;
+  height: 23px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.dashboard-v16-pie-icon::after {
+  content: "";
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  top: 12px;
+  left: 26px;
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  background: var(--dash-blue-soft);
+  transform: translate(-50%, -50%);
+}
+
+/* =========================================================
+   SEÇÕES — sem contorno/card. Organização vem da tipografia,
+   espaçamento e linhas muito discretas só onde ajudam leitura.
+   ========================================================= */
+.dashboard-v16-upper,
+.dashboard-v16-lower {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(48px, 5vw, 84px);
+  min-width: 0;
+}
+
+.dashboard-v16-section {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.dashboard-v16-section-head {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dashboard-v16-section-head h2 {
+  margin: 0;
+  color: #142136;
+  font-size: 16px;
+  font-weight: 730;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+}
+
+.dashboard-v16-section-head select {
+  min-width: 154px;
+  height: 38px;
+  padding: 0 36px 0 13px;
+  border: 1px solid #d8e2ec;
+  border-radius: 9px;
+  color: #24364e;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-v16-section-head > button {
+  padding: 0;
+  border: 0;
+  color: #0874f9;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.dashboard-v16-section-note {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 3px;
+  padding: 13px 2px 0;
+  border-top: 1px solid var(--dash-line);
+  color: #1774ee;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+/* Barras */
+.dashboard-v16-bars {
+  height: 230px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(58px, 1fr));
+  align-items: end;
+  gap: clamp(24px, 4vw, 54px);
+  padding: 12px 22px 0;
+}
+
+.dashboard-v16-bar-item {
+  height: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 24px 1fr 26px;
+  justify-items: center;
+  align-items: end;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dashboard-v16-bar-item strong {
+  align-self: center;
+  color: #405673;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dashboard-v16-bar-track {
+  position: relative;
+  width: min(72px, 80%);
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 1px solid #dfe6ed;
+}
+
+.dashboard-v16-bar-track i {
+  width: 100%;
+  display: block;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #3a8df6 0%, #2778ed 100%);
+  box-shadow: 0 0 0 1px rgba(32,112,230,.04);
+  transition: filter 100ms ease, transform 100ms ease;
+}
+
+.dashboard-v16-bar-item:hover .dashboard-v16-bar-track i {
+  filter: brightness(.96);
+  transform: translateY(-2px);
+}
+
+.dashboard-v16-bar-item em {
+  align-self: end;
+  color: #718198;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* Donut + legenda */
+.dashboard-v16-pendencies-body {
+  min-height: 230px;
+  display: grid;
+  grid-template-columns: minmax(170px, 43%) minmax(0, 1fr);
+  align-items: center;
+  gap: 30px;
+}
+
+.dashboard-v16-donut {
+  position: relative;
+  width: 172px;
+  height: 172px;
+  margin: auto;
+  border-radius: 50%;
+}
+
+.dashboard-v16-donut::after {
+  content: "";
+  position: absolute;
+  inset: 36px;
+  border-radius: 50%;
+  background: var(--dash-bg);
+}
+
+.dashboard-v16-donut > div {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  pointer-events: none;
+}
+
+.dashboard-v16-donut strong {
+  color: #142136;
+  font-size: 24px;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.dashboard-v16-donut span {
+  margin-top: 5px;
+  color: #708198;
+  font-size: 11px;
+}
+
+.dashboard-v16-pendency-list {
+  display: grid;
+  gap: 7px;
+}
+
+.dashboard-v16-pendency-row {
+  width: 100%;
+  min-height: 27px;
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) 72px 58px;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  color: #384c66;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-v16-pendency-row i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff4d4f;
+}
+
+.dashboard-v16-pendency-row span,
+.dashboard-v16-pendency-row strong,
+.dashboard-v16-pendency-row em {
+  font-size: 10.5px;
+  line-height: 1.2;
+}
+
+.dashboard-v16-pendency-row span { font-weight: 550; }
+.dashboard-v16-pendency-row strong { justify-self: end; font-weight: 650; }
+.dashboard-v16-pendency-row em { justify-self: end; color: #60738e; font-style: normal; }
+.dashboard-v16-pendency-row:hover span { color: #0c6ee8; }
+.dashboard-v16-pendency-row.color-orange i { background:#ff902f; }
+.dashboard-v16-pendency-row.color-yellow i { background:#ffc447; }
+.dashboard-v16-pendency-row.color-green i { background:#86c95a; }
+.dashboard-v16-pendency-row.color-blue i { background:#4a8df6; }
+.dashboard-v16-pendency-row.color-indigo i { background:#5a78ea; }
+.dashboard-v16-pendency-row.color-purple i { background:#8467d9; }
+
+/* Tabela */
+.dashboard-v16-table {
+  display: grid;
+  min-width: 0;
+}
+
+.dashboard-v16-table-row {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr 1.05fr 1.05fr 64px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0 8px;
+  border: 0;
+  border-bottom: 1px solid rgba(225,232,239,.75);
+  color: #25364c;
+  background: transparent;
+  text-align: left;
+}
+
+button.dashboard-v16-table-row {
+  font: inherit;
+  cursor: pointer;
+}
+
+button.dashboard-v16-table-row:hover {
+  background: rgba(229,238,248,.32);
+}
+
+.dashboard-v16-table-head {
+  min-height: 34px;
+  color: #53677f;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.dashboard-v16-table-head span:not(:first-child) { text-align: center; }
+.dashboard-v16-table-row strong { font-size: 10.5px; font-weight: 650; }
+.dashboard-v16-table-row > span { font-size: 10.5px; font-weight: 600; text-align: center; }
+.dashboard-v16-table-row > strong:last-child { text-align: center; }
+.dashboard-v16-table .green { color: #18a04a; }
+.dashboard-v16-table .amber { color: #ef9f0b; }
+.dashboard-v16-table .red { color: #ee4048; }
+
+/* Atividades */
+.dashboard-v16-activity-list {
+  display: grid;
+}
+
+.dashboard-v16-activity {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 108px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 4px;
+  border-bottom: 1px solid rgba(225,232,239,.75);
+}
+
+.dashboard-v16-activity-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #16a04a;
+  background: #e1f6e8;
+}
+
+.dashboard-v16-activity-1 .dashboard-v16-activity-icon { color:#1474f4; background:#e7f1ff; }
+.dashboard-v16-activity-2 .dashboard-v16-activity-icon { color:#e89b0a; background:#fff1d7; }
+.dashboard-v16-activity-3 .dashboard-v16-activity-icon { color:#8652df; background:#f0e9ff; }
+.dashboard-v16-activity > div { min-width: 0; display: grid; gap: 3px; }
+.dashboard-v16-activity strong { overflow: hidden; color:#203047; font-size:10.5px; font-weight:650; text-overflow:ellipsis; white-space:nowrap; }
+.dashboard-v16-activity p { overflow:hidden; margin:0 !important; color:#708198 !important; font-size:9.5px !important; line-height:1.25 !important; text-overflow:ellipsis; white-space:nowrap; }
+.dashboard-v16-activity time { justify-self:end; color:#6d7f95; font-size:9.5px; white-space:nowrap; }
+.dashboard-v16-empty { margin: 0 !important; padding: 18px 4px; color: #7d8da1 !important; font-size: 11px !important; }
+
+.dashboard-v16-loading {
+  width: 100%;
+  margin-top: 8px;
+}
+
+@media (max-width: 1320px) {
+  .dashboard-v16-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 24px; }
+  .dashboard-v16-upper,
+  .dashboard-v16-lower { gap: 38px; }
+}
+
+@media (max-width: 1050px) {
+  .dashboard-v16-upper,
+  .dashboard-v16-lower { grid-template-columns: 1fr; }
+  .dashboard-v16-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-v16-bars { max-width: 680px; }
+}
+
+@media (max-width: 680px) {
+  .dashboard-v16 { gap: 28px; }
+  .dashboard-v16-metrics { grid-template-columns: 1fr; padding-inline: 0; }
+  .dashboard-v16-pendencies-body { grid-template-columns: 1fr; }
+  .dashboard-v16-table-row { grid-template-columns: .75fr 1fr 1fr 1fr; }
+  .dashboard-v16-table-row > :last-child { display: none; }
+  .dashboard-v16-activity { grid-template-columns: 38px 1fr; }
+  .dashboard-v16-activity time { grid-column: 2; justify-self: start; }
+}
+
+/* =========================================================
+   V16.9 — "Alunos por unidade" interativo por curso
+   Réplica do mockup aprovado: superfície contínua, sem cards,
+   sem seletor "Todas as unidades" e sem rodapé/ícone.
+   ========================================================= */
+
+.dashboard-v16-upper {
+  grid-template-columns: 1fr !important;
+}
+
+.dashboard-v16-units {
+  width: 100%;
+  gap: 0 !important;
+}
+
+.dashboard-v16-units-heading {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 34px;
+}
+
+.dashboard-v16-units-heading h2 {
+  margin: 0;
+  color: #142136;
+  font-size: 24px;
+  font-weight: 740;
+  line-height: 1.2;
+  letter-spacing: -.02em;
+}
+
+.dashboard-v16-units-heading p {
+  margin: 0;
+  color: #647894;
+  font-size: 13px;
+  font-weight: 450;
+  line-height: 1.5;
+}
+
+.dashboard-v16-unit-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(28px, 5vw, 84px);
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-v16-unit-tab {
+  position: relative;
+  min-width: 0;
+  min-height: 118px;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 0 12px 18px;
+  border: 0;
+  background: transparent;
+  color: #687a96;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transform: none !important;
+  transition: color 120ms ease, opacity 120ms ease;
+}
+
+.dashboard-v16-unit-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.dashboard-v16-unit-tab:hover {
+  color: #405675;
+  transform: none !important;
+}
+
+.dashboard-v16-unit-tab:focus-visible {
+  outline: 2px solid rgba(11, 109, 246, .22);
+  outline-offset: 5px;
+}
+
+.dashboard-v16-unit-tab.active {
+  color: #0b6df6;
+}
+
+.dashboard-v16-unit-tab.active::after {
+  background: #0b6df6;
+}
+
+.dashboard-v16-unit-icon {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(224, 233, 244, .72);
+  color: #607493;
+}
+
+.dashboard-v16-unit-tab.active .dashboard-v16-unit-icon {
+  background: rgba(224, 237, 255, .88);
+  color: #0b6df6;
+}
+
+.dashboard-v16-unit-copy {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.dashboard-v16-unit-copy small {
+  color: currentColor;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dashboard-v16-unit-copy strong {
+  color: #142038;
+  font-size: 30px;
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+
+.dashboard-v16-unit-copy em {
+  color: #0b6df6;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.dashboard-v16-course-area {
+  padding: 38px 12px 0;
+}
+
+.dashboard-v16-course-head {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.dashboard-v16-course-head h3 {
+  margin: 0;
+  color: #15223a;
+  font-size: 24px;
+  font-weight: 760;
+  line-height: 1.15;
+}
+
+.dashboard-v16-course-head p {
+  margin: 0;
+  color: #607493;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.dashboard-v16-course-chart-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #c8d2de transparent;
+}
+
+.dashboard-v16-course-chart {
+  height: 430px;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 14px;
+  padding: 0 0 6px;
+}
+
+.dashboard-v16-course-y-axis {
+  height: 360px;
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  align-items: start;
+  padding-top: 2px;
+  color: #526b91;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.dashboard-v16-course-y-axis span {
+  transform: translateY(-50%);
+}
+
+.dashboard-v16-course-plot {
+  position: relative;
+  height: 420px;
+  min-width: 0;
+}
+
+.dashboard-v16-course-grid {
+  position: absolute;
+  inset: 0 0 60px;
+  z-index: 0;
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  pointer-events: none;
+}
+
+.dashboard-v16-course-grid i {
+  display: block;
+  border-top: 1px dashed rgba(114, 135, 164, .18);
+}
+
+.dashboard-v16-course-grid i:last-child {
+  border-top-style: solid;
+  border-top-color: rgba(114, 135, 164, .28);
+}
+
+.dashboard-v16-course-bars {
+  position: absolute;
+  inset: 0 0 0;
+  z-index: 1;
+  display: grid;
+  align-items: end;
+  gap: clamp(20px, 3vw, 48px);
+}
+
+.dashboard-v16-course-bar-item {
+  min-width: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 360px 60px;
+  align-items: end;
+}
+
+.dashboard-v16-course-bar-zone {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  padding-top: 26px;
+}
+
+.dashboard-v16-course-bar-zone strong {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: var(--bar-height, 0%);
+  transform: translate(-50%, -8px);
+  color: #101a2c;
+  font-size: 12px;
+  font-weight: 730;
+  line-height: 1;
+}
+
+.dashboard-v16-course-bar {
+  width: min(82px, 58%);
+  min-height: 6px;
+  display: block;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(180deg, #91a8c9 0%, #7f99bd 100%);
+  box-shadow: none;
+}
+
+.dashboard-v16-course-bar-item em {
+  min-width: 0;
+  align-self: start;
+  padding: 12px 6px 0;
+  overflow: hidden;
+  color: #516b92;
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.dashboard-v16-pendencies {
+  margin-top: 18px;
+}
+
+/* A seção antiga de barras/rodapé não é usada na nova versão. */
+.dashboard-v16-units .dashboard-v16-section-note,
+.dashboard-v16-units .dashboard-v16-bars,
+.dashboard-v16-units .dashboard-v16-section-head {
+  display: none !important;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-v16-unit-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-v16-course-chart {
+    height: 390px;
+  }
+
+  .dashboard-v16-course-y-axis {
+    height: 320px;
+  }
+
+  .dashboard-v16-course-grid {
+    inset-bottom: 60px;
+  }
+
+  .dashboard-v16-course-bar-item {
+    grid-template-rows: 320px 60px;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-v16-unit-tabs {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .dashboard-v16-unit-tab {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 12px;
+    padding-inline: 4px;
+  }
+
+  .dashboard-v16-unit-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 13px;
+  }
+
+  .dashboard-v16-unit-copy strong {
+    font-size: 24px;
+  }
+}
+
+/* =========================================================
+   V16.10 — correção geométrica do gráfico de cursos
+   - barras terminam exatamente no eixo 0
+   - grid/ticks compartilham a mesma altura útil
+   - nomes de cursos aparecem completos, com quebra de linha
+   ========================================================= */
+
+.dashboard-v16-course-chart {
+  height: 438px !important;
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+  align-items: start !important;
+}
+
+.dashboard-v16-course-y-axis {
+  height: 360px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  padding: 0 !important;
+}
+
+.dashboard-v16-course-y-axis span {
+  height: 0 !important;
+  line-height: 1 !important;
+  transform: translateY(-50%) !important;
+}
+
+.dashboard-v16-course-plot {
+  height: 438px !important;
+}
+
+.dashboard-v16-course-grid {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: auto !important;
+  left: 0 !important;
+  height: 360px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+.dashboard-v16-course-grid i {
+  width: 100% !important;
+  height: 0 !important;
+  flex: 0 0 auto !important;
+  border-top: 1px dashed rgba(114, 135, 164, .18) !important;
+}
+
+.dashboard-v16-course-grid i:last-child {
+  border-top-style: solid !important;
+  border-top-color: rgba(114, 135, 164, .30) !important;
+}
+
+.dashboard-v16-course-bars {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: auto !important;
+  left: 0 !important;
+  height: 438px !important;
+  align-items: start !important;
+}
+
+.dashboard-v16-course-bar-item {
+  height: 438px !important;
+  grid-template-rows: 360px 78px !important;
+  align-items: stretch !important;
+}
+
+.dashboard-v16-course-bar-zone {
+  height: 360px !important;
+  min-height: 360px !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  align-items: flex-end !important;
+}
+
+.dashboard-v16-course-bar-zone strong {
+  bottom: var(--bar-height, 0%) !important;
+  transform: translate(-50%, -8px) !important;
+}
+
+.dashboard-v16-course-bar {
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+.dashboard-v16-course-bar-item em {
+  min-height: 78px !important;
+  padding: 12px 8px 0 !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: initial !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  line-height: 1.28 !important;
+}
+
+.dashboard-v16-course-chart-scroll .dashboard-v16-course-chart {
+  min-width: 100% !important;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-v16-course-chart,
+  .dashboard-v16-course-plot,
+  .dashboard-v16-course-bars,
+  .dashboard-v16-course-bar-item {
+    height: 418px !important;
+  }
+
+  .dashboard-v16-course-y-axis,
+  .dashboard-v16-course-grid,
+  .dashboard-v16-course-bar-zone {
+    height: 340px !important;
+    min-height: 340px !important;
+  }
+
+  .dashboard-v16-course-bar-item {
+    grid-template-rows: 340px 78px !important;
+  }
+}
+
+/* =========================================================
+   V16.13 — rótulos de cursos com quebra natural
+   Nunca quebra palavra no meio; usa scroll horizontal em vez
+   de comprimir excessivamente as colunas.
+   ========================================================= */
+
+.dashboard-v16-course-chart {
+  /* Cada curso recebe largura mínima suficiente para preservar palavras. */
+  min-width: max(100%, 168px * var(--course-count, 1)) !important;
+}
+
+.dashboard-v16-course-bars {
+  gap: 28px !important;
+}
+
+.dashboard-v16-course-bar-item {
+  min-width: 140px !important;
+}
+
+.dashboard-v16-course-bar-item em {
+  min-width: 140px !important;
+  max-width: 180px !important;
+  margin-inline: auto !important;
+
+  /* Quebra somente em espaços entre palavras. */
+  white-space: normal !important;
+  overflow-wrap: normal !important;
+  word-wrap: normal !important;
+  word-break: keep-all !important;
+  hyphens: none !important;
+
+  /* Mantém o nome completo visível. */
+  overflow: visible !important;
+  text-overflow: clip !important;
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: initial !important;
+
+  line-height: 1.25 !important;
+  text-align: center !important;
+}
+
+/* Força a área a rolar horizontalmente quando houver muitos cursos,
+   em vez de esmagar as colunas e partir palavras. */
+.dashboard-v16-course-chart-scroll {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+/* A grade do gráfico acompanha a largura real do conteúdo. */
+.dashboard-v16-course-plot,
+.dashboard-v16-course-grid,
+.dashboard-v16-course-bars {
+  min-width: 100% !important;
+}
+
+/* V21.7 — ícones específicos das unidades, com maior leitura visual */
+.dashboard-v16-unit-icon {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 16px !important;
+}
+
+.dashboard-v16-unit-icon svg {
+  width: 36px !important;
+  height: 36px !important;
+  display: block !important;
+}
+
+.dashboard-v16-unit-tab.active .dashboard-v16-unit-icon {
+  color: #0b6df6 !important;
+}
+
+/* V21.8 — FCH: martelo de juiz mais legível */
+.dashboard-v16-unit-icon .dashboard-unit-gavel {
+  width: 40px !important;
+  height: 40px !important;
+  stroke-width: 3 !important;
+}
+
+/* V21.9 — FCH: gavel redesenhado com silhueta inequívoca */
+.dashboard-v16-unit-icon .dashboard-unit-gavel {
+  width: 42px !important;
+  height: 42px !important;
+  stroke-width: 2.5 !important;
+}
+.dashboard-v16-unit-icon .dashboard-unit-gavel rect {
+  fill: currentColor !important;
+  fill-opacity: .13 !important;
+}
+
+/* V22.0 — FCH: martelo com cabeça visualmente dominante */
+.dashboard-v16-unit-icon .dashboard-unit-gavel {
+  width: 43px !important;
+  height: 43px !important;
+  stroke-width: 3.2 !important;
+}
+.dashboard-v16-unit-icon .dashboard-unit-gavel path:first-child {
+  fill: currentColor !important;
+  fill-opacity: .16 !important;
+}
+
+/* V22.1 — FCH: gavel visual igual ao aprovado */
+.dashboard-v16-unit-icon .dashboard-unit-gavel {
+  width: 42px !important;
+  height: 42px !important;
+  stroke-width: 2.8 !important;
+}
+
+.dashboard-v16-unit-icon .dashboard-unit-gavel rect {
+  fill: currentColor !important;
+  fill-opacity: .12 !important;
+  stroke: currentColor !important;
+}
+
+.dashboard-v16-unit-icon .dashboard-unit-gavel path {
+  stroke: currentColor !important;
+}
+
+/* V22.2 — FCH usa a geometria real do ícone Gavel da Lucide */
+.dashboard-v16-unit-icon .dashboard-unit-gavel {
+  width: 38px !important;
+  height: 38px !important;
+  stroke-width: 2.25 !important;
+  fill: none !important;
+}
+
+.dashboard-v16-unit-icon .dashboard-unit-gavel path {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+.dashboard-v16-unit-tab:not(.active) .dashboard-unit-gavel {
+  color: #607493 !important;
+}
+
+.dashboard-v16-unit-tab.active .dashboard-unit-gavel {
+  color: #0b6df6 !important;
+}
+
+/* V22.5 — FCH: mesma leveza visual dos ícones EAD/FACE/FEA */
+.dashboard-v16-unit-icon .dashboard-unit-gavel {
+  width: 34px !important;
+  height: 34px !important;
+  stroke-width: 1.8 !important;
+  fill: none !important;
+}
+
+.dashboard-v16-unit-icon .dashboard-unit-gavel path,
+.dashboard-v16-unit-icon .dashboard-unit-gavel line,
+.dashboard-v16-unit-icon .dashboard-unit-gavel polyline,
+.dashboard-v16-unit-icon .dashboard-unit-gavel rect {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+}
+

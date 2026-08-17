@@ -1,0 +1,272 @@
+/* =========================================================
+   HEADER GLOBAL — referência final aprovada na Conferência
+   Um único cabeçalho para todas as páginas autenticadas.
+   ========================================================= */
+
+/* ---------- barra superior ---------- */
+.period-toolbar--conference-replica {
+  position: relative !important;
+  min-height: 86px !important;
+  height: 86px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin: 0 !important;
+  padding: 0 48px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: "Inter", system-ui, sans-serif !important;
+}
+
+.period-toolbar--conference-replica .conference-replica-period {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.period-toolbar--conference-replica .conference-replica-period > span {
+  color: #64748b !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown {
+  width: 158px !important;
+  min-width: 158px !important;
+}
+
+/* seletor sem card, exatamente na linguagem aprovada */
+.period-toolbar--conference-replica .conference-replica-period-trigger {
+  position: relative !important;
+  width: 158px !important;
+  min-width: 158px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  display: grid !important;
+  grid-template-columns: 18px minmax(0, 1fr) 16px !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 0 12px 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #172033 !important;
+  transform: none !important;
+  translate: none !important;
+  scale: 1 !important;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-trigger::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: #0b6df6 !important;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-trigger:hover,
+.period-toolbar--conference-replica .conference-replica-period-trigger:focus,
+.period-toolbar--conference-replica .conference-replica-period-trigger:focus-visible,
+.period-toolbar--conference-replica .conference-replica-period-trigger:active,
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger[aria-expanded="true"] {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  translate: none !important;
+  scale: 1 !important;
+  padding: 0 12px 2px !important;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-value {
+  color: inherit !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.period-toolbar--conference-replica .conference-replica-sheets {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #253244 !important;
+  font-family: "Inter", system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-sheets
+  .google-sheets-status-icon {
+  width: 18px !important;
+  height: 18px !important;
+  color: #1aa955 !important;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-sheets
+  .google-sheets-status-dot {
+  width: 8px !important;
+  height: 8px !important;
+  margin-left: 16px !important;
+  border-radius: 50% !important;
+}
+
+.period-toolbar--conference-replica .conference-replica-sheets strong {
+  color: #263346 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+/* ---------- título/subtítulo global ---------- */
+.app-content {
+  padding-top: 0 !important;
+}
+
+.global-reference-page-heading {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 104px;
+  display: block;
+  padding: 26px 0 22px;
+  margin: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.global-reference-page-heading h1 {
+  margin: 0 !important;
+  color: #132033 !important;
+  font-size: 28px !important;
+  font-weight: 650 !important;
+  line-height: 1.15 !important;
+  letter-spacing: normal !important;
+}
+
+.global-reference-page-heading p {
+  max-width: 780px;
+  margin: 8px 0 0 !important;
+  color: #6c7a8f !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+}
+
+/* ---------- remove títulos antigos para não duplicar ---------- */
+.conference-page--replica > .conference-replica-page-heading,
+.dashboard-v16 > .dashboard-v16-title,
+.communication-page > .communication-header {
+  display: none !important;
+}
+
+/* páginas com ações/controles próprios: mantém apenas o controle lateral */
+.audit-page > .audit-header > div:first-child,
+.log-page > .log-header > div:first-child,
+.statistics-page > .statistics-hero > div:first-child,
+.period-page > .period-hero > div:first-child,
+.about-page > .about-hero > div:first-child {
+  display: none !important;
+}
+
+.audit-page > .audit-header,
+.log-page > .log-header,
+.statistics-page > .statistics-hero,
+.period-page > .period-hero,
+.about-page > .about-hero {
+  min-height: 0 !important;
+  margin: 0 0 20px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  justify-content: flex-end !important;
+}
+
+/* páginas cujo header local só repetia título/descrição */
+.courses-page > .courses-header,
+.settings-page > .settings-header {
+  display: none !important;
+}
+
+/* Conferência passa a usar o mesmo heading global sem quebrar a geometria. */
+.app-content:has(.conference-page--replica) {
+  height: calc(100dvh - 86px) !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  padding: 0 48px 22px !important;
+  overflow: hidden !important;
+}
+
+.app-content:has(.conference-page--replica) .conference-page--replica {
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+}
+
+/* ---------- tema escuro/preto ---------- */
+html[data-theme="dark"] .global-reference-page-heading h1,
+html[data-theme="black"] .global-reference-page-heading h1 {
+  color: #e7eef8 !important;
+}
+
+html[data-theme="dark"] .global-reference-page-heading p,
+html[data-theme="black"] .global-reference-page-heading p {
+  color: #98a8bc !important;
+}
+
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-sheets,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-sheets,
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-sheets strong,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-sheets strong {
+  color: #d8e3ee !important;
+}
+
+@media (max-width: 900px) {
+  .period-toolbar--conference-replica {
+    padding: 0 26px !important;
+  }
+
+  .period-toolbar--conference-replica .conference-replica-sheets {
+    position: static !important;
+    transform: none !important;
+  }
+
+  .global-reference-page-heading {
+    min-height: 92px;
+    padding: 22px 0 18px;
+  }
+
+  .global-reference-page-heading h1 {
+    font-size: 25px !important;
+  }
+}

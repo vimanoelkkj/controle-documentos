@@ -1,3 +1,4 @@
+import { normalizarComparacao } from "../utils/texto";
 import type { SheetsConfig } from "../routes/google-sheets-config";
 
 type GoogleServiceAccount = {
@@ -83,17 +84,6 @@ export function extrairSpreadsheetId(valor: string) {
   const limpo = valor.trim();
   const match = limpo.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
   return match?.[1] || limpo;
-}
-
-export function normalizarTexto(valor: unknown) {
-  return String(valor ?? "").trim();
-}
-
-export function normalizarComparacao(valor: unknown) {
-  return normalizarTexto(valor)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase();
 }
 
 export function valorBooleano(valor: unknown) {

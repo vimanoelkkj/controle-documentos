@@ -25,23 +25,26 @@ export function BackupSection({
           </span>
 
           <div>
-            <span>PROTEÇÃO DOS DADOS</span>
-            <h2>Backup do banco</h2>
+            <div className="settings-backup-eyebrow">
+              <span className="settings-section-eyebrow">PROTEÇÃO DOS DADOS</span>
+            </div>
+            <div className="settings-backup-title-row">
+              <h2>Backup do banco</h2>
+              <strong className={backupConfigurado ? "ready" : "pending"}>
+                <i aria-hidden="true" />
+                {backupConfigurado === null
+                  ? "VERIFICANDO"
+                  : backupConfigurado
+                    ? "CONFIGURADO"
+                    : "PENDENTE"}
+              </strong>
+            </div>
             <p>
               Gere uma cópia SQL completa do D1 para guardar fora do
               repositório. O arquivo contém dados pessoais e hashes de senha.
             </p>
           </div>
         </div>
-
-        <strong className={backupConfigurado ? "ready" : "pending"}>
-          <i aria-hidden="true" />
-          {backupConfigurado === null
-            ? "VERIFICANDO"
-            : backupConfigurado
-              ? "CONFIGURADO"
-              : "PENDENTE"}
-        </strong>
       </div>
 
       <div className="settings-backup-action">
@@ -56,16 +59,15 @@ export function BackupSection({
               A Cloudflare pode deixar o banco indisponível por alguns instantes
               durante a exportação.
             </span>
+            <button
+              type="button"
+              onClick={() => void gerarBackup()}
+              disabled={!backupConfigurado || gerandoBackup}
+            >
+              {gerandoBackup ? "Gerando backup..." : "Gerar backup agora"}
+            </button>
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={() => void gerarBackup()}
-          disabled={!backupConfigurado || gerandoBackup}
-        >
-          {gerandoBackup ? "Gerando backup..." : "Gerar backup agora"}
-        </button>
       </div>
 
       {backupConfigurado === false && (

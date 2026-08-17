@@ -1,3 +1,4 @@
+import { aguardar } from "../utils/async";
 import type { UsuarioSessao } from "./auth";
 import { emModoApresentacao } from "../middleware/autorizacao";
 
@@ -40,10 +41,6 @@ type BackupRouteContext = {
     evento: EventoBackup,
   ) => Promise<void>;
 };
-
-function aguardar(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function backupConfigurado(env: BackupEnv) {
   return Boolean(

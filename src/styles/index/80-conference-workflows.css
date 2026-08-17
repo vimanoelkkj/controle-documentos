@@ -8,9 +8,6 @@
   O card da direita nunca recebe altura por este ajuste.
 */
 @media (min-width: 901px) {
-  .conference-grid {
-    align-items: start;
-  }
 
   .student-panel {
     display: flex;
@@ -27,14 +24,6 @@
     flex: 0 0 auto;
   }
 
-  .student-list {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: none;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-
   .student-details {
     height: auto;
     min-height: 0;
@@ -47,14 +36,18 @@
    Só o card de resumo é estreitado.
    ========================================================= */
 
+/* Antes: 180px forçava a lista de pendências a rolar internamente com
+   nomes como "ENSINO MÉDIO". A causa era largura, não scrollbar — então
+   a correção é dar espaço, não maquiar o scroll. */
 .documents-area {
-  grid-template-columns: minmax(0, 1fr) 180px;
+  grid-template-columns: minmax(0, 1fr) 230px;
   gap: 14px;
 }
 
 .summary-card {
-  width: 180px;
-  padding: 12px;
+  width: 230px;
+  height: fit-content;
+  padding: 14px;
 }
 
 .summary-number {
@@ -62,16 +55,16 @@
 }
 
 .summary-number strong {
-  font-size: 26px;
+  font-size: 28px;
 }
 
 .summary-card ul {
-  gap: 5px;
+  gap: 6px;
 }
 
 .summary-card li {
-  padding: 6px 7px;
-  font-size: 10px;
+  padding: 8px 9px;
+  font-size: 11px;
 }
 
 @media (max-width: 1180px) {
@@ -662,6 +655,18 @@ html[data-theme="light"] .dashboard-pending-open {
   background: #2589ba;
 }
 
+html[data-theme="light"] .period-actions .danger-soft {
+  border-color: #efb4b4;
+  color: #b43d3d;
+  background: #fff1f1;
+}
+
+html[data-theme="light"] .period-actions .danger-soft:hover:not(:disabled) {
+  border-color: #e29494;
+  color: #9f3030;
+  background: #ffe5e5;
+}
+
 @media (max-width: 720px) {
   .dashboard-pending-selection {
     align-items: stretch;
@@ -855,15 +860,6 @@ html[data-theme="light"] .sheets-sync-success-total {
   align-items: baseline;
   gap: 6px;
   flex-wrap: wrap;
-}
-
-.period-preview-change strong {
-  font-size: 12px;
-}
-
-.period-preview-change span {
-  font-size: 12px;
-  color: var(--text-muted);
 }
 
 .period-preview-list article {
@@ -1085,4 +1081,3 @@ html[data-theme="light"] .period-sync-back-button:hover:not(:disabled) {
   color: #17394d;
   background: #dfeff6;
 }
-

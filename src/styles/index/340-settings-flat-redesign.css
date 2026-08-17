@@ -1,0 +1,977 @@
+/* Configurações — flat redesign, sem cards */
+.settings-page { gap: 34px; }
+
+.settings-users-head { margin-bottom: 12px; align-items: end; }
+.settings-users-count { color: var(--muted); font-size: 14px; font-weight: 600; }
+.settings-users-grid { gap: 0; }
+.settings-users-grid article,
+html[data-theme="light"] .settings-users-grid article {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 12px 8px !important;
+  min-height: 58px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 62%, transparent) !important;
+  transform: none !important;
+  transition: none !important;
+}
+.settings-users-grid article:first-child { border-top: 1px solid color-mix(in srgb, var(--border) 62%, transparent) !important; }
+.settings-users-grid article:hover { background: transparent !important; transform: none !important; box-shadow: none !important; }
+.settings-users-grid article.disabled { opacity: .56; }
+.settings-user-actions { gap: 20px; align-items: center; }
+.settings-password-button,
+.settings-user-toggle,
+.settings-user-delete {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 6px 0 !important;
+  min-height: 32px;
+  border-radius: 0 !important;
+  transform: none !important;
+  transition: color .15s ease !important;
+}
+.settings-password-button { color: var(--primary) !important; }
+.settings-user-toggle.deactivate,
+.settings-user-delete { color: #ef4444 !important; }
+.settings-user-toggle.reactivate { color: var(--primary) !important; }
+.settings-password-button:hover,
+.settings-user-toggle:hover,
+.settings-user-delete:hover { background: transparent !important; transform: none !important; box-shadow: none !important; }
+
+.settings-user-form,
+html[data-theme="light"] .settings-user-form {
+  display: grid !important;
+  grid-template-columns: 1.2fr .95fr 1.2fr .9fr .7fr;
+  gap: 14px 18px !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.settings-user-form > div:first-child { grid-column: 1 / -1; }
+.settings-user-form > button {
+  grid-column: 1 / 2;
+  width: max-content !important;
+  min-width: 0 !important;
+  background: transparent !important;
+  color: var(--primary) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 5px 0 !important;
+  border-radius: 0 !important;
+  transform: none !important;
+}
+.settings-user-form > button:hover:not(:disabled) { background: transparent !important; transform: none !important; box-shadow: none !important; }
+.settings-user-form .login-error { grid-column: 1 / -1; }
+
+.settings-backup,
+html[data-theme="light"] .settings-backup {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.settings-backup-head,
+html[data-theme="light"] .settings-backup-head {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 16px !important;
+}
+.settings-backup-icon { display: none !important; }
+.settings-backup-head > strong,
+html[data-theme="light"] .settings-backup-head > strong {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.settings-backup-action,
+html[data-theme="light"] .settings-backup-action {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 10px 0 !important;
+}
+.settings-backup-action-icon { background: transparent !important; border: 0 !important; }
+.settings-backup-action button,
+.settings-backup-result a {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--primary) !important;
+  padding: 6px 0 !important;
+  border-radius: 0 !important;
+  transform: none !important;
+}
+.settings-backup-action button:hover:not(:disabled), .settings-backup-result a:hover { background: transparent !important; transform: none !important; }
+.settings-backup-action button:disabled { color: var(--muted) !important; opacity: .62; }
+.settings-backup-message,
+.settings-backup-result,
+html[data-theme="light"] .settings-backup-message,
+html[data-theme="light"] .settings-backup-result {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 8px 0 !important;
+}
+.settings-backup-message.warning { color: #c98300 !important; }
+.settings-backup-result { color: #16a34a; }
+
+.settings-dev-tools,
+html[data-theme="light"] .settings-dev-tools {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.settings-dev-tools-head,
+html[data-theme="light"] .settings-dev-tools-head {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 16px !important;
+}
+.settings-dev-tools-head > strong,
+html[data-theme="light"] .settings-dev-tools-head > strong {
+  background: transparent !important;
+  border: 0 !important;
+  color: #ef4444 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.settings-dev-danger { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+.settings-dev-delete {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #ef4444 !important;
+  padding: 6px 0 !important;
+  border-radius: 0 !important;
+  transform: none !important;
+}
+.settings-dev-delete:hover:not(:disabled) { background: transparent !important; transform: none !important; box-shadow: none !important; }
+.settings-dev-delete:disabled { background: transparent !important; color: color-mix(in srgb, #ef4444 45%, var(--muted)) !important; }
+.settings-dev-message { background: transparent !important; border: 0 !important; padding: 8px 0 !important; }
+
+@media (max-width: 1100px) {
+  .settings-user-form { grid-template-columns: 1fr 1fr !important; }
+  .settings-user-form > button { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .settings-users-grid article { align-items: flex-start !important; }
+  .settings-user-actions { flex-wrap: wrap; gap: 10px 16px; }
+}
+
+/* Configurações — lista de usuários compacta */
+.settings-users-head {
+  margin-bottom: 6px !important;
+}
+
+.settings-users-grid article,
+html[data-theme="light"] .settings-users-grid article {
+  min-height: 44px !important;
+  padding: 5px 8px !important;
+}
+
+.settings-user-main {
+  gap: 8px !important;
+}
+
+.settings-user-main .sidebar-user-avatar {
+  width: 28px !important;
+  height: 28px !important;
+  flex: 0 0 28px !important;
+  font-size: .78rem !important;
+}
+
+.settings-user-main > div:last-child {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  min-width: 0;
+}
+
+.settings-user-main strong {
+  font-size: .8rem !important;
+  line-height: 1.2 !important;
+  white-space: nowrap;
+}
+
+.settings-user-main span {
+  font-size: .72rem !important;
+  line-height: 1.2 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-user-actions {
+  gap: 12px !important;
+  align-items: center !important;
+}
+
+.settings-user-actions .app-select-trigger {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding-block: 0 !important;
+  font-size: .7rem !important;
+}
+
+.settings-password-button,
+.settings-user-toggle,
+.settings-user-delete {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  font-size: .72rem !important;
+  line-height: 28px !important;
+}
+
+@media (max-width: 980px) {
+  .settings-user-main > div:last-child {
+    display: grid !important;
+    gap: 2px !important;
+  }
+}
+
+/* Configurações — refinamento final: usuários e criação de acesso mais compactos */
+.settings-user-actions .app-select-trigger,
+.settings-user-form .app-select-trigger {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.settings-user-actions .app-select-trigger:hover,
+.settings-user-actions .app-select-trigger:focus-visible,
+.settings-user-actions .app-select-trigger[aria-expanded="true"],
+.settings-user-form .app-select-trigger:hover,
+.settings-user-form .app-select-trigger:focus-visible,
+.settings-user-form .app-select-trigger[aria-expanded="true"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.settings-password-button svg,
+.settings-user-toggle svg,
+.settings-user-delete svg {
+  display: none !important;
+}
+.settings-user-actions {
+  column-gap: 14px !important;
+}
+
+.settings-user-form,
+html[data-theme="light"] .settings-user-form {
+  grid-template-columns: minmax(150px, .9fr) minmax(150px, .9fr) minmax(210px, 1.15fr) minmax(150px, .85fr) minmax(135px, .65fr) !important;
+  gap: 8px 14px !important;
+  max-width: 1380px;
+}
+.settings-user-form > div:first-child {
+  margin-bottom: 2px;
+}
+.settings-user-form > div:first-child h2 {
+  margin-top: 3px !important;
+  margin-bottom: 0 !important;
+}
+.settings-user-form label {
+  gap: 4px !important;
+}
+.settings-user-form input,
+.settings-user-form .app-select-trigger {
+  min-height: 32px !important;
+  height: 32px !important;
+}
+.settings-user-form input {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+.settings-user-form > button {
+  margin-top: 0 !important;
+  min-height: 26px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 1100px) {
+  .settings-user-form { grid-template-columns: 1fr 1fr !important; max-width: none; }
+}
+@media (max-width: 760px) {
+  .settings-user-form { grid-template-columns: 1fr !important; }
+}
+
+/* Configurações — ações sem ícones + seletor de perfil no padrão Conferência */
+.settings-password-button,
+.settings-user-toggle,
+.settings-user-delete {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+}
+
+.settings-role-select {
+  width: 148px;
+}
+
+.settings-user-form .settings-role-select {
+  width: 100%;
+}
+
+.settings-role-select .app-select-trigger {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 18px 0 0 !important;
+  min-height: 28px !important;
+  height: 28px !important;
+  border-radius: 0 !important;
+  font-weight: 500 !important;
+  color: var(--text) !important;
+}
+
+.settings-role-select .app-select-trigger:hover,
+.settings-role-select .app-select-trigger:focus-visible,
+.settings-role-select .app-select-trigger[aria-expanded="true"] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.settings-role-select .app-select-chevron {
+  right: 0 !important;
+  color: var(--muted) !important;
+  font-size: .65rem !important;
+}
+
+/* O menu é portalizado no body, então a classe vem em menuClassName. */
+.settings-role-menu {
+  padding: 7px !important;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border)) !important;
+  border-radius: 10px !important;
+  background: var(--surface-soft, #eef4f8) !important;
+  box-shadow: 0 14px 34px rgba(31, 55, 78, .13) !important;
+  overflow: hidden !important;
+}
+
+.settings-role-menu .app-select-option {
+  position: relative;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 36px !important;
+  padding: 7px 10px 7px 34px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: var(--text) !important;
+  font-size: .78rem !important;
+  font-weight: 500 !important;
+  text-align: left !important;
+}
+
+.settings-role-menu .app-select-option::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid #9db2c7;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+}
+
+.settings-role-menu .app-select-option.selected,
+.settings-role-menu .app-select-option.active {
+  background: color-mix(in srgb, var(--primary) 9%, transparent) !important;
+  color: var(--primary) !important;
+}
+
+.settings-role-menu .app-select-option.selected::before {
+  border: 4px solid var(--primary);
+  background: #fff;
+}
+
+.settings-role-menu .app-select-option:hover {
+  background: color-mix(in srgb, var(--primary) 7%, transparent) !important;
+  transform: none !important;
+}
+
+html[data-theme="black"] .settings-role-menu {
+  background: #151b23 !important;
+  border-color: #2b3948 !important;
+  box-shadow: 0 18px 42px rgba(0,0,0,.35) !important;
+}
+
+/* Erro de criação de usuário: inline, sem o banner vermelho gigante. */
+.settings-user-inline-error {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #ef4444 !important;
+  font-size: .78rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.settings-user-inline-error::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-right: 7px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Configurações — alinhamento rígido das ações da lista de usuários */
+.settings-user-actions {
+  display: grid !important;
+  grid-template-columns: 72px 164px 88px 60px !important;
+  column-gap: 12px !important;
+  align-items: center !important;
+  justify-items: start !important;
+}
+
+.settings-password-button,
+.settings-user-toggle,
+.settings-user-delete {
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.settings-role-select {
+  width: 164px !important;
+  min-width: 164px !important;
+}
+
+.settings-role-select .app-select-trigger {
+  width: 100% !important;
+  justify-content: flex-start !important;
+}
+
+.settings-role-menu {
+  min-width: 180px !important;
+}
+
+@media (max-width: 980px) {
+  .settings-user-actions {
+    grid-template-columns: 72px 160px 86px 58px !important;
+  }
+  .settings-role-select {
+    width: 160px !important;
+    min-width: 160px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .settings-user-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px 14px !important;
+  }
+  .settings-password-button,
+  .settings-user-toggle,
+  .settings-user-delete {
+    width: auto !important;
+  }
+}
+
+/* Configurações — criação de acesso: campos integrados ao fundo da página */
+.settings-user-form input,
+.settings-user-form .settings-email-simple input,
+html[data-theme="light"] .settings-user-form input,
+html[data-theme="light"] .settings-user-form .settings-email-simple input {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.settings-user-form input:hover,
+.settings-user-form input:focus,
+.settings-user-form input:focus-visible,
+.settings-user-form .settings-email-simple input:hover,
+.settings-user-form .settings-email-simple input:focus,
+.settings-user-form .settings-email-simple input:focus-visible {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Configurações — criação de acesso: zero contorno nos campos */
+.settings-user-form input,
+.settings-user-form .settings-email-simple input,
+html[data-theme="light"] .settings-user-form input,
+html[data-theme="light"] .settings-user-form .settings-email-simple input {
+  border: 0 !important;
+  outline: 0 !important;
+}
+
+.settings-user-form input:hover,
+.settings-user-form input:focus,
+.settings-user-form input:focus-visible,
+.settings-user-form .settings-email-simple input:hover,
+.settings-user-form .settings-email-simple input:focus,
+.settings-user-form .settings-email-simple input:focus-visible {
+  border: 0 !important;
+  outline: 0 !important;
+}
+
+/* Configurações — perfil flat sem seta no trigger */
+.settings-role-select .app-select-chevron {
+  display: none !important;
+}
+.settings-role-select .app-select-trigger {
+  padding-right: 0 !important;
+}
+
+/* Configurações — autocomplete de e-mail próprio, sem seta/datalist nativo */
+.settings-email-simple {
+  position: relative !important;
+}
+
+.settings-email-simple input::-webkit-calendar-picker-indicator,
+.settings-email-simple input::-webkit-list-button {
+  display: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.settings-email-suggestions {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 5px);
+  left: 0;
+  min-width: 210px;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  border-radius: 10px;
+  background: var(--surface-soft, #eef4f8);
+  box-shadow: 0 14px 34px rgba(31, 55, 78, .13);
+}
+
+.settings-email-suggestions button {
+  display: block;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 0 !important;
+  border-radius: 7px;
+  background: transparent !important;
+  color: var(--text) !important;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 600;
+  text-align: left;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.settings-email-suggestions button:hover,
+.settings-email-suggestions button:focus-visible {
+  background: color-mix(in srgb, var(--primary) 8%, transparent) !important;
+  color: var(--primary) !important;
+  outline: 0;
+  transform: none !important;
+}
+
+html[data-theme="black"] .settings-email-suggestions {
+  background: #151b23;
+  border-color: #2b3948;
+  box-shadow: 0 18px 42px rgba(0,0,0,.35);
+}
+
+/* v24-79 — refinamentos finais de Configurações */
+/* Eyebrows no mesmo padrão tipográfico de "NOVO PERÍODO". */
+.settings-users-head > div > span,
+.settings-user-form > div:first-child > span,
+.settings-backup-eyebrow > span {
+  color: #65b9ec !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .13em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+}
+
+html[data-theme="black"] .settings-users-head > div > span,
+html[data-theme="black"] .settings-user-form > div:first-child > span,
+html[data-theme="black"] .settings-backup-eyebrow > span {
+  color: #aeb6bb !important;
+}
+
+/* Status do backup junto ao título, sem badge/card. */
+.settings-backup-eyebrow {
+  margin: 0 0 4px;
+}
+.settings-backup-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 2px;
+}
+.settings-backup-title-row h2 {
+  margin: 0 !important;
+}
+.settings-backup-title-row > strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .06em !important;
+  line-height: 1 !important;
+}
+.settings-backup-title-row > strong.pending { color: #c98300 !important; }
+.settings-backup-title-row > strong.ready { color: #16a34a !important; }
+.settings-backup-title-row > strong > i {
+  width: 5px !important;
+  height: 5px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: currentColor !important;
+}
+
+/* "Gerar backup agora" fica colado abaixo da explicação de exportação. */
+.settings-backup-action {
+  display: block !important;
+}
+.settings-backup-action-copy,
+.settings-backup-action-copy > div {
+  display: grid !important;
+  justify-items: start !important;
+  align-items: start !important;
+}
+.settings-backup-action-copy > div {
+  gap: 4px !important;
+}
+.settings-backup-action-copy button {
+  margin-top: 10px !important;
+  justify-self: start !important;
+}
+
+/* Aviso: apenas o ícone e "Configuração necessária" ficam amarelos. */
+.settings-backup-message.warning,
+html[data-theme="light"] .settings-backup-message.warning {
+  color: var(--muted) !important;
+}
+.settings-backup-message.warning svg,
+.settings-backup-message.warning strong {
+  color: #c98300 !important;
+}
+.settings-backup-message.warning > span {
+  color: var(--muted) !important;
+}
+.settings-backup-message.warning > span > strong {
+  margin-right: 5px;
+}
+
+/* Ferramentas DEV: labels e campos nas mesmas linhas/eixos. */
+.settings-dev-danger {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 20px !important;
+}
+.settings-dev-fields {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 320px) minmax(260px, 1fr) !important;
+  align-items: start !important;
+  gap: 24px !important;
+}
+.settings-dev-fields > label {
+  display: grid !important;
+  grid-template-rows: 18px 34px !important;
+  align-items: center !important;
+  gap: 5px !important;
+  margin: 0 !important;
+}
+.settings-dev-fields > label > strong {
+  display: inline !important;
+}
+.settings-dev-confirm-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+}
+.settings-dev-confirm-label > strong {
+  display: inline !important;
+  margin: 0 !important;
+}
+.settings-dev-unit-select,
+.settings-dev-fields input {
+  align-self: stretch !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  margin: 0 !important;
+}
+.settings-dev-delete {
+  align-self: end !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+}
+
+@media (max-width: 900px) {
+  .settings-dev-danger {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+  }
+  .settings-dev-fields {
+    grid-template-columns: 1fr !important;
+  }
+  .settings-dev-delete {
+    justify-self: start !important;
+  }
+}
+
+
+/* v24-80 — corrige hierarquia dos cabeçalhos e restaura contador à esquerda */
+.settings-section-eyebrow {
+  color: #65b9ec !important;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .13em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+}
+
+/* O contador volta para a esquerda, logo abaixo do título de Usuários. */
+.settings-users-head {
+  display: block !important;
+  margin-bottom: 14px !important;
+}
+.settings-users-head > div {
+  display: grid !important;
+  justify-items: start !important;
+  align-items: start !important;
+  gap: 0 !important;
+}
+.settings-users-head h2 {
+  margin: 5px 0 0 !important;
+}
+.settings-users-count,
+html[data-theme="light"] .settings-users-count,
+html[data-theme="black"] .settings-users-count {
+  display: block !important;
+  width: auto !important;
+  margin: 6px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--muted) !important;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.35 !important;
+  text-transform: none !important;
+}
+
+/* Neutraliza os seletores antigos que acabavam aplicando o estilo de eyebrow
+   também em textos auxiliares dentro dos cabeçalhos. */
+.settings-users-head > div > span:not(.settings-section-eyebrow),
+.settings-user-form > div:first-child > span:not(.settings-section-eyebrow),
+.settings-backup-eyebrow > span:not(.settings-section-eyebrow) {
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+/* v24-81 — hierarquia de usuários e eyebrow idêntico ao NOVO PERÍODO */
+.settings-section-eyebrow {
+  color: #6e8ea5 !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .13em !important;
+  line-height: normal !important;
+  text-transform: uppercase !important;
+}
+html[data-theme="light"] .settings-section-eyebrow {
+  color: #6e8ea5 !important;
+}
+html[data-theme="black"] .settings-section-eyebrow {
+  color: #aeb6bb !important;
+}
+
+.settings-users-head {
+  margin-bottom: 2px !important;
+}
+.settings-users-head > div {
+  gap: 0 !important;
+}
+.settings-users-head h2 {
+  margin: 4px 0 3px !important;
+}
+.settings-users-count,
+html[data-theme="light"] .settings-users-count,
+html[data-theme="black"] .settings-users-count {
+  margin: 0 !important;
+  line-height: 1.3 !important;
+}
+.settings-users-grid {
+  margin-top: 4px !important;
+}
+.settings-users-grid article,
+html[data-theme="light"] .settings-users-grid article {
+  min-height: 0 !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* v24-82 — NOVO USUÁRIO usa exatamente o mesmo tratamento de NOVO PERÍODO */
+.settings-user-form > div:first-child > .settings-section-eyebrow,
+html[data-theme="light"] .settings-user-form > div:first-child > .settings-section-eyebrow {
+  color: #6e8ea5 !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.13em !important;
+  line-height: normal !important;
+  text-transform: none !important;
+}
+
+html[data-theme="black"] .settings-user-form > div:first-child > .settings-section-eyebrow {
+  color: #aeb6bb !important;
+}
+
+
+/* v24-96 · criação de usuário sem caixas de autofill/senha salva */
+.settings-user-form input,
+.settings-user-form input:hover,
+.settings-user-form input:focus,
+.settings-user-form input:focus-visible,
+.settings-user-form input:active,
+.settings-user-form .settings-email-simple input,
+.settings-user-form .settings-email-simple input:hover,
+.settings-user-form .settings-email-simple input:focus {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.settings-user-form input:-moz-autofill,
+.settings-user-form input:-moz-autofill:hover,
+.settings-user-form input:-moz-autofill:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.settings-user-form input:-webkit-autofill,
+.settings-user-form input:-webkit-autofill:hover,
+.settings-user-form input:-webkit-autofill:focus,
+.settings-user-form input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text) !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--app-bg, #eef3f6) inset !important;
+  box-shadow: 0 0 0 1000px var(--app-bg, #eef3f6) inset !important;
+  background-image: none !important;
+}
+
+
+/* v24-101 · Criar acesso: autofill sem blocos e respeitando o tema */
+.settings-user-form input,
+.settings-user-form input:hover,
+.settings-user-form input:focus,
+.settings-user-form input:focus-visible,
+.settings-user-form input:active {
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .settings-user-form input:-webkit-autofill,
+html[data-theme="light"] .settings-user-form input:-webkit-autofill:hover,
+html[data-theme="light"] .settings-user-form input:-webkit-autofill:focus,
+html[data-theme="light"] .settings-user-form input:-webkit-autofill:active,
+html[data-theme="light"] .settings-user-form input:autofill,
+html[data-theme="light"] .settings-user-form input:autofill:hover,
+html[data-theme="light"] .settings-user-form input:autofill:focus {
+  -webkit-text-fill-color: #243743 !important;
+  caret-color: #243743 !important;
+  background: #eef3f6 !important;
+  background-color: #eef3f6 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #eef3f6 inset !important;
+  box-shadow: 0 0 0 1000px #eef3f6 inset !important;
+}
+
+html[data-theme="dark"] .settings-user-form input:-webkit-autofill,
+html[data-theme="dark"] .settings-user-form input:-webkit-autofill:hover,
+html[data-theme="dark"] .settings-user-form input:-webkit-autofill:focus,
+html[data-theme="dark"] .settings-user-form input:-webkit-autofill:active,
+html[data-theme="dark"] .settings-user-form input:autofill,
+html[data-theme="dark"] .settings-user-form input:autofill:hover,
+html[data-theme="dark"] .settings-user-form input:autofill:focus {
+  -webkit-text-fill-color: #e8f1f5 !important;
+  caret-color: #e8f1f5 !important;
+  background: #101a21 !important;
+  background-color: #101a21 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #101a21 inset !important;
+  box-shadow: 0 0 0 1000px #101a21 inset !important;
+}
+
+html[data-theme="black"] .settings-user-form input:-webkit-autofill,
+html[data-theme="black"] .settings-user-form input:-webkit-autofill:hover,
+html[data-theme="black"] .settings-user-form input:-webkit-autofill:focus,
+html[data-theme="black"] .settings-user-form input:-webkit-autofill:active,
+html[data-theme="black"] .settings-user-form input:autofill,
+html[data-theme="black"] .settings-user-form input:autofill:hover,
+html[data-theme="black"] .settings-user-form input:autofill:focus {
+  -webkit-text-fill-color: #f5f5f5 !important;
+  caret-color: #f5f5f5 !important;
+  background: #000 !important;
+  background-color: #000 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #000 inset !important;
+  box-shadow: 0 0 0 1000px #000 inset !important;
+}

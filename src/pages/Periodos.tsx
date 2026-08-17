@@ -1,4 +1,3 @@
-import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo } from "react";
 import { usePeriodo } from "../contexts/periodo";
 import { useAuth } from "../contexts/auth";
@@ -23,6 +22,8 @@ function Periodos() {
     setNovoCodigo,
     processando,
     erro,
+    erroCriacao,
+    limparErroCriacao,
     confirmacao,
     setConfirmacao,
     criarPeriodo,
@@ -91,32 +92,13 @@ function Periodos() {
 
   return (
     <section className="period-page">
-      <header className="period-hero">
-        <div>
-          <span className="period-eyebrow">GESTÃO ACADÊMICA</span>
-          <div className="page-title-row">
-            <span className="page-title-icon">
-              <AppIcon name="calendar" size={22} />
-            </span>
-            <h1>Períodos letivos</h1>
-          </div>
-          <p>
-            Crie novos ciclos, alterne o contexto do sistema e arquive períodos
-            antigos sem perder o acesso aos dados.
-          </p>
-        </div>
-        <div className="period-current">
-          <span>PERÍODO EM USO</span>
-          <strong>{periodoAtual?.codigo ?? "—"}</strong>
-          <small>{periodoAtual?.status ?? ""}</small>
-        </div>
-      </header>
-
       {!modoApresentacao && (
         <CriarPeriodoCard
           novoCodigo={novoCodigo}
           setNovoCodigo={setNovoCodigo}
           processando={processando}
+          erro={erroCriacao}
+          limparErro={limparErroCriacao}
           criarPeriodo={criarPeriodo}
           formatarCodigoPeriodo={formatarCodigoPeriodo}
         />

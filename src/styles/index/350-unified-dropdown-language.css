@@ -1,0 +1,266 @@
+/* =========================================================
+   V24.77 — linguagem única para menus / dropdowns
+   Referência visual: filtro de unidade da Conferência.
+   Mantém o trigger de cada contexto, mas unifica o painel,
+   opções, seleção, rádio, espaçamento e temas.
+   ========================================================= */
+
+:root {
+  --unified-menu-bg: #eef5f9;
+  --unified-menu-hover: #e2eff7;
+  --unified-menu-selected: #0b75e5;
+  --unified-menu-text: #40566c;
+  --unified-menu-muted: #5f7890;
+  --unified-menu-radio: #9bb3c8;
+  --unified-menu-shadow: 0 12px 30px rgba(37, 61, 77, 0.11);
+}
+
+html[data-theme="black"],
+html[data-theme="dark"] {
+  --unified-menu-bg: #101d26;
+  --unified-menu-hover: #172b38;
+  --unified-menu-selected: #69b9ff;
+  --unified-menu-text: #dce8ef;
+  --unified-menu-muted: #91a9b7;
+  --unified-menu-radio: #627d8d;
+  --unified-menu-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+}
+
+/* AppSelect: Cursos, Configurações, Conferência/importação,
+   Comunicação, Google Sheets e demais selects compartilhados. */
+.app-select-menu,
+html[data-theme="light"] .app-select-menu,
+html[data-theme="black"] .app-select-menu,
+html[data-theme="dark"] .app-select-menu {
+  padding: 7px !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: var(--unified-menu-bg) !important;
+  box-shadow: var(--unified-menu-shadow) !important;
+}
+
+.app-select-option,
+html[data-theme="light"] .app-select-option,
+html[data-theme="black"] .app-select-option,
+html[data-theme="dark"] .app-select-option {
+  position: relative !important;
+  min-height: 38px !important;
+  display: grid !important;
+  grid-template-columns: 16px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  column-gap: 9px !important;
+  padding: 7px 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: var(--unified-menu-text) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+.app-select-option::before {
+  content: "" !important;
+  width: 12px !important;
+  height: 12px !important;
+  border: 1.5px solid var(--unified-menu-radio) !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+
+.app-select-option > span:first-of-type {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.app-select-option small {
+  grid-column: 3 !important;
+  color: var(--unified-menu-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.app-select-option:hover,
+.app-select-option.active,
+html[data-theme="light"] .app-select-option:hover,
+html[data-theme="light"] .app-select-option.active,
+html[data-theme="black"] .app-select-option:hover,
+html[data-theme="black"] .app-select-option.active,
+html[data-theme="dark"] .app-select-option:hover,
+html[data-theme="dark"] .app-select-option.active {
+  color: var(--unified-menu-text) !important;
+  background: var(--unified-menu-hover) !important;
+}
+
+.app-select-option.selected,
+html[data-theme="light"] .app-select-option.selected,
+html[data-theme="black"] .app-select-option.selected,
+html[data-theme="dark"] .app-select-option.selected {
+  color: var(--unified-menu-selected) !important;
+  background: transparent !important;
+  font-weight: 600 !important;
+}
+
+.app-select-option.selected::before {
+  border-color: var(--unified-menu-selected) !important;
+  box-shadow: inset 0 0 0 3px var(--unified-menu-selected) !important;
+  background: #fff !important;
+}
+
+html[data-theme="black"] .app-select-option.selected::before,
+html[data-theme="dark"] .app-select-option.selected::before {
+  background: #101d26 !important;
+}
+
+/* Menu global de período do cabeçalho. */
+.period-dropdown-menu,
+html[data-theme="light"] .period-dropdown-menu,
+html[data-theme="black"] .period-dropdown-menu,
+html[data-theme="dark"] .period-dropdown-menu {
+  padding: 7px !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: var(--unified-menu-bg) !important;
+  box-shadow: var(--unified-menu-shadow) !important;
+}
+
+.period-dropdown-option,
+html[data-theme="light"] .period-dropdown-option,
+html[data-theme="black"] .period-dropdown-option,
+html[data-theme="dark"] .period-dropdown-option {
+  min-height: 38px !important;
+  display: grid !important;
+  grid-template-columns: 16px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 7px 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: var(--unified-menu-text) !important;
+  background: transparent !important;
+}
+
+.period-dropdown-option::before {
+  content: "" !important;
+  width: 12px !important;
+  height: 12px !important;
+  border: 1.5px solid var(--unified-menu-radio) !important;
+  border-radius: 50% !important;
+  box-sizing: border-box !important;
+}
+
+.period-dropdown-option:hover {
+  background: var(--unified-menu-hover) !important;
+}
+
+.period-dropdown-option.selected {
+  color: var(--unified-menu-selected) !important;
+  background: transparent !important;
+  font-weight: 600 !important;
+}
+
+.period-dropdown-option.selected::before {
+  border-color: var(--unified-menu-selected) !important;
+  box-shadow: inset 0 0 0 3px var(--unified-menu-selected) !important;
+  background: #fff !important;
+}
+
+html[data-theme="black"] .period-dropdown-option.selected::before,
+html[data-theme="dark"] .period-dropdown-option.selected::before {
+  background: #101d26 !important;
+}
+
+.period-dropdown-option-check {
+  display: none !important;
+}
+
+.period-dropdown-option-meta {
+  color: var(--unified-menu-muted) !important;
+}
+
+/* Menus disclosure já usados por Conferência, Comunicação e Auditoria. */
+.conference-replica-unit-menu,
+.statistics-unit-disclosure-menu,
+.audit-action-disclosure {
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: var(--unified-menu-bg) !important;
+  box-shadow: none !important;
+}
+
+.conference-replica-unit-menu button,
+.statistics-unit-disclosure-menu button,
+.audit-action-disclosure button {
+  min-height: 38px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: var(--unified-menu-text) !important;
+  background: transparent !important;
+}
+
+.conference-replica-unit-menu button:hover,
+.statistics-unit-disclosure-menu button:hover,
+.audit-action-disclosure button:hover {
+  background: var(--unified-menu-hover) !important;
+}
+
+.conference-replica-unit-menu button.active,
+.statistics-unit-disclosure-menu button.active,
+.audit-action-disclosure button.active {
+  color: var(--unified-menu-selected) !important;
+  background: transparent !important;
+}
+
+.conference-replica-unit-radio,
+.statistics-unit-disclosure-radio {
+  border-color: var(--unified-menu-radio) !important;
+}
+
+.conference-replica-unit-menu button.active .conference-replica-unit-radio,
+.statistics-unit-disclosure-menu button.active .statistics-unit-disclosure-radio {
+  border-color: var(--unified-menu-selected) !important;
+  box-shadow: inset 0 0 0 3px var(--unified-menu-selected) !important;
+}
+
+/* Autocomplete de e-mail: mesma superfície e ritmo do restante,
+   sem rádio porque é sugestão, não seleção persistente. */
+.settings-email-suggestions {
+  padding: 7px !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: var(--unified-menu-bg) !important;
+  box-shadow: var(--unified-menu-shadow) !important;
+}
+
+.settings-email-suggestions button {
+  min-height: 38px !important;
+  padding: 7px 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: var(--unified-menu-text) !important;
+  background: transparent !important;
+}
+
+.settings-email-suggestions button:hover,
+.settings-email-suggestions button:focus-visible {
+  background: var(--unified-menu-hover) !important;
+  outline: none !important;
+}
+
+.audit-page-size-select {
+  width: 126px !important;
+}
+
+.audit-page-size-select .app-select-trigger {
+  min-height: 32px !important;
+  padding-inline: 6px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.audit-page-size-menu {
+  min-width: 150px !important;
+}

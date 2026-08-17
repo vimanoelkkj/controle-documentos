@@ -1,0 +1,146 @@
+/* Conferência · toolbar fiel ao mockup. Sem pseudo-elementos sobre os ícones. */
+
+.conference-grid--mockup .student-panel-toolbar {
+  grid-template-columns: minmax(0, 1fr) 42px 126px 42px !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.conference-grid--mockup .student-toolbar-icon,
+.conference-grid--mockup .student-toolbar-add,
+.conference-grid--mockup .student-toolbar-more {
+  box-sizing: border-box !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
+}
+
+/* Reload */
+.conference-grid--mockup .student-toolbar-icon {
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #dbe4ee !important;
+  background: #fff !important;
+  color: #24364d !important;
+}
+
+.conference-grid--mockup .student-toolbar-icon::before,
+.conference-grid--mockup .student-toolbar-icon::after {
+  content: none !important;
+  display: none !important;
+}
+
+.conference-grid--mockup .student-toolbar-icon svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 18px !important;
+  color: currentColor !important;
+}
+
+/* + Adicionar aluno */
+.conference-grid--mockup .student-toolbar-add {
+  width: 126px !important;
+  min-width: 126px !important;
+  max-width: 126px !important;
+  padding: 0 13px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  border: 1px solid #2f6fed !important;
+  background: #fff !important;
+  color: #1261ea !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+}
+
+.conference-grid--mockup .student-toolbar-add::before,
+.conference-grid--mockup .student-toolbar-add::after {
+  content: none !important;
+  display: none !important;
+}
+
+.conference-grid--mockup .student-toolbar-add svg {
+  display: block !important;
+  width: 15px !important;
+  height: 15px !important;
+  flex: 0 0 15px !important;
+  color: currentColor !important;
+}
+
+.conference-grid--mockup .student-toolbar-add > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: currentColor !important;
+  font: inherit !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+/* ••• */
+.conference-grid--mockup .student-toolbar-more {
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #dbe4ee !important;
+  background: #fff !important;
+  color: #25384f !important;
+}
+
+.conference-grid--mockup .student-toolbar-more::before,
+.conference-grid--mockup .student-toolbar-more::after {
+  content: none !important;
+  display: none !important;
+}
+
+.conference-grid--mockup .student-toolbar-more svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 18px !important;
+  color: currentColor !important;
+}
+
+.conference-grid--mockup .student-toolbar-icon:hover,
+.conference-grid--mockup .student-toolbar-more:hover,
+.conference-grid--mockup .student-toolbar-add:hover {
+  background: #f8fbff !important;
+}
+
+.conference-grid--mockup .student-toolbar-icon:hover,
+.conference-grid--mockup .student-toolbar-more:hover {
+  border-color: #c5d2df !important;
+}
+
+.conference-grid--mockup .student-toolbar-add:hover {
+  border-color: #2f6fed !important;
+  color: #1261ea !important;
+}
+
+body[data-theme="dark"] .conference-grid--mockup .student-toolbar-icon,
+body[data-theme="dark"] .conference-grid--mockup .student-toolbar-add,
+body[data-theme="dark"] .conference-grid--mockup .student-toolbar-more,
+body[data-theme="black"] .conference-grid--mockup .student-toolbar-icon,
+body[data-theme="black"] .conference-grid--mockup .student-toolbar-add,
+body[data-theme="black"] .conference-grid--mockup .student-toolbar-more {
+  background: var(--minimal-surface, #101820) !important;
+}

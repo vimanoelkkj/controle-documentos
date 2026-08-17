@@ -43,13 +43,15 @@ export function PeriodoCard({
       </div>
 
       <div className="period-actions">
-        <button
-          type="button"
-          onClick={() => aoAbrir(periodo.codigo)}
-          disabled={periodoAtual}
-        >
-          Abrir período
-        </button>
+        {periodo.status === "ATIVO" && (
+          <button
+            type="button"
+            onClick={() => aoAbrir(periodo.codigo)}
+            disabled={periodoAtual}
+          >
+            Abrir período
+          </button>
+        )}
 
         {!modoApresentacao && (
           <button
@@ -64,7 +66,7 @@ export function PeriodoCard({
             }
             disabled={processando}
           >
-            {periodo.status === "ATIVO" ? "Arquivar" : "Reativar"}
+            {periodo.status === "ATIVO" ? "Arquivar" : "Restaurar"}
           </button>
         )}
       </div>

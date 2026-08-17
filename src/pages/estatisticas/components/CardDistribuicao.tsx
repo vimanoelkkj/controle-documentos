@@ -10,8 +10,12 @@ type Props = {
 };
 
 function percentual(valor: number, total: number) {
-  if (!total) return 0;
-  return Math.round((valor / total) * 100);
+  if (!total) return "0,0";
+
+  return ((valor / total) * 100).toLocaleString("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
 }
 
 function numero(valor: number) {
@@ -52,8 +56,8 @@ export function CardDistribuicao({
                 }`}
                 style={{
                   height: `${Math.max(
-                    item.quantidade ? 8 : 0,
-                    (item.quantidade / maiorFaixa) * 100,
+                    item.quantidade ? 12 : 0,
+                    Math.sqrt(item.quantidade / maiorFaixa) * 100,
                   )}%`,
                 }}
               />

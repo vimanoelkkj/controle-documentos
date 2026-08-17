@@ -1,0 +1,1429 @@
+/* Conferência · geometria fiel ao mockup aprovado
+   Esta camada corrige estrutura, escala e densidade depois dos experimentos 130/140/150. */
+
+:root {
+  --conference-font:
+    Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.period-toolbar--mockup,
+.conference-page--mockup {
+  font-family: var(--conference-font);
+}
+
+/* ================================
+   TOPO ÚNICO
+   ================================ */
+.period-toolbar--conference.period-toolbar--mockup {
+  box-sizing: border-box;
+  width: calc(100% - 24px) !important;
+  min-height: 104px !important;
+  margin: 12px 12px 10px !important;
+  padding: 18px 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+  border: 1px solid rgba(118, 135, 155, 0.18) !important;
+  border-radius: 14px !important;
+  background: var(--surface, #101d27) !important;
+  box-shadow: 0 10px 28px rgba(10, 20, 30, 0.04) !important;
+}
+
+.conference-toolbar-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.conference-toolbar-title-icon {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(76, 126, 255, 0.14);
+  border-radius: 13px;
+  color: #2f6fed;
+  background: rgba(76, 126, 255, 0.09);
+}
+
+.conference-toolbar-title h1 {
+  margin: 0;
+  font-size: clamp(22px, 1.65vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.conference-toolbar-title p {
+  margin: 7px 0 0;
+  font-size: 13px;
+  color: #7a8798;
+}
+
+.conference-toolbar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  flex: 0 0 auto;
+}
+
+.conference-sheets-state {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+  color: #66758c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.conference-sheets-state .google-sheets-status-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.conference-sheets-state .google-sheets-status-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  margin: 0;
+  border-radius: 50%;
+}
+
+.conference-sheets-action {
+  min-width: 104px;
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(118, 135, 155, 0.22);
+  border-radius: 10px;
+  color: inherit;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.conference-sheets-action:hover {
+  border-color: rgba(76, 126, 255, 0.42);
+  background: rgba(76, 126, 255, 0.05);
+}
+
+.period-toolbar--mockup .period-toolbar-select--mockup {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.period-toolbar--mockup .period-toolbar-select--mockup > span {
+  display: none !important;
+}
+
+.period-toolbar--mockup
+  .period-toolbar-select--mockup
+  .period-dropdown-trigger {
+  min-width: 208px !important;
+  height: 42px !important;
+  padding: 0 14px !important;
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  gap: 10px !important;
+  border: 1px solid rgba(118, 135, 155, 0.22) !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+}
+
+/* ================================
+   ÁREA PRINCIPAL / COLUNAS
+   ================================ */
+.app-content:has(.conference-page--mockup) {
+  min-height: 0 !important;
+  padding: 0 12px 12px !important;
+  overflow: hidden !important;
+}
+
+.app-content .conference-page--mockup {
+  width: 100% !important;
+  max-width: none !important;
+  height: calc(100dvh - 138px) !important;
+  min-height: 600px;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.conference-page--mockup > .conference-grid--mockup {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(390px, 34%) minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+.conference-grid--mockup > .student-panel,
+.conference-grid--mockup > .student-details {
+  height: 100% !important;
+  min-height: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+/* ================================
+   LISTA DE ALUNOS
+   ================================ */
+.conference-grid--mockup .student-panel {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.conference-grid--mockup .student-panel-header--cohesive {
+  flex: 0 0 auto;
+  padding: 16px 16px 10px !important;
+  gap: 12px !important;
+}
+
+.conference-grid--mockup .student-panel-heading {
+  display: none !important;
+}
+
+.conference-grid--mockup .student-panel-toolbar {
+  grid-template-columns: minmax(0, 1fr) 42px auto 42px !important;
+  gap: 9px !important;
+}
+
+.conference-grid--mockup .student-search-shell {
+  height: 42px !important;
+  padding: 0 13px !important;
+  border-radius: 10px !important;
+}
+
+.conference-grid--mockup .student-search-shell .student-search {
+  height: 40px !important;
+  font-size: 13px !important;
+}
+
+.conference-grid--mockup .student-toolbar-icon,
+.conference-grid--mockup .student-toolbar-more,
+.conference-grid--mockup .student-toolbar-add {
+  height: 42px !important;
+  border-radius: 10px !important;
+}
+
+.conference-grid--mockup .student-toolbar-icon,
+.conference-grid--mockup .student-toolbar-more {
+  width: 42px !important;
+}
+
+.conference-grid--mockup .student-toolbar-add {
+  padding: 0 14px !important;
+  font-size: 12px !important;
+}
+
+.conference-grid--mockup .status-tabs {
+  flex: 0 0 auto;
+  margin: 0 16px 8px !important;
+}
+
+.conference-grid--mockup .status-tabs button {
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+}
+
+.conference-grid--mockup .unit-filter {
+  flex: 0 0 auto;
+  margin: 0 16px 12px !important;
+}
+
+.conference-grid--mockup .unit-filter-trigger {
+  min-height: 44px !important;
+  border-radius: 10px !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+}
+
+.conference-grid--mockup .student-list {
+  min-height: 0 !important;
+  max-height: none !important;
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  padding: 0 8px 10px !important;
+  border-top: 0 !important;
+  gap: 2px !important;
+}
+
+.conference-grid--mockup .student-card {
+  min-height: 67px !important;
+  padding: 11px 12px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-areas: "main count" "main count" !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+
+.conference-grid--mockup .student-card + .student-card {
+  margin-top: 1px !important;
+}
+
+.conference-grid--mockup .student-card.active {
+  background: rgba(76, 126, 255, 0.105) !important;
+  box-shadow: inset 2px 0 #4c7eff !important;
+}
+
+.conference-grid--mockup .student-card-main {
+  grid-area: main;
+  gap: 6px !important;
+}
+
+.conference-grid--mockup .student-card-main strong {
+  font-size: 13px !important;
+  letter-spacing: -0.015em;
+}
+
+.conference-grid--mockup .student-card-main span {
+  font-size: 11px !important;
+  line-height: 1.25;
+}
+
+.conference-grid--mockup .student-card-footer {
+  grid-area: count;
+  margin: 0 !important;
+  align-self: center;
+}
+
+.conference-grid--mockup .student-card-footer > span {
+  display: none !important;
+}
+
+.conference-grid--mockup .student-card-footer strong {
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  color: #5f7390;
+}
+
+.conference-grid--mockup .student-card.active .student-card-footer strong {
+  color: #2f6fed !important;
+}
+
+/* ================================
+   FICHA DO ALUNO
+   ================================ */
+.conference-grid--mockup .student-details {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.conference-grid--mockup .student-details-header {
+  flex: 0 0 auto;
+  min-height: 142px !important;
+  padding: 22px 24px 18px !important;
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) auto !important;
+  grid-template-areas:
+    "avatar identity primary"
+    ". actions primary"
+    ". . ." !important;
+  column-gap: 16px !important;
+  row-gap: 12px !important;
+  align-items: start !important;
+}
+
+.conference-grid--mockup .student-avatar {
+  grid-area: avatar;
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 50% !important;
+  font-size: 19px !important;
+  color: #2f6fed !important;
+  background: rgba(76, 126, 255, 0.11) !important;
+}
+
+.conference-grid--mockup .student-identity--mockup {
+  grid-area: identity;
+  align-self: center;
+}
+
+.student-name-line {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.conference-grid--mockup .student-name-line h2 {
+  max-width: 100%;
+  margin: 0 !important;
+  font-size: clamp(20px, 1.5vw, 27px) !important;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.student-completion-badge {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.student-completion-badge--completo {
+  color: #198545;
+  background: rgba(66, 190, 103, 0.17);
+}
+
+.student-completion-badge--parcial {
+  color: #9d711a;
+  background: rgba(225, 171, 59, 0.17);
+}
+
+.student-completion-badge--critico {
+  color: #c23f49;
+  background: rgba(226, 77, 89, 0.13);
+}
+
+.student-meta-line {
+  margin: 9px 0 0 !important;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  color: #77879a !important;
+  font-size: 12px !important;
+}
+
+.student-meta-line i {
+  font-style: normal;
+  opacity: 0.55;
+}
+
+.student-primary-edit {
+  grid-area: primary;
+  align-self: start;
+  min-width: 126px;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid rgba(118, 135, 155, 0.24);
+  border-radius: 10px;
+  color: inherit;
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.student-primary-edit:hover {
+  border-color: rgba(76, 126, 255, 0.42);
+  background: rgba(76, 126, 255, 0.05);
+}
+
+.conference-grid--mockup .student-header-actions {
+  grid-area: actions;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px 18px !important;
+}
+
+.conference-grid--mockup .student-header-actions button {
+  min-height: 32px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.conference-grid--mockup .student-history-button,
+.conference-grid--mockup .student-edit-button {
+  color: #2f6fed !important;
+}
+
+.conference-grid--mockup .student-delete-button {
+  color: #df4050 !important;
+}
+
+.conference-grid--mockup .student-progress {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+}
+
+.conference-grid--mockup .document-progress {
+  flex: 0 0 auto;
+  padding: 13px 24px 15px !important;
+}
+
+.conference-grid--mockup .document-progress-label {
+  margin-bottom: 10px !important;
+  font-size: 11px !important;
+}
+
+.conference-grid--mockup .progress-track {
+  height: 7px !important;
+}
+
+/* ================================
+   DOCUMENTOS GRANDES, 2 COLUNAS
+   ================================ */
+.conference-grid--mockup .documents-area--cohesive {
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  padding: 4px 24px 16px !important;
+  overflow-y: auto !important;
+}
+
+.conference-grid--mockup .documents-section {
+  flex: 0 0 auto;
+}
+
+.conference-grid--mockup .documents-section-heading {
+  margin: 0 0 12px !important;
+}
+
+.conference-grid--mockup .documents-section-heading > div > span {
+  display: none !important;
+}
+
+.conference-grid--mockup .documents-section-heading h3 {
+  font-size: 16px !important;
+  font-weight: 750 !important;
+}
+
+.conference-grid--mockup .documents-section-heading small {
+  display: none !important;
+}
+
+.conference-grid--mockup .documents-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px 16px !important;
+}
+
+.conference-grid--mockup .document-card {
+  min-height: 78px !important;
+  padding: 12px 14px !important;
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  border-radius: 12px !important;
+}
+
+.conference-grid--mockup .document-card-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 10px !important;
+}
+
+.conference-grid--mockup .document-card strong {
+  font-size: 13px !important;
+  font-weight: 760 !important;
+}
+
+.conference-grid--mockup .document-card > div > span {
+  margin-top: 2px;
+  font-size: 11px !important;
+}
+
+/* ================================
+   RESUMO COM PRESENÇA VISUAL
+   ================================ */
+.conference-grid--mockup .summary-card--cohesive {
+  flex: 0 0 auto;
+  min-height: 104px !important;
+  padding: 16px 18px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 18px !important;
+  border-width: 1px !important;
+  border-radius: 11px !important;
+}
+
+.conference-grid--mockup .summary-card-heading {
+  min-width: 150px;
+  display: grid !important;
+  grid-template-columns: auto auto !important;
+  align-items: center !important;
+  justify-content: start !important;
+  gap: 14px !important;
+}
+
+.conference-grid--mockup .summary-card-heading > div {
+  gap: 4px !important;
+}
+
+.conference-grid--mockup .summary-card-heading > div > span {
+  font-size: 10px !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+  color: #2f6fed;
+  opacity: 1 !important;
+}
+
+.conference-grid--mockup .summary-card-heading strong {
+  font-size: 12px !important;
+}
+
+.conference-grid--mockup .summary-card-state {
+  align-self: center;
+  padding: 7px 10px !important;
+}
+
+.conference-grid--mockup .summary-chips {
+  justify-content: flex-start !important;
+  gap: 7px !important;
+}
+
+.conference-grid--mockup .summary-chips span {
+  padding: 6px 10px !important;
+  border-radius: 999px !important;
+  font-size: 9px !important;
+  text-transform: uppercase;
+}
+
+.conference-grid--mockup .summary-chips span::before {
+  content: "•";
+  margin-right: 5px;
+  color: #df4050;
+}
+
+/* ================================
+   RODAPÉ
+   ================================ */
+.conference-grid--mockup .conference-actions {
+  flex: 0 0 auto;
+  min-height: 72px !important;
+  padding: 12px 24px !important;
+}
+
+.conference-grid--mockup .conference-actions > span {
+  font-size: 12px !important;
+}
+
+.conference-grid--mockup .conference-actions > div {
+  gap: 10px !important;
+}
+
+.conference-grid--mockup .secondary-action,
+.conference-grid--mockup .primary-action {
+  min-height: 42px !important;
+  padding: 0 18px !important;
+  border-radius: 10px !important;
+}
+
+/* ================================
+   TEMA CLARO
+   ================================ */
+html[data-theme="light"] .period-toolbar--conference.period-toolbar--mockup,
+html[data-theme="light"] .conference-grid--mockup > .student-panel,
+html[data-theme="light"] .conference-grid--mockup > .student-details {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(43, 61, 82, 0.1) !important;
+  box-shadow: 0 8px 28px rgba(38, 55, 75, 0.035) !important;
+}
+
+html[data-theme="light"] .conference-grid--mockup .student-card {
+  color: #172033 !important;
+}
+
+html[data-theme="light"] .conference-grid--mockup .student-card.active {
+  background: rgba(67, 121, 246, 0.09) !important;
+}
+
+html[data-theme="light"] .conference-grid--mockup .document-card {
+  background: rgba(248, 250, 252, 0.88) !important;
+  border-color: rgba(43, 61, 82, 0.085) !important;
+}
+
+html[data-theme="light"] .conference-grid--mockup .document-card.delivered {
+  background: rgba(64, 180, 102, 0.075) !important;
+  border-color: rgba(45, 156, 82, 0.12) !important;
+}
+
+html[data-theme="light"] .conference-grid--mockup .document-card strong,
+html[data-theme="light"] .conference-grid--mockup .student-name-line h2 {
+  color: #111827 !important;
+}
+
+/* ================================
+   RESPONSIVO
+   ================================ */
+@media (max-width: 1380px) {
+  .conference-page--mockup > .conference-grid--mockup {
+    grid-template-columns: minmax(340px, 32%) minmax(0, 1fr) !important;
+  }
+
+  .conference-toolbar-controls {
+    gap: 9px;
+  }
+
+  .conference-sheets-state {
+    font-size: 12px;
+  }
+
+  .period-toolbar--mockup
+    .period-toolbar-select--mockup
+    .period-dropdown-trigger {
+    min-width: 176px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .period-toolbar--conference.period-toolbar--mockup {
+    min-height: auto !important;
+    flex-wrap: wrap !important;
+  }
+
+  .conference-toolbar-title {
+    flex: 1 1 100%;
+  }
+
+  .conference-toolbar-controls {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .app-content .conference-page--mockup {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible;
+  }
+
+  .conference-page--mockup > .conference-grid--mockup {
+    height: auto !important;
+    grid-template-columns: 340px minmax(0, 1fr) !important;
+  }
+
+  .conference-grid--mockup > .student-panel,
+  .conference-grid--mockup > .student-details {
+    height: 760px !important;
+  }
+
+  .conference-grid--mockup .documents-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-content:has(.conference-page--mockup) {
+    overflow: visible !important;
+  }
+
+  .conference-page--mockup > .conference-grid--mockup {
+    grid-template-columns: 1fr !important;
+  }
+
+  .conference-grid--mockup > .student-panel {
+    height: 520px !important;
+  }
+
+  .conference-grid--mockup > .student-details {
+    height: auto !important;
+  }
+
+  .conference-grid--mockup .student-details-header {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+    grid-template-areas:
+      "avatar identity"
+      "actions actions"
+      "primary primary" !important;
+  }
+
+  .student-primary-edit {
+    width: 100%;
+  }
+}
+
+/* ================================================================
+   AJUSTE FINO FINAL · mockup aprovado como régua visual
+   ================================================================ */
+.period-toolbar--mockup,
+.conference-page--mockup,
+.conference-page--mockup button,
+.conference-page--mockup input,
+.conference-page--mockup select,
+.period-toolbar--mockup button {
+  font-family: "Inter", sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.period-toolbar--conference.period-toolbar--mockup {
+  min-height: 110px !important;
+  padding: 20px 26px !important;
+  border-radius: 15px !important;
+}
+
+.conference-toolbar-title {
+  gap: 18px !important;
+}
+.conference-toolbar-title-icon {
+  width: 56px !important;
+  height: 56px !important;
+  flex-basis: 56px !important;
+  border-radius: 14px !important;
+}
+.conference-toolbar-title h1 {
+  font-size: 27px !important;
+  line-height: 1.08 !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.035em !important;
+}
+.conference-toolbar-title p {
+  margin-top: 6px !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  font-weight: 450 !important;
+}
+
+.conference-toolbar-controls {
+  gap: 16px !important;
+}
+.conference-sheets-state {
+  min-height: 46px !important;
+  gap: 9px !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  font-weight: 500 !important;
+}
+.conference-sheets-state .google-sheets-status-icon {
+  width: 19px !important;
+  height: 19px !important;
+}
+.conference-sheets-action,
+.period-toolbar--mockup
+  .period-toolbar-select--mockup
+  .period-dropdown-trigger {
+  height: 46px !important;
+  min-height: 46px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: 14px !important;
+  font-weight: 650 !important;
+}
+.conference-sheets-action {
+  min-width: 108px !important;
+  padding: 0 20px !important;
+}
+.period-toolbar--mockup
+  .period-toolbar-select--mockup
+  .period-dropdown-trigger {
+  min-width: 220px !important;
+  justify-content: flex-start !important;
+  gap: 11px !important;
+  padding: 0 15px !important;
+}
+.period-toolbar--mockup .period-dropdown-trigger > strong,
+.period-toolbar--mockup .period-dropdown-trigger > span,
+.period-toolbar--mockup .period-dropdown-trigger svg {
+  align-self: center !important;
+  line-height: 1 !important;
+}
+
+/* lista */
+.conference-page--mockup > .conference-grid--mockup {
+  grid-template-columns: minmax(420px, 34.5%) minmax(0, 1fr) !important;
+  gap: 14px !important;
+}
+.conference-grid--mockup .student-panel-header--cohesive {
+  padding: 18px 18px 11px !important;
+}
+.conference-grid--mockup .student-panel-toolbar {
+  grid-template-columns: minmax(0, 1fr) 46px auto 46px !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+.conference-grid--mockup .student-search-shell {
+  height: 46px !important;
+  min-height: 46px !important;
+  padding: 0 14px !important;
+  gap: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.conference-grid--mockup .student-search-shell svg {
+  flex: 0 0 auto !important;
+}
+.conference-grid--mockup .student-search-shell .student-search {
+  height: 44px !important;
+  min-height: 44px !important;
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+  line-height: 44px !important;
+  font-weight: 450 !important;
+  vertical-align: middle !important;
+}
+.conference-grid--mockup .student-search-shell .student-search::placeholder {
+  line-height: 44px !important;
+  opacity: 0.78;
+}
+.conference-grid--mockup .student-toolbar-icon,
+.conference-grid--mockup .student-toolbar-more,
+.conference-grid--mockup .student-toolbar-add {
+  height: 46px !important;
+  min-height: 46px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+.conference-grid--mockup .student-toolbar-icon,
+.conference-grid--mockup .student-toolbar-more {
+  width: 46px !important;
+}
+.conference-grid--mockup .student-toolbar-more {
+  padding: 0 !important;
+  font-size: 18px !important;
+  letter-spacing: 1px !important;
+}
+.conference-grid--mockup .student-toolbar-add {
+  padding: 0 16px !important;
+  gap: 7px !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  white-space: nowrap !important;
+}
+.conference-grid--mockup .student-toolbar-add > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
+}
+
+.conference-grid--mockup .status-tabs {
+  margin: 0 18px 9px !important;
+}
+.conference-grid--mockup .status-tabs button {
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 15px !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  font-weight: 550 !important;
+}
+.conference-grid--mockup .unit-filter {
+  margin: 0 18px 13px !important;
+}
+.conference-grid--mockup .unit-filter-trigger {
+  min-height: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  padding: 0 15px !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+.conference-grid--mockup .student-list {
+  padding: 0 10px 12px !important;
+}
+.conference-grid--mockup .student-card {
+  min-height: 70px !important;
+  padding: 12px 13px !important;
+}
+.conference-grid--mockup .student-card-main strong {
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+  font-weight: 650 !important;
+}
+.conference-grid--mockup .student-card-main span {
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+}
+.conference-grid--mockup .student-card-footer strong {
+  font-size: 13px !important;
+}
+
+/* ficha do aluno */
+.conference-grid--mockup .student-details-header {
+  min-height: 154px !important;
+  padding: 24px 26px 18px !important;
+  grid-template-columns: 62px minmax(0, 1fr) auto !important;
+  column-gap: 17px !important;
+  row-gap: 13px !important;
+}
+.conference-grid--mockup .student-avatar {
+  width: 62px !important;
+  height: 62px !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+.conference-grid--mockup .student-name-line h2 {
+  font-size: 24px !important;
+  line-height: 1.12 !important;
+  font-weight: 760 !important;
+}
+.student-completion-badge {
+  padding: 6px 11px !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+}
+.student-meta-line {
+  margin-top: 8px !important;
+  font-size: 12.5px !important;
+  line-height: 1.3 !important;
+}
+.student-primary-edit {
+  min-width: 132px !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 0 16px !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+.student-primary-edit span {
+  line-height: 1 !important;
+}
+.conference-grid--mockup .student-header-actions {
+  gap: 8px 22px !important;
+}
+.conference-grid--mockup .student-header-actions button {
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+.conference-grid--mockup .student-header-actions button > span {
+  line-height: 1 !important;
+}
+
+.conference-grid--mockup .document-progress {
+  padding: 14px 26px 16px !important;
+}
+.conference-grid--mockup .document-progress-label {
+  margin-bottom: 10px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+.conference-grid--mockup .progress-track {
+  height: 7px !important;
+}
+
+/* documentos */
+.conference-grid--mockup .documents-area--cohesive {
+  gap: 18px !important;
+  padding: 5px 26px 18px !important;
+}
+.conference-grid--mockup .documents-section-heading {
+  margin-bottom: 13px !important;
+}
+.conference-grid--mockup .documents-section-heading h3 {
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+}
+.conference-grid--mockup .documents-grid {
+  gap: 13px 18px !important;
+}
+.conference-grid--mockup .document-card {
+  min-height: 86px !important;
+  padding: 14px 16px !important;
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 13px !important;
+}
+.conference-grid--mockup .document-card-icon {
+  width: 46px !important;
+  height: 46px !important;
+}
+.conference-grid--mockup .document-card > div {
+  display: flex !important;
+  min-width: 0 !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 5px !important;
+}
+.conference-grid--mockup .document-card strong {
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+}
+.conference-grid--mockup .document-card > div > span {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.15 !important;
+}
+
+/* resumo sempre ocupa toda a largura, inclusive quando completo */
+.conference-grid--mockup .summary-card--cohesive {
+  width: 100% !important;
+  min-height: 112px !important;
+  box-sizing: border-box !important;
+  padding: 17px 20px !important;
+  grid-template-columns: minmax(220px, auto) minmax(0, 1fr) !important;
+  gap: 22px !important;
+}
+.conference-grid--mockup .summary-card--completo {
+  grid-template-columns: 1fr !important;
+}
+.conference-grid--mockup .summary-card-heading {
+  min-width: 0 !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 18px !important;
+}
+.conference-grid--mockup .summary-card-heading > div > span {
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+}
+.conference-grid--mockup .summary-card-heading strong {
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+}
+.conference-grid--mockup .summary-card-state {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  line-height: 1 !important;
+}
+.conference-grid--mockup .summary-chips {
+  gap: 8px !important;
+}
+.conference-grid--mockup .summary-chips span {
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 11px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+/* rodapé */
+.conference-grid--mockup .conference-actions {
+  min-height: 76px !important;
+  padding: 13px 26px !important;
+}
+.conference-grid--mockup .conference-actions > span {
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+}
+.conference-grid--mockup .secondary-action,
+.conference-grid--mockup .primary-action {
+  min-height: 46px !important;
+  height: 46px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 0 20px !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  font-weight: 650 !important;
+}
+.conference-grid--mockup .secondary-action span,
+.conference-grid--mockup .primary-action span {
+  line-height: 1 !important;
+}
+
+@media (max-width: 1450px) {
+  .conference-page--mockup > .conference-grid--mockup {
+    grid-template-columns: minmax(380px, 33%) minmax(0, 1fr) !important;
+  }
+  .conference-toolbar-title h1 {
+    font-size: 24px !important;
+  }
+  .conference-grid--mockup .student-name-line h2 {
+    font-size: 21px !important;
+  }
+}
+
+/* =====================================================
+   DOCUMENTOS + RESUMO · mockup 1:1
+   ===================================================== */
+.conference-grid--mockup .documents-area--cohesive {
+  gap: 18px !important;
+  padding: 8px 26px 18px !important;
+}
+
+.conference-grid--mockup .documents-section-heading {
+  margin: 0 0 16px !important;
+}
+
+.conference-grid--mockup .documents-section-heading h3 {
+  margin: 0 !important;
+  font-size: 18px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.conference-grid--mockup .documents-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px 18px !important;
+}
+
+.conference-grid--mockup .document-card {
+  min-height: 78px !important;
+  box-sizing: border-box !important;
+  padding: 12px 14px !important;
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) !important;
+  align-items: center !important;
+  justify-items: start !important;
+  gap: 14px !important;
+  border: 1px solid rgba(126, 144, 165, 0.18) !important;
+  border-radius: 12px !important;
+  background: rgba(248, 250, 252, 0.68) !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+.conference-grid--mockup .document-card.delivered {
+  border-color: rgba(42, 157, 84, 0.14) !important;
+  background: rgba(43, 166, 89, 0.065) !important;
+}
+
+.conference-grid--mockup .document-card:focus-within {
+  outline: none !important;
+  border-color: rgba(47, 111, 237, 0.48) !important;
+  box-shadow: 0 0 0 2px rgba(47, 111, 237, 0.08) !important;
+}
+
+.conference-grid--mockup
+  .document-card
+  input:focus-visible
+  + .document-card-icon {
+  outline: 2px solid rgba(47, 111, 237, 0.42) !important;
+  outline-offset: 2px !important;
+}
+
+.conference-grid--mockup .document-card-icon {
+  width: 44px !important;
+  height: 44px !important;
+  display: grid !important;
+  place-items: center !important;
+  position: relative !important;
+  border-radius: 10px !important;
+  color: #24384c !important;
+  background: rgba(76, 126, 255, 0.07) !important;
+}
+
+.conference-grid--mockup .document-card.delivered .document-card-icon {
+  color: #16883e !important;
+  background: rgba(38, 167, 83, 0.1) !important;
+}
+
+.conference-grid--mockup .document-card-icon > b {
+  position: absolute !important;
+  right: -3px !important;
+  bottom: -3px !important;
+  width: 16px !important;
+  height: 16px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 2px solid var(--surface, #fff) !important;
+  border-radius: 50% !important;
+  color: #fff !important;
+  background: #159447 !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+}
+
+.conference-grid--mockup .document-card > div {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  text-align: left !important;
+}
+
+.conference-grid--mockup .document-card strong {
+  margin: 0 !important;
+  color: #182433 !important;
+  font-size: 13px !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  text-align: left !important;
+}
+
+.conference-grid--mockup .document-card > div > span {
+  margin: 0 !important;
+  color: #748399 !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 500 !important;
+  text-align: left !important;
+}
+
+/* Resumo exatamente como o mockup: caixa azul, contador à esquerda e chips em linha. */
+.conference-grid--mockup .summary-card--cohesive,
+.conference-grid--mockup .summary-card--completo,
+.conference-grid--mockup .summary-card--parcial,
+.conference-grid--mockup .summary-card--critico {
+  width: 100% !important;
+  min-height: 110px !important;
+  box-sizing: border-box !important;
+  padding: 14px 18px 16px !important;
+  display: block !important;
+  border: 1.5px solid #4b87ff !important;
+  border-radius: 11px !important;
+  background: rgba(76, 126, 255, 0.015) !important;
+  box-shadow: none !important;
+  color: inherit !important;
+}
+
+.conference-grid--mockup .summary-mockup-title {
+  margin: 0 0 8px !important;
+  color: #1769e8 !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+.conference-grid--mockup .summary-mockup-body {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 74px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 18px !important;
+}
+
+.conference-grid--mockup .summary-mockup-count {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  text-align: center !important;
+}
+
+.conference-grid--mockup .summary-mockup-count strong {
+  color: #1769e8 !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.conference-grid--mockup .summary-mockup-count span {
+  max-width: 74px !important;
+  color: #5f6f84 !important;
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+  font-weight: 500 !important;
+}
+
+.conference-grid--mockup .summary-chips--mockup {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.conference-grid--mockup .summary-chips--mockup span {
+  min-height: 28px !important;
+  box-sizing: border-box !important;
+  padding: 0 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(126, 144, 165, 0.22) !important;
+  border-radius: 999px !important;
+  color: #5e6d81 !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+  font-weight: 650 !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+.conference-grid--mockup .summary-chips--mockup span::before {
+  content: "" !important;
+  width: 4px !important;
+  height: 4px !important;
+  margin-right: 6px !important;
+  flex: 0 0 4px !important;
+  border-radius: 50% !important;
+  background: #ea3e55 !important;
+}
+
+.conference-grid--mockup .summary-complete-message {
+  min-width: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
+  color: #178541 !important;
+}
+
+.conference-grid--mockup .summary-complete-check {
+  width: 25px !important;
+  height: 25px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  color: #fff !important;
+  background: #159447 !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+.conference-grid--mockup .summary-complete-message strong {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .conference-grid--mockup .document-card {
+  background: #fbfcfe !important;
+}
+html[data-theme="light"] .conference-grid--mockup .document-card.delivered {
+  background: #f4fbf6 !important;
+}
+html[data-theme="light"] .conference-grid--mockup .document-card-icon > b {
+  border-color: #fff !important;
+}
+html[data-theme="light"] .conference-grid--mockup .summary-card--cohesive {
+  background: #fff !important;
+}
+
+@media (max-width: 1100px) {
+  .conference-grid--mockup .documents-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .conference-grid--mockup .summary-mockup-body {
+    grid-template-columns: 64px minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+}

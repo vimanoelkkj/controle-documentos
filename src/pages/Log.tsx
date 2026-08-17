@@ -1,6 +1,6 @@
-import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
+import PageLoading from "../components/PageLoading";
 
 type RegistroLog = {
   id: number;
@@ -57,34 +57,30 @@ function Log() {
     );
   }, [busca, registros]);
 
+  if (carregando) {
+    return (
+      <section className="log-page">
+        <PageLoading label="Carregando histórico..." />
+      </section>
+    );
+  }
+
   return (
     <section className="log-page">
-      <header className="page-header log-header">
-        <div>
-          <span>HISTÓRICO</span>
-          <div className="page-title-row">
-          <span className="page-title-icon"><AppIcon name="log" size={22} /></span>
-          <h1>LOG</h1>
-        </div>
-          <p>Registro cronológico das ações realizadas no sistema.</p>
-        </div>
-        <button type="button" className="log-refresh" onClick={carregarLog}>↻ Atualizar</button>
-      </header>
-
-      <div className="log-toolbar">
+      <div className="page-local-actions log-header"><button type="button" className="log-refresh" onClick={carregarLog}>Atualizar</button></div>
+<div className="log-toolbar">
         <input
           type="search"
           value={busca}
           onChange={(event) => setBusca(event.target.value)}
           placeholder="Pesquisar por ação, aluno, RA ou unidade..."
         />
-        <strong>{filtrados.length}</strong>
-        <span>registro(s)</span>
+        <div className="log-results-count" aria-label={`${filtrados.length} registros`}>
+          {filtrados.length.toLocaleString("pt-BR")} {filtrados.length === 1 ? "registro" : "registros"}
+        </div>
       </div>
 
-      {carregando ? (
-        <div className="log-state">Carregando histórico...</div>
-      ) : erro ? (
+      {erro ? (
         <div className="log-state error">{erro}</div>
       ) : filtrados.length === 0 ? (
         <div className="log-state">Nenhum registro encontrado.</div>
@@ -92,14 +88,13 @@ function Log() {
         <div className="log-list">
           {filtrados.map((registro) => (
             <article className="log-item" key={registro.id}>
-              <div className="log-marker" />
               <div className="log-item-main">
                 <div className="log-item-head">
                   <strong>{registro.acao}</strong>
                   <time>{formatarData(registro.criado_em)}</time>
                 </div>
                 <p>{registro.descricao}</p>
-                <div className="log-tags">
+                <div className="log-meta">
                   {registro.ra && <span>RA {registro.ra}</span>}
                   {registro.unidade && <span>{registro.unidade}</span>}
                   <span>{registro.entidade}</span>

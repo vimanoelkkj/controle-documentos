@@ -1,0 +1,895 @@
+/* =========================================================
+   LOGIN · REDESIGN FLAT FINAL
+   Mantém a lógica existente e alinha a autenticação ao visual
+   consolidado do restante do sistema.
+   ========================================================= */
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 5vw, 64px);
+  overflow: auto;
+  background: var(--app-bg, #eef3f6);
+}
+
+.login-backdrop {
+  display: none;
+}
+
+.login-card {
+  width: min(520px, calc(100vw - 48px));
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.login-theme-selector {
+  width: min(430px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 0 auto 58px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.login-theme-selector button {
+  position: relative;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 8px 13px;
+  border: 0;
+  border-radius: 0;
+  color: #6c7d89;
+  background: transparent;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color .14s ease;
+}
+
+.login-theme-selector button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: transparent;
+}
+
+.login-theme-selector button:hover {
+  color: #24546f;
+  background: transparent;
+}
+
+.login-theme-selector button.active {
+  color: #0878ff;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.login-theme-selector button.active::after {
+  background: #0878ff;
+}
+
+.login-theme-selector button span {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.login-brand {
+  display: block;
+  margin: 0 0 42px;
+}
+
+.login-logo {
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 48px;
+  border: 0;
+  border-radius: 0;
+  color: #0878ff;
+  background: transparent;
+  box-shadow: none;
+}
+
+.login-brand-copy > span {
+  display: block;
+  color: #0878ff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.login-brand h1 {
+  margin: 18px 0 10px;
+  color: #1d2d38;
+  font-size: clamp(34px, 4vw, 42px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -.035em;
+}
+
+.login-brand p {
+  max-width: none;
+  margin: 0;
+  color: #6f808c;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.login-form {
+  display: grid;
+  gap: 28px;
+}
+
+.login-form label {
+  display: grid;
+  gap: 10px;
+}
+
+.login-form label > span {
+  color: #617481;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.login-form input {
+  min-height: 48px;
+  width: 100%;
+  padding: 8px 10px 12px;
+  border: 0;
+  border-bottom: 1px solid #cfd8de;
+  border-radius: 0;
+  outline: none;
+  color: #243743;
+  background: transparent;
+  box-shadow: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: border-color .14s ease;
+}
+
+.login-form input::placeholder {
+  color: #9aa8b1;
+}
+
+.login-form input:hover,
+.login-form input:focus,
+.login-form input:active {
+  border-color: #0878ff;
+  background: transparent;
+  box-shadow: none;
+}
+
+.login-password-field {
+  position: relative;
+  border-radius: 0;
+  background: transparent;
+}
+
+.login-password-field input {
+  padding-right: 76px;
+}
+
+.login-form .login-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: auto;
+  padding: 6px 0 8px 12px;
+  border: 0;
+  border-radius: 0;
+  color: #0878ff;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.login-form .login-password-toggle:hover,
+.login-form .login-password-toggle:focus,
+.login-form .login-password-toggle:active {
+  color: #075ec5;
+  background: transparent;
+  box-shadow: none;
+}
+
+.login-error {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #d54141;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.login-form .login-submit {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+  padding: 0 2px 0 0;
+  border: 0;
+  border-radius: 0;
+  color: #0878ff;
+  background: transparent;
+  box-shadow: none;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.login-form .login-submit:hover:not(:disabled),
+.login-form .login-submit:focus:not(:disabled),
+.login-form .login-submit:active:not(:disabled) {
+  color: #075ec5;
+  background: transparent;
+  box-shadow: none;
+}
+
+.login-form .login-submit:disabled {
+  color: #9aa8b1;
+  background: transparent;
+  opacity: 1;
+}
+
+.login-submit > span:last-child {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 50px;
+  color: #667985;
+}
+
+.login-footer small {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.login-security-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #24c97a;
+  box-shadow: none;
+}
+
+/* Autofill sem ressuscitar caixas. */
+.login-form input:-webkit-autofill,
+.login-form input:-webkit-autofill:hover,
+.login-form input:-webkit-autofill:focus,
+.login-form input:-webkit-autofill:active,
+.login-form input:autofill {
+  -webkit-text-fill-color: #243743 !important;
+  caret-color: #243743;
+  color: #243743;
+  border: 0;
+  border-bottom: 1px solid #cfd8de;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: 0 0 0 1000px #eef3f6 inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+html[data-theme="dark"] .login-shell {
+  background: #101a21;
+}
+html[data-theme="dark"] .login-card,
+html[data-theme="dark"] .login-password-field {
+  background: transparent;
+}
+html[data-theme="dark"] .login-theme-selector button {
+  color: #93a6b3;
+}
+html[data-theme="dark"] .login-theme-selector button:hover {
+  color: #c7d5dd;
+}
+html[data-theme="dark"] .login-theme-selector button.active,
+html[data-theme="dark"] .login-brand-copy > span,
+html[data-theme="dark"] .login-logo,
+html[data-theme="dark"] .login-form .login-password-toggle,
+html[data-theme="dark"] .login-form .login-submit {
+  color: #58b7ef;
+}
+html[data-theme="dark"] .login-theme-selector button.active::after {
+  background: #58b7ef;
+}
+html[data-theme="dark"] .login-brand h1 {
+  color: #edf5f8;
+}
+html[data-theme="dark"] .login-brand p,
+html[data-theme="dark"] .login-form label > span,
+html[data-theme="dark"] .login-footer {
+  color: #8da0ac;
+}
+html[data-theme="dark"] .login-form input {
+  color: #e8f1f5;
+  border-bottom-color: #31434f;
+  background: transparent;
+}
+html[data-theme="dark"] .login-form input::placeholder {
+  color: #627682;
+}
+html[data-theme="dark"] .login-form input:hover,
+html[data-theme="dark"] .login-form input:focus,
+html[data-theme="dark"] .login-form input:active {
+  border-bottom-color: #58b7ef;
+  background: transparent;
+}
+html[data-theme="dark"] .login-form input:-webkit-autofill,
+html[data-theme="dark"] .login-form input:-webkit-autofill:hover,
+html[data-theme="dark"] .login-form input:-webkit-autofill:focus,
+html[data-theme="dark"] .login-form input:-webkit-autofill:active,
+html[data-theme="dark"] .login-form input:autofill {
+  -webkit-text-fill-color: #e8f1f5 !important;
+  caret-color: #e8f1f5;
+  color: #e8f1f5;
+  border: 0;
+  border-bottom: 1px solid #31434f;
+  background: transparent !important;
+  box-shadow: 0 0 0 1000px #101a21 inset !important;
+}
+
+html[data-theme="black"] .login-shell {
+  background: #000;
+}
+html[data-theme="black"] .login-card,
+html[data-theme="black"] .login-password-field {
+  color: #f5f5f5;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+html[data-theme="black"] .login-theme-selector {
+  border: 0;
+  background: transparent;
+}
+html[data-theme="black"] .login-theme-selector button {
+  color: #8d8d8d;
+  background: transparent;
+}
+html[data-theme="black"] .login-theme-selector button:hover {
+  color: #d2d2d2;
+  background: transparent;
+}
+html[data-theme="black"] .login-theme-selector button.active,
+html[data-theme="black"] .login-brand-copy > span,
+html[data-theme="black"] .login-logo,
+html[data-theme="black"] .login-form .login-password-toggle,
+html[data-theme="black"] .login-form .login-submit {
+  color: #f2f2f2;
+  background: transparent;
+}
+html[data-theme="black"] .login-theme-selector button.active::after {
+  background: #f2f2f2;
+}
+html[data-theme="black"] .login-brand h1 {
+  color: #fff;
+}
+html[data-theme="black"] .login-brand p,
+html[data-theme="black"] .login-form label > span,
+html[data-theme="black"] .login-footer {
+  color: #9a9a9a;
+}
+html[data-theme="black"] .login-form input,
+html[data-theme="black"] .login-form input:hover,
+html[data-theme="black"] .login-form input:focus,
+html[data-theme="black"] .login-form input:active {
+  -webkit-text-fill-color: #f5f5f5;
+  caret-color: #fff;
+  color: #f5f5f5;
+  border: 0;
+  border-bottom: 1px solid #3f3f3f;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-theme="black"] .login-form input:focus {
+  border-bottom-color: #f2f2f2;
+}
+html[data-theme="black"] .login-form input:-webkit-autofill,
+html[data-theme="black"] .login-form input:-webkit-autofill:hover,
+html[data-theme="black"] .login-form input:-webkit-autofill:focus,
+html[data-theme="black"] .login-form input:-webkit-autofill:active,
+html[data-theme="black"] .login-form input:autofill {
+  -webkit-text-fill-color: #f5f5f5 !important;
+  caret-color: #fff;
+  color: #f5f5f5;
+  border: 0;
+  border-bottom: 1px solid #3f3f3f;
+  background: transparent !important;
+  box-shadow: 0 0 0 1000px #000 inset !important;
+}
+html[data-theme="black"] .login-security-dot {
+  background: #bdbdbd;
+}
+
+@media (max-width: 620px) {
+  .login-shell {
+    place-items: start center;
+    padding: 36px 22px;
+  }
+  .login-card {
+    width: 100%;
+  }
+  .login-theme-selector {
+    gap: 8px;
+    margin-bottom: 44px;
+  }
+  .login-theme-selector button {
+    font-size: 12px;
+  }
+  .login-logo {
+    margin-bottom: 36px;
+  }
+  .login-brand h1 {
+    font-size: 34px;
+  }
+  .login-footer {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+}
+
+/* =========================================================
+   LOGIN · RESET DEFINITIVO DA ESTRUTURA LEGADA
+   Os estilos antigos de autenticação usam seletores de tema
+   mais específicos. Este bloco neutraliza a antiga "caixa".
+   ========================================================= */
+html[data-theme="light"] .login-card,
+html[data-theme="dark"] .login-card,
+html[data-theme="black"] .login-card {
+  width: min(520px, calc(100vw - 48px));
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+
+html[data-theme="light"] .login-theme-selector,
+html[data-theme="dark"] .login-theme-selector,
+html[data-theme="black"] .login-theme-selector {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .login-theme-selector button,
+html[data-theme="dark"] .login-theme-selector button,
+html[data-theme="black"] .login-theme-selector button,
+html[data-theme="light"] .login-theme-selector button:hover,
+html[data-theme="dark"] .login-theme-selector button:hover,
+html[data-theme="black"] .login-theme-selector button:hover,
+html[data-theme="light"] .login-theme-selector button.active,
+html[data-theme="dark"] .login-theme-selector button.active,
+html[data-theme="black"] .login-theme-selector button.active {
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .login-form input,
+html[data-theme="dark"] .login-form input,
+html[data-theme="black"] .login-form input,
+html[data-theme="light"] .login-password-field,
+html[data-theme="dark"] .login-password-field,
+html[data-theme="black"] .login-password-field {
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .login-form .login-submit,
+html[data-theme="dark"] .login-form .login-submit,
+html[data-theme="black"] .login-form .login-submit,
+html[data-theme="light"] .login-form .login-password-toggle,
+html[data-theme="dark"] .login-form .login-password-toggle,
+html[data-theme="black"] .login-form .login-password-toggle {
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 620px) {
+  html[data-theme="light"] .login-card,
+  html[data-theme="dark"] .login-card,
+  html[data-theme="black"] .login-card {
+    width: 100%;
+  }
+}
+
+
+/* v24-89 — login totalmente sem linhas */
+.login-page .login-input,
+.login-page .login-password-row,
+.login-page input,
+.login-page .login-submit,
+.login-page .login-theme-option,
+.login-page .theme-option,
+.login-page .login-theme-switcher,
+.login-page .theme-switcher {
+  border: 0 !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.login-page .login-theme-option::before,
+.login-page .login-theme-option::after,
+.login-page .theme-option::before,
+.login-page .theme-option::after,
+.login-page .login-input::before,
+.login-page .login-input::after,
+.login-page .login-password-row::before,
+.login-page .login-password-row::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+}
+
+.login-page .login-theme-option.active,
+.login-page .theme-option.active,
+.login-page [aria-pressed="true"] {
+  border: 0 !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+
+/* v24-90 — remove as linhas horizontais residuais dos campos */
+.login-page .login-field,
+.login-page .login-field input,
+.login-page .login-input,
+.login-page .login-password,
+.login-page .login-password-row,
+.login-page .login-password-row input,
+.login-page input[type="text"],
+.login-page input[type="email"],
+.login-page input[type="password"] {
+  border: 0 !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  background: transparent !important;
+  outline: 0 !important;
+}
+
+.login-page .login-field::before,
+.login-page .login-field::after,
+.login-page .login-password::before,
+.login-page .login-password::after,
+.login-page .login-password-row::before,
+.login-page .login-password-row::after {
+  content: none !important;
+  display: none !important;
+  height: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* v24-91 — remove de fato as linhas dos inputs (root real: .login-shell) */
+.login-shell .login-form input,
+.login-shell .login-form input:hover,
+.login-shell .login-form input:focus,
+.login-shell .login-form input:active,
+html[data-theme="light"] .login-shell .login-form input,
+html[data-theme="dark"] .login-shell .login-form input,
+html[data-theme="black"] .login-shell .login-form input {
+  border: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+}
+.login-shell .login-password-field,
+html[data-theme="light"] .login-shell .login-password-field,
+html[data-theme="dark"] .login-shell .login-password-field,
+html[data-theme="black"] .login-shell .login-password-field {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+
+/* v24-92 — ação de login somente com seta e sem deslocamento no hover */
+.login-shell .login-form .login-submit,
+.login-shell .login-form .login-submit:hover:not(:disabled),
+.login-shell .login-form .login-submit:focus:not(:disabled),
+.login-shell .login-form .login-submit:active:not(:disabled) {
+  transform: none !important;
+  translate: none !important;
+  margin-top: 2px !important;
+  padding: 0 2px 0 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.login-shell .login-form .login-submit-arrow-only {
+  justify-content: flex-end !important;
+}
+.login-shell .login-form .login-submit-arrow-only > span:last-child {
+  display: block;
+  margin: 0;
+  transform: none !important;
+}
+
+/* v24-95 · credenciais salvas sem bloco visual do navegador */
+.login-shell {
+  --login-autofill-bg: var(--app-bg, #eef3f6);
+  --login-autofill-fg: #243743;
+}
+
+html[data-theme="dark"] .login-shell {
+  --login-autofill-bg: #101a21;
+  --login-autofill-fg: #e8f1f5;
+}
+
+html[data-theme="black"] .login-shell {
+  --login-autofill-bg: #000;
+  --login-autofill-fg: #f5f5f5;
+}
+
+.login-shell .login-form input:-webkit-autofill,
+.login-shell .login-form input:-webkit-autofill:hover,
+.login-shell .login-form input:-webkit-autofill:focus,
+.login-shell .login-form input:-webkit-autofill:active,
+.login-shell .login-form input:autofill,
+.login-shell .login-form input:autofill:hover,
+.login-shell .login-form input:autofill:focus {
+  -webkit-text-fill-color: var(--login-autofill-fg) !important;
+  caret-color: var(--login-autofill-fg) !important;
+  color: var(--login-autofill-fg) !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background-color: var(--login-autofill-bg) !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--login-autofill-bg) inset !important;
+  box-shadow: 0 0 0 1000px var(--login-autofill-bg) inset !important;
+  border-radius: 0 !important;
+  transition: background-color 9999s ease-out 0s !important;
+}
+
+
+/* v24-96 · remove definitivamente qualquer bloco visual dos campos do login */
+.login-shell .login-form input,
+.login-shell .login-form input:hover,
+.login-shell .login-form input:focus,
+.login-shell .login-form input:focus-visible,
+.login-shell .login-form input:active {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Firefox: credenciais salvas/autofill também ficam fundidas ao fundo da página. */
+.login-shell .login-form input:-moz-autofill,
+.login-shell .login-form input:-moz-autofill:hover,
+.login-shell .login-form input:-moz-autofill:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Chromium/WebKit: não desenha o retângulo de autofill. */
+.login-shell .login-form input:-webkit-autofill,
+.login-shell .login-form input:-webkit-autofill:hover,
+.login-shell .login-form input:-webkit-autofill:focus,
+.login-shell .login-form input:-webkit-autofill:active {
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--login-autofill-bg) inset !important;
+  box-shadow: 0 0 0 1000px var(--login-autofill-bg) inset !important;
+  background-color: var(--login-autofill-bg) !important;
+  background-image: none !important;
+}
+
+/* v24-97 · cobre o fundo imposto pelo gerenciador de senhas/autofill do Firefox e Chromium */
+.login-shell .login-form input,
+.login-shell .login-form input:hover,
+.login-shell .login-form input:focus,
+.login-shell .login-form input:focus-visible,
+.login-shell .login-form input:active,
+.login-shell .login-form input:autofill,
+.login-shell .login-form input:autofill:hover,
+.login-shell .login-form input:autofill:focus,
+.login-shell .login-form input:-moz-autofill,
+.login-shell .login-form input:-moz-autofill:hover,
+.login-shell .login-form input:-moz-autofill:focus,
+.login-shell .login-form input:-webkit-autofill,
+.login-shell .login-form input:-webkit-autofill:hover,
+.login-shell .login-form input:-webkit-autofill:focus,
+.login-shell .login-form input:-webkit-autofill:active {
+  background: var(--login-autofill-bg) !important;
+  background-color: var(--login-autofill-bg) !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--login-autofill-bg) inset !important;
+  box-shadow: 0 0 0 1000px var(--login-autofill-bg) inset !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  filter: none !important;
+}
+
+.login-shell .login-password-field,
+.login-shell .login-password-field:hover,
+.login-shell .login-password-field:focus-within {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+
+/* v24-98 · correção específica do tema claro
+   Há regras antigas com seletor mais específico:
+   html[data-theme="light"] .login-form input:-webkit-autofill
+   que forçavam #fff. Sobrescrevemos com especificidade maior. */
+html[data-theme="light"] .login-shell .login-form input,
+html[data-theme="light"] .login-shell .login-form input:hover,
+html[data-theme="light"] .login-shell .login-form input:focus,
+html[data-theme="light"] .login-shell .login-form input:focus-visible,
+html[data-theme="light"] .login-shell .login-form input:active,
+html[data-theme="light"] .login-shell .login-form input:autofill,
+html[data-theme="light"] .login-shell .login-form input:autofill:hover,
+html[data-theme="light"] .login-shell .login-form input:autofill:focus,
+html[data-theme="light"] .login-shell .login-form input:-moz-autofill,
+html[data-theme="light"] .login-shell .login-form input:-moz-autofill:hover,
+html[data-theme="light"] .login-shell .login-form input:-moz-autofill:focus,
+html[data-theme="light"] .login-shell .login-form input:-webkit-autofill,
+html[data-theme="light"] .login-shell .login-form input:-webkit-autofill:hover,
+html[data-theme="light"] .login-shell .login-form input:-webkit-autofill:focus,
+html[data-theme="light"] .login-shell .login-form input:-webkit-autofill:active {
+  color: #243743 !important;
+  -webkit-text-fill-color: #243743 !important;
+  caret-color: #243743 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: #eef3f6 !important;
+  background-color: #eef3f6 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #eef3f6 inset !important;
+  box-shadow: 0 0 0 1000px #eef3f6 inset !important;
+}
+
+html[data-theme="light"] .login-shell .login-password-field,
+html[data-theme="light"] .login-shell .login-password-field:hover,
+html[data-theme="light"] .login-shell .login-password-field:focus-within {
+  border: 0 !important;
+  outline: 0 !important;
+  background: #eef3f6 !important;
+  background-color: #eef3f6 !important;
+  box-shadow: none !important;
+}
+
+
+/* v24-101 · credenciais salvas isoladas por tema */
+html[data-theme="dark"] .login-shell .login-form input,
+html[data-theme="dark"] .login-shell .login-form input:hover,
+html[data-theme="dark"] .login-shell .login-form input:focus,
+html[data-theme="dark"] .login-shell .login-form input:focus-visible,
+html[data-theme="dark"] .login-shell .login-form input:active,
+html[data-theme="dark"] .login-shell .login-form input:autofill,
+html[data-theme="dark"] .login-shell .login-form input:autofill:hover,
+html[data-theme="dark"] .login-shell .login-form input:autofill:focus,
+html[data-theme="dark"] .login-shell .login-form input:-moz-autofill,
+html[data-theme="dark"] .login-shell .login-form input:-moz-autofill:hover,
+html[data-theme="dark"] .login-shell .login-form input:-moz-autofill:focus,
+html[data-theme="dark"] .login-shell .login-form input:-webkit-autofill,
+html[data-theme="dark"] .login-shell .login-form input:-webkit-autofill:hover,
+html[data-theme="dark"] .login-shell .login-form input:-webkit-autofill:focus,
+html[data-theme="dark"] .login-shell .login-form input:-webkit-autofill:active {
+  color: #e8f1f5 !important;
+  -webkit-text-fill-color: #e8f1f5 !important;
+  caret-color: #e8f1f5 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: #101a21 !important;
+  background-color: #101a21 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #101a21 inset !important;
+  box-shadow: 0 0 0 1000px #101a21 inset !important;
+}
+
+html[data-theme="black"] .login-shell .login-form input,
+html[data-theme="black"] .login-shell .login-form input:hover,
+html[data-theme="black"] .login-shell .login-form input:focus,
+html[data-theme="black"] .login-shell .login-form input:focus-visible,
+html[data-theme="black"] .login-shell .login-form input:active,
+html[data-theme="black"] .login-shell .login-form input:autofill,
+html[data-theme="black"] .login-shell .login-form input:autofill:hover,
+html[data-theme="black"] .login-shell .login-form input:autofill:focus,
+html[data-theme="black"] .login-shell .login-form input:-moz-autofill,
+html[data-theme="black"] .login-shell .login-form input:-moz-autofill:hover,
+html[data-theme="black"] .login-shell .login-form input:-moz-autofill:focus,
+html[data-theme="black"] .login-shell .login-form input:-webkit-autofill,
+html[data-theme="black"] .login-shell .login-form input:-webkit-autofill:hover,
+html[data-theme="black"] .login-shell .login-form input:-webkit-autofill:focus,
+html[data-theme="black"] .login-shell .login-form input:-webkit-autofill:active {
+  color: #f5f5f5 !important;
+  -webkit-text-fill-color: #f5f5f5 !important;
+  caret-color: #f5f5f5 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: #000 !important;
+  background-color: #000 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #000 inset !important;
+  box-shadow: 0 0 0 1000px #000 inset !important;
+}
+
+html[data-theme="dark"] .login-shell .login-password-field,
+html[data-theme="dark"] .login-shell .login-password-field:hover,
+html[data-theme="dark"] .login-shell .login-password-field:focus-within {
+  background: #101a21 !important;
+  background-color: #101a21 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="black"] .login-shell .login-password-field,
+html[data-theme="black"] .login-shell .login-password-field:hover,
+html[data-theme="black"] .login-shell .login-password-field:focus-within {
+  background: #000 !important;
+  background-color: #000 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}

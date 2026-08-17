@@ -1,3 +1,5 @@
+import { normalizarComparacao, normalizarTexto } from "../utils/texto";
+
 type EventoAuditoriaCurso = {
   acao: string;
   entidade: string;
@@ -13,17 +15,6 @@ type CursosRouteContext = {
   podeEditar: boolean;
   registrarAuditoria: (evento: EventoAuditoriaCurso) => Promise<void>;
 };
-
-function normalizarTexto(valor: unknown) {
-  return String(valor ?? "").trim();
-}
-
-function normalizarComparacao(valor: unknown) {
-  return normalizarTexto(valor)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase();
-}
 
 export async function handleCursosRoute({
   request,

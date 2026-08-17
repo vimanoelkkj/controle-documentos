@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
 /*
  * Entrada global de estilos.
  *
@@ -18,3 +20,44 @@
 @import "./styles/index/100-unified-headers-black-admin.css";
 @import "./styles/index/110-final-polish-and-features.css";
 @import "./styles/index/120-unified-page-headers.css";
+@import "./styles/index/150-conference-cohesion-polish.css";
+
+@import "./styles/index/170-sidebar-mockup.css";
+
+
+
+
+
+@import "./styles/index/220-dashboard-mockup-exact.css";
+
+@import "./styles/index/240-conference-reference-replica.css";
+
+@import "./styles/index/250-sidebar-conference-identity.css";
+
+@import "./styles/index/260-unified-conference-header.css";
+
+@import "./styles/index/270-unified-loading.css";
+
+@import "./styles/index/280-log-flat-layout.css";
+
+@import "./styles/index/290-statistics-flat-redesign.css";
+
+@import "./styles/index/300-statistics-final-layout.css";
+
+@import "./styles/index/310-log-compact-search.css";
+
+@import "./styles/index/320-periods-flat-redesign.css";
+
+@import "./styles/index/330-courses-flat-redesign.css";
+
+@import "./styles/index/340-settings-flat-redesign.css";
+
+@import "./styles/index/350-unified-app-select.css";
+
+@import "./styles/index/360-about-flat-redesign.css";
+
+@import "./styles/index/370-modal-flat-system.css";
+
+@import "./styles/index/380-login-flat-redesign.css";
+
+@import "./styles/index/390-flat-dark-shell.css";

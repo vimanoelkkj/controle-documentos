@@ -45,6 +45,7 @@ export function ListaCursos({
   setDestinos,
   aoConfirmarCurso,
 }: Props) {
+  void carregando;
   return (
     <section className="courses-panel">
       <div className="courses-toolbar">
@@ -87,9 +88,7 @@ export function ListaCursos({
 
       {erro && <div className="courses-message error">{erro}</div>}
 
-      {carregando ? (
-        <div className="courses-empty">Carregando cursos...</div>
-      ) : filtrados.length === 0 ? (
+      {filtrados.length === 0 ? (
         <div className="courses-empty">Nenhum curso encontrado.</div>
       ) : (
         <div className="courses-list">
@@ -143,11 +142,14 @@ export function ListaCursos({
                       label: unidade,
                     }))}
                     ariaLabel={`Nova unidade de ${curso.curso}`}
+                    className="course-unit-select"
+                    menuClassName="course-unit-select-menu"
                   />
                 </label>
 
                 <button
                   type="button"
+                  className="course-apply-action"
                   disabled={!podeEditar || semAlteracao}
                   onClick={() => {
                     setMensagem(null);

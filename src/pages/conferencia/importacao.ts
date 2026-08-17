@@ -1,3 +1,4 @@
+import { normalizarCampo } from "../../lib/texto";
 import {
   detectarSeparador,
   interpretarContrato,
@@ -72,14 +73,13 @@ export function analisarTextoImportacao(
 
     const alunoSalvo = alunosSalvos.find((cadastrado) => cadastrado.ra === aluno.ra);
     if (!alunoSalvo) return aluno;
-    const normalizar = (valor: string | null | undefined) => (valor ?? "").trim();
     const alteracoes: string[] = [];
     if (alunoSalvo.status === "CANCELADO") alteracoes.push("Status: CANCELADO → ATIVO");
-    if (normalizar(alunoSalvo.nome) !== normalizar(aluno.nome)) alteracoes.push(`Nome: ${alunoSalvo.nome} → ${aluno.nome}`);
-    if (normalizar(alunoSalvo.curso) !== normalizar(aluno.curso)) alteracoes.push(`Curso: ${alunoSalvo.curso} → ${aluno.curso}`);
-    if (normalizar(alunoSalvo.unidade) !== normalizar(unidadeImportacao)) alteracoes.push(`Unidade: ${alunoSalvo.unidade} → ${unidadeImportacao}`);
-    if (normalizar(alunoSalvo.email) !== normalizar(aluno.email)) alteracoes.push(`E-mail: ${alunoSalvo.email || "—"} → ${aluno.email || "—"}`);
-    if (normalizar(alunoSalvo.email_outro) !== normalizar(aluno.email_outro)) alteracoes.push(`E-mail alternativo: ${alunoSalvo.email_outro || "—"} → ${aluno.email_outro || "—"}`);
+    if (normalizarCampo(alunoSalvo.nome) !== normalizarCampo(aluno.nome)) alteracoes.push(`Nome: ${alunoSalvo.nome} → ${aluno.nome}`);
+    if (normalizarCampo(alunoSalvo.curso) !== normalizarCampo(aluno.curso)) alteracoes.push(`Curso: ${alunoSalvo.curso} → ${aluno.curso}`);
+    if (normalizarCampo(alunoSalvo.unidade) !== normalizarCampo(unidadeImportacao)) alteracoes.push(`Unidade: ${alunoSalvo.unidade} → ${unidadeImportacao}`);
+    if (normalizarCampo(alunoSalvo.email) !== normalizarCampo(aluno.email)) alteracoes.push(`E-mail: ${alunoSalvo.email || "—"} → ${aluno.email || "—"}`);
+    if (normalizarCampo(alunoSalvo.email_outro) !== normalizarCampo(aluno.email_outro)) alteracoes.push(`E-mail alternativo: ${alunoSalvo.email_outro || "—"} → ${aluno.email_outro || "—"}`);
     if (alteracoes.length > 0) return { ...aluno, status: "alterado" as const, motivo: alteracoes.join(" | ") };
     return { ...aluno, status: "igual" as const, motivo: "Cadastro já está atualizado." };
   });

@@ -23,6 +23,7 @@ type AppSelectProps = {
   disabled?: boolean;
   ariaLabel?: string;
   className?: string;
+  menuClassName?: string;
 };
 
 function AppSelect({
@@ -32,6 +33,7 @@ function AppSelect({
   disabled = false,
   ariaLabel,
   className = "",
+  menuClassName = "",
 }: AppSelectProps) {
   const [aberto, setAberto] = useState(false);
   const [indiceAtivo, setIndiceAtivo] = useState(0);
@@ -168,7 +170,7 @@ function AppSelect({
           <div
             ref={menuRef}
             id={listboxId}
-            className="app-select-menu"
+            className={`app-select-menu ${menuClassName}`.trim()}
             role="listbox"
             style={menuStyle}
           >

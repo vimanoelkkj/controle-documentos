@@ -101,6 +101,13 @@ export function GoogleSheetsCard(props: Props) {
         </div>
       </div>
 
+      {sheetsErro && (
+        <div className="period-sheets-inline-error" role="alert">
+          <span aria-hidden="true">!</span>
+          <small>{sheetsErro}</small>
+        </div>
+      )}
+
       <label className="period-sheets-main">
         <span>Link ou ID da planilha</span>
         <input
@@ -134,7 +141,6 @@ export function GoogleSheetsCard(props: Props) {
         ))}
       </div>
 
-      {sheetsErro && <div className="period-sheets-error">{sheetsErro}</div>}
       <div className="period-sheets-actions">
         {!modoApresentacao && (
           <button

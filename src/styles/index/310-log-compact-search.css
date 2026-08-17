@@ -1,0 +1,37 @@
+/* =========================================================
+   V24.49 — Log: busca mais compacta
+   ========================================================= */
+.log-page .log-toolbar {
+  justify-content: flex-start;
+}
+
+.log-page .log-toolbar input {
+  flex: 0 1 62%;
+  width: 62%;
+  max-width: 980px;
+  min-width: 320px;
+  height: 38px;
+}
+
+.log-page .log-results-count {
+  margin-left: 2px;
+}
+
+@media (max-width: 900px) {
+  .log-page .log-toolbar input {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+  }
+}
+
+
+/* V24.50 — contador do Log no mesmo padrão tipográfico da Conferência */
+.log-page .log-results-count {
+  display: block !important;
+  color: #67768b !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+}

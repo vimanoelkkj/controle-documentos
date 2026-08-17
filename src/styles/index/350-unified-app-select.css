@@ -1,0 +1,178 @@
+/* =========================================================
+   350 - Unified AppSelect menus
+   Padrão visual único inspirado no seletor de unidade da Conferência.
+   ========================================================= */
+
+/* Trigger: flat, sem caixa pesada. */
+.app-select-trigger,
+html[data-theme="light"] .app-select-trigger,
+html[data-theme="black"] .app-select-trigger {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  min-height: 34px;
+  padding: 0 4px !important;
+  color: var(--text, #162536) !important;
+}
+
+.app-select-trigger:hover:not(:disabled),
+.app-select-trigger:focus-visible,
+.app-select-trigger[aria-expanded="true"],
+html[data-theme="light"] .app-select-trigger:hover:not(:disabled),
+html[data-theme="light"] .app-select-trigger:focus-visible,
+html[data-theme="light"] .app-select-trigger[aria-expanded="true"],
+html[data-theme="black"] .app-select-trigger:hover:not(:disabled),
+html[data-theme="black"] .app-select-trigger:focus-visible,
+html[data-theme="black"] .app-select-trigger[aria-expanded="true"] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.app-select-chevron {
+  color: #60758a !important;
+  font-size: 11px;
+}
+
+/* Menu: mesma linguagem da Conferência. */
+.app-select-menu,
+.course-unit-select-menu,
+.settings-role-menu,
+.settings-dev-unit-menu,
+html[data-theme="light"] .app-select-menu,
+html[data-theme="black"] .app-select-menu {
+  background: #eef3f8 !important;
+  border: 0 !important;
+  box-shadow: 0 14px 34px rgba(25, 48, 73, 0.10) !important;
+  border-radius: 12px !important;
+  padding: 8px !important;
+  overflow: hidden;
+}
+
+.app-select-option,
+.course-unit-select-menu .app-select-option,
+.settings-role-menu .app-select-option,
+.settings-dev-unit-menu .app-select-option,
+html[data-theme="light"] .app-select-option,
+html[data-theme="black"] .app-select-option {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: #50677f !important;
+  text-align: left;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Marcador circular único para TODOS os selects. */
+.app-select-option::before,
+.course-unit-select-menu .app-select-option::before,
+.settings-role-menu .app-select-option::before,
+.settings-dev-unit-menu .app-select-option::before {
+  content: "" !important;
+  position: static !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin: 0 !important;
+  border: 1.5px solid #9fb4c8 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  box-sizing: border-box;
+}
+
+.app-select-option > span {
+  grid-column: 2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-select-option small {
+  grid-column: 3;
+  justify-self: end;
+  margin: 0 !important;
+  color: #526f8c !important;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.app-select-option:hover:not(:disabled),
+.app-select-option.active:not(:disabled),
+.course-unit-select-menu .app-select-option:hover:not(:disabled),
+.course-unit-select-menu .app-select-option.active:not(:disabled),
+.settings-role-menu .app-select-option:hover:not(:disabled),
+.settings-role-menu .app-select-option.active:not(:disabled),
+.settings-dev-unit-menu .app-select-option:hover:not(:disabled),
+.settings-dev-unit-menu .app-select-option.active:not(:disabled) {
+  background: #e5edf5 !important;
+  color: #1f5f9d !important;
+}
+
+.app-select-option.selected,
+.course-unit-select-menu .app-select-option.selected,
+.settings-role-menu .app-select-option.selected,
+.settings-dev-unit-menu .app-select-option.selected,
+html[data-theme="light"] .app-select-option.selected,
+html[data-theme="black"] .app-select-option.selected {
+  background: transparent !important;
+  color: #0876df !important;
+  font-weight: 600;
+}
+
+.app-select-option.selected::before,
+.course-unit-select-menu .app-select-option.selected::before,
+.settings-role-menu .app-select-option.selected::before,
+.settings-dev-unit-menu .app-select-option.selected::before {
+  border-color: #1f80e5 !important;
+  background: #1f80e5 !important;
+  box-shadow: inset 0 0 0 3px #eef3f8 !important;
+}
+
+.app-select-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Tema escuro: mantém a mesma geometria, muda apenas a paleta. */
+html[data-theme="black"] .app-select-menu,
+html[data-theme="black"] .course-unit-select-menu,
+html[data-theme="black"] .settings-role-menu,
+html[data-theme="black"] .settings-dev-unit-menu {
+  background: #171d24 !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.35) !important;
+}
+
+html[data-theme="black"] .app-select-option,
+html[data-theme="black"] .course-unit-select-menu .app-select-option,
+html[data-theme="black"] .settings-role-menu .app-select-option,
+html[data-theme="black"] .settings-dev-unit-menu .app-select-option {
+  color: #b7c5d3 !important;
+}
+
+html[data-theme="black"] .app-select-option:hover:not(:disabled),
+html[data-theme="black"] .app-select-option.active:not(:disabled) {
+  background: #222b35 !important;
+  color: #75b8ff !important;
+}
+
+html[data-theme="black"] .app-select-option.selected {
+  color: #66adf5 !important;
+}
+
+html[data-theme="black"] .app-select-option.selected::before {
+  border-color: #58a7f5 !important;
+  background: #58a7f5 !important;
+  box-shadow: inset 0 0 0 3px #171d24 !important;
+}

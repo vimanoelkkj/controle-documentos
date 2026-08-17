@@ -1,0 +1,187 @@
+/* =========================================================
+   CABEÇALHO UNIFICADO DO DASHBOARD
+   Isolado de propósito num arquivo próprio — a versão da
+   Conferência está espalhada em 4 arquivos diferentes (140/150/
+   160/200), então em vez de reaproveitar aquelas classes e correr
+   risco de quebrar o que já funciona lá, escrevo do zero aqui só
+   pro Dashboard. Mesma ideia visual: título + descrição à esquerda,
+   Google Planilhas + Período à direita, tudo numa linha só.
+   ========================================================= */
+
+.period-toolbar--dashboard {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 18px 22px;
+  border-color: #e4e9f0;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.dashboard-toolbar-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dashboard-toolbar-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #dce8fb;
+  border-radius: 10px;
+  color: #1268f3;
+  background: #f0f6ff;
+}
+
+.dashboard-toolbar-title h1 {
+  margin: 0;
+  color: #101827;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.dashboard-toolbar-title p {
+  margin: 2px 0 0;
+  color: #60708c;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.dashboard-toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dashboard-sheets-state {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid #e4e9f0;
+  border-radius: 8px;
+  color: #3f5576;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dashboard-sheets-state svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+}
+
+.dashboard-sheets-state .google-sheets-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a32d2d;
+}
+
+.dashboard-sheets-state.google-sheets-status--conectado .google-sheets-status-dot {
+  background: #3b6d11;
+}
+
+.dashboard-sheets-action {
+  padding: 7px 12px;
+  border: 1px solid #dbe3ec;
+  border-radius: 8px;
+  color: #17233a;
+  background: #ffffff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 90ms ease, background 90ms ease;
+}
+
+.dashboard-sheets-action:hover {
+  border-color: #cbd6e2;
+  background: #f8fbff;
+  color: #1268f3;
+}
+
+/* Filtro "Visualização" — fica dentro do conteúdo da página (não no
+   cabeçalho, que é do AppLayout e não conhece as unidades do
+   Dashboard), mas alinhado como uma linha de contexto discreta logo
+   abaixo do cabeçalho, em vez de competir como uma segunda barra. */
+.dashboard-view-filter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 24px 0;
+  color: #73829b;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dashboard-view-filter select {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
+/* Dark / black herdam a paleta que o restante do app já usa pra essas
+   páginas — mantém o mesmo tom em vez de inventar uma paleta nova só
+   pro Dashboard. */
+html[data-theme="dark"] .period-toolbar--dashboard,
+html[data-theme="black"] .period-toolbar--dashboard {
+  border-color: #263544;
+  background: #101a23;
+}
+
+html[data-theme="dark"] .dashboard-toolbar-title h1,
+html[data-theme="black"] .dashboard-toolbar-title h1 {
+  color: #f4f7fb;
+}
+
+html[data-theme="dark"] .dashboard-toolbar-title p,
+html[data-theme="black"] .dashboard-toolbar-title p,
+html[data-theme="dark"] .dashboard-view-filter,
+html[data-theme="black"] .dashboard-view-filter {
+  color: #8293a5;
+}
+
+html[data-theme="dark"] .dashboard-toolbar-title-icon,
+html[data-theme="black"] .dashboard-toolbar-title-icon {
+  border-color: #2b4358;
+  color: #71beff;
+  background: #142638;
+}
+
+html[data-theme="dark"] .dashboard-sheets-state,
+html[data-theme="black"] .dashboard-sheets-state {
+  border-color: #334758;
+  color: #d8e3ec;
+  background: #15232e;
+}
+
+html[data-theme="dark"] .dashboard-sheets-action,
+html[data-theme="black"] .dashboard-sheets-action {
+  border-color: #334758;
+  color: #d8e3ec;
+  background: #15232e;
+}
+
+@media (max-width: 900px) {
+  .period-toolbar--dashboard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-toolbar-controls {
+    justify-content: flex-start;
+  }
+}

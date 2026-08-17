@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import AppIcon from "../components/AppIcon";
 import { useAuth } from "../contexts/auth";
 
 import { useBackup } from "./configuracoes/hooks/useBackup";
@@ -97,23 +96,7 @@ function Configuracoes() {
 
   return (
     <section className="settings-page">
-      <header className="settings-header">
-        <div>
-          <span>SISTEMA</span>
-
-          <div className="page-title-row">
-            <span className="page-title-icon">
-              <AppIcon name="settings" size={22} />
-            </span>
-
-            <h1>Configurações</h1>
-          </div>
-
-          <p>Preferências, integrações e controle de acesso.</p>
-        </div>
-      </header>
-
-      {!admin ? (
+{!admin ? (
         <div className="settings-readonly">
           O gerenciamento de usuários é exclusivo para administradores.
         </div>

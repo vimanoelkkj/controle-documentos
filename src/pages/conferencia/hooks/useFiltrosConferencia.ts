@@ -12,7 +12,6 @@ type FiltroDocumental = "COMPLETO" | "PARCIAL" | "CRITICO" | "";
 
 type UseFiltrosConferenciaParams = {
   alunosSalvos: Aluno[];
-  alunosEmEdicao: Aluno[];
   raSelecionado: string;
   busca: string;
   filtroStatus: FiltroStatus;
@@ -23,7 +22,6 @@ type UseFiltrosConferenciaParams = {
 
 export function useFiltrosConferencia({
   alunosSalvos,
-  alunosEmEdicao,
   raSelecionado,
   busca,
   filtroStatus,
@@ -37,7 +35,7 @@ export function useFiltrosConferencia({
     const correspondeFiltroStatus = (aluno: Aluno) =>
       filtroStatus === "TODOS" || aluno.status === filtroStatus;
 
-    const alunosNoStatus = alunosEmEdicao.filter(correspondeFiltroStatus);
+    const alunosNoStatus = alunosSalvos.filter(correspondeFiltroStatus);
 
     const quantidadesPorUnidade = {
       FACE: alunosNoStatus.filter((aluno) => aluno.unidade === "FACE").length,
@@ -144,8 +142,7 @@ export function useFiltrosConferencia({
     };
   }, [
     alunosSalvos,
-    alunosEmEdicao,
-    raSelecionado,
+      raSelecionado,
     busca,
     filtroStatus,
     unidadeSelecionada,

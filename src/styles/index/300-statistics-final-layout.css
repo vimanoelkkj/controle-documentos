@@ -1,0 +1,506 @@
+/* =========================================================
+   ESTATÍSTICAS · LAYOUT FINAL
+   Fundo único da página, sem cards estruturais. A tela passa
+   a responder quatro perguntas: visão geral, distribuição,
+   gargalos e padrões/comparativo por unidade.
+   ========================================================= */
+
+.statistics-page {
+  gap: 28px;
+}
+
+/* O filtro continua no topo, mas sem caixa. */
+.statistics-page .statistics-hero {
+  min-height: 38px;
+}
+
+.statistics-page .statistics-unit-filter {
+  width: max-content;
+  min-width: 245px;
+  margin-left: auto;
+}
+
+.statistics-page .statistics-unit-filter .app-select-trigger,
+html[data-theme="light"] .statistics-page .statistics-unit-filter .app-select-trigger,
+html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-trigger {
+  min-height: 34px;
+  padding: 0 0 6px;
+  border-bottom: 2px solid var(--accent, #1677ff);
+  background: transparent;
+}
+
+/* KPIs: apenas conteúdo + traço cromático funcional. */
+.statistics-page .statistics-kpis {
+  gap: clamp(28px, 5vw, 78px);
+}
+
+.statistics-page .statistics-kpi {
+  padding: 0 0 14px;
+}
+
+.statistics-page .statistics-kpi::after {
+  right: 0;
+  height: 2px;
+}
+
+.statistics-page .statistics-kpi > span {
+  font-size: 11px;
+}
+
+.statistics-page .statistics-kpi strong {
+  margin-top: 8px;
+  font-size: 28px;
+}
+
+.statistics-page .statistics-kpi small {
+  margin-top: 7px;
+}
+
+/* As duas faixas analíticas compartilham a mesma geometria. */
+.statistics-page .statistics-grid.two-columns {
+  grid-template-columns: minmax(430px, 0.92fr) minmax(520px, 1.08fr);
+  gap: clamp(42px, 6vw, 92px);
+}
+
+.statistics-page .statistics-grid.single-column {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr);
+}
+
+.statistics-page .lower-grid {
+  align-items: start;
+  margin-top: 4px;
+}
+
+.statistics-page .statistics-card,
+html[data-theme="light"] .statistics-page .statistics-card,
+html[data-theme="black"] .statistics-page .statistics-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.statistics-page .statistics-card-header {
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+}
+
+.statistics-page .statistics-card-header span {
+  font-size: 11px;
+}
+
+.statistics-page .statistics-card-header h2 {
+  margin-top: 5px;
+  font-size: 15px;
+}
+
+/* Distribuição mais arejada, sem painel branco. */
+.statistics-page .statistics-histogram {
+  min-height: 310px;
+  padding: 26px 0 0;
+}
+
+.statistics-page .statistics-histogram-column {
+  grid-template-rows: 20px 190px auto auto;
+  gap: 7px;
+}
+
+.statistics-page .statistics-histogram-track {
+  height: 178px;
+  width: min(28px, 54%);
+}
+
+/* Gargalos: ranking totalmente flat. */
+.statistics-page .statistics-document-list {
+  gap: 3px;
+  padding-top: 10px;
+}
+
+.statistics-page .statistics-document-row,
+html[data-theme="light"] .statistics-page .statistics-document-row,
+html[data-theme="black"] .statistics-page .statistics-document-row {
+  min-height: 46px;
+  padding: 5px 0;
+  border: 0;
+  background: transparent;
+}
+
+.statistics-page .statistics-document-title {
+  grid-template-columns: 18px minmax(0, 1fr);
+}
+
+.statistics-page .statistics-document-title > span,
+html[data-theme="light"] .statistics-page .statistics-document-title > span,
+html[data-theme="black"] .statistics-page .statistics-document-title > span {
+  padding-top: 2px;
+  background: transparent;
+}
+
+.statistics-page .statistics-document-meter > div {
+  background: rgba(113, 142, 164, 0.15);
+}
+
+/* Combinações: texto puro, sem chips e sem fundo por linha. */
+.statistics-page .statistics-combination-list {
+  gap: 4px;
+  padding-top: 10px;
+}
+
+.statistics-page .statistics-combination-row,
+html[data-theme="light"] .statistics-page .statistics-combination-row,
+html[data-theme="black"] .statistics-page .statistics-combination-row {
+  grid-template-columns: 34px minmax(0, 1fr) 56px;
+  min-height: 38px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+}
+
+.statistics-page .statistics-combination-tags {
+  column-gap: 0.45em;
+}
+
+.statistics-page .statistics-combination-tags span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.statistics-page .statistics-combination-count strong {
+  font-size: 14px;
+}
+
+/* Comparativo de unidade: tabela sem linhas e sem caixa. */
+.statistics-page .statistics-units-card {
+  min-width: 0;
+}
+
+.statistics-page .statistics-unit-table {
+  padding-top: 8px;
+  overflow: visible;
+}
+
+.statistics-page .statistics-unit-head,
+.statistics-page .statistics-unit-row {
+  grid-template-columns:
+    minmax(72px, 0.7fr) 58px 72px minmax(165px, 1.35fr)
+    82px 94px 80px;
+  gap: 8px;
+}
+
+.statistics-page .statistics-unit-head {
+  padding: 6px 0 7px;
+  background: transparent;
+}
+
+.statistics-page .statistics-unit-row,
+html[data-theme="light"] .statistics-page .statistics-unit-row,
+html[data-theme="black"] .statistics-page .statistics-unit-row {
+  padding: 9px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.statistics-page .statistics-mini-progress {
+  background: rgba(113, 142, 164, 0.15);
+}
+
+/* O antigo bloco Cursos foi removido do JSX. Se algum estilo legado
+   sobreviver em HMR, ele não deve ocupar espaço visual. */
+.statistics-page .statistics-course-list,
+.statistics-page .statistics-course-row {
+  background: transparent;
+}
+
+@media (max-width: 1250px) {
+  .statistics-page .statistics-grid.two-columns {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .statistics-page .statistics-grid.single-column {
+    grid-template-columns: 1fr;
+  }
+
+  .statistics-page .statistics-unit-table {
+    overflow-x: auto;
+  }
+
+  .statistics-page .statistics-unit-head,
+  .statistics-page .statistics-unit-row {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 760px) {
+  .statistics-page {
+    gap: 22px;
+  }
+
+  .statistics-page .statistics-kpis {
+    gap: 18px;
+  }
+
+  .statistics-page .statistics-unit-filter {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* v24-45 · KPIs também pertencem ao fundo único da página.
+   As regras antigas do tema claro tinham seletor mais específico e
+   ainda pintavam os quatro indicadores de branco. */
+html[data-theme="light"] .statistics-page .statistics-kpi,
+html[data-theme="black"] .statistics-page .statistics-kpi,
+.statistics-page .statistics-kpi {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme="light"] .statistics-page .statistics-kpis,
+html[data-theme="black"] .statistics-page .statistics-kpis,
+.statistics-page .statistics-kpis {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* =========================================================
+   v24-46 · Recorte por unidade no padrão Conferência/Auditoria
+   Menu overlay: abre sem empurrar a página e mantém a mesma
+   linguagem de rádio, seleção azul e contagens à direita.
+   ========================================================= */
+.statistics-page .statistics-unit-filter {
+  position: relative;
+  z-index: 30;
+}
+
+.statistics-page .statistics-unit-disclosure {
+  position: relative;
+  width: 276px;
+  font-family: Inter, sans-serif;
+}
+
+.statistics-page .statistics-unit-disclosure-trigger {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 2px 7px;
+  border: 0;
+  border-bottom: 2px solid var(--accent, #1677ff);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary, #1d2a36);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.statistics-page .statistics-unit-disclosure-trigger:focus-visible {
+  outline: 2px solid rgba(25, 118, 232, 0.25);
+  outline-offset: 4px;
+}
+
+.statistics-page .statistics-unit-disclosure-chevron {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transform-origin: center;
+  opacity: 0.7;
+  transition: transform 120ms ease;
+}
+
+.statistics-page .statistics-unit-disclosure.is-open .statistics-unit-disclosure-chevron {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+
+.statistics-page .statistics-unit-disclosure-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  width: 100%;
+  display: grid;
+  gap: 2px;
+  padding: 7px;
+  border: 0;
+  border-radius: 10px;
+  background: #eef3f8;
+  box-shadow: 0 12px 28px rgba(52, 73, 94, 0.14);
+  transform-origin: top right;
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+}
+
+.statistics-page .statistics-unit-disclosure:not(.is-open) .statistics-unit-disclosure-menu {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px) scale(0.985);
+}
+
+.statistics-page .statistics-unit-disclosure.is-open .statistics-unit-disclosure-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.statistics-page .statistics-unit-disclosure.is-open.is-closing .statistics-unit-disclosure-menu {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.985);
+  pointer-events: none;
+}
+
+.statistics-page .statistics-unit-disclosure-menu button {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #50657b;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.statistics-page .statistics-unit-disclosure-menu button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.statistics-page .statistics-unit-disclosure-menu button.active {
+  background: #e3effb;
+  color: #116cc0;
+}
+
+.statistics-page .statistics-unit-disclosure-option-copy {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statistics-page .statistics-unit-disclosure-radio {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border: 1.5px solid #9aabba;
+  border-radius: 50%;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.statistics-page .statistics-unit-disclosure-menu button.active .statistics-unit-disclosure-radio {
+  border: 4px solid #1976e8;
+  background: #fff;
+}
+
+.statistics-page .statistics-unit-disclosure-menu strong {
+  color: #60758a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.statistics-page .statistics-unit-disclosure-menu button.active strong {
+  color: #126eb8;
+}
+
+html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu {
+  background: #18222d;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu button {
+  color: #a9bbcc;
+}
+
+html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu button.active {
+  background: rgba(25, 118, 232, 0.16);
+  color: #79b9ff;
+}
+
+/* Comparativo: números com o mesmo peso visual das porcentagens. */
+.statistics-page .statistics-unit-row > span,
+.statistics-page .statistics-unit-row > span small,
+.statistics-page .statistics-unit-progress-cell b {
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .statistics-page .statistics-unit-disclosure {
+    width: 100%;
+  }
+
+  .statistics-page .statistics-unit-disclosure-menu {
+    right: auto;
+    left: 0;
+  }
+}
+
+/* =========================================================
+   v24-47 · filtro de unidade acima de todo o conteúdo
+   O menu estava entrando no mesmo stacking context dos KPIs/gargalos,
+   deixando rótulos e linhas da página aparecerem por cima dele.
+   ========================================================= */
+.statistics-page .statistics-hero {
+  position: relative;
+  z-index: 5000;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.statistics-page .statistics-unit-filter,
+.statistics-page .statistics-unit-disclosure {
+  position: relative;
+  z-index: 5001;
+  overflow: visible;
+}
+
+.statistics-page .statistics-unit-disclosure-menu {
+  z-index: 5002;
+  isolation: isolate;
+  overflow: hidden;
+  background: #eef3f8;
+  box-shadow: 0 14px 34px rgba(52, 73, 94, 0.18);
+}
+
+.statistics-page .statistics-kpis,
+.statistics-page .statistics-grid {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu {
+  background: #18222d;
+}
+
+/* =========================================================
+   v24-48 · distribuição removida
+   O histograma 0/7–7/7 repetia informação já resumida nos KPIs.
+   Gargalos passa a ocupar sozinho a faixa analítica superior.
+   ========================================================= */
+.statistics-page .statistics-bottlenecks-grid {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+}

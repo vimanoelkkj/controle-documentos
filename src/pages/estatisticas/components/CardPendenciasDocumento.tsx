@@ -50,7 +50,14 @@ export function CardPendenciasDocumento({ documentos }: Props) {
                 </span>
 
                 <div>
-                  <strong>{documento.nome}</strong>
+                  <strong>
+                    {documento.nome}
+                    {prioritario && (
+                      <em className="statistics-critical-tag">
+                        documento crítico
+                      </em>
+                    )}
+                  </strong>
                   <small>{documento.taxaEntrega}% já entregue</small>
                 </div>
               </div>

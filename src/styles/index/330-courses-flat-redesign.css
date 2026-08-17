@@ -1,0 +1,506 @@
+/* =========================================================
+   CURSOS E UNIDADES — FLAT REDESIGN
+   Mantém a densidade da listagem e remove cards/bordas decorativas.
+   ========================================================= */
+
+.courses-page {
+  gap: 22px;
+}
+
+.courses-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(28px, 5vw, 72px);
+  padding: 0;
+}
+
+.courses-summary article,
+html[data-theme="light"] .courses-summary article,
+html[data-theme="black"] .courses-summary article,
+.courses-summary article.warning,
+html[data-theme="light"] .courses-summary article.warning,
+html[data-theme="black"] .courses-summary article.warning {
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.courses-summary span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.courses-summary strong {
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.courses-summary article.warning strong {
+  color: #d97706;
+}
+
+.courses-panel,
+html[data-theme="light"] .courses-panel,
+html[data-theme="black"] .courses-panel {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.courses-toolbar,
+html[data-theme="light"] .courses-toolbar,
+html[data-theme="black"] .courses-toolbar {
+  align-items: end;
+  padding: 0 0 14px;
+  border: 0;
+  background: transparent;
+}
+
+.courses-toolbar > div {
+  gap: 4px;
+}
+
+.courses-toolbar strong {
+  font-size: 15px;
+}
+
+.courses-toolbar span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.courses-toolbar input,
+html[data-theme="light"] .courses-toolbar input,
+html[data-theme="black"] .courses-toolbar input {
+  width: min(520px, 42vw);
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  outline: none;
+  background: rgba(124, 151, 172, 0.08);
+  box-shadow: none;
+  font: inherit;
+}
+
+html[data-theme="light"] .courses-toolbar input {
+  color: #243946;
+}
+
+html[data-theme="black"] .courses-toolbar input {
+  color: #f1f1f1;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.courses-toolbar input:focus,
+html[data-theme="light"] .courses-toolbar input:focus,
+html[data-theme="black"] .courses-toolbar input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.courses-list {
+  display: grid;
+  gap: 0;
+}
+
+.course-row,
+html[data-theme="light"] .course-row,
+html[data-theme="black"] .course-row {
+  grid-template-columns: minmax(300px, 1.45fr) minmax(145px, 0.42fr) 176px 150px;
+  gap: 22px;
+  min-height: 72px;
+  padding: 11px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.course-row:hover,
+html[data-theme="light"] .course-row:hover,
+html[data-theme="black"] .course-row:hover {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.course-copy,
+.course-current {
+  gap: 3px;
+}
+
+.course-copy strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.course-copy span,
+.course-current small,
+.course-current span {
+  font-size: 12px;
+}
+
+.course-current strong {
+  font-size: 13px;
+}
+
+.course-row > label {
+  gap: 5px;
+}
+
+.course-row > label > span {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.course-row > label .app-select {
+  width: 100%;
+}
+
+.course-row > label .app-select-trigger {
+  width: 100%;
+  min-height: 36px;
+}
+
+.course-row > button,
+html[data-theme="light"] .course-row > button,
+html[data-theme="black"] .course-row > button {
+  justify-self: start;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #0878df;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+  transform: none;
+}
+
+.course-row > button:hover:not(:disabled),
+.course-row > button:focus-visible:not(:disabled),
+.course-row > button:active:not(:disabled),
+html[data-theme="light"] .course-row > button:hover:not(:disabled),
+html[data-theme="black"] .course-row > button:hover:not(:disabled) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #0878df;
+  transform: none;
+}
+
+.course-row > button:disabled {
+  color: #86bde8;
+  opacity: 0.55;
+}
+
+.courses-feedback-wrap {
+  justify-content: flex-start;
+  padding: 8px 0 4px;
+}
+
+.courses-success-card,
+html[data-theme="light"] .courses-success-card,
+html[data-theme="black"] .courses-success-card {
+  width: auto;
+  grid-template-columns: 20px minmax(0, 1fr) 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.courses-success-icon,
+html[data-theme="light"] .courses-success-icon,
+html[data-theme="black"] .courses-success-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #168447;
+  background: transparent;
+  font-size: 13px;
+}
+
+.courses-success-card strong,
+html[data-theme="light"] .courses-success-card strong,
+html[data-theme="black"] .courses-success-card strong {
+  color: #168447;
+}
+
+.courses-success-card > div > span,
+.courses-success-card > button,
+html[data-theme="light"] .courses-success-card > div > span,
+html[data-theme="light"] .courses-success-card > button,
+html[data-theme="black"] .courses-success-card > div > span,
+html[data-theme="black"] .courses-success-card > button {
+  color: #4b7b61;
+}
+
+.courses-success-card > button:hover,
+html[data-theme="light"] .courses-success-card > button:hover,
+html[data-theme="black"] .courses-success-card > button:hover {
+  background: transparent;
+}
+
+.courses-message,
+.courses-empty {
+  margin: 8px 0 0;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.courses-message.error {
+  color: #d53f49;
+  border: 0;
+  background: transparent;
+}
+
+@media (max-width: 1180px) {
+  .course-row,
+  html[data-theme="light"] .course-row,
+  html[data-theme="black"] .course-row {
+    grid-template-columns: minmax(250px, 1fr) 130px 160px 136px;
+    gap: 14px;
+  }
+
+  .courses-toolbar input,
+  html[data-theme="light"] .courses-toolbar input,
+  html[data-theme="black"] .courses-toolbar input {
+    width: min(420px, 45vw);
+  }
+}
+
+@media (max-width: 860px) {
+  .courses-summary {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .courses-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .courses-toolbar input,
+  html[data-theme="light"] .courses-toolbar input,
+  html[data-theme="black"] .courses-toolbar input {
+    width: 100%;
+  }
+
+  .course-row,
+  html[data-theme="light"] .course-row,
+  html[data-theme="black"] .course-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 18px;
+    padding: 14px 0;
+  }
+
+  .course-row > button {
+    justify-self: start;
+  }
+}
+
+/* =========================================================
+   CURSOS — seletor de unidade no mesmo padrão dos filtros
+   da Conferência/Estatísticas: overlay, opção marcada por rádio
+   e sem aparência de <select> nativo.
+   ========================================================= */
+.course-unit-select .app-select-trigger,
+html[data-theme="light"] .course-unit-select .app-select-trigger,
+html[data-theme="black"] .course-unit-select .app-select-trigger {
+  min-height: 36px;
+  padding: 0 10px 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(124, 151, 172, 0.08);
+  box-shadow: none;
+}
+
+.course-unit-select .app-select-trigger:hover:not(:disabled),
+.course-unit-select .app-select-trigger:focus-visible,
+.course-unit-select .app-select-trigger[aria-expanded="true"],
+html[data-theme="light"] .course-unit-select .app-select-trigger:hover:not(:disabled),
+html[data-theme="light"] .course-unit-select .app-select-trigger:focus-visible,
+html[data-theme="light"] .course-unit-select .app-select-trigger[aria-expanded="true"],
+html[data-theme="black"] .course-unit-select .app-select-trigger:hover:not(:disabled),
+html[data-theme="black"] .course-unit-select .app-select-trigger:focus-visible,
+html[data-theme="black"] .course-unit-select .app-select-trigger[aria-expanded="true"] {
+  border: 0;
+  background: rgba(124, 151, 172, 0.11);
+  box-shadow: none;
+}
+
+html[data-theme="black"] .course-unit-select .app-select-trigger {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.course-unit-select-menu,
+html[data-theme="light"] .course-unit-select-menu,
+html[data-theme="black"] .course-unit-select-menu {
+  padding: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: #eef4f8;
+  box-shadow: 0 10px 26px rgba(37, 61, 77, 0.14);
+}
+
+html[data-theme="black"] .course-unit-select-menu {
+  background: #14222c;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34);
+}
+
+.course-unit-select-menu .app-select-option,
+html[data-theme="light"] .course-unit-select-menu .app-select-option,
+html[data-theme="black"] .course-unit-select-menu .app-select-option {
+  position: relative;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 36px;
+  padding: 8px 10px 8px 32px;
+  border-radius: 7px;
+  color: #526b7c;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.course-unit-select-menu .app-select-option::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid #9db7c8;
+  border-radius: 50%;
+  background: transparent;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+}
+
+.course-unit-select-menu .app-select-option:hover,
+.course-unit-select-menu .app-select-option.active,
+html[data-theme="light"] .course-unit-select-menu .app-select-option:hover,
+html[data-theme="light"] .course-unit-select-menu .app-select-option.active,
+html[data-theme="black"] .course-unit-select-menu .app-select-option:hover,
+html[data-theme="black"] .course-unit-select-menu .app-select-option.active {
+  color: #176fbd;
+  background: rgba(42, 139, 232, 0.07);
+}
+
+.course-unit-select-menu .app-select-option.selected,
+html[data-theme="light"] .course-unit-select-menu .app-select-option.selected,
+html[data-theme="black"] .course-unit-select-menu .app-select-option.selected {
+  color: #0878df;
+  background: rgba(42, 139, 232, 0.10);
+  font-weight: 600;
+}
+
+.course-unit-select-menu .app-select-option.selected::before {
+  border-color: #2388e7;
+  background: #2388e7;
+  box-shadow: inset 0 0 0 3px #eef4f8;
+}
+
+html[data-theme="black"] .course-unit-select-menu .app-select-option {
+  color: #c4d2dc;
+}
+
+html[data-theme="black"] .course-unit-select-menu .app-select-option.selected::before {
+  box-shadow: inset 0 0 0 3px #14222c;
+}
+
+
+/* v24-62 — ação de aplicar segue o padrão textual flat do restante do sistema. */
+.course-row > .course-apply-action,
+html[data-theme="light"] .course-row > .course-apply-action,
+html[data-theme="black"] .course-row > .course-apply-action {
+  justify-self: start;
+  align-self: center;
+  min-width: 116px;
+  min-height: 24px;
+  margin: 0;
+  padding: 3px 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #0875e1;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: left;
+  text-decoration: none !important;
+  white-space: nowrap;
+  transform: none !important;
+  transition: none !important;
+}
+
+.course-row > .course-apply-action:hover:not(:disabled),
+.course-row > .course-apply-action:focus-visible:not(:disabled),
+.course-row > .course-apply-action:active:not(:disabled),
+html[data-theme="light"] .course-row > .course-apply-action:hover:not(:disabled),
+html[data-theme="black"] .course-row > .course-apply-action:hover:not(:disabled) {
+  min-width: 116px;
+  min-height: 24px;
+  margin: 0;
+  padding: 3px 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #0875e1;
+  text-decoration: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+.course-row > .course-apply-action:disabled,
+html[data-theme="light"] .course-row > .course-apply-action:disabled {
+  color: #8394a6 !important;
+  opacity: 1 !important;
+  cursor: default;
+}
+
+html[data-theme="black"] .course-row > .course-apply-action {
+  color: #69b8ff;
+}
+
+html[data-theme="black"] .course-row > .course-apply-action:disabled {
+  color: #73808c !important;
+}
+
+/* v24-63 — alinha a ação "Aplicar aos alunos" verticalmente ao seletor de unidade. */
+.course-row > .course-apply-action,
+html[data-theme="light"] .course-row > .course-apply-action,
+html[data-theme="black"] .course-row > .course-apply-action {
+  align-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 36px;
+  height: 36px;
+  padding: 0 !important;
+}
+
+.course-row > .course-apply-action:hover:not(:disabled),
+.course-row > .course-apply-action:focus-visible:not(:disabled),
+.course-row > .course-apply-action:active:not(:disabled),
+html[data-theme="light"] .course-row > .course-apply-action:hover:not(:disabled),
+html[data-theme="black"] .course-row > .course-apply-action:hover:not(:disabled) {
+  min-height: 36px;
+  height: 36px;
+  padding: 0 !important;
+}

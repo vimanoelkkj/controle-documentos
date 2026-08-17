@@ -1,0 +1,217 @@
+/* =========================================================
+   LOG — visual plano, integrado ao fundo da página
+   Mantém a linguagem visual adotada em Comunicação/Auditoria:
+   sem contêiner branco, sem card externo e sem sombra.
+   ========================================================= */
+
+.log-page {
+  width: 100%;
+  gap: 16px;
+}
+
+.log-page .log-toolbar {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.log-page .log-toolbar input {
+  height: 42px;
+}
+
+.log-page .log-list {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.log-page .log-item {
+  grid-template-columns: 3px minmax(0, 1fr);
+  border-bottom: 1px solid rgba(121, 151, 171, 0.18);
+  background: transparent;
+}
+
+.log-page .log-item:last-child {
+  border-bottom: 0;
+}
+
+.log-page .log-item-main {
+  padding: 15px 12px 15px 16px;
+}
+
+.log-page .log-state {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme="light"] .log-page .log-toolbar,
+html[data-theme="light"] .log-page .log-list,
+html[data-theme="light"] .log-page .log-item,
+html[data-theme="light"] .log-page .log-state {
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme="light"] .log-page .log-toolbar,
+html[data-theme="light"] .log-page .log-list,
+html[data-theme="light"] .log-page .log-state {
+  border: 0;
+}
+
+html[data-theme="black"] .log-page .log-toolbar,
+html[data-theme="black"] .log-page .log-list,
+html[data-theme="black"] .log-page .log-item,
+html[data-theme="black"] .log-page .log-state {
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme="black"] .log-page .log-toolbar,
+html[data-theme="black"] .log-page .log-list,
+html[data-theme="black"] .log-page .log-state {
+  border: 0;
+}
+
+/* Atualizar segue a linguagem da ação principal da Conferência: texto + indicador inferior. */
+.log-page .log-refresh {
+  position: relative;
+  min-height: 34px;
+  padding: 0 2px 5px;
+  border: 0 !important;
+  border-radius: 0;
+  color: #0b6df6 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.log-page .log-refresh::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: #0b6df6;
+}
+
+.log-page .log-refresh:hover {
+  color: #075bcf !important;
+  background: transparent !important;
+}
+
+.log-page .log-refresh:hover::after {
+  background: #075bcf;
+}
+
+/* Os registros ficam completamente soltos no fundo, sem linhas entre eles. */
+.log-page .log-item,
+.log-page .log-item:last-child {
+  border-bottom: 0 !important;
+}
+
+
+/* V24.19 — registros totalmente planos: sem marcador vertical e sem pills de metadados. */
+.log-page .log-item {
+  display: block;
+  grid-template-columns: none;
+}
+
+.log-page .log-marker {
+  display: none !important;
+}
+
+.log-page .log-item-main {
+  padding-left: 12px;
+}
+
+.log-page .log-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin-top: 7px;
+  color: #6f879a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.log-page .log-meta span {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.log-page .log-meta span + span::before {
+  content: "•";
+  margin: 0 7px;
+  color: #9aabba;
+}
+
+html[data-theme="light"] .log-page .log-meta {
+  color: #6f879a;
+}
+
+html[data-theme="black"] .log-page .log-meta {
+  color: #8297a8;
+}
+
+/* =========================================================
+   V24.20 — Log: ações e contagem no padrão da Comunicação
+   ========================================================= */
+.log-page .log-refresh {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #12689a !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+}
+
+.log-page .log-refresh::before,
+.log-page .log-refresh::after {
+  content: none !important;
+  display: none !important;
+}
+
+.log-page .log-refresh:hover {
+  color: #0d547d !important;
+  background: transparent !important;
+}
+
+.log-page .log-results-count {
+  flex: 0 0 auto !important;
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+  min-width: max-content !important;
+  white-space: nowrap !important;
+}
+
+.log-page .log-results-count strong {
+  color: #0b6df6 !important;
+  font-size: 15px !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+}
+
+.log-page .log-results-count span {
+  color: #73879a !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+}
+

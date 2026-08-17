@@ -1,12 +1,11 @@
-import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
-import AppSelect from "../components/AppSelect";
 import { EstatisticasKpis } from "./estatisticas/components/EstatisticasKpis";
-import { CardDistribuicao } from "./estatisticas/components/CardDistribuicao";
 import { CardPendenciasDocumento } from "./estatisticas/components/CardPendenciasDocumento";
 import { CardCombinacoesPendencias } from "./estatisticas/components/CardCombinacoesPendencias";
-import { CardCursos } from "./estatisticas/components/CardCursos";
 import { CardUnidades } from "./estatisticas/components/CardUnidades";
+import PageLoading from "../components/PageLoading";
+import { FiltroUnidadeEstatisticas } from "./estatisticas/components/FiltroUnidadeEstatisticas";
+import { percentual } from "./estatisticas/utils";
 
 type AlunoApi = {
   ra: string;
@@ -68,11 +67,6 @@ function statusDocumental(aluno: AlunoApi): StatusDocumental {
   return "CRITICO";
 }
 
-function percentual(valor: number, total: number) {
-  if (!total) return 0;
-  return Math.round((valor / total) * 100);
-}
-
 function Estatisticas() {
   const [alunos, setAlunos] = useState<AlunoApi[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -111,6 +105,15 @@ function Estatisticas() {
     [ativos, unidade],
   );
 
+  const totaisPorUnidade = useMemo(() => {
+    const totais: Record<string, number> = {};
+    for (const aluno of ativos) {
+      if (!aluno.unidade) continue;
+      totais[aluno.unidade] = (totais[aluno.unidade] ?? 0) + 1;
+    }
+    return totais;
+  }, [ativos]);
+
   const resumo = useMemo(() => {
     let documentosEntregues = 0;
     let completos = 0;
@@ -142,22 +145,6 @@ function Estatisticas() {
       taxaDocumental: percentual(documentosEntregues, documentosPossiveis),
     };
   }, [base]);
-
-  const distribuicao = useMemo(
-    () =>
-      Array.from({ length: DOCUMENTOS.length + 1 }, (_, entregues) => ({
-        entregues,
-        quantidade: base.filter(
-          (aluno) => entreguesDoAluno(aluno) === entregues,
-        ).length,
-      })),
-    [base],
-  );
-
-  const maiorFaixa = Math.max(
-    1,
-    ...distribuicao.map((item) => item.quantidade),
-  );
 
   const documentos = useMemo(
     () =>
@@ -214,41 +201,6 @@ function Estatisticas() {
     [ativos, unidades],
   );
 
-  const cursosStats = useMemo(() => {
-    const mapa = new Map<string, AlunoApi[]>();
-
-    base.forEach((aluno) => {
-      const curso = aluno.curso?.trim() || "Sem curso informado";
-      const lista = mapa.get(curso) || [];
-      lista.push(aluno);
-      mapa.set(curso, lista);
-    });
-
-    return [...mapa.entries()]
-      .map(([curso, lista]) => {
-        const documentosEntregues = lista.reduce(
-          (total, aluno) => total + entreguesDoAluno(aluno),
-          0,
-        );
-        const completos = lista.filter(
-          (aluno) => statusDocumental(aluno) === "COMPLETO",
-        ).length;
-
-        return {
-          curso,
-          total: lista.length,
-          completos,
-          taxaCompleta: percentual(completos, lista.length),
-          progresso: percentual(
-            documentosEntregues,
-            lista.length * DOCUMENTOS.length,
-          ),
-        };
-      })
-      .sort((a, b) => b.total - a.total || b.progresso - a.progresso)
-      .slice(0, 8);
-  }, [base]);
-
   const combinacoesPendencias = useMemo(() => {
     const mapa = new Map<string, { nomes: string[]; quantidade: number }>();
 
@@ -278,7 +230,7 @@ function Estatisticas() {
   if (carregando) {
     return (
       <section className="statistics-page">
-        <div className="statistics-state">Calculando estatísticas...</div>
+        <PageLoading label="Calculando estatísticas..." />
       </section>
     );
   }
@@ -293,56 +245,35 @@ function Estatisticas() {
 
   return (
     <section className="statistics-page">
-      <header className="statistics-hero">
-        <div>
-          <span className="statistics-eyebrow">ANÁLISE OPERACIONAL</span>
-          <div className="page-title-row">
-            <span className="page-title-icon">
-              <AppIcon name="stats" size={22} />
-            </span>
-            <h1>Estatísticas documentais</h1>
-          </div>
-          <p>
-            Onde estão os gargalos, como os alunos se distribuem e quais grupos
-            merecem prioridade na conferência.
-          </p>
-        </div>
-
+      <div className="page-local-actions statistics-hero">
         <div className="statistics-unit-filter">
-          <span>RECORTE</span>
-          <AppSelect
-            value={unidade}
+          <FiltroUnidadeEstatisticas
+            valor={unidade}
             onChange={setUnidade}
-            ariaLabel="Recorte por unidade"
-            options={[
-              { value: "GERAL", label: "Geral — todas as unidades" },
-              ...unidades.map((item) => ({ value: item, label: item })),
-            ]}
+            unidades={unidades}
+            totais={totaisPorUnidade}
+            totalGeral={ativos.length}
           />
         </div>
-      </header>
+      </div>
+<EstatisticasKpis resumo={resumo} totalAlunos={base.length} />
 
-      <EstatisticasKpis resumo={resumo} totalAlunos={base.length} />
-
-      <div className="statistics-grid two-columns">
-        <CardDistribuicao
-          distribuicao={distribuicao}
-          maiorFaixa={maiorFaixa}
-          totalAlunos={base.length}
-        />
-
+      <div className="statistics-grid single-column statistics-bottlenecks-grid">
         <CardPendenciasDocumento documentos={documentos} />
       </div>
 
-      <div className="statistics-grid two-columns lower-grid">
+      <div
+        className={`statistics-grid lower-grid ${
+          unidade === "GERAL" ? "two-columns" : "single-column"
+        }`}
+      >
         <CardCombinacoesPendencias
           combinacoes={combinacoesPendencias}
           maiorCombinacao={maiorCombinacao}
         />
 
-        <CardCursos cursos={cursosStats} />
+        {unidade === "GERAL" && <CardUnidades unidades={unidadesStats} />}
       </div>
-      {unidade === "GERAL" && <CardUnidades unidades={unidadesStats} />}
     </section>
   );
 }

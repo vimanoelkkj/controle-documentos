@@ -1,0 +1,209 @@
+/* Cabeçalho unificado de páginas
+   Replica a linguagem visual aprovada na Conferência em todas as rotas. */
+
+.period-toolbar--unified {
+  flex: 0 0 auto !important;
+}
+
+/* Os títulos agora vivem no cabeçalho global; mantemos apenas controles locais úteis. */
+.dashboard-v14-header {
+  display: none !important;
+}
+
+.audit-header,
+.log-header,
+.statistics-hero,
+.communication-header,
+.period-hero,
+.courses-header,
+.settings-header,
+.about-hero {
+  margin-top: 0 !important;
+}
+
+.audit-header > div:first-child,
+.log-header > div:first-child,
+.statistics-hero > div:first-child,
+.communication-header > div:first-child,
+.period-hero > div:first-child,
+.courses-header > div:first-child,
+.settings-header > div:first-child,
+.about-hero > div:first-child {
+  display: none !important;
+}
+
+/* Páginas sem ações próprias não precisam manter um segundo bloco vazio. */
+.courses-header,
+.settings-header {
+  display: none !important;
+}
+
+/* Controles locais continuam disponíveis, mas deixam de competir com o título global. */
+.audit-header,
+.log-header,
+.statistics-hero,
+.communication-header,
+.period-hero,
+.about-hero {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.audit-header,
+.log-header {
+  justify-content: flex-end !important;
+}
+
+.statistics-hero,
+.communication-header,
+.period-hero,
+.about-hero {
+  justify-content: flex-end !important;
+}
+
+/* A área de conteúdo recebe o mesmo respiro do cabeçalho aprovado. */
+.app-content {
+  padding-top: 0;
+}
+
+/* Evita que headers antigos reservem espaço em breakpoints menores. */
+@media (max-width: 900px) {
+  .audit-header,
+  .log-header,
+  .statistics-hero,
+  .communication-header,
+  .period-hero,
+  .about-hero {
+    min-height: 0 !important;
+  }
+}
+
+
+/* =========================================================
+   Estado de carregamento unificado
+   Mesmo eixo e largura do cabeçalho global, sem card gigante.
+   ========================================================= */
+.page-loading-state,
+.dashboard-state,
+.statistics-state,
+.log-state {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+.page-loading-state {
+  min-height: 120px !important;
+  margin: 0 !important;
+  padding: 22px 24px !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px !important;
+  border: 1px solid #dce5ed !important;
+  border-radius: 12px !important;
+  color: #60758b !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.025) !important;
+  text-align: center;
+}
+
+/* Desliga a bolinha antiga do loading para usar o spinner do novo design. */
+.page-loading-state:not(.error)::before {
+  content: none !important;
+  display: none !important;
+}
+
+.page-loading-spinner {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 3px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: unified-page-loading-spin .8s linear infinite;
+}
+
+.page-loading-state > strong {
+  color: #26384d;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.page-loading-state > span:not(.page-loading-spinner) {
+  color: #8292a5;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 450;
+  line-height: 1.35;
+}
+
+.page-loading-state.error {
+  min-height: 100px !important;
+  color: #b4232f !important;
+  border-color: #f3c9cd !important;
+  background: #fffafa !important;
+}
+
+@keyframes unified-page-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+html[data-theme="dark"] .page-loading-state {
+  color: #9aacbc !important;
+  border-color: #263543 !important;
+  background: #121b24 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .page-loading-spinner {
+  border-color: #223a59;
+  border-top-color: #61a7ff;
+}
+
+html[data-theme="dark"] .page-loading-state > strong {
+  color: #edf4fa;
+}
+
+html[data-theme="dark"] .page-loading-state > span:not(.page-loading-spinner) {
+  color: #91a2b2;
+}
+
+html[data-theme="black"] .page-loading-state {
+  color: #a7afb7 !important;
+  border-color: #2b2b2b !important;
+  background: #0b0b0b !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="black"] .page-loading-spinner {
+  border-color: #2d2d2d;
+  border-top-color: #f1f1f1;
+}
+
+html[data-theme="black"] .page-loading-state > strong {
+  color: #f3f3f3;
+}
+
+html[data-theme="black"] .page-loading-state > span:not(.page-loading-spinner) {
+  color: #a0a0a0;
+}
+
+@media (max-width: 900px) {
+  .page-loading-state {
+    min-height: 92px !important;
+    padding: 18px 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loading-spinner {
+    animation-duration: 1.8s;
+  }
+}

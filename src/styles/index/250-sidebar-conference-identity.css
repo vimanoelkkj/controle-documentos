@@ -1,0 +1,434 @@
+/* =========================================================
+   SIDEBAR — identidade visual da Conferência V15
+   Camada final proposital: vence regras antigas da sidebar sem
+   alterar a geometria/conteúdo da tela de Conferência.
+   ========================================================= */
+
+:root {
+  --conference-sidebar-width: 264px;
+  --conference-surface: #f4f7fa;
+  --conference-line: #e1e7ee;
+  --conference-text: #26364a;
+  --conference-muted: #6f7f94;
+  --conference-heading: #64758b;
+  --conference-blue: #0b6df6;
+  --conference-blue-soft: #e8f1fd;
+}
+
+.app-layout {
+  grid-template-columns: var(--conference-sidebar-width) minmax(0, 1fr) !important;
+}
+
+/* A sidebar deixa de ser um painel branco separado e passa a fazer
+   parte da mesma superfície da Conferência. */
+html[data-theme="light"] .sidebar,
+.sidebar {
+  width: var(--conference-sidebar-width) !important;
+  min-width: var(--conference-sidebar-width) !important;
+  height: 100dvh !important;
+  border-right: 0 !important;
+  background: var(--conference-surface) !important;
+  color: var(--conference-text) !important;
+  box-shadow: none !important;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif !important;
+}
+
+/* Brand */
+html[data-theme="light"] .sidebar .sidebar-brand,
+.sidebar .sidebar-brand {
+  min-height: 88px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 18px 20px !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+}
+
+.sidebar .sidebar-brand-icon {
+  width: 44px !important;
+  height: 44px !important;
+  flex: 0 0 44px !important;
+  border: 1px solid #d9e5f3 !important;
+  border-radius: 11px !important;
+  color: var(--conference-blue) !important;
+  background: #eaf3ff !important;
+  box-shadow: none !important;
+}
+
+.sidebar .sidebar-brand-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.sidebar .sidebar-brand-copy strong {
+  overflow: visible !important;
+  color: #172437 !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.01em !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.sidebar .sidebar-brand-copy span,
+.sidebar .sidebar-brand-meta > span:first-child {
+  color: #78889d !important;
+  font-size: 10.5px !important;
+  font-weight: 500 !important;
+}
+
+/* Navigation */
+.sidebar .sidebar-nav {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  gap: 26px !important;
+  min-height: 0 !important;
+  padding: 18px 14px 24px !important;
+  overflow-y: auto !important;
+  background: transparent !important;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5df transparent;
+}
+
+.sidebar .sidebar-nav-group {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.sidebar .sidebar-nav-heading {
+  padding: 0 12px !important;
+  color: var(--conference-heading) !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+.sidebar .sidebar-nav-links {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+html[data-theme="light"] .sidebar a.sidebar-link,
+.sidebar a.sidebar-link {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 42px !important;
+  gap: 12px !important;
+  padding: 0 13px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  color: #52667e !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  transform: none !important;
+  transition: background-color 90ms ease, color 90ms ease !important;
+}
+
+.sidebar a.sidebar-link::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 8px !important;
+  bottom: 8px !important;
+  width: 3px !important;
+  height: auto !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+html[data-theme="light"] .sidebar a.sidebar-link:hover,
+.sidebar a.sidebar-link:hover {
+  color: #2d557f !important;
+  background: rgba(226, 235, 245, .55) !important;
+  border: 0 !important;
+  transform: none !important;
+}
+
+html[data-theme="light"] .sidebar a.sidebar-link.active,
+html[data-theme="light"] .sidebar a.sidebar-link.active:hover,
+.sidebar a.sidebar-link.active,
+.sidebar a.sidebar-link.active:hover {
+  color: var(--conference-blue) !important;
+  background: var(--conference-blue-soft) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.sidebar a.sidebar-link.active::before {
+  background: var(--conference-blue) !important;
+}
+
+.sidebar .sidebar-link-icon {
+  display: grid !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 18px !important;
+  place-items: center !important;
+  color: #637b96 !important;
+}
+
+.sidebar .sidebar-link-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke-width: 1.75 !important;
+}
+
+.sidebar a.sidebar-link.active .sidebar-link-icon {
+  color: var(--conference-blue) !important;
+}
+
+/* Footer: mesma superfície, mesma linha divisória da Conferência. */
+html[data-theme="light"] .sidebar .sidebar-footer,
+.sidebar .sidebar-footer {
+  margin-top: auto !important;
+  padding: 16px 18px 18px !important;
+  border-top: 0 !important;
+  background: transparent !important;
+}
+
+.sidebar .sidebar-user-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 13px !important;
+}
+
+.sidebar .sidebar-user {
+  min-width: 0 !important;
+  min-height: 46px !important;
+  display: flex !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  gap: 11px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.sidebar .sidebar-user-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  flex: 0 0 40px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  color: #1765c8 !important;
+  background: #e7f1fc !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.sidebar .sidebar-user-copy {
+  display: grid !important;
+  gap: 3px !important;
+}
+
+.sidebar .sidebar-user-copy strong {
+  color: #172437 !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+.sidebar .sidebar-user-copy span {
+  color: #74859b !important;
+  font-size: 9.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: .035em !important;
+}
+
+.sidebar .sidebar-footer-actions {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 9px !important;
+}
+
+.sidebar .sidebar-footer-actions .theme-button,
+.sidebar .sidebar-footer-actions .logout-button {
+  width: 100% !important;
+  min-height: 43px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  color: #344a63 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  transform: none !important;
+}
+
+.sidebar .sidebar-footer-actions .theme-button {
+  justify-content: space-between !important;
+}
+
+.sidebar .sidebar-action-main {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.sidebar .sidebar-footer-actions .theme-button:hover,
+.sidebar .sidebar-footer-actions .logout-button:hover {
+  color: #1f5fa7 !important;
+  border-color: transparent !important;
+  background: rgba(226, 235, 245, .58) !important;
+}
+
+/* Dark/black: conserva a geometria; apenas troca a superfície. */
+html[data-theme="dark"] .sidebar,
+html[data-theme="black"] .sidebar {
+  --conference-surface: #111923;
+  --conference-line: #273443;
+  --conference-text: #d9e3ed;
+  --conference-muted: #8797aa;
+  --conference-heading: #8090a4;
+  --conference-blue-soft: rgba(30, 111, 238, .14);
+  background: var(--conference-surface) !important;
+  border-color: var(--conference-line) !important;
+}
+
+html[data-theme="dark"] .sidebar .sidebar-brand,
+html[data-theme="dark"] .sidebar .sidebar-footer,
+html[data-theme="black"] .sidebar .sidebar-brand,
+html[data-theme="black"] .sidebar .sidebar-footer {
+  border-color: var(--conference-line) !important;
+}
+
+html[data-theme="dark"] .sidebar .sidebar-brand-copy strong,
+html[data-theme="dark"] .sidebar .sidebar-user-copy strong,
+html[data-theme="black"] .sidebar .sidebar-brand-copy strong,
+html[data-theme="black"] .sidebar .sidebar-user-copy strong {
+  color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] .sidebar a.sidebar-link,
+html[data-theme="black"] .sidebar a.sidebar-link {
+  color: #aebccc !important;
+}
+
+html[data-theme="dark"] .sidebar a.sidebar-link:hover,
+html[data-theme="black"] .sidebar a.sidebar-link:hover {
+  color: #e5edf5 !important;
+  background: rgba(255,255,255,.035) !important;
+}
+
+html[data-theme="dark"] .sidebar .sidebar-footer-actions .theme-button,
+html[data-theme="dark"] .sidebar .sidebar-footer-actions .logout-button,
+html[data-theme="black"] .sidebar .sidebar-footer-actions .theme-button,
+html[data-theme="black"] .sidebar .sidebar-footer-actions .logout-button {
+  border-color: transparent !important;
+  color: #cbd5e1 !important;
+}
+
+
+/* V15.6 — rodapé sem divisórias/contornos: mesma superfície contínua da sidebar. */
+.sidebar .sidebar-footer {
+  border-top: 0 !important;
+  box-shadow: none !important;
+}
+
+.sidebar .sidebar-footer::before,
+.sidebar .sidebar-footer::after,
+.sidebar .sidebar-user-row::before,
+.sidebar .sidebar-user-row::after,
+.sidebar .sidebar-footer-actions::before,
+.sidebar .sidebar-footer-actions::after {
+  display: none !important;
+  content: none !important;
+}
+
+.sidebar .sidebar-footer-actions .theme-button,
+.sidebar .sidebar-footer-actions .logout-button {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.sidebar .sidebar-footer-actions .theme-button:hover,
+.sidebar .sidebar-footer-actions .logout-button:hover {
+  border-color: transparent !important;
+}
+
+/* =========================================================
+   V23.6 — sidebar fixa SEM quebrar a grade do layout
+   ========================================================= */
+.app-layout {
+  display: grid !important;
+  grid-template-columns: var(--conference-sidebar-width) minmax(0, 1fr) !important;
+  min-height: 100dvh !important;
+  width: 100% !important;
+}
+
+.sidebar {
+  position: fixed !important;
+  inset: 0 auto 0 0 !important;
+  z-index: 50 !important;
+  width: var(--conference-sidebar-width) !important;
+  min-width: var(--conference-sidebar-width) !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+/* A sidebar fixed sai do fluxo, então o conteúdo é forçado explicitamente
+   para a segunda coluna da grade, preservando exatamente a largura original. */
+.app-main-column {
+  grid-column: 2 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.app-content {
+  width: 100% !important;
+  margin-left: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* A navegação só ganha rolagem própria se realmente não couber na viewport. */
+.sidebar .sidebar-nav {
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+.sidebar .sidebar-footer {
+  flex: 0 0 auto !important;
+  margin-top: auto !important;
+}
+
+@media (max-width: 760px) {
+  .app-layout {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+  }
+
+  .sidebar {
+    width: 72px !important;
+    min-width: 72px !important;
+  }
+
+  .app-main-column {
+    grid-column: 2 !important;
+  }
+}
+

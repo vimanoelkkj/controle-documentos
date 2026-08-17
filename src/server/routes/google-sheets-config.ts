@@ -1,3 +1,5 @@
+import { aguardar } from "../utils/async";
+
 export type SheetsConfig = {
   periodo_id: number;
   spreadsheet_id: string;
@@ -32,10 +34,6 @@ type SheetsConfigRouteContext = {
     evento: EventoSheetsConfig,
   ) => Promise<void>;
 };
-
-function aguardar(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 export async function handleGoogleSheetsConfigRoute({
   request,

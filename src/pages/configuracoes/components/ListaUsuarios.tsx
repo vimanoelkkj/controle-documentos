@@ -21,11 +21,10 @@ export function ListaUsuarios({
     <>
       <div className="settings-users-head">
         <div>
-          <span>ACESSO</span>
+          <span className="settings-section-eyebrow">ACESSO</span>
           <h2>Usuários</h2>
+          <span className="settings-users-count">{usuarios.length} usuários cadastrados</span>
         </div>
-
-        <strong>{usuarios.length}</strong>
       </div>
 
       <div className="settings-users-grid">
@@ -51,7 +50,7 @@ export function ListaUsuarios({
                 className="settings-password-button"
                 onClick={() => abrirModalSenha(usuario)}
               >
-                ⌘ Senha
+                Senha
               </button>
 
               <AppSelect
@@ -74,6 +73,8 @@ export function ListaUsuarios({
                   });
                 }}
                 ariaLabel={`Perfil de ${usuario.nome}`}
+                className="settings-role-select"
+                menuClassName="settings-role-menu"
                 options={[
                   { value: "ADMIN", label: "ADMIN" },
                   { value: "EDITOR", label: "EDITOR" },
@@ -99,8 +100,6 @@ export function ListaUsuarios({
                   })
                 }
               >
-                <span aria-hidden="true">{usuario.ativo ? "⊘" : "↻"}</span>
-
                 {usuario.ativo ? "Desativar" : "Reativar"}
               </button>
 
@@ -109,7 +108,6 @@ export function ListaUsuarios({
                 className="settings-user-delete"
                 onClick={() => abrirModalExcluir(usuario)}
               >
-                <span aria-hidden="true">×</span>
                 Excluir
               </button>
             </div>

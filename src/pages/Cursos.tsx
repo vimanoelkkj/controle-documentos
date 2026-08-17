@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import AppIcon from "../components/AppIcon";
 import { useAuth } from "../contexts/auth";
 import { usePeriodo } from "../contexts/periodo";
 import { ModalConfirmarAlteracaoCurso } from "./cursos/ModalConfirmarAlteracaoCurso";
 import { ListaCursos } from "./cursos/ListaCursos";
 import { api } from "../lib/api";
+import PageLoading from "../components/PageLoading";
 
 import type { Unidade } from "../types/domain";
 type Curso = {
@@ -109,25 +109,17 @@ export default function Cursos() {
     }
   }
 
+  if (carregando) {
+    return (
+      <section className="courses-page">
+        <PageLoading label="Carregando cursos..." />
+      </section>
+    );
+  }
+
   return (
     <section className="courses-page">
-      <header className="courses-header">
-        <div>
-          <span>ORGANIZAÇÃO ACADÊMICA</span>
-          <div className="page-title-row">
-            <span className="page-title-icon">
-              <AppIcon name="courses" size={22} />
-            </span>
-            <h1>Cursos e unidades</h1>
-          </div>
-          <p>
-            Corrija a unidade de um curso e atualize todos os alunos vinculados
-            no período {periodoAtual?.codigo}.
-          </p>
-        </div>
-      </header>
-
-      <div className="courses-summary">
+<div className="courses-summary">
         <article>
           <span>Cursos cadastrados</span>
           <strong>{cursos.length}</strong>

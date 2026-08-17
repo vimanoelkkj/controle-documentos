@@ -17,7 +17,7 @@ import { useAuth } from "./contexts/auth";
 
 function Rotas() {
   const { usuario, carregando, modoApresentacao } = useAuth();
-  if (carregando) return <div className="auth-boot">Carregando sessão...</div>;
+  if (carregando) return null;
   return <Routes>
         <Route path="/login" element={<Login />} />
         {usuario ? <>

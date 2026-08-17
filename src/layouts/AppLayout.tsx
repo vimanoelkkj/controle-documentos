@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { PeriodoProvider } from "../contexts/PeriodoContext";
 import { usePeriodo } from "../contexts/periodo";
 import { useAuth } from "../contexts/auth";
 import ChangelogModal from "../components/ChangelogModal";
+import AppIcon from "../components/AppIcon";
 
 type SheetsEstado = "carregando" | "conectado" | "nao-conectado" | "temporario";
 
@@ -38,14 +39,16 @@ function LayoutContent() {
   const { periodos, periodoAtual, carregando, erro, selecionarPeriodo } =
     usePeriodo();
 
-  const { usuario, modoApresentacao } = useAuth();
+  const { modoApresentacao } = useAuth();
 
   const [sheetsStatus, setSheetsStatus] = useState<SheetsStatus | null>(null);
   const [testandoSheets, setTestandoSheets] = useState(false);
   const [modalSheets, setModalSheets] = useState(false);
   const [modalSheetsSaindo, setModalSheetsSaindo] = useState(false);
   const [periodDropdownAberto, setPeriodDropdownAberto] = useState(false);
+  const [periodDropdownFechando, setPeriodDropdownFechando] = useState(false);
   const periodDropdownRef = useRef<HTMLDivElement | null>(null);
+  const periodDropdownCloseTimerRef = useRef<number | null>(null);
   const retrySheetsRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -59,18 +62,51 @@ function LayoutContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fecharPeriodDropdown = useCallback(() => {
+    if (!periodDropdownAberto || periodDropdownFechando) return;
+
+    setPeriodDropdownFechando(true);
+
+    if (periodDropdownCloseTimerRef.current !== null) {
+      window.clearTimeout(periodDropdownCloseTimerRef.current);
+    }
+
+    periodDropdownCloseTimerRef.current = window.setTimeout(() => {
+      setPeriodDropdownAberto(false);
+      setPeriodDropdownFechando(false);
+      periodDropdownCloseTimerRef.current = null;
+    }, 120);
+  }, [periodDropdownAberto, periodDropdownFechando]);
+
   useEffect(() => {
     function fecharSeClicarFora(event: MouseEvent) {
       if (
         periodDropdownRef.current &&
         !periodDropdownRef.current.contains(event.target as Node)
       ) {
-        setPeriodDropdownAberto(false);
+        fecharPeriodDropdown();
       }
     }
 
+    function fecharComEsc(event: KeyboardEvent) {
+      if (event.key === "Escape") fecharPeriodDropdown();
+    }
+
     document.addEventListener("mousedown", fecharSeClicarFora);
-    return () => document.removeEventListener("mousedown", fecharSeClicarFora);
+    document.addEventListener("keydown", fecharComEsc);
+
+    return () => {
+      document.removeEventListener("mousedown", fecharSeClicarFora);
+      document.removeEventListener("keydown", fecharComEsc);
+    };
+  }, [fecharPeriodDropdown]);
+
+  useEffect(() => {
+    return () => {
+      if (periodDropdownCloseTimerRef.current !== null) {
+        window.clearTimeout(periodDropdownCloseTimerRef.current);
+      }
+    };
   }, []);
 
   async function testarGoogleSheets(silencioso = false) {
@@ -175,7 +211,7 @@ function LayoutContent() {
   }
 
   if (carregando) {
-    return <div className="period-boot">Carregando período letivo...</div>;
+    return null;
   }
 
   if (erro || !periodoAtual) {
@@ -206,110 +242,188 @@ function LayoutContent() {
           : "nao-conectado";
 
   const conectado = sheetsEstado === "conectado";
+  const paginaMeta = (() => {
+    if (location.pathname.startsWith("/conferencia")) {
+      return {
+        title: "Conferência",
+        description: "Confira e atualize a documentação dos alunos.",
+      };
+    }
+
+    if (location.pathname === "/") {
+      return {
+        title: "Dashboard",
+        description: "Visão geral da documentação dos alunos por unidade.",
+      };
+    }
+
+    if (location.pathname.startsWith("/comunicacao")) {
+      return {
+        title: "Comunicação",
+        description: "Grupos automáticos por combinação exata de pendências.",
+      };
+    }
+
+    if (location.pathname.startsWith("/auditoria")) {
+      return {
+        title: "Auditoria",
+        description: "Integridade entre os dados do sistema e da planilha no período selecionado.",
+      };
+    }
+
+    if (location.pathname.startsWith("/estatisticas")) {
+      return {
+        title: "Estatísticas documentais",
+        description: "Onde estão os gargalos, como os alunos se distribuem e quais grupos merecem prioridade na conferência.",
+      };
+    }
+
+    if (location.pathname.startsWith("/log")) {
+      return {
+        title: "LOG",
+        description: "Registro cronológico das ações realizadas no sistema.",
+      };
+    }
+
+    if (location.pathname.startsWith("/periodos")) {
+      return {
+        title: "Períodos letivos",
+        description: "Crie novos ciclos, alterne o contexto do sistema e arquive períodos antigos sem perder o acesso aos dados.",
+      };
+    }
+
+    if (location.pathname.startsWith("/cursos")) {
+      return {
+        title: "Cursos e unidades",
+        description: `Corrija a unidade de um curso e atualize todos os alunos vinculados no período ${periodoAtual.codigo}.`,
+      };
+    }
+
+    if (location.pathname.startsWith("/configuracoes")) {
+      return {
+        title: "Configurações",
+        description: "Preferências, integrações e controle de acesso.",
+      };
+    }
+
+    if (location.pathname.startsWith("/sobre")) {
+      return {
+        title: "Sobre",
+        description: "Uma visão geral do sistema, sua proposta e os recursos que fazem parte da operação acadêmica.",
+      };
+    }
+
+    return null;
+  })();
 
   return (
     <div className="app-layout">
-      <Sidebar />
+      <Sidebar sheetsEstado={sheetsEstado} onSheetsClick={abrirModalSheets} hideSheetsStatus />
 
       <div className="app-main-column">
-        <header className="period-toolbar">
-          <div className="period-toolbar-copy">
-            <span>PERÍODO LETIVO</span>
-            <strong>{periodoAtual.codigo}</strong>
+        <header className="period-toolbar period-toolbar--conference-replica">
+          <div className="conference-replica-period">
+            <span>Período</span>
+            <div
+              className={`period-dropdown ${
+                periodDropdownAberto ? "is-open" : ""
+              } ${periodDropdownFechando ? "is-closing" : ""}`}
+              ref={periodDropdownRef}
+            >
+              <button
+                type="button"
+                className="period-dropdown-trigger conference-replica-period-trigger"
+                aria-haspopup="listbox"
+                aria-expanded={periodDropdownAberto}
+                onClick={() => {
+                  if (periodDropdownAberto) {
+                    fecharPeriodDropdown();
+                  } else {
+                    setPeriodDropdownFechando(false);
+                    setPeriodDropdownAberto(true);
+                  }
+                }}
+              >
+                <AppIcon name="calendarSmall" size={17} />
+                <span className="conference-replica-period-value">{periodoAtual.codigo}</span>
+                <span
+                  className="period-dropdown-chevron period-dropdown-chevron-animated"
+                  aria-hidden="true"
+                />
+              </button>
 
-            {periodoAtual.status === "ARQUIVADO" && (
-              <em>
-                ARQUIVADO · {modoApresentacao ? "somente leitura" : "edição permitida"}
-              </em>
-            )}
+              <div
+                className="period-dropdown-menu period-dropdown-disclosure"
+                role="listbox"
+                aria-hidden={!periodDropdownAberto}
+              >
+                {periodos.map((periodo) => {
+                  const selecionado = periodo.codigo === periodoAtual.codigo;
+                  return (
+                    <button
+                      type="button"
+                      role="option"
+                      tabIndex={periodDropdownAberto ? 0 : -1}
+                      aria-selected={selecionado}
+                      className={`period-dropdown-option ${selecionado ? "selected" : ""}`}
+                      key={periodo.id}
+                      onClick={() => {
+                        if (periodDropdownFechando) return;
+
+                        if (selecionado) {
+                          fecharPeriodDropdown();
+                          return;
+                        }
+
+                        setPeriodDropdownFechando(true);
+
+                        if (periodDropdownCloseTimerRef.current !== null) {
+                          window.clearTimeout(periodDropdownCloseTimerRef.current);
+                        }
+
+                        periodDropdownCloseTimerRef.current = window.setTimeout(() => {
+                          selecionarPeriodo(periodo.codigo);
+                          setPeriodDropdownAberto(false);
+                          setPeriodDropdownFechando(false);
+                          periodDropdownCloseTimerRef.current = null;
+                        }, 120);
+                      }}
+                    >
+                      <span>{periodo.codigo}</span>
+                      <span className="period-dropdown-option-meta">
+                        {periodo.status === "ARQUIVADO" && <small>arquivado</small>}
+                        {selecionado && (
+                          <span className="period-dropdown-option-check" aria-hidden="true">
+                            ✓
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <button
             type="button"
-            className={`google-sheets-status google-sheets-status--${
-              sheetsEstado === "temporario" ? "carregando" : sheetsEstado
-            }`}
+            className={`conference-replica-sheets conference-replica-sheets--${sheetsEstado}`}
             onClick={abrirModalSheets}
             title="Abrir status da integração com Google Planilhas"
           >
             <GoogleSheetsIcon />
-
-            <span className="google-sheets-status-copy">
-              <strong>Google Planilhas</strong>
-              <small>
-                {sheetsEstado === "carregando"
-                  ? "Verificando..."
-                  : sheetsEstado === "temporario"
-                    ? "Tentando novamente..."
-                    : conectado
-                      ? "Conectado"
-                      : "Não conectado"}
-              </small>
-            </span>
-
-            <span className="google-sheets-status-dot" aria-hidden="true" />
+            <span>Google Planilhas</span>
+            <i className="google-sheets-status-dot" aria-hidden="true" />
+            <strong>
+              {sheetsEstado === "carregando"
+                ? "Verificando"
+                : sheetsEstado === "temporario"
+                  ? "Indisponível"
+                  : conectado
+                    ? "Conectado"
+                    : "Desconectado"}
+            </strong>
           </button>
-
-          {usuario?.perfil === "VISUALIZADOR" && (
-            <div className="period-toolbar-readonly" role="status">
-              <span>{modoApresentacao ? "APRESENTAÇÃO" : "VISUALIZADOR"}</span>
-              <strong>Somente leitura</strong>
-              <small>Alterações bloqueadas para esta conta</small>
-            </div>
-          )}
-
-          <div className="period-toolbar-select">
-            <span>Trocar período</span>
-
-            <div className="period-dropdown" ref={periodDropdownRef}>
-              <button
-                type="button"
-                className="period-dropdown-trigger"
-                aria-haspopup="listbox"
-                aria-expanded={periodDropdownAberto}
-                onClick={() => setPeriodDropdownAberto((aberto) => !aberto)}
-              >
-                <span>{periodoAtual.codigo}</span>
-                <span
-                  className={`period-dropdown-chevron ${
-                    periodDropdownAberto ? "open" : ""
-                  }`}
-                  aria-hidden="true"
-                >
-                  ▾
-                </span>
-              </button>
-
-              {periodDropdownAberto && (
-                <div className="period-dropdown-menu" role="listbox">
-                  {periodos.map((periodo) => {
-                    const selecionado = periodo.codigo === periodoAtual.codigo;
-
-                    return (
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={selecionado}
-                        className={`period-dropdown-option ${
-                          selecionado ? "selected" : ""
-                        }`}
-                        key={periodo.id}
-                        onClick={() => {
-                          setPeriodDropdownAberto(false);
-                          if (!selecionado) selecionarPeriodo(periodo.codigo);
-                        }}
-                      >
-                        <span>{periodo.codigo}</span>
-                        {periodo.status === "ARQUIVADO" && (
-                          <small>arquivado</small>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
         </header>
 
         {periodoAtual.status === "ARQUIVADO" && (
@@ -318,6 +432,13 @@ function LayoutContent() {
               ? "Você está visualizando um período arquivado em modo somente leitura."
               : "Você está visualizando um período arquivado. Alterações continuam permitidas e ficam registradas no LOG."}
           </div>
+        )}
+
+        {paginaMeta && (
+          <header className="unified-reference-page-heading">
+            <h1>{paginaMeta.title}</h1>
+            <p>{paginaMeta.description}</p>
+          </header>
         )}
 
         <main className="app-content" key={periodoAtual.codigo}>

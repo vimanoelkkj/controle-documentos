@@ -39,7 +39,7 @@ export function ModalConfirmarStatusPeriodo({
             <span className="modal-eyebrow">PERÍODOS LETIVOS</span>
 
             <h2 id="period-confirm-title">
-              {arquivando ? "Arquivar período?" : "Reativar período?"}
+              {arquivando ? "Arquivar período?" : "Restaurar período?"}
             </h2>
 
             <p>
@@ -88,7 +88,7 @@ export function ModalConfirmarStatusPeriodo({
               ? "Processando..."
               : arquivando
                 ? "Arquivar período"
-                : "Reativar período"}
+                : "Restaurar período"}
           </button>
         </div>
       </div>

@@ -2,6 +2,8 @@ type Props = {
   novoCodigo: string;
   setNovoCodigo: (valor: string) => void;
   processando: boolean;
+  erro?: string;
+  limparErro?: () => void;
   criarPeriodo: () => void | Promise<void>;
   formatarCodigoPeriodo: (valor: string) => string;
 };
@@ -10,6 +12,8 @@ export function CriarPeriodoCard({
   novoCodigo,
   setNovoCodigo,
   processando,
+  erro,
+  limparErro,
   criarPeriodo,
   formatarCodigoPeriodo,
 }: Props) {
@@ -24,29 +28,47 @@ export function CriarPeriodoCard({
       </div>
 
       <div className="period-create-form">
-        <input
-          value={novoCodigo}
-          onChange={(e) => setNovoCodigo(formatarCodigoPeriodo(e.target.value))}
-          onKeyDown={(e) => {
-            const input = e.currentTarget;
-            const cursorNoFim =
-              input.selectionStart === novoCodigo.length &&
-              input.selectionEnd === novoCodigo.length;
-
-            if (
-              e.key === "Backspace" &&
-              novoCodigo.endsWith("-") &&
-              cursorNoFim
-            ) {
-              e.preventDefault();
-              setNovoCodigo(novoCodigo.slice(0, -2));
-            }
-          }}
-          placeholder="2027-1"
-          maxLength={6}
-          inputMode="numeric"
-          aria-label="Novo período letivo no formato ano e semestre"
-        />
+        <div className="period-create-field">
+          <input
+            className={erro ? "has-error" : undefined}
+            value={novoCodigo}
+            onChange={(e) => {
+              setNovoCodigo(formatarCodigoPeriodo(e.target.value));
+              limparErro?.();
+            }}
+            onKeyDown={(e) => {
+              const input = e.currentTarget;
+              const cursorNoFim =
+                input.selectionStart === novoCodigo.length &&
+                input.selectionEnd === novoCodigo.length;
+  
+              if (
+                e.key === "Backspace" &&
+                novoCodigo.endsWith("-") &&
+                cursorNoFim
+              ) {
+                e.preventDefault();
+                setNovoCodigo(novoCodigo.slice(0, -2));
+              }
+            }}
+            placeholder="2027-1"
+            maxLength={6}
+            inputMode="numeric"
+            aria-label="Novo período letivo no formato ano e semestre"
+            aria-invalid={Boolean(erro)}
+            aria-describedby={erro ? "period-create-error" : undefined}
+          />
+          {erro && (
+            <div
+              id="period-create-error"
+              className="period-create-inline-error"
+              role="alert"
+            >
+              <span aria-hidden="true">!</span>
+              <small>{erro}</small>
+            </div>
+          )}
+        </div>
 
         <button
           type="button"

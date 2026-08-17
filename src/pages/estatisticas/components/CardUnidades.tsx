@@ -1,3 +1,5 @@
+import { numero } from "../utils";
+
 type UnidadeStats = {
   unidade: string;
   total: number;
@@ -13,13 +15,6 @@ type UnidadeStats = {
 type Props = {
   unidades: UnidadeStats[];
 };
-
-function numero(valor: number, casas = 0) {
-  return valor.toLocaleString("pt-BR", {
-    minimumFractionDigits: casas,
-    maximumFractionDigits: casas,
-  });
-}
 
 export function CardUnidades({ unidades }: Props) {
   return (

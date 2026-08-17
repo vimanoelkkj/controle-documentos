@@ -26,7 +26,6 @@ type Props = {
 
 export function DiagnosticoConsistencia({
   diagnostico,
-  periodoCodigo,
   verificando,
   erroDiagnostico,
   bloqueado,
@@ -37,85 +36,39 @@ export function DiagnosticoConsistencia({
   periodoDisponivel,
 }: Props) {
   return (
-    <section
-      className={`audit-consistency ${
-        bloqueado ? "blocked" : diagnostico ? "checked" : ""
-      }`}
-    >
-      <div className="audit-consistency-head">
-        <div>
-          <span>PLANILHA ↔ SISTEMA</span>
-
-          <strong>Diagnóstico de consistência · {periodoCodigo || "—"}</strong>
-
-          <p>A comparação é somente leitura. Nenhum dado será alterado.</p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => void aoVerificar()}
-          disabled={verificando || !periodoDisponivel}
-        >
-          {verificando
-            ? "Comparando bases..."
-            : diagnostico
-              ? "Verificar novamente"
-              : "Verificar agora"}
-        </button>
-      </div>
+    <div className="audit-consistency-compact">
+      <button
+        type="button"
+        className="audit-verify-link audit-integrity-action"
+        onClick={() => void aoVerificar()}
+        disabled={verificando || !periodoDisponivel}
+      >
+        <span>
+          <strong>{verificando ? "Comparando bases..." : diagnostico ? "Verificar novamente" : "Verificar agora"}</strong>
+          <small>Verifique novamente a integridade entre o sistema e a planilha.</small>
+        </span>
+      </button>
 
       {erroDiagnostico && (
         <div className="audit-consistency-error">{erroDiagnostico}</div>
       )}
 
-      {diagnostico && (
-        <>
-          <div className="audit-consistency-status">
-            <strong>
-              {bloqueado
-                ? "Sincronização bloqueada"
-                : totalDivergencias
-                  ? `${totalDivergencias} divergência(s) encontrada(s)`
-                  : "Bases consistentes"}
-            </strong>
-
-            <span>
-              {bloqueado
-                ? `${cursosNaoMapeados} curso(s) precisam ser mapeados, afetando ${alunosSemUnidade} aluno(s).`
-                : `${diagnostico.encontrados} aluno(s) analisado(s).`}
-            </span>
-          </div>
-
-          <div className="audit-consistency-grid">
-            {[
-              ["Somente na planilha", diagnostico.novos, "new"],
-              [
-                "Cadastros diferentes",
-                diagnostico.alteracoes_cadastrais,
-                "change",
-              ],
-              [
-                "Documentos diferentes",
-                diagnostico.documentos_alterados,
-                "change",
-              ],
-              ["A cancelar", diagnostico.prontos_para_cancelar, "warning"],
-              ["A reativar", diagnostico.prontos_para_reativar, "change"],
-              [
-                "Somente no sistema",
-                diagnostico.prontos_para_remover,
-                "warning",
-              ],
-              ["Cursos a mapear", cursosNaoMapeados, "blocked"],
-            ].map(([rotulo, valor, classe]) => (
-              <article className={String(classe)} key={String(rotulo)}>
-                <span>{rotulo}</span>
-                <strong>{valor}</strong>
-              </article>
-            ))}
-          </div>
-        </>
+      {diagnostico && !erroDiagnostico && (
+        <div className={`audit-consistency-result ${bloqueado ? "blocked" : ""}`}>
+          <strong>
+            {bloqueado
+              ? "Sincronização bloqueada"
+              : totalDivergencias
+                ? `${totalDivergencias} divergência(s)`
+                : "Bases consistentes"}
+          </strong>
+          <span>
+            {bloqueado
+              ? `${cursosNaoMapeados} curso(s) a mapear · ${alunosSemUnidade} aluno(s) afetado(s)`
+              : `${diagnostico.encontrados} aluno(s) analisado(s)`}
+          </span>
+        </div>
       )}
-    </section>
+    </div>
   );
 }

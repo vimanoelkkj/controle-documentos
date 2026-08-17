@@ -1,0 +1,63 @@
+/* =========================================================
+   TOKENS DE DESIGN — TEMA CLARO
+   Mesma linguagem visual do Claude.ai: superfícies neutras,
+   bordas finas, cantos suavemente arredondados, cor só onde
+   carrega significado (estado, ação primária).
+
+   Como usar: em qualquer CSS novo do tema light, prefira
+   var(--nome-do-token) em vez de inventar um hex novo. Isso é o
+   que faltava pra parar de duplicar/discordar cor entre arquivos
+   — problema que já resolvemos na mão várias vezes nessa
+   conversa (cascata de 13 arquivos, cada um com seu hex).
+
+   Escopo: só html[data-theme="light"] por enquanto. Os temas
+   dark/black continuam com os valores próprios deles, sem tokens
+   — se um dia migrarem também, é só declarar as mesmas variáveis
+   dentro de um bloco html[data-theme="dark"]/"black" equivalente.
+   ========================================================= */
+
+html[data-theme="light"] {
+  /* Superfícies — do fundo da página até o elemento mais "elevado" */
+  --cds-surface-0: #f7f7f5;   /* fundo da página */
+  --cds-surface-1: #f1f0ea;   /* card dentro de card, linha de tabela */
+  --cds-surface-2: #ffffff;   /* card padrão, painel */
+  --cds-surface-3: #ffffff;   /* popover, modal */
+
+  /* Texto */
+  --cds-text-primary: #1a1a18;
+  --cds-text-secondary: #63625b;
+  --cds-text-muted: #8f8e85;
+  --cds-text-disabled: #b8b7ae;
+
+  /* Bordas */
+  --cds-border: #e4e2d9;
+  --cds-border-strong: #d3d1c7;
+  --cds-border-stronger: #b4b2a9;
+
+  /* Acento — ação do usuário, links, seleção */
+  --cds-accent: #185fa5;
+  --cds-accent-bg: #e6f1fb;
+  --cds-accent-bg-muted: #f0f6fc;
+  --cds-accent-border: #85b7eb;
+
+  /* Papéis semânticos — só onde o significado é real (erro, sucesso, alerta) */
+  --cds-danger: #a32d2d;
+  --cds-danger-bg: #fcebeb;
+  --cds-danger-border: #f09595;
+
+  --cds-success: #3b6d11;
+  --cds-success-bg: #eaf3de;
+  --cds-success-border: #97c459;
+
+  --cds-warning: #854f0b;
+  --cds-warning-bg: #faeeda;
+  --cds-warning-border: #efa927;
+
+  /* Layout */
+  --cds-radius: 8px;
+  --cds-radius-card: 12px;
+  --cds-pad-sm: 8px;
+  --cds-pad-md: 12px;
+  --cds-pad-lg: 16px;
+  --cds-pad-xl: 24px;
+}

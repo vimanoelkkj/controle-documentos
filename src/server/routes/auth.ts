@@ -1,3 +1,6 @@
+import { aguardar } from "../utils/async";
+import { obterCookie } from "../utils/cookies";
+
 interface AuthEnv {
   DB: D1Database;
 }
@@ -57,15 +60,6 @@ async function hashToken(token: string) {
   return bytesHex(new Uint8Array(digest));
 }
 
-function obterCookie(request: Request, nome: string) {
-  const cookies = request.headers.get("Cookie") || "";
-  for (const parte of cookies.split(";")) {
-    const [chave, ...valor] = parte.trim().split("=");
-    if (chave === nome) return decodeURIComponent(valor.join("="));
-  }
-  return null;
-}
-
 function cookieSessao(
   token: string,
   request: Request,
@@ -83,10 +77,6 @@ export class AuthStorageUnavailableError extends Error {
     this.name = "AuthStorageUnavailableError";
     if (causa) console.error("Falha temporária no D1 durante autenticação:", causa);
   }
-}
-
-function aguardar(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function usuarioDaRequisicao(request: Request, env: AuthEnv) {

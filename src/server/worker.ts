@@ -18,12 +18,11 @@ import {
   escreverValoresGoogle,
   extrairSpreadsheetId,
   lerRangesGoogle,
-  normalizarComparacao,
-  normalizarTexto,
   testarConexaoGoogleSheets,
   valorBooleano,
 } from "./services/google-sheets";
 import { obterPeriodoAtual } from "./services/periodo-context";
+import { normalizarComparacao, normalizarTexto } from "./utils/texto";
 import { registrarAuditoria } from "./services/auditoria";
 import { registrarPendenciaGoogleSheets } from "./services/google-sheets-pendencias";
 import {

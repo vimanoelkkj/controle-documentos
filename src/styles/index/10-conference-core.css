@@ -7,6 +7,51 @@
   max-width: 1600px;
 }
 
+.conference-header {
+  width: calc(100% - 28px);
+  margin: 12px auto 14px;
+  padding: 14px 18px;
+
+  border: 1px solid #253847;
+  border-radius: 16px;
+
+  background: #101d27;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.conference-header > span {
+  margin-bottom: 5px;
+}
+
+.conference-header .page-title-row {
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.conference-header .page-title-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.conference-header h1 {
+  font-size: 1.5rem;
+}
+
+.conference-header p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.conference-grid {
+  width: calc(100% - 28px);
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
 @media (min-width: 901px) and (max-height: 800px) {
   .page-header {
     margin-bottom: 10px;
@@ -44,11 +89,20 @@
 }
 
 .student-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  gap: 11px;
+  padding: 15px 15px 12px;
+}
 
-  padding: 18px;
+.student-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.student-panel-heading > div {
+  min-width: 0;
 }
 
 .student-panel-header span,
@@ -65,30 +119,42 @@
 
 .student-panel-header h2 {
   margin: 0;
-
   font-size: 18px;
 }
 
-.student-panel-title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .botao-atualizar-alunos {
-  min-height: 30px;
-  padding: 0 10px;
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+
+  width: 32px;
+  height: 32px;
+  padding: 0;
+
   border: 1px solid #2a4254;
-  border-radius: 8px;
+  border-radius: 9px;
+
   color: #75c7ff;
   background: #152633;
-  font-size: 12px;
-  font-weight: 800;
+
+  font-size: 15px;
+  font-weight: 900;
+
   cursor: pointer;
 }
 
 .botao-atualizar-alunos:hover {
   background: #1b3344;
+}
+
+.student-panel-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.student-panel-actions button {
+  min-height: 38px;
 }
 
 .icon-button {
@@ -111,7 +177,7 @@
 .unit-tabs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 
 .unit-tabs button {
@@ -120,7 +186,7 @@
   justify-content: space-between;
 
   min-width: 0;
-  padding: 10px 11px;
+  padding: 8px 10px;
 
   border: 1px solid #2a4051;
   border-radius: 9px;
@@ -152,11 +218,153 @@
   font-size: 12px;
 }
 
-.student-search {
-  width: calc(100% - 28px);
-  height: 42px;
+/* =========================================================
+   FILTRO DE UNIDADE — POPOVER
+   ========================================================= */
 
-  margin: 0 14px 12px;
+.unit-filter {
+  position: relative;
+  margin: 0 12px 8px;
+}
+
+.unit-filter-trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 9px;
+
+  width: 100%;
+  min-height: 38px;
+  padding: 0 11px 0 12px;
+
+  border: 1px solid #2a4051;
+  border-radius: 9px;
+
+  color: #9eb1c0;
+  background: #162530;
+
+  font-size: 12px;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.unit-filter-trigger:hover,
+.unit-filter-trigger[aria-expanded="true"] {
+  border-color: #438fc1;
+  background: #192d3a;
+}
+
+.unit-filter-trigger.has-selection {
+  border-color: #438fc1;
+  color: #8fd0fa;
+  background: #173247;
+}
+
+.unit-filter-trigger > strong {
+  padding: 2px 7px;
+
+  border-radius: 999px;
+
+  color: #dce8ef;
+  background: rgba(255, 255, 255, 0.08);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.unit-filter-chevron {
+  color: #718a9b;
+  font-size: 10px;
+
+  transition: transform 0.15s ease;
+}
+
+.unit-filter-trigger[aria-expanded="true"] .unit-filter-chevron {
+  transform: rotate(180deg);
+}
+
+/* MENU */
+
+.unit-filter-popover {
+  position: absolute;
+  z-index: 30;
+
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+
+  display: grid;
+  gap: 3px;
+
+  padding: 7px;
+
+  border: 1px solid #304b5d;
+  border-radius: 10px;
+
+  background: #101d27;
+
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+}
+
+.unit-filter-popover button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  width: 100%;
+  min-height: 34px;
+  padding: 0 9px;
+
+  border: 0;
+  border-radius: 7px;
+
+  color: #91a7b7;
+  background: transparent;
+
+  font-size: 12px;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.unit-filter-popover button:hover {
+  color: #dceaf2;
+  background: #182b38;
+}
+
+.unit-filter-popover button.active {
+  color: #8fd0fa;
+  background: #18384d;
+}
+
+.unit-filter-popover button strong {
+  padding: 2px 6px;
+
+  border-radius: 999px;
+
+  color: #9fb5c4;
+  background: rgba(255, 255, 255, 0.07);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.unit-filter-popover button.active strong {
+  color: #a9ddff;
+  background: rgba(97, 191, 255, 0.12);
+}
+
+.student-search {
+  width: calc(100% - 24px);
+  height: 38px;
+
+  margin: 0 12px 10px;
   padding: 0 13px;
 
   border: 1px solid #2a4051;
@@ -265,6 +473,51 @@
   color: #7e94a4;
 
   font-size: 12px;
+}
+
+/* Barra de progresso da lista — antes era só o texto "0/7", ilegível
+   de relance numa lista de mais de mil alunos. Reaproveita a mesma
+   classificação (statusDocumentalAluno) usada no painel de detalhes,
+   então crítico/parcial/completo aqui SEMPRE bate com o lado direito. */
+.student-card-progress-track {
+  height: 3px;
+  margin-top: 8px;
+
+  overflow: hidden;
+  border-radius: 999px;
+
+  background: #1c2c38;
+}
+
+.student-card-progress-value {
+  height: 100%;
+  border-radius: inherit;
+
+  transition: width 200ms ease;
+}
+
+.student-card-progress-value--critico {
+  background: #ff6f6f;
+}
+
+.student-card-progress-value--parcial {
+  background: #ffd65b;
+}
+
+.student-card-progress-value--completo {
+  background: #6fe094;
+}
+
+.student-card-fraction--critico {
+  color: #ff9b9b;
+}
+
+.student-card-fraction--parcial {
+  color: #ffe396;
+}
+
+.student-card-fraction--completo {
+  color: #93e0a8;
 }
 
 /* FICHA DO ALUNO */
@@ -382,6 +635,20 @@
   border-radius: inherit;
 
   background: #59b6f2;
+
+  transition: width 0.25s ease;
+}
+
+.progress-value--critico {
+  background: #ff6b6b;
+}
+
+.progress-value--parcial {
+  background: #ffd65b;
+}
+
+.progress-value--completo {
+  background: #66d181;
 }
 
 /* DOCUMENTOS */
@@ -407,9 +674,10 @@
 }
 
 .document-card {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
 
   min-height: 64px;
   padding: 11px 13px;
@@ -420,6 +688,8 @@
   background: #172733;
 
   cursor: pointer;
+
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .document-card:hover {
@@ -432,15 +702,77 @@
   background: #173520;
 }
 
+/* O input continua sendo o dono real do estado (clique, teclado, leitor de
+   tela). Ele some visualmente, mas nunca sai do fluxo/foco — display:none
+   ou visibility:hidden tirariam o card da navegação por teclado. */
 .document-card input {
-  width: 18px;
-  height: 18px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
 
+  clip-path: inset(50%);
+
+  margin: 0;
+}
+
+.document-card:focus-within {
+  outline: 2px solid #5db8f5;
+  outline-offset: 2px;
+}
+
+/* Mesmo problema de especificidade do badge: é um span dentro de
+   .document-card, então ".document-card span" (mais abaixo) empataria
+   ou venceria dependendo da ordem. Escopando do mesmo jeito. */
+.document-card .document-card-icon-wrap {
+  position: relative;
   flex: 0 0 auto;
+  display: grid;
+  place-items: center;
 
-  accent-color: #66d181;
+  width: 34px;
+  height: 34px;
 
-  cursor: pointer;
+  border-radius: 9px;
+
+  color: #74c5ff;
+  background: #1e3546;
+
+  font-size: inherit;
+}
+
+.document-card.delivered .document-card-icon-wrap {
+  color: #66d181;
+  background: #12291a;
+}
+
+/* .document-card-badge é um <span>, e ".document-card span" (definida
+   mais abaixo para o texto "Documento pendente") tem mais especificidade
+   que uma classe sozinha — vencia e deixava o badge cinza/11px em vez
+   das cores daqui. Escopando com ".document-card" na frente pra ganhar
+   a disputa de especificidade sem depender de !important. */
+.document-card .document-card-badge {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+
+  display: grid;
+  place-items: center;
+
+  width: 15px;
+  height: 15px;
+
+  border: 2px solid #172733;
+  border-radius: 50%;
+
+  color: #0d2213;
+  background: #4a5a64;
+
+  font-size: inherit;
+}
+
+.document-card.delivered .document-card-badge {
+  border-color: #173520;
+  background: #66d181;
 }
 
 .document-card div {
@@ -458,6 +790,10 @@
   color: #91a6b5;
 
   font-size: 11px;
+}
+
+.document-card.delivered span {
+  color: #7fca93;
 }
 
 /* RESUMO */
@@ -522,6 +858,15 @@
 
   color: #ffd65b;
 }
+
+/* As variantes de cor por estado (crítico/parcial/completo), o estado
+   "documentação entregue" (.summary-complete/.summary-check) e as cores
+   de .student-progress-percent/status já existem, completas e com os
+   dois temas cobertos, em 90-responsive-and-controls.css. Eu tinha
+   duplicado esse bloco aqui sem checar o resto da cascata — removido
+   para não ter duas fontes de verdade divergentes para a mesma coisa.
+   Fonte oficial: 90-responsive-and-controls.css, seção
+   "CONFERÊNCIA — ESTADOS DO RESUMO". */
 
 /* TELAS MENORES */
 
@@ -656,14 +1001,14 @@
    ========================================================= */
 
 .student-panel-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
 }
 
 .botao-novo-aluno {
-  min-height: 36px;
-  padding: 0 12px;
+  min-height: 34px;
+  padding: 0 10px;
 
   border: 1px solid #3f8fbe;
   border-radius: 9px;
@@ -1824,36 +2169,40 @@
 .status-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-  margin: 0 12px 10px;
+  gap: 2px;
+
+  padding: 3px;
+  margin: 0 12px 8px;
+
+  border: 1px solid #2c4353;
+  border-radius: 10px;
+  background: #101e28;
 }
 
 .status-tabs button {
-  min-height: 32px;
-  padding: 0 8px;
-  border: 1px solid #2c4353;
-  border-radius: 8px;
+  min-height: 26px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 7px;
   color: #8fa5b5;
-  background: #101e28;
+  background: transparent;
   font-size: 11px;
   font-weight: 800;
   cursor: pointer;
 }
 
 .status-tabs button:hover {
-  border-color: #41718e;
-  background: #162b39;
+  color: #cfe3ee;
 }
 
 .status-tabs button.active {
-  border-color: #4aa8df;
   color: #ffffff;
   background: #1b4965;
 }
 
 .botao-importar-cancelados {
-  min-height: 36px;
-  padding: 0 11px;
+  min-height: 34px;
+  padding: 0 10px;
   border: 1px solid #81453c;
   border-radius: 9px;
   color: #ffb2a5;
@@ -1869,6 +2218,22 @@
 .botao-importar-cancelados:hover {
   border-color: #d66957;
   background: #48241f;
+}
+
+/* Versão discreta — "importar cancelados" é uma ação rara, não devia
+   competir visualmente com "+ Adicionar aluno" ao lado. Vira link,
+   mas mantém a cor de alerta pra não perder o aviso de que remove
+   alunos ativos. */
+.botao-importar-cancelados--discreto {
+  border-color: transparent;
+  color: #ff8f80;
+  background: transparent;
+}
+
+.botao-importar-cancelados--discreto:hover {
+  border-color: transparent;
+  color: #ffb2a5;
+  background: #241412;
 }
 
 .student-card.cancelled {
@@ -1916,4 +2281,3 @@
     grid-template-columns: 1fr;
   }
 }
-

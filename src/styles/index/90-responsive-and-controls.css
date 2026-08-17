@@ -95,7 +95,7 @@
   .documents-area {
     padding: 0 18px 18px;
     gap: 12px;
-    grid-template-columns: minmax(0, 1fr) 180px;
+    grid-template-columns: minmax(0, 1fr) 230px;
   }
 
   .document-card {
@@ -129,36 +129,10 @@
   }
 }
 
-.documents-area {
-  grid-template-columns: minmax(0, 1fr) 160px;
-  gap: 10px;
-}
-
-.summary-card {
-  width: 160px;
-  padding: 10px;
-}
-
-.summary-card h3 {
-  font-size: 11px;
-}
-
-.summary-number {
-  margin: 8px 0;
-}
-
-.summary-number strong {
-  font-size: 24px;
-}
-
-.summary-card ul {
-  gap: 4px;
-}
-
-.summary-card li {
-  padding: 5px 7px;
-  font-size: 9px;
-}
+/* Largura do resumo já é definida por 80-conference-workflows.css.
+   Esta duplicata (antes 160px) vencia por carregar depois e reabria
+   o problema de scroll interno mesmo após o ajuste em 80-*. Removida
+   para manter uma única fonte de verdade para a largura padrão. */
 
 .student-panel-actions {
   gap: 8px;
@@ -252,11 +226,11 @@
   }
 
   .documents-area {
-    grid-template-columns: minmax(0, 1fr) 160px;
+    grid-template-columns: minmax(0, 1fr) 200px;
   }
 
   .summary-card {
-    width: 160px;
+    width: 200px;
   }
 }
 

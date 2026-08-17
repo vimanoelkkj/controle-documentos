@@ -1,6 +1,8 @@
-import type { FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import type { Perfil } from "../../../contexts/auth";
 import AppSelect from "../../../components/AppSelect";
+
+const DOMINIOS_EMAIL = ["fumec.edu.br", "gmail.com"] as const;
 
 type Props = {
   nome: string;
@@ -35,15 +37,22 @@ export function FormNovoUsuario({
   erro,
   criarUsuario,
 }: Props) {
+  const [emailFocado, setEmailFocado] = useState(false);
+  const sugestoesEmail = useMemo(() => {
+    const local = email.trim().split("@")[0];
+    if (!local) return DOMINIOS_EMAIL.map((dominio) => `@${dominio}`);
+    return DOMINIOS_EMAIL.map((dominio) => `${local}@${dominio}`);
+  }, [email]);
+
   function enviar(evento: FormEvent) {
     evento.preventDefault();
     void criarUsuario();
   }
 
   return (
-    <form className="settings-user-form" onSubmit={enviar}>
+    <form className="settings-user-form" onSubmit={enviar} autoComplete="off">
       <div>
-        <span>NOVO USUÁRIO</span>
+        <span className="settings-section-eyebrow">NOVO USUÁRIO</span>
         <h2>Criar acesso</h2>
       </div>
 
@@ -71,18 +80,34 @@ export function FormNovoUsuario({
         E-mail
         <div className="settings-email-simple">
           <input
-            type="text"
+            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onFocus={() => setEmailFocado(true)}
+            onBlur={() => setEmailFocado(false)}
             placeholder="nome@fumec.edu.br"
-            list="email-dominios"
+            autoComplete="off"
             required
           />
 
-          <datalist id="email-dominios">
-            <option value="@fumec.edu.br" />
-            <option value="@gmail.com" />
-          </datalist>
+          {emailFocado && (
+            <div className="settings-email-suggestions" role="listbox" aria-label="Sugestões de domínio de e-mail">
+              {sugestoesEmail.map((sugestao) => (
+                <button
+                  key={sugestao}
+                  type="button"
+                  role="option"
+                  onMouseDown={(evento) => evento.preventDefault()}
+                  onClick={() => {
+                    setEmail(sugestao);
+                    setEmailFocado(false);
+                  }}
+                >
+                  {sugestao}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </label>
 
@@ -112,6 +137,8 @@ export function FormNovoUsuario({
             setModoApresentacao(false);
           }}
           ariaLabel="Perfil do novo usuário"
+          className="settings-role-select"
+          menuClassName="settings-role-menu"
           options={[
             {
               value: "VISUALIZADOR",
@@ -130,7 +157,7 @@ export function FormNovoUsuario({
         />
       </label>
 
-      {erro && <div className="login-error">{erro}</div>}
+      {erro && <div className="settings-user-inline-error" role="alert">{erro}</div>}
 
       <button type="submit">Criar usuário</button>
     </form>

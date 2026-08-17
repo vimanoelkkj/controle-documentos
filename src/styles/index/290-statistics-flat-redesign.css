@@ -1,0 +1,205 @@
+/* =========================================================
+   ESTATÍSTICAS · REDESIGN FLAT
+   Sem cards estruturais, sem divisórias decorativas e com
+   hierarquia visual baseada em tipografia, espaço e cor.
+   ========================================================= */
+
+.statistics-page {
+  gap: 18px;
+}
+
+/* Containers viram apenas regiões de layout. */
+.statistics-page .statistics-hero,
+.statistics-page .statistics-card,
+.statistics-page .statistics-kpi {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.statistics-page .statistics-hero {
+  padding: 0;
+}
+
+.statistics-page .statistics-card {
+  padding: 0;
+}
+
+.statistics-page .statistics-card-header {
+  padding-bottom: 8px;
+  border-bottom: 0;
+}
+
+/* Mantém só a linha cromática dos KPIs, que representa estado. */
+.statistics-page .statistics-kpi {
+  padding: 8px 10px 12px 0;
+}
+
+.statistics-page .statistics-kpi::after {
+  right: 10%;
+  height: 2px;
+}
+
+/* O recorte continua funcional, mas deixa de parecer um card. */
+.statistics-page .statistics-unit-filter {
+  min-width: 230px;
+}
+
+.statistics-page .statistics-unit-filter > span {
+  display: none;
+}
+
+.statistics-page .statistics-unit-filter .app-select-trigger,
+html[data-theme="light"] .statistics-page .statistics-unit-filter .app-select-trigger,
+html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-trigger {
+  min-height: 36px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.statistics-page .statistics-unit-filter .app-select-trigger:hover:not(:disabled),
+.statistics-page .statistics-unit-filter .app-select-trigger:focus-visible,
+.statistics-page .statistics-unit-filter .app-select-trigger[aria-expanded="true"],
+html[data-theme="light"] .statistics-page .statistics-unit-filter .app-select-trigger:hover:not(:disabled),
+html[data-theme="light"] .statistics-page .statistics-unit-filter .app-select-trigger:focus-visible,
+html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-trigger:hover:not(:disabled),
+html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-trigger:focus-visible {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.statistics-page .statistics-unit-filter .app-select-chevron {
+  opacity: 0.72;
+}
+
+/* Distribuição: sem moldura nos trilhos verticais. */
+.statistics-page .statistics-histogram-track {
+  border: 0;
+  background: #e8eef2;
+  box-shadow: none;
+}
+
+html[data-theme="black"] .statistics-page .statistics-histogram-track {
+  background: #20262b;
+}
+
+/* Gargalos: ranking solto, sem bolhas/círculos. */
+.statistics-page .statistics-document-list {
+  gap: 7px;
+  padding-top: 6px;
+}
+
+.statistics-page .statistics-document-row {
+  padding: 5px 0;
+  border-bottom: 0;
+}
+
+.statistics-page .statistics-document-title {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.statistics-page .statistics-document-title > span,
+html[data-theme="light"] .statistics-page .statistics-document-title > span,
+html[data-theme="black"] .statistics-page .statistics-document-title > span,
+.statistics-page .statistics-document-row.critical .statistics-document-title > span,
+html[data-theme="light"] .statistics-page .statistics-document-row.critical .statistics-document-title > span,
+html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title > span {
+  display: block;
+  width: 18px;
+  height: auto;
+  flex: 0 0 18px;
+  padding: 1px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: left;
+}
+
+/* Contrato e Histórico continuam visualmente críticos. */
+.statistics-page .statistics-document-row.critical .statistics-document-title > span,
+.statistics-page .statistics-document-row.critical .statistics-document-title strong,
+.statistics-page .statistics-document-row.critical .statistics-document-meter strong,
+html[data-theme="light"] .statistics-page .statistics-document-row.critical .statistics-document-title > span,
+html[data-theme="light"] .statistics-page .statistics-document-row.critical .statistics-document-title strong,
+html[data-theme="light"] .statistics-page .statistics-document-row.critical .statistics-document-meter strong,
+html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title > span,
+html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title strong,
+html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-meter strong {
+  color: #d92f39;
+}
+
+html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title > span,
+html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title strong,
+html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-meter strong {
+  color: #ff727b;
+}
+
+/* Combinações: os documentos deixam de ser pills/cards. */
+.statistics-page .statistics-combination-list {
+  gap: 5px;
+}
+
+.statistics-page .statistics-combination-row,
+html[data-theme="light"] .statistics-page .statistics-combination-row,
+html[data-theme="black"] .statistics-page .statistics-combination-row {
+  padding: 5px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.statistics-page .statistics-combination-tags {
+  gap: 0.42em;
+  align-items: baseline;
+}
+
+.statistics-page .statistics-combination-tags span,
+html[data-theme="light"] .statistics-page .statistics-combination-tags span,
+html[data-theme="black"] .statistics-page .statistics-combination-tags span {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.statistics-page .statistics-combination-tags span:not(:last-child)::after {
+  content: ",";
+}
+
+/* A barra das combinações também sai: contagem e texto já contam a história. */
+.statistics-page .statistics-combination-track {
+  display: none;
+}
+
+.statistics-page .statistics-course-row {
+  padding: 5px 0;
+  border-bottom: 0;
+}
+
+/* Remove qualquer linha ornamental herdada dentro dos blocos estatísticos. */
+.statistics-page .statistics-card-header,
+.statistics-page .statistics-document-row,
+.statistics-page .statistics-course-row,
+.statistics-page .statistics-combination-row {
+  box-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .statistics-page .statistics-document-title > span {
+    flex-basis: 16px;
+    width: 16px;
+  }
+}

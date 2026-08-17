@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../../lib/api";
 import {
   configVazia,
@@ -46,6 +46,8 @@ export function useGoogleSheetsPeriodo({
   const [mostrarAlteracoesSync, setMostrarAlteracoesSync] = useState(false);
 
   const sheetsSalvo = sheetsStatus === "configurado";
+  const periodoAtualId = periodoAtual?.id;
+  const periodoAtualCodigo = periodoAtual?.codigo;
 
   useEffect(() => {
     if (!abaPrevia || abaPrevia === "unidades") return;
@@ -53,8 +55,12 @@ export function useGoogleSheetsPeriodo({
   }, [abaPrevia]);
 
   useEffect(() => {
-    if (!periodoAtual) return;
-    const periodo = periodoAtual;
+    if (periodoAtualId == null || !periodoAtualCodigo) return;
+
+    const periodo: PeriodoAtual = {
+      id: periodoAtualId,
+      codigo: periodoAtualCodigo,
+    };
     let ativo = true;
 
     setSheetsPrevia(null);
@@ -129,7 +135,7 @@ export function useGoogleSheetsPeriodo({
     return () => {
       ativo = false;
     };
-  }, [periodoAtual?.id]);
+  }, [periodoAtualId, periodoAtualCodigo]);
 
   async function salvarSheets() {
     if (!periodoAtual) return;

@@ -1,3 +1,5 @@
+import { numero, percentual } from "../utils";
+
 type ResumoEstatisticas = {
   mediaPorAluno: number;
   taxaDocumental: number;
@@ -11,18 +13,6 @@ type Props = {
   resumo: ResumoEstatisticas;
   totalAlunos: number;
 };
-
-function percentual(valor: number, total: number) {
-  if (!total) return 0;
-  return Math.round((valor / total) * 100);
-}
-
-function numero(valor: number, casas = 0) {
-  return valor.toLocaleString("pt-BR", {
-    minimumFractionDigits: casas,
-    maximumFractionDigits: casas,
-  });
-}
 
 export function EstatisticasKpis({ resumo, totalAlunos }: Props) {
   return (

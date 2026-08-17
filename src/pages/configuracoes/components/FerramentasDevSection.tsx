@@ -28,15 +28,16 @@ export function FerramentasDevSection({
     <section className="settings-dev-tools">
       <div className="settings-dev-tools-head">
         <div>
-          <span>AMBIENTE DE DESENVOLVIMENTO</span>
+          <div className="settings-dev-eyebrow">
+            <span>AMBIENTE DE DESENVOLVIMENTO</span>
+            <strong>DEV</strong>
+          </div>
           <h2>Ferramentas de teste</h2>
           <p>
             Limpe alunos do período atual para repetir importações sem mexer em
             usuários, períodos ou configurações.
           </p>
         </div>
-
-        <strong>DEV</strong>
       </div>
 
       <div className="settings-dev-danger">
@@ -52,6 +53,8 @@ export function FerramentasDevSection({
               }}
               disabled={limpandoDev}
               ariaLabel="Alunos a remover"
+              className="settings-dev-unit-select"
+              menuClassName="settings-dev-unit-menu"
               options={[
                 { value: "FACE", label: "FACE" },
                 { value: "FEA", label: "FEA" },
@@ -63,7 +66,9 @@ export function FerramentasDevSection({
           </label>
 
           <label>
-            Digite <strong>{confirmacaoEsperada}</strong>
+            <span className="settings-dev-confirm-label">
+              Digite <strong>{confirmacaoEsperada}</strong>
+            </span>
             <input
               value={confirmacaoDev}
               onChange={(e) => setConfirmacaoDev(e.target.value)}
@@ -86,8 +91,8 @@ export function FerramentasDevSection({
           {limpandoDev
             ? "Limpando..."
             : unidadeDev === "TODOS"
-              ? "☢ Limpar todos os alunos"
-              : `⊘ Limpar alunos da ${unidadeDev}`}
+              ? "Limpar todos os alunos"
+              : `Limpar alunos da ${unidadeDev}`}
         </button>
       </div>
 

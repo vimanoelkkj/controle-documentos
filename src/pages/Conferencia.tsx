@@ -1,6 +1,5 @@
 import { useFiltrosUrlConferencia } from "./conferencia/hooks/useFiltrosUrlConferencia";
 import { useSelecaoAluno } from "./conferencia/hooks/useSelecaoAluno";
-import AppIcon from "../components/AppIcon";
 import "./HistoricoAluno.css";
 import { useAuth } from "../contexts/auth";
 import { ModalHistoricoAluno } from "./conferencia/ModalHistoricoAluno";
@@ -26,6 +25,7 @@ import { useDocumentosAluno } from "./conferencia/hooks/useDocumentosAluno";
 import { useGerenciamentoAluno } from "./conferencia/hooks/useGerenciamentoAluno";
 import { useResumoAluno } from "./conferencia/hooks/useResumoAluno";
 import { type FiltroStatus, type Unidade } from "./conferencia/model";
+import PageLoading from "../components/PageLoading";
 
 import { useEffect, useRef, useState } from "react";
 function Conferencia() {
@@ -223,7 +223,6 @@ function Conferencia() {
     descricaoFiltroDashboard,
   } = useFiltrosConferencia({
     alunosSalvos,
-    alunosEmEdicao,
     raSelecionado,
     busca,
     filtroStatus,
@@ -237,16 +236,16 @@ function Conferencia() {
 
   if (carregando) {
     return (
-      <section className="conference-page">
-        <div className="page-loading-state">Carregando alunos...</div>
+      <section className="conference-page conference-page--replica">
+        <PageLoading label="Carregando alunos..." />
       </section>
     );
   }
 
   if (erro) {
     return (
-      <section className="conference-page">
-        <div className="page-loading-state error">{erro}</div>
+      <section className="conference-page conference-page--replica">
+<div className="conference-replica-loading error">{erro}</div>
       </section>
     );
   }
@@ -284,19 +283,8 @@ function Conferencia() {
   }
 
   return (
-    <section className="conference-page">
-      <header className="page-header">
-        <span>FLUXO DE TRABALHO</span>
-        <div className="page-title-row">
-          <span className="page-title-icon">
-            <AppIcon name="check" size={22} />
-          </span>
-          <h1>Conferência de documentos</h1>
-        </div>
-        <p>Confira e atualize a documentação dos alunos.</p>
-      </header>
-
-      <div ref={conferenciaGridRef} className="conference-grid">
+    <section className="conference-page conference-page--replica">
+<div ref={conferenciaGridRef} className="conference-grid conference-grid--replica">
         <PainelListaAlunos
           painelListaRef={painelListaRef}
           buscaAlunoRef={buscaAlunoRef}

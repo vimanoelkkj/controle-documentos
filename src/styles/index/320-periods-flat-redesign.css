@@ -1,0 +1,567 @@
+/* V24.51 — Períodos letivos: flat, sem cards, sem linhas e ações textuais */
+.period-page {
+  display: grid;
+  gap: 34px;
+}
+
+/* Seções vivem diretamente sobre o fundo da página. */
+.period-page .period-create-card,
+.period-page .period-section,
+.period-page .period-sheets-card,
+html[data-theme="light"] .period-page .period-create-card,
+html[data-theme="light"] .period-page .period-section,
+html[data-theme="light"] .period-page .period-sheets-card,
+html[data-theme="black"] .period-page .period-create-card,
+html[data-theme="black"] .period-page .period-section,
+html[data-theme="black"] .period-page .period-sheets-card {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.period-page .period-create-card {
+  min-height: 86px;
+  align-items: center;
+}
+
+.period-page .period-sheets-card {
+  display: grid;
+  gap: 18px;
+}
+
+.period-page .period-sheets-heading {
+  margin: 0;
+}
+
+.period-page .period-sheets-grid {
+  gap: 20px 48px;
+  margin-top: 0;
+}
+
+.period-page .period-sheets-main,
+.period-page .period-sheets-grid label {
+  gap: 7px;
+}
+
+/* Campos sem caixas, linhas ou fundos. Continuam totalmente editáveis. */
+.period-page .period-create-form input,
+.period-page .period-sheets-card input,
+html[data-theme="light"] .period-page .period-create-form input,
+html[data-theme="light"] .period-page .period-sheets-card input,
+html[data-theme="black"] .period-page .period-create-form input,
+html[data-theme="black"] .period-page .period-sheets-card input {
+  min-height: 34px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  font-weight: 600;
+}
+
+.period-page .period-create-form input {
+  width: 150px;
+  text-align: left;
+}
+
+.period-page .period-sheets-card input:focus,
+.period-page .period-create-form input:focus {
+  border: 0;
+  box-shadow: none;
+  outline: none;
+}
+
+/* Status da integração deixa de ser badge/card. */
+.period-page .period-sheets-status,
+html[data-theme="light"] .period-page .period-sheets-status,
+html[data-theme="light"] .period-page .period-sheets-status.connected,
+html[data-theme="black"] .period-page .period-sheets-status {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.period-page .period-sheets-file {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Ações no padrão textual da Conferência. */
+.period-page .period-create-form button,
+.period-page .period-actions button,
+.period-page .period-sheets-actions button,
+.period-page .period-sheets-actions button.secondary,
+html[data-theme="light"] .period-page .period-create-form button,
+html[data-theme="light"] .period-page .period-actions button,
+html[data-theme="light"] .period-page .period-sheets-actions button,
+html[data-theme="light"] .period-page .period-sheets-actions button.secondary,
+html[data-theme="black"] .period-page .period-create-form button,
+html[data-theme="black"] .period-page .period-actions button,
+html[data-theme="black"] .period-page .period-sheets-actions button,
+html[data-theme="black"] .period-page .period-sheets-actions button.secondary {
+  min-height: 0;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 0;
+  color: #0875e1;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.period-page .period-actions .danger-soft,
+html[data-theme="light"] .period-page .period-actions .danger-soft,
+html[data-theme="black"] .period-page .period-actions .danger-soft {
+  border: 0;
+  color: #df342f;
+  background: transparent;
+}
+
+.period-page .period-actions .secondary,
+html[data-theme="light"] .period-page .period-actions .secondary,
+html[data-theme="black"] .period-page .period-actions .secondary {
+  color: #0875e1;
+  background: transparent;
+}
+
+.period-page .period-create-form button:hover:not(:disabled),
+.period-page .period-actions button:hover:not(:disabled),
+.period-page .period-sheets-actions button:hover:not(:disabled) {
+  text-decoration: underline;
+  background: transparent;
+}
+
+.period-page .period-sheets-actions {
+  margin-top: 0;
+  gap: 28px;
+}
+
+/* Períodos ativos/arquivados sem cards e sem linhas separadoras. */
+.period-page .period-section-header {
+  padding: 0;
+  border: 0;
+}
+
+.period-page .period-section-header strong,
+html[data-theme="light"] .period-page .period-section-header strong,
+html[data-theme="black"] .period-page .period-section-header strong {
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #0875e1;
+  background: transparent;
+}
+
+.period-page .period-list {
+  gap: 16px;
+  padding-top: 14px;
+}
+
+.period-page .period-card,
+.period-page .period-card.current,
+html[data-theme="light"] .period-page .period-card,
+html[data-theme="light"] .period-page .period-card.current,
+html[data-theme="black"] .period-page .period-card,
+html[data-theme="black"] .period-page .period-card.current {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.period-page .period-card > div:first-child {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  column-gap: 18px;
+}
+
+.period-page .period-card h3 {
+  margin: 0;
+}
+
+.period-page .period-card p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.period-page .period-status {
+  grid-row: 1;
+  padding: 3px 8px;
+}
+
+.period-page .period-actions {
+  gap: 24px;
+}
+
+/* Sem divisórias decorativas na seção de preview. */
+.period-page .period-sheets-preview {
+  border-top: 0;
+}
+
+@media (max-width: 850px) {
+  .period-page {
+    gap: 26px;
+  }
+  .period-page .period-sheets-grid {
+    gap: 16px;
+  }
+  .period-page .period-card > div:first-child {
+    grid-template-columns: auto 1fr;
+    row-gap: 4px;
+  }
+  .period-page .period-card p {
+    grid-column: 1 / -1;
+  }
+}
+
+
+/* v24-52 — status de período totalmente flat: só texto e cor. */
+.period-page .period-status,
+html[data-theme="light"] .period-page .period-status,
+html[data-theme="black"] .period-page .period-status {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.period-page .period-status.ativo,
+html[data-theme="light"] .period-page .period-status.ativo {
+  color: #159447;
+  background: transparent;
+  border: 0;
+}
+
+.period-page .period-status.arquivado,
+html[data-theme="light"] .period-page .period-status.arquivado {
+  color: #b77700;
+  background: transparent;
+  border: 0;
+}
+
+html[data-theme="black"] .period-page .period-status.ativo {
+  color: #6fe094;
+}
+
+html[data-theme="black"] .period-page .period-status.arquivado {
+  color: #ffd65b;
+}
+
+/* v24-53 — ações flat não mudam de aparência ao passar o mouse. */
+.period-page .period-create-form button:hover:not(:disabled),
+.period-page .period-actions button:hover:not(:disabled),
+.period-page .period-sheets-actions button:hover:not(:disabled),
+.period-page .period-create-form button:active:not(:disabled),
+.period-page .period-actions button:active:not(:disabled),
+.period-page .period-sheets-actions button:active:not(:disabled) {
+  text-decoration: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+.period-page .period-actions .danger-soft:hover:not(:disabled),
+.period-page .period-actions .danger-soft:active:not(:disabled) {
+  color: #df342f !important;
+}
+
+.period-page .period-actions .secondary:hover:not(:disabled),
+.period-page .period-actions .secondary:active:not(:disabled),
+.period-page .period-create-form button:hover:not(:disabled),
+.period-page .period-create-form button:active:not(:disabled),
+.period-page .period-sheets-actions button:hover:not(:disabled),
+.period-page .period-sheets-actions button:active:not(:disabled) {
+  color: #0875e1 !important;
+}
+
+/* v24-54 — ações dos períodos com geometria fixa: hover não desloca a linha. */
+.period-page .period-actions {
+  min-width: 190px;
+  min-height: 24px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.period-page .period-actions button,
+html[data-theme="light"] .period-page .period-actions button,
+html[data-theme="black"] .period-page .period-actions button {
+  box-sizing: border-box;
+  min-width: 76px;
+  min-height: 24px;
+  margin: 0;
+  padding: 4px 2px !important;
+  border: 0 !important;
+  line-height: 16px;
+  font-weight: 700 !important;
+  white-space: nowrap;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.period-page .period-actions button:hover:not(:disabled),
+.period-page .period-actions button:active:not(:disabled),
+.period-page .period-actions button:focus:not(:disabled) {
+  min-width: 76px;
+  min-height: 24px;
+  margin: 0;
+  padding: 4px 2px !important;
+  border: 0 !important;
+  line-height: 16px;
+  font-weight: 700 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* v24-55 — congela a geometria da linha dos períodos.
+   Nenhum estado de hover/focus pode recalcular largura ou posição. */
+.period-page .period-card,
+html[data-theme="light"] .period-page .period-card,
+html[data-theme="black"] .period-page .period-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 190px !important;
+  align-items: center !important;
+  column-gap: 24px !important;
+}
+
+.period-page .period-actions,
+html[data-theme="light"] .period-page .period-actions,
+html[data-theme="black"] .period-page .period-actions {
+  display: grid !important;
+  grid-template-columns: 82px 84px !important;
+  justify-content: end !important;
+  align-items: center !important;
+  width: 190px !important;
+  min-width: 190px !important;
+  max-width: 190px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  gap: 24px !important;
+  flex: 0 0 190px !important;
+}
+
+.period-page .period-actions button,
+html[data-theme="light"] .period-page .period-actions button,
+html[data-theme="black"] .period-page .period-actions button,
+.period-page .period-actions button:hover:not(:disabled),
+.period-page .period-actions button:focus:not(:disabled),
+.period-page .period-actions button:active:not(:disabled) {
+  display: block !important;
+  width: 82px !important;
+  min-width: 82px !important;
+  max-width: 82px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  margin: 0 !important;
+  padding: 4px 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  line-height: 16px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: color .12s ease !important;
+}
+
+/* Quando existe apenas Restaurar, ele fica na segunda coluna sem alterar a linha. */
+.period-page .period-actions > button:only-child {
+  grid-column: 2 !important;
+}
+
+@media (max-width: 850px) {
+  .period-page .period-card,
+  html[data-theme="light"] .period-page .period-card,
+  html[data-theme="black"] .period-page .period-card {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+}
+
+/* v24-56 — neutraliza o hover global herdado de .period-list article.
+   O deslocamento vinha do transform: translateY(-2px) aplicado ao ARTICLE inteiro. */
+.period-page .period-list article,
+.period-page .period-list article:hover,
+.period-page .period-list article:focus-within,
+html[data-theme="light"] .period-page .period-list article,
+html[data-theme="light"] .period-page .period-list article:hover,
+html[data-theme="black"] .period-page .period-list article,
+html[data-theme="black"] .period-page .period-list article:hover {
+  transform: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+}
+
+/* v24-57 — validação do novo período fica junto ao campo, sem banner global. */
+.period-page .period-create-form {
+  align-items: flex-start;
+}
+
+.period-page .period-create-field {
+  display: grid;
+  gap: 5px;
+  width: 150px;
+}
+
+.period-page .period-create-form input.has-error,
+html[data-theme="light"] .period-page .period-create-form input.has-error,
+html[data-theme="black"] .period-page .period-create-form input.has-error {
+  color: inherit;
+  border: 1px solid #e25555 !important;
+  border-radius: 7px;
+  padding: 4px 8px;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.period-page .period-create-inline-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: #d94b4b;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.period-page .period-create-inline-error > span {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+.period-page .period-create-inline-error small {
+  color: inherit;
+  font-size: inherit;
+  font-weight: 600;
+}
+
+html[data-theme="black"] .period-page .period-create-inline-error {
+  color: #ff8585;
+}
+
+/* v24-58 — alinha status, período e quantidade de alunos em colunas estáveis. */
+.period-page .period-card > div:first-child,
+html[data-theme="light"] .period-page .period-card > div:first-child,
+html[data-theme="black"] .period-page .period-card > div:first-child {
+  display: grid !important;
+  grid-template-columns: 120px 140px minmax(0, 1fr) !important;
+  align-items: center !important;
+  column-gap: 24px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.period-page .period-card > div:first-child .period-status {
+  grid-column: 1 !important;
+  justify-self: start !important;
+}
+
+.period-page .period-card > div:first-child h3 {
+  grid-column: 2 !important;
+  justify-self: start !important;
+  text-align: left !important;
+}
+
+.period-page .period-card > div:first-child p {
+  grid-column: 3 !important;
+  justify-self: start !important;
+  text-align: left !important;
+}
+
+@media (max-width: 850px) {
+  .period-page .period-card > div:first-child,
+  html[data-theme="light"] .period-page .period-card > div:first-child,
+  html[data-theme="black"] .period-page .period-card > div:first-child {
+    grid-template-columns: 96px minmax(0, 1fr) !important;
+    row-gap: 4px !important;
+  }
+
+  .period-page .period-card > div:first-child h3 {
+    grid-column: 2 !important;
+  }
+
+  .period-page .period-card > div:first-child p {
+    grid-column: 2 !important;
+  }
+}
+
+
+/* v24-59 — erro do Google Sheets inline, sem faixa/banner. */
+.period-page .period-sheets-inline-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin: -8px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #d84b45;
+  background: transparent;
+  box-shadow: none;
+}
+
+.period-page .period-sheets-inline-error > span {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.period-page .period-sheets-inline-error small {
+  color: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+html[data-theme="black"] .period-page .period-sheets-inline-error {
+  color: #ff7b76;
+}
+
+/* Garante que o alerta legado não volte como faixa caso ainda seja renderizado por algum estado antigo. */
+.period-page .period-sheets-error,
+html[data-theme="light"] .period-page .period-sheets-error,
+html[data-theme="black"] .period-page .period-sheets-error {
+  width: fit-content;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #d84b45;
+  background: transparent;
+  box-shadow: none;
+}

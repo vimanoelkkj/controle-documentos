@@ -109,7 +109,11 @@ html[data-theme="black"] .period-toolbar {
 
 html[data-theme="black"] .sidebar-link { color: #9ca6ad; }
 html[data-theme="black"] .sidebar-link:hover { color: #e8edf0; background: #111; }
-html[data-theme="black"] .sidebar-link.active { color: #7dd0ff; border-color: #285c78; background: #0c2533; }
+/* .sidebar-link.active fica só na versão monocromática mais abaixo
+   ("Pretão monocromático: nenhum acento azul") — essa aqui embaixo era
+   uma definição com azul que nunca chegava a aparecer, pois a de baixo
+   carrega depois e sempre vencia. Removida para não ter duas versões
+   divergentes do mesmo estado. */
 html[data-theme="black"] .theme-button,
 html[data-theme="black"] .logout-button { color: #d7dee2; border-color: #303030; background: #111; }
 html[data-theme="black"] .theme-button:hover,
@@ -294,6 +298,32 @@ html[data-theme="black"] .sidebar-link.active {
 
 html[data-theme="black"] .sidebar-link.active::before { background: #d8d8d8; }
 
+/* Ícone e badge do card de documento — sem essa regra, herdavam o azul
+   do tema dark, destoando do monocromático que o resto do tema preto
+   já segue (ver "Pretão monocromático: nenhum acento azul" acima). */
+html[data-theme="black"] .document-card .document-card-icon-wrap {
+  color: #c9c9c9;
+  background: #1a1a1a;
+}
+
+html[data-theme="black"]
+  .document-card.delivered
+  .document-card-icon-wrap {
+  color: #f2f2f2;
+  background: #262626;
+}
+
+html[data-theme="black"] .document-card .document-card-badge {
+  border-color: #050505;
+  color: #050505;
+  background: #4a4a4a;
+}
+
+html[data-theme="black"] .document-card.delivered .document-card-badge {
+  border-color: #262626;
+  background: #f2f2f2;
+}
+
 html[data-theme="black"] .page-title-icon,
 html[data-theme="black"] .communication-preview-icon,
 html[data-theme="black"] .settings-backup-icon,
@@ -445,6 +475,34 @@ html[data-theme="black"] .student-card.active {
 html[data-theme="black"] .student-card.active .student-card-main > strong::before {
   content: "✓ ";
   color: #fff;
+}
+
+html[data-theme="black"] .student-card-progress-track {
+  background: #262626 !important;
+}
+
+html[data-theme="black"] .student-card-progress-value--critico {
+  background: #e05a63 !important;
+}
+
+html[data-theme="black"] .student-card-progress-value--parcial {
+  background: #d6b34a !important;
+}
+
+html[data-theme="black"] .student-card-progress-value--completo {
+  background: #67c98a !important;
+}
+
+html[data-theme="black"] .student-card-fraction--critico {
+  color: #ff858d !important;
+}
+
+html[data-theme="black"] .student-card-fraction--parcial {
+  color: #f0c75e !important;
+}
+
+html[data-theme="black"] .student-card-fraction--completo {
+  color: #67d69b !important;
 }
 
 html[data-theme="black"] .student-tags span,
@@ -641,6 +699,12 @@ html[data-theme="black"] .dashboard-nav-bar.critical .dashboard-bar-fill.priorit
   background: #e05a63;
 }
 
+html[data-theme="black"] .dashboard-critical-tag {
+  border-color: #4a2426;
+  color: #ff858d;
+  background: #1a0e0f;
+}
+
 html[data-theme="black"] .dashboard-nav-bar {
   border-color: transparent !important;
   background: transparent !important;
@@ -676,6 +740,18 @@ html[data-theme="black"] .dashboard-unit-row.dashboard-nav-row:hover {
   color: #ff8b91;
 }
 
+.statistics-critical-tag {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border: 1px solid #6b2e33;
+  border-radius: 999px;
+  color: #ff8b91;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  background: #2b1417;
+}
+
 .statistics-document-meter > div span.critical {
   background: #e45d66;
 }
@@ -691,6 +767,12 @@ html[data-theme="light"] .statistics-document-row.critical .statistics-document-
   color: #b4232d;
 }
 
+html[data-theme="light"] .statistics-critical-tag {
+  border-color: #f0aaa3;
+  color: #b4232d;
+  background: #fff0ee;
+}
+
 html[data-theme="light"] .statistics-document-meter > div span.critical {
   background: #d83d48;
 }
@@ -704,6 +786,12 @@ html[data-theme="black"] .statistics-document-row.critical .statistics-document-
 html[data-theme="black"] .statistics-document-row.critical .statistics-document-title strong,
 html[data-theme="black"] .statistics-document-row.critical .statistics-document-meter strong {
   color: #ff858d;
+}
+
+html[data-theme="black"] .statistics-critical-tag {
+  border-color: #4a2426;
+  color: #ff858d;
+  background: #1a0e0f;
 }
 
 html[data-theme="black"] .statistics-document-meter > div span.critical {
@@ -1226,10 +1314,6 @@ html[data-theme="black"] .log-item p {
     border-color: #e58b8b;
     background: #ffeded;
     color: #912018;
-  }
-  
-  .settings-user-delete:active {
-    transform: translateY(1px);
   }
   
   .settings-user-delete:hover {

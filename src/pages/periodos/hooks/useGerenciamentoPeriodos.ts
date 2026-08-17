@@ -32,6 +32,7 @@ export function useGerenciamentoPeriodos({
   const [novoCodigo, setNovoCodigo] = useState("");
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
+  const [erroCriacao, setErroCriacao] = useState("");
   const [confirmacao, setConfirmacao] = useState<ConfirmacaoPeriodo | null>(
     null,
   );
@@ -40,25 +41,27 @@ export function useGerenciamentoPeriodos({
     const codigo = normalizarCodigo(novoCodigo);
 
     if (!/^\d{4}-(1|2)$/.test(codigo)) {
-      setErro("Use o formato AAAA-1 ou AAAA-2. Ex.: 2027-1.");
+      setErroCriacao("Use o formato AAAA-1 ou AAAA-2. Ex.: 2027-1.");
       return;
     }
 
     try {
       setProcessando(true);
       setErro("");
+      setErroCriacao("");
 
       await api.post<{ sucesso: boolean; id: number }>("/api/periodos", {
         codigo,
       });
 
       setNovoCodigo("");
+      setErroCriacao("");
 
       await recarregarPeriodos();
 
       selecionarPeriodo(codigo);
     } catch (erro) {
-      setErro(
+      setErroCriacao(
         erro instanceof Error
           ? erro.message
           : "Não foi possível criar o período.",
@@ -96,6 +99,8 @@ export function useGerenciamentoPeriodos({
     setNovoCodigo,
     processando,
     erro,
+    erroCriacao,
+    limparErroCriacao: () => setErroCriacao(""),
     confirmacao,
     setConfirmacao,
     criarPeriodo,

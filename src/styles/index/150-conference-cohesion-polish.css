@@ -1,0 +1,587 @@
+/* Conferência · coesão visual do mockup aprovado */
+
+:root {
+  --conference-font: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.conference-page,
+.period-toolbar--conference {
+  font-family: var(--conference-font);
+}
+
+/* Topo global: Planilhas e Período passam a falar a mesma língua visual. */
+.period-toolbar--conference {
+  min-height: 72px;
+  padding: 12px 24px;
+  gap: 12px;
+  background: color-mix(in srgb, var(--surface, #0d1720) 96%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.period-toolbar--conference .period-toolbar-copy {
+  margin-right: auto;
+}
+
+.period-toolbar--conference .google-sheets-status,
+.period-toolbar--conference .period-toolbar-select {
+  min-height: 46px;
+  border-radius: 12px;
+}
+
+.period-toolbar--conference .google-sheets-status {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  min-width: 184px;
+  padding: 8px 12px;
+  gap: 9px;
+  border: 1px solid rgba(145, 160, 174, .18);
+  background: rgba(255, 255, 255, .025);
+  box-shadow: none;
+}
+
+.period-toolbar--conference .google-sheets-status:hover {
+  transform: none;
+  border-color: rgba(103, 150, 255, .34);
+  background: rgba(103, 150, 255, .055);
+}
+
+.period-toolbar--conference .google-sheets-status-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.period-toolbar--conference .google-sheets-status-copy {
+  gap: 1px;
+}
+
+.period-toolbar--conference .google-sheets-status-copy strong {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.period-toolbar--conference .google-sheets-status-copy small {
+  font-size: 11px;
+  opacity: .72;
+}
+
+.period-toolbar--conference .google-sheets-status-dot {
+  width: 7px;
+  height: 7px;
+  box-shadow: none;
+}
+
+.period-toolbar--conference .period-toolbar-select {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 5px 6px 5px 11px;
+  border: 1px solid rgba(145, 160, 174, .18);
+  background: rgba(255, 255, 255, .025);
+}
+
+.period-toolbar--conference .period-toolbar-select > span {
+  padding-left: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  opacity: .55;
+}
+
+.period-toolbar--conference .period-dropdown-trigger {
+  min-width: 114px;
+  min-height: 29px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 7px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-weight: 700;
+}
+
+.period-toolbar--conference .period-dropdown-trigger:hover,
+.period-toolbar--conference .period-dropdown-trigger:focus-visible {
+  background: rgba(103, 150, 255, .08);
+}
+
+/* Cabeçalho da página: menor, mais próximo do conteúdo. */
+.conference-header--cohesive {
+  min-height: auto !important;
+  padding: 20px 24px 14px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.conference-header--cohesive > span {
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: .13em;
+  opacity: .55;
+}
+
+.conference-header--cohesive .page-title-row {
+  gap: 9px;
+}
+
+.conference-header--cohesive .page-title-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.conference-header--cohesive h1 {
+  font-size: clamp(21px, 2vw, 28px);
+  letter-spacing: -.035em;
+}
+
+.conference-header--cohesive p {
+  margin-top: 5px;
+  font-size: 12px;
+  opacity: .62;
+}
+
+/* Lista de alunos: título + busca + ações no mesmo bloco. */
+.student-panel-header--cohesive {
+  display: grid;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 0;
+}
+
+.student-panel-header--cohesive .student-panel-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-panel-header--cohesive .student-panel-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.student-panel-header--cohesive .student-panel-heading span:not(.student-panel-count) {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  opacity: .48;
+}
+
+.student-panel-header--cohesive .student-panel-heading h2 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: -.025em;
+}
+
+.student-panel-count {
+  min-width: 30px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(103, 150, 255, .11);
+  color: #7aa5ff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.student-panel-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px auto 36px;
+  align-items: center;
+  gap: 7px;
+}
+
+.student-search-shell {
+  min-width: 0;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid rgba(145, 160, 174, .18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .025);
+  color: rgba(145, 160, 174, .75);
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
+}
+
+.student-search-shell:focus-within {
+  border-color: rgba(103, 150, 255, .55);
+  background: rgba(103, 150, 255, .045);
+  box-shadow: 0 0 0 3px rgba(103, 150, 255, .09);
+}
+
+.student-search-shell .student-search {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit;
+  font-size: 12px;
+}
+
+.student-toolbar-icon,
+.student-toolbar-more,
+.student-toolbar-add {
+  height: 36px;
+  border: 1px solid rgba(145, 160, 174, .18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .025);
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.student-toolbar-icon,
+.student-toolbar-more {
+  width: 36px;
+  display: grid;
+  place-items: center;
+}
+
+.student-toolbar-more {
+  padding-bottom: 6px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.student-toolbar-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 11px;
+  border-color: rgba(76, 126, 255, .42);
+  background: #4c7eff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.student-toolbar-icon:hover,
+.student-toolbar-more:hover {
+  border-color: rgba(103, 150, 255, .36);
+  background: rgba(103, 150, 255, .075);
+}
+
+.student-toolbar-add:hover {
+  background: #5b88ff;
+  transform: translateY(-1px);
+}
+
+.student-panel .status-tabs,
+.student-panel .unit-filter {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
+/* Cards de documentos: geometria única; cor muda, não o layout. */
+.documents-area--cohesive {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+}
+
+.documents-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 11px;
+}
+
+.documents-section-heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.documents-section-heading span {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  opacity: .46;
+}
+
+.documents-section-heading h3 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: -.02em;
+}
+
+.documents-section-heading small {
+  font-size: 11px;
+  opacity: .55;
+}
+
+.documents-area--cohesive .documents-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.documents-area--cohesive .document-card {
+  position: relative;
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(145, 160, 174, .12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .018);
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+
+.documents-area--cohesive .document-card:hover {
+  border-color: rgba(103, 150, 255, .30);
+  background: rgba(103, 150, 255, .045);
+  transform: translateY(-1px);
+}
+
+.documents-area--cohesive .document-card.delivered {
+  border-color: rgba(63, 185, 126, .20);
+  background: rgba(63, 185, 126, .075);
+}
+
+.documents-area--cohesive .document-card > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.documents-area--cohesive .document-card:has(input:focus-visible) {
+  outline: 3px solid rgba(103, 150, 255, .18);
+  outline-offset: 1px;
+}
+
+.document-card-icon {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(103, 150, 255, .08);
+  color: #769fff;
+}
+
+.document-card.delivered .document-card-icon {
+  background: rgba(63, 185, 126, .12);
+  color: #46bd84;
+}
+
+.document-card-icon b {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--surface, #0d1720);
+  border-radius: 999px;
+  background: #3fb97e;
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.documents-area--cohesive .document-card > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.documents-area--cohesive .document-card strong {
+  font-size: 12px;
+  font-weight: 720;
+  letter-spacing: -.01em;
+}
+
+.documents-area--cohesive .document-card > div > span {
+  font-size: 10px;
+  opacity: .52;
+}
+
+/* Resumo agora fecha a seção em vez de competir com os documentos. */
+.summary-card--cohesive {
+  min-height: 76px !important;
+  display: grid !important;
+  gap: 10px;
+  padding: 13px 15px !important;
+  border-radius: 12px !important;
+  overflow: visible !important;
+  box-shadow: none !important;
+}
+
+.summary-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.summary-card-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.summary-card-heading > div > span {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  opacity: .52;
+}
+
+.summary-card-heading strong {
+  font-size: 13px;
+  letter-spacing: -.01em;
+}
+
+.summary-card-state {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.summary-card--critico.summary-card--cohesive {
+  border-color: rgba(231, 93, 101, .18) !important;
+  background: rgba(231, 93, 101, .055) !important;
+}
+
+.summary-card--critico .summary-card-state {
+  background: rgba(231, 93, 101, .11);
+  color: #ee7d84;
+}
+
+.summary-card--parcial.summary-card--cohesive {
+  border-color: rgba(220, 164, 73, .18) !important;
+  background: rgba(220, 164, 73, .055) !important;
+}
+
+.summary-card--parcial .summary-card-state {
+  background: rgba(220, 164, 73, .12);
+  color: #dfad59;
+}
+
+.summary-card--completo.summary-card--cohesive {
+  border-color: rgba(63, 185, 126, .18) !important;
+  background: rgba(63, 185, 126, .055) !important;
+}
+
+.summary-card--completo .summary-card-state {
+  background: rgba(63, 185, 126, .12);
+  color: #49c58c;
+}
+
+.summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.summary-chips span {
+  padding: 4px 7px;
+  border: 1px solid rgba(145, 160, 174, .12);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .025);
+  font-size: 9px;
+  font-weight: 650;
+  opacity: .72;
+}
+
+/* Tema claro */
+html[data-theme="light"] .period-toolbar--conference,
+html[data-theme="light"] .student-search-shell,
+html[data-theme="light"] .student-toolbar-icon,
+html[data-theme="light"] .student-toolbar-more,
+html[data-theme="light"] .period-toolbar--conference .google-sheets-status,
+html[data-theme="light"] .period-toolbar--conference .period-toolbar-select {
+  background: rgba(255, 255, 255, .72);
+  border-color: rgba(44, 62, 80, .10);
+}
+
+html[data-theme="light"] .documents-area--cohesive .document-card {
+  background: rgba(255, 255, 255, .62);
+  border-color: rgba(44, 62, 80, .09);
+}
+
+html[data-theme="light"] .documents-area--cohesive .document-card:hover {
+  background: rgba(76, 126, 255, .055);
+}
+
+html[data-theme="light"] .documents-area--cohesive .document-card.delivered {
+  background: rgba(53, 170, 112, .075);
+}
+
+html[data-theme="light"] .document-card-icon b {
+  border-color: #fff;
+}
+
+html[data-theme="light"] .summary-chips span {
+  background: rgba(255, 255, 255, .56);
+  border-color: rgba(44, 62, 80, .09);
+}
+
+/* Black mantém geometria, só aprofunda superfícies. */
+html[data-theme="black"] .period-toolbar--conference .google-sheets-status,
+html[data-theme="black"] .period-toolbar--conference .period-toolbar-select,
+html[data-theme="black"] .student-search-shell,
+html[data-theme="black"] .student-toolbar-icon,
+html[data-theme="black"] .student-toolbar-more,
+html[data-theme="black"] .documents-area--cohesive .document-card {
+  background: rgba(255, 255, 255, .022);
+  border-color: rgba(255, 255, 255, .08);
+}
+
+@media (max-width: 1180px) {
+  .student-panel-toolbar {
+    grid-template-columns: minmax(0, 1fr) 36px 36px;
+  }
+
+  .student-toolbar-add {
+    width: 36px;
+    padding: 0;
+  }
+
+  .student-toolbar-add span {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .period-toolbar--conference {
+    flex-wrap: wrap;
+    padding: 10px 16px;
+  }
+
+  .period-toolbar--conference .period-toolbar-copy {
+    width: 100%;
+  }
+
+  .documents-area--cohesive .documents-grid {
+    grid-template-columns: 1fr;
+  }
+}

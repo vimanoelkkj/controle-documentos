@@ -1,0 +1,254 @@
+/* =========================================================
+   MODAIS — LINGUAGEM FLAT GLOBAL
+   Padrão visual único: conteúdo no próprio fundo do modal,
+   ações e ícones sem caixas, estados comunicados por cor.
+   ========================================================= */
+
+.modal-overlay {
+  background: rgba(18, 28, 36, .72) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+/* Superfície única do modal. */
+.modal-overlay > [class*="modal"],
+.google-sheets-modal,
+.changelog-modal,
+.period-sync-confirm-modal,
+.courses-confirm-modal,
+.student-history-modal,
+.unsaved-student-modal {
+  background: var(--surface, #f7fafc) !important;
+  border: 1px solid rgba(110, 142, 165, .20) !important;
+  box-shadow: 0 24px 70px rgba(15, 31, 45, .22) !important;
+}
+
+/* Cabeçalho/rodapé fazem parte da mesma superfície. */
+.modal-cabecalho,
+.modal-acoes,
+.google-sheets-modal-head,
+.google-sheets-modal-actions,
+.changelog-modal-header,
+.changelog-modal-footer,
+.period-sync-confirm-modal > header,
+.period-sync-confirm-modal > footer {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Eyebrows seguem a identidade azul já usada no site. */
+.modal-eyebrow,
+.google-sheets-modal-head > div > span,
+.changelog-modal-header span {
+  color: #6e8ea5 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Ícones não possuem mais placas/fundos. */
+.google-sheets-modal-icon,
+.modal-excluir-icon,
+[class*="modal"] [class*="icon"] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.google-sheets-modal-icon,
+.google-sheets-modal-icon.connected,
+.google-sheets-modal-icon.disconnected {
+  color: #1477e6 !important;
+}
+
+/* X simples, sem quadrado. */
+.modal-fechar,
+.modal-fechar:hover:not(:disabled),
+.modal-fechar:focus-visible {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--text-muted, #587083) !important;
+  transform: none !important;
+}
+
+/* Blocos internos deixam de parecer cards. */
+.google-sheets-connection-state,
+.google-sheets-modal-details,
+.google-sheets-modal-details > div,
+.google-sheets-modal-error,
+.modal-erro,
+.modal-excluir-aviso,
+.modal-opcao,
+.settings-password-modal-content,
+[class*="modal"] .status-box,
+[class*="modal"] .info-box,
+[class*="modal"] .warning-box,
+[class*="modal"] .error-box {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.google-sheets-modal-details {
+  display: grid !important;
+  gap: 22px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.google-sheets-modal-error,
+.modal-erro {
+  color: #d94a45 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Ações: texto/ícone, sem botões preenchidos. */
+.modal-acoes button,
+.google-sheets-modal-actions button,
+.changelog-modal-footer button,
+.period-sync-confirm-modal footer button,
+.courses-confirm-modal button,
+.settings-password-actions button,
+.modal-excluir-acoes button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #1477e6 !important;
+  transform: none !important;
+}
+
+.modal-acoes button:hover:not(:disabled),
+.google-sheets-modal-actions button:hover:not(:disabled),
+.changelog-modal-footer button:hover:not(:disabled),
+.period-sync-confirm-modal footer button:hover:not(:disabled),
+.courses-confirm-modal button:hover:not(:disabled),
+.settings-password-actions button:hover:not(:disabled),
+.modal-excluir-acoes button:hover:not(:disabled) {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #075fbe !important;
+  transform: none !important;
+  text-decoration: none !important;
+}
+
+/* Destrutivas continuam vermelhas, porém flat. */
+.modal-acoes .danger,
+.modal-acoes [class*="excluir"],
+.modal-acoes [class*="danger"],
+.modal-excluir-acoes .botao-excluir,
+.settings-delete-user-modal .botao-cadastrar,
+.period-confirm-modal.danger .botao-cadastrar {
+  color: #e33d38 !important;
+}
+
+button:disabled[class*="botao"],
+.modal-acoes button:disabled,
+.google-sheets-modal-actions button:disabled {
+  opacity: .42 !important;
+  background: transparent !important;
+}
+
+/* Google Sheets: o mockup aprovado, sem cards e usando o azul do site. */
+.google-sheets-modal {
+  width: min(720px, calc(100vw - 32px)) !important;
+}
+
+.google-sheets-modal-head {
+  padding-bottom: 10px !important;
+}
+
+.google-sheets-modal-body {
+  padding-top: 12px !important;
+  padding-bottom: 14px !important;
+}
+
+.google-sheets-connection-state {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.google-sheets-modal-actions {
+  padding-top: 12px !important;
+}
+
+/* Temas escuro/preto mantêm a superfície única. */
+html[data-theme="dark"] .modal-overlay > [class*="modal"],
+html[data-theme="dark"] .google-sheets-modal,
+html[data-theme="dark"] .changelog-modal,
+html[data-theme="black"] .modal-overlay > [class*="modal"],
+html[data-theme="black"] .google-sheets-modal,
+html[data-theme="black"] .changelog-modal {
+  background: var(--surface, #111820) !important;
+}
+
+/* v24-95 · cobertura universal, inclusive modais de conflito */
+.modal-overlay > [role="dialog"] {
+  background: var(--surface, #f7fafc) !important;
+  border: 1px solid rgba(110, 142, 165, .20) !important;
+  box-shadow: 0 24px 70px rgba(15, 31, 45, .22) !important;
+}
+
+.modal-overlay [role="dialog"] :is(
+  [class*="card"],
+  [class*="box"],
+  [class*="panel"],
+  [class*="summary"],
+  [class*="comparison"],
+  [class*="choice"],
+  [class*="option"],
+  [class*="conflict"]
+) {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.modal-overlay [role="dialog"] :is(input, select, textarea) {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.modal-overlay [role="dialog"] button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.modal-overlay [role="dialog"] button:hover:not(:disabled),
+.modal-overlay [role="dialog"] button:focus-visible:not(:disabled),
+.modal-overlay [role="dialog"] button:active:not(:disabled) {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html[data-theme="dark"] .modal-overlay > [role="dialog"],
+html[data-theme="black"] .modal-overlay > [role="dialog"] {
+  background: var(--surface, #111820) !important;
+}
+
+/* Changelog também segue o padrão flat atual. */
+.changelog-release-mark,
+.changelog-intro,
+.changelog-items article {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.changelog-release-mark {
+  color: #1477e6 !important;
+}
+
+.changelog-items article > span {
+  background: transparent !important;
+  border: 0 !important;
+  color: #1477e6 !important;
+  box-shadow: none !important;
+}

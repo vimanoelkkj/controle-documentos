@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import AppIcon from "../components/AppIcon";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../contexts/auth";
 import { usePeriodo } from "../contexts/periodo";
 import { ModalEnviarCaixaSaida } from "./auditoria/components/ModalEnviarCaixaSaida";
 import { CaixaSaidaSheets } from "./auditoria/components/CaixaSaidaSheets";
 import { DiagnosticoConsistencia } from "./auditoria/components/DiagnosticoConsistencia";
-import { ListaAuditoria } from "./auditoria/components/ListaAuditoria";
 import "./Auditoria.css";
 
 type DiagnosticoSheets = {
@@ -19,20 +17,6 @@ type DiagnosticoSheets = {
   alunos_sem_unidade: number;
   cursos_nao_mapeados: number;
   unidades_nao_resolvidas: number;
-};
-
-type RegistroAuditoria = {
-  id: number;
-  criado_em: string;
-  acao: string;
-  entidade: string;
-  descricao: string;
-  ra: string | null;
-  unidade: string | null;
-  usuario_id: number | null;
-  usuario_nome: string | null;
-  usuario_username: string | null;
-  periodo_codigo?: string | null;
 };
 
 type PendenciaSheets = {
@@ -68,11 +52,6 @@ type CaixaSaidaSheets = {
 function Auditoria() {
   const { admin } = useAuth();
   const { periodoAtual } = usePeriodo();
-  const [registros, setRegistros] = useState<RegistroAuditoria[]>([]);
-  const [busca, setBusca] = useState("");
-  const [acao, setAcao] = useState("TODAS");
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState("");
   const [diagnostico, setDiagnostico] = useState<DiagnosticoSheets | null>(
     null,
   );
@@ -85,35 +64,6 @@ function Auditoria() {
   const [confirmacaoEnvio, setConfirmacaoEnvio] = useState("");
   const [enviandoCaixa, setEnviandoCaixa] = useState(false);
   const [resultadoEnvio, setResultadoEnvio] = useState("");
-
-  async function carregar() {
-    try {
-      setCarregando(true);
-      setErro("");
-      const resposta = await fetch("/api/log?limit=500&scope=all", {
-        cache: "no-store",
-      });
-      const dados = (await resposta.json()) as
-        | RegistroAuditoria[]
-        | { erro?: string };
-      if (!resposta.ok) {
-        throw new Error(
-          Array.isArray(dados) ? "Falha ao carregar auditoria." : dados.erro,
-        );
-      }
-      setRegistros(dados as RegistroAuditoria[]);
-    } catch (falha) {
-      setErro(
-        falha instanceof Error ? falha.message : "Falha ao carregar auditoria.",
-      );
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useEffect(() => {
-    carregar();
-  }, []);
 
   const carregarCaixaSaida = useCallback(async () => {
     if (!periodoAtual) return;
@@ -208,7 +158,7 @@ function Auditoria() {
       );
       setConfirmandoEnvio(false);
       setConfirmacaoEnvio("");
-      await Promise.all([carregarCaixaSaida(), carregar()]);
+      await carregarCaixaSaida();
     } catch (falha) {
       setErroCaixa(
         falha instanceof Error
@@ -222,36 +172,6 @@ function Auditoria() {
     }
   }
 
-  const acoes = useMemo(
-    () => [...new Set(registros.map((registro) => registro.acao))].sort(),
-    [registros],
-  );
-
-  const filtrados = useMemo(() => {
-    const termo = busca.trim().toLocaleLowerCase("pt-BR");
-    return registros.filter((registro) => {
-      if (acao !== "TODAS" && registro.acao !== acao) return false;
-      if (!termo) return true;
-      return [
-        registro.acao,
-        registro.entidade,
-        registro.descricao,
-        registro.ra,
-        registro.unidade,
-        registro.usuario_nome,
-        registro.usuario_username,
-        registro.periodo_codigo,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLocaleLowerCase("pt-BR")
-        .includes(termo);
-    });
-  }, [acao, busca, registros]);
-
-  const usuarios = new Set(registros.map((r) => r.usuario_id).filter(Boolean))
-    .size;
-  const semAutoria = registros.filter((r) => !r.usuario_id).length;
   const totalDivergencias = diagnostico
     ? diagnostico.novos +
       diagnostico.alteracoes_cadastrais +
@@ -270,54 +190,37 @@ function Auditoria() {
 
   return (
     <section className="audit-page">
-      <header className="page-header audit-header">
-        <div>
-          <span>RASTREABILIDADE</span>
-          <div className="page-title-row">
-            <span className="page-title-icon">
-              <AppIcon name="audit" size={22} />
-            </span>
-            <h1>Auditoria</h1>
-          </div>
-          <p>
-            Quem fez o quê, quando e em qual registro do período selecionado.
-          </p>
-        </div>
-        <button type="button" className="log-refresh" onClick={carregar}>
-          <span aria-hidden="true">↻</span>
-          Atualizar auditoria
-        </button>
-      </header>
-
-      <DiagnosticoConsistencia
-        diagnostico={diagnostico}
-        periodoCodigo={periodoAtual?.codigo}
-        verificando={verificando}
-        erroDiagnostico={erroDiagnostico}
-        bloqueado={bloqueado}
-        totalDivergencias={totalDivergencias}
-        cursosNaoMapeados={cursosNaoMapeados}
-        alunosSemUnidade={alunosSemUnidade}
-        aoVerificar={verificarConsistencia}
-        periodoDisponivel={Boolean(periodoAtual)}
-      />
-
-      <CaixaSaidaSheets
-        admin={admin}
-        periodoCodigo={periodoAtual?.codigo}
-        periodoDisponivel={Boolean(periodoAtual)}
-        caixaSaida={caixaSaida}
-        carregandoCaixa={carregandoCaixa}
-        enviandoCaixa={enviandoCaixa}
-        erroCaixa={erroCaixa}
-        resultadoEnvio={resultadoEnvio}
-        aoAtualizar={carregarCaixaSaida}
-        aoAbrirEnvio={() => {
-          setConfirmandoEnvio(true);
-          setConfirmacaoEnvio("");
-          setErroCaixa("");
-        }}
-      />
+      <div className="audit-overview">
+        <CaixaSaidaSheets
+          admin={admin}
+          periodoDisponivel={Boolean(periodoAtual)}
+          caixaSaida={caixaSaida}
+          carregandoCaixa={carregandoCaixa}
+          enviandoCaixa={enviandoCaixa}
+          erroCaixa={erroCaixa}
+          resultadoEnvio={resultadoEnvio}
+          aoAtualizar={carregarCaixaSaida}
+          aoAbrirEnvio={() => {
+            setConfirmandoEnvio(true);
+            setConfirmacaoEnvio("");
+            setErroCaixa("");
+          }}
+          sidebarExtra={
+            <DiagnosticoConsistencia
+              diagnostico={diagnostico}
+              periodoCodigo={periodoAtual?.codigo}
+              verificando={verificando}
+              erroDiagnostico={erroDiagnostico}
+              bloqueado={bloqueado}
+              totalDivergencias={totalDivergencias}
+              cursosNaoMapeados={cursosNaoMapeados}
+              alunosSemUnidade={alunosSemUnidade}
+              aoVerificar={verificarConsistencia}
+              periodoDisponivel={Boolean(periodoAtual)}
+            />
+          }
+        />
+      </div>
 
       {confirmandoEnvio && caixaSaida && (
         <ModalEnviarCaixaSaida
@@ -331,19 +234,6 @@ function Auditoria() {
         />
       )}
 
-      <ListaAuditoria
-        registros={registros}
-        filtrados={filtrados}
-        usuarios={usuarios}
-        semAutoria={semAutoria}
-        busca={busca}
-        setBusca={setBusca}
-        acao={acao}
-        setAcao={setAcao}
-        acoes={acoes}
-        carregando={carregando}
-        erro={erro}
-      />
     </section>
   );
 }

@@ -1,0 +1,2047 @@
+/* =========================================================
+   CONFERÊNCIA — réplica visual da referência aprovada
+   ========================================================= */
+
+.period-toolbar--conference-replica {
+  min-height: 86px;
+  margin: 0 0 0 !important;
+  padding: 0 48px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e4e9ef !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.period-toolbar--conference-replica .conference-replica-period {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.period-toolbar--conference-replica .conference-replica-period > span {
+  color: #68778b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-trigger {
+  min-width: 124px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 14px;
+  border: 1px solid #d8e0e8;
+  border-radius: 10px;
+  background: #fff;
+  color: #27384e;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.period-toolbar--conference-replica .conference-replica-sheets {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #253244;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-sheets
+  .google-sheets-status-icon {
+  width: 18px;
+  height: 18px;
+  color: #1aa955;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-sheets
+  .google-sheets-status-dot {
+  width: 8px;
+  height: 8px;
+  margin-left: 16px;
+  border-radius: 50%;
+  background: #e63c43;
+}
+
+.period-toolbar--conference-replica .conference-replica-sheets strong {
+  color: #263346;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-sheets--conectado
+  .google-sheets-status-dot {
+  background: #1caf5d;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-sheets--carregando
+  .google-sheets-status-dot,
+.period-toolbar--conference-replica
+  .conference-replica-sheets--temporario
+  .google-sheets-status-dot {
+  background: #e1a52a;
+}
+
+.app-content:has(.conference-page--replica) {
+  min-height: 0 !important;
+  padding: 0 48px 22px !important;
+  overflow: hidden !important;
+}
+
+.conference-page--replica {
+  height: calc(100dvh - 86px);
+  min-height: 650px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.conference-replica-page-heading {
+  padding: 26px 0 22px;
+  border-bottom: 1px solid #e6ebf0;
+}
+
+.conference-replica-page-heading h1 {
+  margin: 0 !important;
+  color: #132033 !important;
+  font-size: 28px !important;
+  font-weight: 650 !important;
+  line-height: 1.15 !important;
+}
+
+.conference-replica-page-heading p {
+  margin: 8px 0 0 !important;
+  color: #6c7a8f !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+.conference-grid--replica {
+  min-height: 0;
+  display: grid !important;
+  grid-template-columns: minmax(360px, 30%) minmax(0, 1fr) !important;
+  gap: 0 !important;
+  overflow: hidden;
+}
+
+.conference-grid--replica > .student-panel,
+.conference-grid--replica > .student-details {
+  height: 100% !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ----- coluna esquerda ----- */
+.conference-replica-list-panel {
+  min-width: 0;
+  display: grid !important;
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr) !important;
+  padding: 28px 28px 0 0 !important;
+  border-right: 1px solid #e6ebf0 !important;
+  overflow: hidden !important;
+}
+
+.conference-replica-list-head {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.conference-replica-list-head h2 {
+  margin: 0;
+  color: #1b2636;
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.conference-replica-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.conference-replica-add,
+.conference-replica-more {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0b6df6;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.conference-replica-more {
+  width: 32px;
+  color: #718096;
+}
+
+.conference-replica-tabs {
+  min-height: 62px;
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.conference-replica-tabs button {
+  position: relative;
+  height: 48px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: #66758a;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.conference-replica-tabs button.active {
+  color: #0b6df6;
+}
+
+.conference-replica-tabs button.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 999px;
+  background: #0b6df6;
+}
+
+.conference-replica-search {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 9px;
+  background: #eef3f8;
+  color: #77869a;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.conference-replica-search:hover {
+  background: #eaf1f7;
+}
+
+.conference-replica-search:focus-within {
+  background: #e8f1fb;
+  box-shadow: inset 0 0 0 1px rgba(11, 109, 246, 0.18);
+}
+
+.conference-replica-search input {
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #1f2c3e;
+  font:
+    500 13px/1 "Inter",
+    sans-serif;
+}
+
+.conference-replica-search input::placeholder {
+  color: #8a98aa;
+}
+
+.conference-replica-unit-filter {
+  position: relative;
+  margin-top: 12px;
+}
+
+.conference-replica-unit-trigger {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 9px;
+  background: #eef3f8;
+  color: #26364a;
+  font:
+    500 13px/1 "Inter",
+    sans-serif;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.conference-replica-unit-trigger:hover {
+  background: #eaf1f7;
+}
+
+.conference-replica-unit-trigger:focus-visible,
+.conference-replica-unit-trigger[aria-expanded="true"] {
+  outline: none;
+  background: #e8f1fb;
+  box-shadow: inset 0 0 0 1px rgba(11, 109, 246, 0.18);
+}
+
+.conference-replica-chevron {
+  color: #53677d;
+  font-size: 18px;
+}
+
+.conference-replica-unit-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  padding: 6px;
+  border: 1px solid #dbe4ec;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(35, 55, 80, 0.12);
+}
+
+.conference-replica-unit-menu button {
+  width: 100%;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #4a5f75;
+  font-family: inherit;
+  cursor: pointer;
+}
+.conference-replica-unit-menu button:hover {
+  background: #f5f8fb;
+}
+.conference-replica-unit-menu button.active {
+  background: #eaf4fd;
+  color: #126eb8;
+}
+.conference-replica-unit-menu strong {
+  font-size: 11px;
+}
+
+.conference-replica-dashboard-filter {
+  margin-top: 10px !important;
+}
+
+.conference-replica-found {
+  padding: 16px 0 10px;
+  color: #67768b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.conference-replica-student-list {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c5ccd4 transparent;
+  padding-right: 12px;
+}
+
+.conference-replica-student {
+  position: relative;
+  width: 100%;
+  min-height: 96px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 17px 13px 15px 18px;
+  border: 0;
+  border-bottom: 1px solid #e9edf2;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.conference-replica-student::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.conference-replica-student:hover {
+  background: #f8fafc;
+}
+.conference-replica-student.active {
+  background: #eef6ff;
+}
+.conference-replica-student.active::before {
+  background: #0b6df6;
+}
+
+.conference-replica-student-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.conference-replica-student-copy strong {
+  overflow: hidden;
+  color: #1c2839;
+  font-size: 14px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conference-replica-student-copy small,
+.conference-replica-student-copy span {
+  overflow: hidden;
+  color: #708096;
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conference-replica-score {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+.conference-replica-score--partial {
+  color: #e88800;
+}
+.conference-replica-score--complete {
+  color: #0b6df6;
+}
+.conference-replica-score--critical {
+  color: #596b80;
+}
+
+/* ----- ficha ----- */
+.conference-replica-details {
+  min-width: 0;
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+  padding: 28px 0 0 34px !important;
+  overflow: hidden !important;
+}
+
+.conference-replica-profile {
+  min-height: 104px;
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 18px;
+}
+
+.conference-replica-avatar {
+  width: 74px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eaf3ff;
+  color: #1670e8;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.conference-replica-profile-copy h2 {
+  margin: 2px 0 8px;
+  color: #192536;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.conference-replica-profile-copy p,
+.conference-replica-profile-copy span {
+  margin: 0;
+  color: #68768a;
+  font-size: 13px;
+  font-weight: 500;
+}
+.conference-replica-profile-copy span {
+  display: block;
+  margin-top: 8px;
+}
+
+.conference-replica-status {
+  min-width: 0;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #d52832;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+.conference-replica-status--parcial {
+  color: #d98a0a;
+}
+.conference-replica-status--completo {
+  color: #25844b;
+}
+
+.conference-replica-actions {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 0;
+}
+
+.conference-replica-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0b6df6;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.conference-replica-actions button.danger {
+  color: #0b6df6;
+}
+.conference-replica-action-divider {
+  width: 1px;
+  height: 22px;
+  background: #e1e6ec;
+}
+
+.conference-replica-details-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 0 24px;
+  scrollbar-width: thin;
+  scrollbar-color: #c5ccd4 transparent;
+}
+
+.conference-replica-progress-section {
+  padding-top: 6px;
+}
+.conference-replica-section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #1f2b3d;
+  font-size: 13px;
+  font-weight: 500;
+}
+.conference-replica-section-row strong {
+  font-size: 15px;
+  font-weight: 500;
+}
+.conference-replica-progress-track {
+  height: 9px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e6e9ee;
+}
+.conference-replica-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #0b6df6;
+}
+
+.conference-replica-documents-section {
+  margin-top: 34px;
+}
+.conference-replica-documents-section h3,
+.conference-replica-summary h3 {
+  margin: 0 0 18px;
+  color: #1e2a3c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.conference-replica-documents-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.conference-replica-document {
+  position: relative;
+  min-width: 0;
+  height: 50px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid #dfe5eb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.conference-replica-document input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.conference-replica-document-icon {
+  color: #65758a;
+}
+.conference-replica-document strong {
+  overflow: hidden;
+  color: #243145;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conference-replica-document-state {
+  color: #e33439;
+  font-size: 12px;
+  font-weight: 500;
+}
+.conference-replica-document.delivered {
+  border-color: #cde8d6;
+  background: #f4fbf6;
+}
+.conference-replica-document.delivered .conference-replica-document-icon,
+.conference-replica-document.delivered .conference-replica-document-state {
+  color: #26884c;
+}
+.conference-replica-document:hover {
+  border-color: #b9c7d6;
+}
+.conference-replica-document:has(input:focus-visible) {
+  outline: 2px solid rgba(11, 109, 246, 0.18);
+  outline-offset: 2px;
+}
+
+.conference-replica-summary {
+  margin-top: 32px;
+}
+.conference-replica-summary-badge {
+  width: fit-content;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: #fdeced;
+  color: #d72f37;
+  font-size: 12px;
+  font-weight: 500;
+}
+.conference-replica-summary-badge.complete {
+  background: #eaf7ef;
+  color: #27834a;
+}
+.conference-replica-summary p {
+  margin: 10px 0 0 !important;
+  color: #68788e !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+}
+
+.conference-replica-savebar {
+  min-height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid #e8edf2;
+}
+.conference-replica-savebar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #7b8799;
+  font-size: 12px;
+}
+.conference-replica-savebar > span i {
+  display: grid;
+  place-items: center;
+  color: #77879a;
+}
+.conference-replica-savebar > div {
+  display: flex;
+  gap: 14px;
+}
+.conference-replica-savebar .secondary-action,
+.conference-replica-savebar .primary-action {
+  min-width: 142px;
+  height: 48px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+}
+.conference-replica-savebar .secondary-action {
+  border: 1px solid #d3dce6;
+  background: #fff;
+  color: #39506b;
+}
+.conference-replica-savebar .primary-action {
+  min-width: 170px;
+  border: 1px solid #0b6df6;
+  background: #0b6df6;
+  color: #fff;
+  box-shadow: 0 7px 18px rgba(11, 109, 246, 0.16);
+}
+.conference-replica-savebar button:disabled {
+  opacity: 0.48;
+  cursor: default;
+}
+
+.conference-replica-empty {
+  display: grid !important;
+  place-items: center;
+  padding: 40px !important;
+}
+.conference-replica-empty > div {
+  max-width: 360px;
+  text-align: center;
+  color: #6d7c90;
+}
+.conference-replica-empty h2 {
+  margin: 12px 0 6px;
+  color: #243145;
+  font-size: 20px;
+}
+.conference-replica-empty p {
+  margin: 0 !important;
+  font-size: 13px !important;
+}
+
+.conference-replica-loading {
+  align-self: start;
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 9px;
+  margin-top: 22px;
+  color: #627389;
+  font-size: 13px;
+}
+.conference-replica-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #dce8f5;
+  border-top-color: #0b6df6;
+  border-radius: 50%;
+  animation: conferenceReplicaSpin 0.8s linear infinite;
+}
+@keyframes conferenceReplicaSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* dark / black */
+[data-theme="dark"] .period-toolbar--conference-replica,
+[data-theme="black"] .period-toolbar--conference-replica {
+  border-bottom-color: #24313d !important;
+}
+[data-theme="dark"] .conference-replica-page-heading,
+[data-theme="black"] .conference-replica-page-heading {
+  border-bottom-color: #24313d;
+}
+[data-theme="dark"] .conference-replica-page-heading h1,
+[data-theme="dark"] .conference-replica-list-head h2,
+[data-theme="dark"] .conference-replica-profile-copy h2,
+[data-theme="dark"] .conference-replica-documents-section h3,
+[data-theme="dark"] .conference-replica-summary h3,
+[data-theme="black"] .conference-replica-page-heading h1,
+[data-theme="black"] .conference-replica-list-head h2,
+[data-theme="black"] .conference-replica-profile-copy h2,
+[data-theme="black"] .conference-replica-documents-section h3,
+[data-theme="black"] .conference-replica-summary h3 {
+  color: #eef4fa !important;
+}
+[data-theme="dark"] .conference-replica-search,
+[data-theme="dark"] .conference-replica-unit-trigger,
+[data-theme="dark"] .conference-replica-document,
+[data-theme="black"] .conference-replica-search,
+[data-theme="black"] .conference-replica-unit-trigger,
+[data-theme="black"] .conference-replica-document {
+  background: #101a23;
+  border-color: #2b3946;
+}
+[data-theme="dark"] .conference-replica-student.active,
+[data-theme="black"] .conference-replica-student.active {
+  background: rgba(16, 109, 246, 0.11);
+}
+
+@media (max-width: 1180px) {
+  .app-content:has(.conference-page--replica) {
+    padding-inline: 28px !important;
+  }
+  .period-toolbar--conference-replica {
+    padding-inline: 28px !important;
+  }
+  .conference-grid--replica {
+    grid-template-columns: minmax(330px, 34%) minmax(0, 1fr) !important;
+  }
+  .conference-replica-documents-grid {
+    grid-template-columns: 1fr;
+  }
+  .conference-replica-profile {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .conference-replica-status {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+/* =========================================================
+   Seletor de período — réplica do mockup aprovado (V15.2)
+   ========================================================= */
+.period-toolbar--conference-replica .conference-replica-period {
+  gap: 10px;
+}
+
+.period-toolbar--conference-replica .conference-replica-period > span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown {
+  min-width: 158px;
+  width: 158px;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-trigger {
+  width: 158px;
+  min-width: 158px;
+  height: 42px;
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid #d8e2ec;
+  border-radius: 10px;
+  background: #fff;
+  color: #172033;
+  font-family: "Inter", system-ui, sans-serif;
+  box-shadow: none;
+  transition:
+    border-color 100ms ease,
+    background-color 100ms ease,
+    box-shadow 100ms ease;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-trigger svg {
+  width: 17px;
+  height: 17px;
+  color: #344256;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: left;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-trigger:hover {
+  border-color: #bfd0e3;
+  background: #fbfdff;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger:focus-visible,
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger[aria-expanded="true"] {
+  outline: none;
+  border-color: #2f7df6;
+  box-shadow: 0 0 0 2px rgba(47, 125, 246, 0.08);
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-chevron {
+  justify-self: end;
+  color: #435168;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-menu {
+  top: calc(100% + 6px);
+  left: 0;
+  width: 158px;
+  padding: 6px;
+  border: 1px solid #d8e2ec;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(37, 61, 77, 0.14);
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option {
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: #334155;
+  background: transparent;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option:hover {
+  background: #f3f7fc;
+  color: #172033;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option.selected {
+  color: #1765d6;
+  background: #eaf3ff;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option.selected:hover {
+  background: #e1efff;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option
+  small {
+  color: #7a8a9d;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option-check {
+  color: #2f7df6;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger {
+  border-color: #334155;
+  background: #111827;
+  color: #e5edf7;
+}
+
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger
+  svg,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger
+  svg,
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-chevron,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-chevron {
+  color: #cbd5e1;
+}
+
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-menu,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-menu {
+  border-color: #334155;
+  background: #111827;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+}
+
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option {
+  color: #dce6f2;
+}
+
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option:hover,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option:hover {
+  background: #172235;
+}
+
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option.selected,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown-option.selected {
+  color: #8fc0ff;
+  background: #162b49;
+}
+
+/* =========================================================
+   V15.8 — superfície contínua: remove divisórias estruturais
+   Mantém bordas funcionais de inputs, selects e documentos.
+   ========================================================= */
+.period-toolbar--conference-replica {
+  border-bottom: 0 !important;
+}
+
+.conference-replica-page-heading {
+  border-bottom: 0 !important;
+}
+
+.conference-replica-list-panel {
+  border-right: 0 !important;
+}
+
+.conference-replica-tabs {
+  border-bottom: 0 !important;
+}
+
+.conference-replica-student {
+  border-bottom: 0 !important;
+}
+
+.conference-replica-savebar {
+  border-top: 0 !important;
+}
+
+/* =========================================================
+   V15.9 — documentos integrados ao fundo, sem bordas
+   Experimento visual aprovado para averiguação.
+   ========================================================= */
+.conference-replica-documents-grid {
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+}
+
+.conference-replica-document {
+  height: 52px !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: rgba(238, 244, 250, 0.72) !important;
+  box-shadow: none !important;
+  transition:
+    background-color 120ms ease,
+    transform 120ms ease !important;
+}
+
+.conference-replica-document:hover {
+  border: 0 !important;
+  background: rgba(230, 239, 248, 0.92) !important;
+}
+
+.conference-replica-document:has(input:focus-visible) {
+  outline: 2px solid rgba(11, 109, 246, 0.18) !important;
+  outline-offset: 2px !important;
+}
+
+.conference-replica-document.delivered {
+  border: 0 !important;
+  background: rgba(231, 247, 236, 0.88) !important;
+}
+
+.conference-replica-document.delivered:hover {
+  background: rgba(222, 243, 229, 0.96) !important;
+}
+
+.conference-replica-document-icon {
+  color: #718096 !important;
+}
+
+.conference-replica-document.delivered .conference-replica-document-icon,
+.conference-replica-document.delivered .conference-replica-document-state {
+  color: #24934f !important;
+}
+
+.conference-replica-document strong {
+  font-weight: 600 !important;
+}
+
+/* Mantém a mesma experiência nos temas escuros sem reintroduzir bordas. */
+html[data-theme="dark"] .conference-replica-document,
+html[data-theme="black"] .conference-replica-document {
+  border: 0 !important;
+  background: rgba(23, 34, 48, 0.72) !important;
+}
+
+html[data-theme="dark"] .conference-replica-document:hover,
+html[data-theme="black"] .conference-replica-document:hover {
+  background: rgba(31, 46, 64, 0.88) !important;
+}
+
+html[data-theme="dark"] .conference-replica-document.delivered,
+html[data-theme="black"] .conference-replica-document.delivered {
+  background: rgba(24, 62, 42, 0.68) !important;
+}
+
+/* V16.2 — filtro de unidade como disclosure inline (sem sobreposição) */
+.conference-replica-unit-filter {
+  position: static;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #eef3f8;
+  transition: background-color 120ms ease;
+}
+
+.conference-replica-unit-filter.is-open {
+  background: #edf3f8;
+}
+
+.conference-replica-unit-filter .conference-replica-unit-trigger {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  box-shadow: none !important;
+}
+
+.conference-replica-unit-filter.is-open .conference-replica-unit-trigger {
+  font-weight: 600;
+}
+
+.conference-replica-unit-filter.is-open .conference-replica-chevron {
+  transform: rotate(180deg) translateY(1px);
+}
+
+.conference-replica-unit-filter .conference-replica-unit-menu {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 2px 7px 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: conference-unit-disclosure-in 120ms ease-out;
+}
+
+.conference-replica-unit-filter .conference-replica-unit-menu button {
+  min-height: 35px;
+  padding: 0 9px;
+  border-radius: 7px;
+  color: #50657b;
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.conference-replica-unit-filter .conference-replica-unit-menu button:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.conference-replica-unit-filter .conference-replica-unit-menu button.active {
+  background: #e3effb;
+  color: #116cc0;
+}
+
+.conference-replica-unit-option-copy {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.conference-replica-unit-radio {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border: 1.5px solid #9aabba;
+  border-radius: 50%;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.conference-replica-unit-menu button.active .conference-replica-unit-radio {
+  border: 4px solid #1976e8;
+  background: #fff;
+}
+
+.conference-replica-unit-filter .conference-replica-unit-menu strong {
+  color: #60758a;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.conference-replica-unit-filter
+  .conference-replica-unit-menu
+  button.active
+  strong {
+  color: #126eb8;
+}
+
+@keyframes conference-unit-disclosure-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-theme="dark"] .conference-replica-unit-filter,
+[data-theme="black"] .conference-replica-unit-filter {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+[data-theme="dark"]
+  .conference-replica-unit-filter
+  .conference-replica-unit-menu
+  button:hover,
+[data-theme="black"]
+  .conference-replica-unit-filter
+  .conference-replica-unit-menu
+  button:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"]
+  .conference-replica-unit-filter
+  .conference-replica-unit-menu
+  button.active,
+[data-theme="black"]
+  .conference-replica-unit-filter
+  .conference-replica-unit-menu
+  button.active {
+  background: rgba(43, 127, 255, 0.14);
+  color: #8ebdff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conference-replica-unit-filter .conference-replica-unit-menu {
+    animation: none;
+  }
+}
+
+/* =========================================================
+   V16.5 — ações de rodapé sem caixas
+   Mesma linguagem visual aprovada para Comunicação:
+   ação secundária neutra + ação principal azul sublinhada.
+   ========================================================= */
+.conference-replica-savebar > div {
+  align-items: center !important;
+  gap: 30px !important;
+}
+
+.conference-replica-savebar .secondary-action,
+.conference-replica-savebar .primary-action {
+  min-width: 0 !important;
+  width: auto !important;
+  height: 38px !important;
+  padding: 0 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  transition:
+    color 120ms ease,
+    opacity 120ms ease !important;
+}
+
+/* Restaurar: propositalmente discreto/neutro. */
+.conference-replica-savebar .secondary-action {
+  color: #6f7e91 !important;
+}
+
+.conference-replica-savebar .secondary-action:hover:not(:disabled) {
+  color: #34465d !important;
+  background: transparent !important;
+}
+
+/* Salvar alterações: ação principal sem caixa, com indicador inferior. */
+.conference-replica-savebar .primary-action {
+  position: relative !important;
+  color: #0b6df6 !important;
+}
+
+.conference-replica-savebar .primary-action::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: #0b6df6;
+}
+
+.conference-replica-savebar .primary-action:hover:not(:disabled) {
+  color: #075bcf !important;
+  background: transparent !important;
+}
+
+.conference-replica-savebar .primary-action:hover:not(:disabled)::after {
+  background: #075bcf;
+}
+
+.conference-replica-savebar button:focus-visible {
+  outline: 2px solid rgba(11, 109, 246, 0.32) !important;
+  outline-offset: 4px !important;
+}
+
+.conference-replica-savebar button:disabled {
+  opacity: 0.42 !important;
+  cursor: default !important;
+}
+
+[data-theme="dark"] .conference-replica-savebar .secondary-action,
+[data-theme="black"] .conference-replica-savebar .secondary-action {
+  color: #98a8bc !important;
+}
+
+[data-theme="dark"]
+  .conference-replica-savebar
+  .secondary-action:hover:not(:disabled),
+[data-theme="black"]
+  .conference-replica-savebar
+  .secondary-action:hover:not(:disabled) {
+  color: #d2dbe7 !important;
+}
+
+.conference-footer-actions button:hover,
+.conference-footer-actions button:focus-visible {
+  transform: none;
+}
+
+/* =========================================================
+   V16.7 — seletor de Período integrado ao fundo da página
+   Sem card/borda/fundo; ação marcada apenas por linha azul.
+   ========================================================= */
+
+.period-toolbar--conference-replica .conference-replica-period-trigger {
+  position: relative !important;
+
+  width: 158px !important;
+  min-width: 158px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+
+  display: grid !important;
+  grid-template-columns: 18px minmax(0, 1fr) 16px !important;
+  align-items: center !important;
+  gap: 10px !important;
+
+  padding: 0 12px 2px !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+
+  color: #172033 !important;
+
+  transform: none !important;
+  translate: none !important;
+  scale: 1 !important;
+
+  transition:
+    color 120ms ease,
+    opacity 120ms ease !important;
+}
+
+/* Linha azul fixa: participa apenas como indicador visual, não altera layout */
+.period-toolbar--conference-replica .conference-replica-period-trigger::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: #0b6df6 !important;
+  transform: none !important;
+}
+
+/* Hover/focus/aberto: nada de caixa, fundo ou deslocamento */
+.period-toolbar--conference-replica .conference-replica-period-trigger:hover,
+.period-toolbar--conference-replica .conference-replica-period-trigger:focus,
+.period-toolbar--conference-replica .conference-replica-period-trigger:focus-visible,
+.period-toolbar--conference-replica .conference-replica-period-trigger[aria-expanded="true"],
+.period-toolbar--conference-replica .conference-replica-period-trigger:active {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+
+  transform: none !important;
+  translate: none !important;
+  scale: 1 !important;
+
+  padding: 0 12px 2px !important;
+}
+
+/* Apenas uma reação cromática discreta */
+.period-toolbar--conference-replica .conference-replica-period-trigger:hover {
+  color: #0b6df6 !important;
+}
+
+.period-toolbar--conference-replica .conference-replica-period-trigger:hover::after,
+.period-toolbar--conference-replica .conference-replica-period-trigger:focus-visible::after,
+.period-toolbar--conference-replica .conference-replica-period-trigger[aria-expanded="true"]::after {
+  background: #075bcf !important;
+}
+
+/* Dark/black: mantém o mesmo conceito sem recriar card */
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #e5edf7 !important;
+}
+
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger::after,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger::after {
+  background: #4d9cff !important;
+}
+
+
+
+/* =========================================================
+   V20.1 — resumo sem pill
+   Mantém apenas o texto semântico, seguindo o status do topo.
+   ========================================================= */
+.conference-replica-summary-badge,
+.conference-replica-summary-status,
+.conference-replica-summary-pill {
+  display: inline;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+.conference-replica-summary {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   V24.8 — filtro da Conferência instantâneo e animado
+   Mesmo comportamento do patch aprovado na Comunicação.
+   ========================================================= */
+.conference-replica-unit-filter .conference-unit-disclosure {
+  display: block !important;
+  width: 100% !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 7px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  transform: none !important;
+  animation: none !important;
+  transition:
+    max-height 110ms ease-out,
+    opacity 70ms linear,
+    padding 110ms ease-out !important;
+  will-change: max-height, opacity !important;
+}
+
+.conference-replica-unit-filter.is-open .conference-unit-disclosure {
+  max-height: 260px !important;
+  padding: 2px 7px 8px !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.conference-unit-disclosure-inner {
+  display: grid !important;
+  gap: 2px !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+/* Chevron CSS: permanece no mesmo ponto e SOMENTE gira. */
+.conference-replica-unit-filter .conference-unit-chevron {
+  position: relative !important;
+  width: 14px !important;
+  height: 14px !important;
+  flex: 0 0 14px !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  translate: none !important;
+  transform: rotate(0deg) !important;
+  transform-origin: 50% 50% !important;
+  transition: transform 110ms ease-out !important;
+}
+
+.conference-replica-unit-filter .conference-unit-chevron::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-right: 1.6px solid #53677d !important;
+  border-bottom: 1.6px solid #53677d !important;
+  transform: translate(-50%, -65%) rotate(45deg) !important;
+  transform-origin: center !important;
+}
+
+/* Neutraliza a regra antiga que fazia a seta subir/descer. */
+.conference-replica-unit-filter.is-open .conference-replica-chevron {
+  translate: none !important;
+}
+
+/* O trigger responde no clique sem transição que pareça atraso. */
+.conference-replica-unit-filter .conference-replica-unit-trigger {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conference-replica-unit-filter .conference-unit-disclosure,
+  .conference-replica-unit-filter .conference-unit-chevron {
+    transition: none !important;
+  }
+}
+
+/* V24.9 — expansão sem corte: anima a altura real do conteúdo */
+.conference-replica-unit-filter .conference-unit-disclosure,
+.communication-unit-filter .communication-unit-disclosure {
+  display: grid !important;
+  grid-template-rows: 0fr !important;
+  max-height: none !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  transition:
+    grid-template-rows 150ms ease-out,
+    opacity 110ms ease-out,
+    padding-top 150ms ease-out,
+    padding-bottom 150ms ease-out !important;
+}
+
+.conference-replica-unit-filter .conference-unit-disclosure > *,
+.communication-unit-filter .communication-unit-disclosure > * {
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.conference-replica-unit-filter.is-open .conference-unit-disclosure,
+.communication-unit-filter.is-open .communication-unit-disclosure {
+  grid-template-rows: 1fr !important;
+  padding-top: 2px !important;
+  padding-bottom: 8px !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Evita qualquer animação de entrada concorrente cortar o final da expansão. */
+.conference-replica-unit-filter .conference-unit-disclosure,
+.communication-unit-filter .communication-unit-disclosure {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* =========================================================
+   V24.10 — Conferência: animação leve sem reflow da lista
+   Não anima altura/grid: evita recalcular os +1000 alunos.
+   ========================================================= */
+.conference-replica-unit-filter .conference-unit-disclosure {
+  display: block !important;
+  max-height: none !important;
+  grid-template-rows: none !important;
+  padding: 0 7px !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  transform: translateY(-3px) scaleY(0.985) !important;
+  transform-origin: top center !important;
+  transition:
+    opacity 90ms ease-out,
+    transform 110ms ease-out,
+    visibility 0s linear 110ms !important;
+  will-change: opacity, transform !important;
+}
+
+.conference-replica-unit-filter.is-open .conference-unit-disclosure {
+  padding: 2px 7px 8px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) scaleY(1) !important;
+  transition:
+    opacity 90ms ease-out,
+    transform 110ms ease-out,
+    visibility 0s linear 0s !important;
+}
+
+/* Mantém a seta no lugar, girando apenas no próprio eixo. */
+.conference-replica-unit-filter .conference-unit-chevron {
+  transform: rotate(0deg) !important;
+  transition: transform 110ms ease-out !important;
+}
+
+.conference-replica-unit-filter.is-open .conference-unit-chevron {
+  transform: rotate(180deg) !important;
+}
+
+/* =========================================================
+   V24.11 — elimina o lag do filtro com lista grande
+   O gargalo era o relayout dos +1000 alunos ao abrir/recolher.
+   ========================================================= */
+
+/* Isola a lista do restante do painel: mudanças no filtro não invalidam
+   a pintura/layout de cada aluno. */
+.conference-replica-student-list {
+  contain: layout paint style !important;
+}
+
+/* O navegador só calcula/renderiza as linhas visíveis.
+   As linhas fora da viewport mantêm uma altura estimada e não entram
+   no custo do frame quando o filtro abre. */
+.conference-replica-student {
+  content-visibility: auto !important;
+  contain-intrinsic-size: 76px !important;
+}
+
+/* A animação do filtro fica restrita ao próprio compositor. */
+.conference-replica-unit-filter {
+  contain: layout paint !important;
+  isolation: isolate !important;
+}
+
+.conference-replica-unit-filter .conference-unit-disclosure {
+  will-change: opacity, transform !important;
+  backface-visibility: hidden !important;
+  transform: translate3d(0, -3px, 0) scaleY(.985) !important;
+}
+
+.conference-replica-unit-filter.is-open .conference-unit-disclosure {
+  transform: translate3d(0, 0, 0) scaleY(1) !important;
+}
+
+/* =========================================================
+   V24.12 — Conferência: fechamento sem reflow durante animação
+   ========================================================= */
+
+/* Aberto: ocupa sua altura normal. */
+.conference-replica-unit-filter.is-open .conference-unit-disclosure {
+  display: block !important;
+  max-height: none !important;
+  grid-template-rows: none !important;
+  padding: 2px 7px 8px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  overflow: hidden !important;
+  transform: translate3d(0, 0, 0) scaleY(1) !important;
+  transform-origin: top center !important;
+  transition:
+    opacity 100ms ease-out,
+    transform 120ms ease-out !important;
+}
+
+/* Fechando: mantém exatamente a mesma altura e só some visualmente.
+   A lista de alunos não é reposicionada quadro a quadro. */
+.conference-replica-unit-filter.is-open.is-closing .conference-unit-disclosure {
+  max-height: none !important;
+  padding: 2px 7px 8px !important;
+  opacity: 0 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  transform: translate3d(0, -4px, 0) scaleY(.985) !important;
+}
+
+/* A seta volta sem subir/descer. */
+.conference-replica-unit-filter.is-open.is-closing .conference-unit-chevron {
+  transform: rotate(0deg) !important;
+}
+
+/* Só depois de 120ms o bloco perde a altura, em um único relayout. */
+.conference-replica-unit-filter:not(.is-open) .conference-unit-disclosure {
+  display: block !important;
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* =========================================================
+   V24.14 — seleção espera o fechamento visual
+   A troca de unidade/dados acontece só depois do fade de 120ms.
+   ========================================================= */
+.conference-replica-unit-filter.is-closing .conference-replica-unit-menu button,
+.communication-unit-filter.is-closing .conference-replica-unit-menu button {
+  pointer-events: none !important;
+}
+
+
+
+/* v24-103 · impede seleção acidental de texto ao alternar documentos rapidamente */
+.conference-replica-document,
+.conference-replica-document * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.conference-replica-document {
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+/* =========================================================
+   v24-104 · microinterações da Conferência
+   Movimento curto, funcional e sem alterar a geometria.
+   ========================================================= */
+
+.conference-replica-progress-track > span {
+  transform-origin: left center;
+  transition: width 220ms cubic-bezier(.2,.8,.2,1) !important;
+  will-change: width;
+}
+
+.conference-replica-progress-count {
+  display: inline-block;
+  animation: conference-count-pop 180ms cubic-bezier(.2,.8,.2,1);
+}
+
+.conference-replica-status-value {
+  display: inline-block;
+  animation: conference-status-in 200ms cubic-bezier(.2,.8,.2,1);
+}
+
+.conference-replica-document {
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 120ms ease,
+    box-shadow 180ms ease !important;
+  will-change: background-color, transform;
+}
+
+.conference-replica-document .conference-replica-document-icon,
+.conference-replica-document .conference-replica-document-state,
+.conference-replica-document strong {
+  transition:
+    color 180ms ease,
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(.2,.8,.2,1) !important;
+}
+
+.conference-replica-document:active {
+  transform: scale(.997);
+}
+
+.conference-replica-document.delivered .conference-replica-document-icon {
+  animation: conference-document-check 200ms cubic-bezier(.2,.8,.2,1);
+}
+
+.conference-replica-document.delivered .conference-replica-document-state {
+  animation: conference-document-state-in 180ms ease-out;
+}
+
+.conference-replica-summary-badge,
+.conference-replica-summary p {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.conference-replica-savebar > span {
+  transition:
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+@keyframes conference-count-pop {
+  0% {
+    opacity: .45;
+    transform: translateY(2px) scale(.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes conference-status-in {
+  0% {
+    opacity: .35;
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes conference-document-check {
+  0% {
+    opacity: .45;
+    transform: scale(.82);
+  }
+  65% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes conference-document-state-in {
+  0% {
+    opacity: .4;
+    transform: translateX(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conference-replica-progress-track > span,
+  .conference-replica-document,
+  .conference-replica-document *,
+  .conference-replica-summary-badge,
+  .conference-replica-summary p,
+  .conference-replica-savebar > span {
+    transition-duration: 0.01ms !important;
+  }
+
+  .conference-replica-progress-count,
+  .conference-replica-status-value,
+  .conference-replica-document.delivered .conference-replica-document-icon,
+  .conference-replica-document.delivered .conference-replica-document-state {
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   v24-105 · Conferência — correção de hover nos temas escuros
+   Impede o hover claro herdado da regra base.
+   ========================================================= */
+html[data-theme="dark"] .conference-replica-student:hover,
+html[data-theme="black"] .conference-replica-student:hover {
+  background: rgba(255, 255, 255, 0.035) !important;
+}
+
+html[data-theme="dark"] .conference-replica-student.active:hover,
+html[data-theme="black"] .conference-replica-student.active:hover {
+  background: rgba(16, 109, 246, 0.14) !important;
+}
+
+html[data-theme="dark"] .conference-replica-student-copy strong,
+html[data-theme="black"] .conference-replica-student-copy strong {
+  color: #dce6ef !important;
+}
+
+html[data-theme="dark"] .conference-replica-student-copy small,
+html[data-theme="dark"] .conference-replica-student-copy span,
+html[data-theme="black"] .conference-replica-student-copy small,
+html[data-theme="black"] .conference-replica-student-copy span {
+  color: #8093a6 !important;
+}
+
+html[data-theme="dark"] .conference-replica-score,
+html[data-theme="black"] .conference-replica-score {
+  color: #8fa2b5;
+}
+
+html[data-theme="dark"] .conference-replica-score--partial,
+html[data-theme="black"] .conference-replica-score--partial {
+  color: #f3a21a !important;
+}
+
+html[data-theme="dark"] .conference-replica-score--complete,
+html[data-theme="black"] .conference-replica-score--complete {
+  color: #4c9cff !important;
+}
+
+
+/* =========================================================
+   v24-106 · legibilidade da Conferência nos temas escuros
+   ========================================================= */
+
+html[data-theme="dark"] .conference-replica-section-row,
+html[data-theme="black"] .conference-replica-section-row {
+  color: #aebdca !important;
+}
+
+html[data-theme="dark"] .conference-replica-section-row strong,
+html[data-theme="black"] .conference-replica-section-row strong {
+  color: #eef4fa !important;
+}
+
+html[data-theme="dark"] .conference-replica-progress-track,
+html[data-theme="black"] .conference-replica-progress-track {
+  background: #24313d !important;
+}
+
+html[data-theme="dark"] .conference-replica-document strong,
+html[data-theme="black"] .conference-replica-document strong {
+  color: #dbe6ef !important;
+}
+
+html[data-theme="dark"] .conference-replica-document-icon,
+html[data-theme="black"] .conference-replica-document-icon {
+  color: #8295a8 !important;
+}
+
+html[data-theme="dark"] .conference-replica-document-state,
+html[data-theme="black"] .conference-replica-document-state {
+  color: #ff6b73 !important;
+}
+
+html[data-theme="dark"] .conference-replica-document.delivered strong,
+html[data-theme="black"] .conference-replica-document.delivered strong {
+  color: #dceae2 !important;
+}
+
+html[data-theme="dark"] .conference-replica-document.delivered .conference-replica-document-icon,
+html[data-theme="dark"] .conference-replica-document.delivered .conference-replica-document-state,
+html[data-theme="black"] .conference-replica-document.delivered .conference-replica-document-icon,
+html[data-theme="black"] .conference-replica-document.delivered .conference-replica-document-state {
+  color: #45c97a !important;
+}
+
+html[data-theme="dark"] .conference-replica-summary p,
+html[data-theme="black"] .conference-replica-summary p {
+  color: #9fb0bf !important;
+}
+
+html[data-theme="dark"] .conference-replica-summary-badge.complete,
+html[data-theme="black"] .conference-replica-summary-badge.complete {
+  background: transparent !important;
+  color: #45c97a !important;
+}
+
+html[data-theme="dark"] .conference-replica-document.delivered {
+  background: rgba(28, 72, 49, .66) !important;
+}
+
+html[data-theme="black"] .conference-replica-document.delivered {
+  background: rgba(20, 62, 40, .72) !important;
+}
