@@ -5,8 +5,8 @@ import type { Unidade } from "../model";
 type Props = {
   modoImportacao: "colar" | "csv";
   setModoImportacao: (modo: "colar" | "csv") => void;
-  unidadeImportacao: Unidade;
-  setUnidadeImportacao: (unidade: Unidade) => void;
+  unidadeImportacao: Unidade | "";
+  setUnidadeImportacao: (unidade: Unidade | "") => void;
   textoImportacao: string;
   setTextoImportacao: (valor: string) => void;
   arquivoImportacao: string;
@@ -43,12 +43,17 @@ export function EntradaImportacaoAlunos({
         <AppSelect
           value={unidadeImportacao}
           onChange={(valor) => {
-            setUnidadeImportacao(valor as Unidade);
+            setUnidadeImportacao(valor as Unidade | "");
             aoMudarUnidade();
           }}
           disabled={importando}
           ariaLabel="Unidade de destino"
           options={[
+            {
+              value: "",
+              label: "Selecione a unidade",
+              disabled: true,
+            },
             { value: "FACE", label: "FACE" },
             { value: "FEA", label: "FEA" },
             { value: "FCH", label: "FCH" },
@@ -121,7 +126,7 @@ SIM    PSICOLOGIA    aluno@gmail.com    a123@fumec.edu.br    JOÃO DA SILVA    2
         type="button"
         className="botao-analisar-importacao"
         onClick={gerarPreviaImportacao}
-        disabled={!textoImportacao.trim()}
+        disabled={!textoImportacao.trim() || !unidadeImportacao}
       >
         Analisar dados
       </button>

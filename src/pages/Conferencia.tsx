@@ -58,7 +58,7 @@ function Conferencia() {
 
   const fluxoImportacao = useImportacaoAlunos({
     alunosSalvos,
-    unidadeInicial: unidadeSelecionada || "FCH",
+    unidadeInicial: unidadeSelecionada,
     aoSincronizar: setUnidadeSelecionada,
     aoFecharSucesso: async (unidade) => {
       await carregarAlunos(undefined, unidade, filtroStatus);

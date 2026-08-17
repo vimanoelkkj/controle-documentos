@@ -11,7 +11,7 @@ import type {
 
 type Opcoes = {
   alunosSalvos: Aluno[];
-  unidadeInicial: Unidade;
+  unidadeInicial: Unidade | "";
   aoSincronizar: (unidade: Unidade) => void;
   aoFecharSucesso: (unidade: Unidade) => Promise<void>;
 };
@@ -27,7 +27,7 @@ export function useImportacaoAlunos({
     "colar",
   );
   const [unidadeImportacao, setUnidadeImportacao] =
-    useState<Unidade>("FCH");
+    useState<Unidade | "">(unidadeInicial);
   const [textoImportacao, setTextoImportacao] = useState("");
   const [arquivoImportacao, setArquivoImportacao] = useState("");
   const [previaImportacao, setPreviaImportacao] = useState<
@@ -100,6 +100,13 @@ export function useImportacaoAlunos({
     setErroImportacao("");
     setResultadoImportacao(null);
 
+    if (!unidadeImportacao) {
+      setErroImportacao(
+        "Selecione a unidade de destino antes de gerar a prévia.",
+      );
+      return;
+    }
+
     if (!textoImportacao.trim()) {
       setErroImportacao(
         modoImportacao === "csv"
@@ -129,6 +136,11 @@ export function useImportacaoAlunos({
 
   async function confirmarImportacao() {
     setErroImportacao("");
+    if (!unidadeImportacao) {
+      setErroImportacao("Selecione a unidade de destino.");
+      return;
+    }
+
     if (previaImportacao.length === 0) {
       setErroImportacao("Gere a prévia antes de confirmar.");
       return;
