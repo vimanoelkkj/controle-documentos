@@ -1,0 +1,56 @@
+
+<div class="page-head">
+<h1>Configurações</h1>
+<p>Preferências, integrações e controle de acesso.</p>
+</div>
+<div class="settings-section">
+<div class="settings-eyebrow">Acesso</div>
+<h2>Usuários</h2>
+<p class="settings-sub" id="userCountLabel">5 usuários cadastrados</p>
+<ul class="user-list" id="userList"></ul>
+</div>
+<div class="settings-section">
+<div class="settings-eyebrow">Novo usuário</div>
+<h2>Criar acesso</h2>
+<div class="create-access-row">
+<label class="field">
+<span>Nome</span>
+<input id="newName" placeholder="Nome completo" type="text"/>
+</label>
+<label class="field">
+<span>Usuário</span>
+<input id="newHandle" placeholder="ex.: vitormanoel" type="text"/>
+</label>
+<label class="field">
+<span>E-mail</span>
+<input id="newEmail" placeholder="email@fumec.br" type="text"/>
+</label>
+<label class="field">
+<span>Senha inicial</span>
+<input id="newPassword" type="password" value="acesso2026"/>
+</label>
+<div class="custom-select" data-value="Visualizador" id="profileSelect">
+<span style="font-weight:700;letter-spacing:0.05em;text-transform:uppercase;font-size:0.66rem;color:var(--muted); display:block; margin-bottom:0.4rem;">Perfil</span>
+<button class="cs-trigger" type="button"><span class="cs-label">Visualizador</span><span class="cs-chev"></span></button>
+<div class="cs-dropdown">
+<ul>
+<li class="selected" data-value="Visualizador"><span class="radio"></span><span>Visualizador</span></li>
+<li data-value="Editor"><span class="radio"></span><span>Editor</span></li>
+<li data-value="Administrador"><span class="radio"></span><span>Administrador</span></li>
+<li data-value="Apresentação"><span class="radio"></span><span>Apresentação</span></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="create-access-submit">
+<a class="settings-action" id="createUserBtn">Criar usuário</a>
+</div>
+</div>
+<div class="settings-section">
+<div class="settings-eyebrow">Proteção dos dados</div>
+<h2>Backup do banco <span class="badge-configured">✓ Configurado</span></h2>
+<p class="settings-sub">Gera uma cópia SQL completa do D1 para guardar fora do repositório. O arquivo contém dados pessoais e hashes de senha.</p>
+<div class="backup-subhead">Exportação manual segura</div>
+<p class="backup-hint">A Cloudflare pode deixar o banco indisponível por alguns instantes durante a exportação.</p>
+<a class="settings-action" id="openBackupConfirm">Gerar backup agora</a>
+</div>

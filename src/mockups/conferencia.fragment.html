@@ -1,0 +1,80 @@
+
+<div class="page-head">
+<h1>Conferência</h1>
+<p>Confira e atualize a documentação dos alunos.</p>
+</div>
+<div class="conf-grid">
+<div>
+<div class="list-toolbar">
+<h2>Alunos</h2>
+<div class="toolbar-actions">
+<a class="add-student" id="openAddStudentModal">+ Adicionar aluno</a>
+<button class="more-btn">⋯</button>
+</div>
+</div>
+<div class="tabs">
+<div class="tab active">Ativos</div>
+<div class="tab">Cancelados</div>
+<div class="tab">Todos</div>
+</div>
+<div class="search-row">
+<div class="search-input">
+<span class="icon">⌕</span>
+<input placeholder="Pesquisar nome, RA ou curso..." type="text"/>
+</div>
+</div>
+<div class="unit-filter" id="unitFilter">
+<div class="filter-row" id="unitFilterTrigger">
+<span id="unitFilterLabel">Todas as unidades</span>
+<span class="chev"></span>
+</div>
+<div class="unit-filter-panel">
+<div class="ufp-head">Filtrar por unidade</div>
+<ul id="unitFilterList">
+<li class="selected" data-count="1.140"><span class="radio"></span><span class="uf-label">Todas as unidades</span><span class="uf-count">1.140</span></li>
+<li data-count="353"><span class="radio"></span><span class="uf-label">EAD</span><span class="uf-count">353</span></li>
+<li data-count="252"><span class="radio"></span><span class="uf-label">FACE</span><span class="uf-count">252</span></li>
+<li data-count="340"><span class="radio"></span><span class="uf-label">FCH</span><span class="uf-count">340</span></li>
+<li data-count="195"><span class="radio"></span><span class="uf-label">FEA</span><span class="uf-count">195</span></li>
+</ul>
+</div>
+</div>
+<div class="result-count" id="resultCount">1.140 alunos encontrados</div>
+<ul class="student-list" id="studentList"></ul>
+</div>
+<div class="detail-panel">
+<div class="d-header">
+<div class="d-avatar">AN</div>
+<div class="d-id">
+<h3>ACHILES NAJAR MAIA</h3>
+<p>RA 2910135556 <span class="sep">•</span> FACE<br/>CIÊNCIA DA COMPUTAÇÃO</p>
+</div>
+<span class="d-status critical" id="dStatus">Crítico</span>
+</div>
+<div class="d-actions">
+<a id="openHistoryModal">↺ Histórico</a>
+<a id="openEditModal">✎ Editar aluno</a>
+<a id="openCancelModal">⊘ Cancelar matrícula</a>
+</div>
+<div class="d-progress">
+<div class="d-progress-head"><span>Progresso documental</span><strong id="progressLabel">0/7</strong></div>
+<div class="d-progress-track"><div class="d-progress-fill critical" id="progressFill" style="width:2%"></div></div>
+</div>
+<div class="d-docs">
+<h4>Documentos <span class="d-docs-hint">— clique para marcar como entregue</span></h4>
+<ul id="docList"></ul>
+</div>
+<div class="d-summary">
+<h4>Resumo</h4>
+<p class="d-summary-count" id="summaryCount">7 pendências</p>
+<p class="d-summary-list" id="summaryList"></p>
+</div>
+<div class="d-footer">
+<span class="d-footer-status" id="footerStatus">Nenhuma alteração</span>
+<div class="d-footer-actions">
+<button class="btn-ghost" disabled="" id="btnRestore">Restaurar</button>
+<button class="btn-primary" disabled="" id="btnSave">Salvar alterações</button>
+</div>
+</div>
+</div>
+</div>

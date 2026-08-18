@@ -1,63 +1,47 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --sidebar: #FAFAF8;
+  --border: #E4E2DC;
+  --grid: #EAE8E2;
+  --ink: #2B2620;
+  --ink-soft: #6B6459;
+  --muted: #96897A;
+  --blue: #4A7FB5;
+  --amber: #D99A2B;
+  --teal: #0B8F86;
+  --terracotta: #C97B4A;
+  --radius-sm: 8px;
+  font-size: 16px;
+}
 
-/*
- * Entrada global de estilos.
- *
- * A ordem dos módulos abaixo preserva a cascata histórica do sistema.
- * Adicione novas regras ao módulo temático correspondente; evite trocar a
- * ordem dos imports sem validar os três temas e os fluxos responsivos.
- */
-@import "./styles/index/00-foundation.css";
-@import "./styles/index/10-conference-core.css";
-@import "./styles/index/20-communication.css";
-@import "./styles/index/30-dashboards-and-light-base.css";
-@import "./styles/index/40-log-and-light-pages.css";
-@import "./styles/index/50-periods-sheets-auth.css";
-@import "./styles/index/60-refinements-and-motion.css";
-@import "./styles/index/70-integrations-and-about.css";
-@import "./styles/index/80-conference-workflows.css";
-@import "./styles/index/90-responsive-and-controls.css";
-@import "./styles/index/100-unified-headers-black-admin.css";
-@import "./styles/index/110-final-polish-and-features.css";
-@import "./styles/index/120-unified-page-headers.css";
-@import "./styles/index/150-conference-cohesion-polish.css";
+body.dark {
+  --bg: #1E1B15;
+  --surface: #26221A;
+  --sidebar: #211D17;
+  --border: #3B352A;
+  --grid: #2C271F;
+  --ink: #F1EDE5;
+  --ink-soft: #C7BEAE;
+  --muted: #8C8171;
+}
 
-@import "./styles/index/170-sidebar-mockup.css";
+html, body, #root { min-height: 100%; }
+#root { min-height: 100vh; }
+body { margin: 0; }
+button, input, select, textarea { font: inherit; }
 
-
-
-
-
-@import "./styles/index/220-dashboard-mockup-exact.css";
-
-@import "./styles/index/240-conference-reference-replica.css";
-
-@import "./styles/index/250-sidebar-conference-identity.css";
-
-@import "./styles/index/260-unified-conference-header.css";
-
-@import "./styles/index/270-unified-loading.css";
-
-@import "./styles/index/280-log-flat-layout.css";
-
-@import "./styles/index/290-statistics-flat-redesign.css";
-
-@import "./styles/index/300-statistics-final-layout.css";
-
-@import "./styles/index/310-log-compact-search.css";
-
-@import "./styles/index/320-periods-flat-redesign.css";
-
-@import "./styles/index/330-courses-flat-redesign.css";
-
-@import "./styles/index/340-settings-flat-redesign.css";
-
-@import "./styles/index/350-unified-app-select.css";
-
-@import "./styles/index/360-about-flat-redesign.css";
-
-@import "./styles/index/370-modal-flat-system.css";
-
-@import "./styles/index/380-login-flat-redesign.css";
-
-@import "./styles/index/390-flat-dark-shell.css";
+/* Claude V3 sidebar icons: exact inline SVG treatment from the mockups. */
+.sidebar .nav-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.sidebar .nav-item svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}

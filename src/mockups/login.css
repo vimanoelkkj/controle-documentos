@@ -1,0 +1,231 @@
+
+  :root {
+    --bg:        #F7F6F3;
+    --surface:   #FFFFFF;
+    --sidebar:   #FAFAF8;
+    --border:    #E4E2DC;
+    --grid:      #EAE8E2;
+    --ink:       #2B2620;
+    --ink-soft:  #6B6459;
+    --muted:     #96897A;
+
+    --blue:      #4A7FB5;
+    --amber:     #D99A2B;
+    --teal:      #0B8F86;
+    --terracotta:#C97B4A;
+
+    --radius-sm: 8px;
+    font-size: 16px;
+  }
+
+  body.dark {
+    --bg:        #1E1B15;
+    --surface:   #26221A;
+    --sidebar:   #211D17;
+    --border:    #3B352A;
+    --grid:      #2C271F;
+    --ink:       #F1EDE5;
+    --ink-soft:  #C7BEAE;
+    --muted:     #8C8171;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow-x: hidden;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  button, input { font: inherit; }
+
+  .bg-blob {
+    position: fixed;
+    inset: -20%;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(70px);
+    background:
+      radial-gradient(ellipse 55% 38% at 28% 22%, color-mix(in srgb, var(--terracotta) 18%, transparent), transparent 60%),
+      radial-gradient(ellipse 48% 34% at 76% 18%, color-mix(in srgb, var(--teal) 16%, transparent), transparent 60%);
+    transition: opacity 0.2s ease;
+  }
+  body.dark .bg-blob { opacity: 0.45; }
+
+  .login-wrap {
+    position: relative;
+    z-index: 1;
+    width: min(360px, 88vw);
+    padding: 2rem 0;
+  }
+
+  .theme-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1.75rem;
+    margin-bottom: 2.75rem;
+  }
+  .theme-tab {
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .theme-tab:hover .t-label { color: var(--ink); }
+  .theme-tab.active .t-label { color: var(--terracotta); border-bottom-color: var(--terracotta); font-weight: 700; }
+  .theme-tab .t-icon { font-size: 0.72rem; padding-bottom: 0.6rem; }
+  .theme-tab .t-label { padding-bottom: 0.6rem; border-bottom: 2px solid transparent; }
+
+  .login-icon-wrap { display: flex; justify-content: center; margin-bottom: 1.5rem; }
+  .login-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: var(--grid);
+    color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+
+  .login-eyebrow {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 0.6rem;
+  }
+  .login-title { text-align: center; margin: 0 0 0.5rem; font-size: 1.7rem; font-weight: 700; }
+  .login-sub { text-align: center; margin: 0 0 2.5rem; font-size: 0.88rem; color: var(--ink-soft); }
+
+  .login-form .field { display: block; margin-bottom: 2.3rem; }
+  .login-form .field > span {
+    display: block;
+    margin-bottom: 0.15rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .login-form input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: none;
+    padding: 0.4rem 0.1rem;
+    font-size: 0.95rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .login-form input:focus { border-bottom-color: var(--terracotta); }
+
+  /* Autofill: mantém as credenciais salvas funcionando, mas cobre a pintura
+     nativa (amarela/azulada) do navegador com o mesmo fundo do login.
+     Esta é a estratégia do projeto anterior que efetivamente entrava na cascata. */
+  .login-form input:autofill,
+  .login-form input:autofill:hover,
+  .login-form input:autofill:focus,
+  .login-form input:-moz-autofill,
+  .login-form input:-moz-autofill:hover,
+  .login-form input:-moz-autofill:focus,
+  .login-form input:-webkit-autofill,
+  .login-form input:-webkit-autofill:hover,
+  .login-form input:-webkit-autofill:focus,
+  .login-form input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--ink) !important;
+    color: var(--ink) !important;
+    caret-color: var(--ink) !important;
+    background-color: var(--bg) !important;
+    background-image: none !important;
+    box-shadow: 0 0 0 1000px var(--bg) inset !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--bg) inset !important;
+    transition: background-color 600000s 0s, color 600000s 0s !important;
+  }
+
+  .password-row input:autofill,
+  .password-row input:-moz-autofill,
+  .password-row input:-webkit-autofill {
+    border-bottom-color: transparent !important;
+  }
+
+  .password-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    transition: border-color 0.15s ease;
+  }
+  .password-row:focus-within { border-bottom-color: var(--terracotta); }
+  .password-row input {
+    flex: 1;
+    min-width: 0;
+    border-bottom: none;
+    padding: 0.5rem 0.1rem 0.35rem;
+  }
+  .password-row input:focus { border-bottom-color: transparent; }
+
+  .show-toggle { font-size: 0.78rem; font-weight: 700; color: var(--terracotta); cursor: pointer; padding-bottom: 0.5rem; flex: none; }
+  .show-toggle:hover { text-decoration: underline; }
+
+  .login-submit-row { display: flex; justify-content: flex-end; align-items: center; gap: 0.9rem; margin-top: 0.75rem; }
+  .login-error { font-size: 0.78rem; color: var(--terracotta); font-weight: 600; opacity: 0; transition: opacity 0.2s ease; }
+  .login-error.show { opacity: 1; }
+
+  .login-submit {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex: none;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .login-submit:hover { border-color: var(--terracotta); color: var(--terracotta); }
+  .login-submit .spinner { display: none; width: 15px; height: 15px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--terracotta) 30%, transparent); border-top-color: var(--terracotta); animation: spin 0.7s linear infinite; }
+  .login-submit.loading .arrow { display: none; }
+  .login-submit.loading .spinner { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .login-success {
+    display: none;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--teal);
+    font-weight: 600;
+    margin-top: 1.25rem;
+  }
+  .login-success.show { display: block; }
+
+  .login-footnote {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2.75rem;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  .login-footnote .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); flex: none; margin-top: 0.35rem; }

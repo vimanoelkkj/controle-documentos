@@ -1,209 +1,40 @@
-import { useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
+import MockupStyle from "../components/MockupStyle";
+import css from "../mockups/periodos.css?raw";
 import { usePeriodo } from "../contexts/periodo";
 import { useAuth } from "../contexts/auth";
 import { useGoogleSheetsPeriodo } from "./periodos/hooks/useGoogleSheetsPeriodo";
-import { GoogleSheetsCard } from "./periodos/google-sheets/GoogleSheetsCard";
-import { ModalSincronizacaoSucesso } from "./periodos/google-sheets/ModalSincronizacaoSucesso";
-import { ModalConfirmarSincronizacao } from "./periodos/google-sheets/ModalConfirmarSincronizacao";
-import { CriarPeriodoCard } from "./periodos/CriarPeriodoCard";
-import { ListaPeriodos } from "./periodos/ListaPeriodos";
-import { ModalConfirmarStatusPeriodo } from "./periodos/ModalConfirmarStatusPeriodo";
-import {
-  formatarCodigoPeriodo,
-  useGerenciamentoPeriodos,
-} from "./periodos/hooks/useGerenciamentoPeriodos";
+import { useGerenciamentoPeriodos } from "./periodos/hooks/useGerenciamentoPeriodos";
 
-function Periodos() {
-  const { modoApresentacao } = useAuth();
-  const { periodos, periodoAtual, selecionarPeriodo, recarregarPeriodos } =
-    usePeriodo();
-  const {
-    novoCodigo,
-    setNovoCodigo,
-    processando,
-    erro,
-    erroCriacao,
-    limparErroCriacao,
-    confirmacao,
-    setConfirmacao,
-    criarPeriodo,
-    alterarStatus,
-  } = useGerenciamentoPeriodos({
-    recarregarPeriodos,
-    selecionarPeriodo,
-  });
-  const {
-    sheetsConfig,
-    setSheetsConfig,
-    sheetsStatus,
-    sheetsTitulo,
-    sheetsSalvo,
-    sheetsCarregando,
-    sheetsErro,
-    sheetsPrevia,
-    abaPrevia,
-    setAbaPrevia,
-    listaPreviaRef,
-    mapeamentos,
-    setMapeamentos,
-    salvandoMapeamentos,
-    mapeamentosAlterados,
-    modalSincronizar,
-    setModalSincronizar,
-    sincronizandoSheets,
-    resultadoSync,
-    setResultadoSync,
-    modalSucessoSync,
-    setModalSucessoSync,
-    mostrarAlteracoesSync,
-    setMostrarAlteracoesSync,
-    salvarSheets,
-    gerarPreviaSheets,
-    salvarMapeamentos,
-    sincronizarSheets,
-    totalOperacoesPrevia,
-  } = useGoogleSheetsPeriodo({
-    periodoAtual,
-    recarregarPeriodos,
-  });
-  useEffect(() => {
-    const temModalAberto =
-      modalSincronizar || modalSucessoSync || confirmacao !== null;
-
-    if (!temModalAberto) return;
-
-    const overflowAnterior = document.body.style.overflow;
-
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = overflowAnterior;
-    };
-  }, [modalSincronizar, modalSucessoSync, confirmacao]);
-
-  const ativos = useMemo(
-    () => periodos.filter((periodo) => periodo.status === "ATIVO"),
-    [periodos],
-  );
-  const arquivados = useMemo(
-    () => periodos.filter((periodo) => periodo.status === "ARQUIVADO"),
-    [periodos],
-  );
-
-  return (
-    <section className="period-page">
-      {!modoApresentacao && (
-        <CriarPeriodoCard
-          novoCodigo={novoCodigo}
-          setNovoCodigo={setNovoCodigo}
-          processando={processando}
-          erro={erroCriacao}
-          limparErro={limparErroCriacao}
-          criarPeriodo={criarPeriodo}
-          formatarCodigoPeriodo={formatarCodigoPeriodo}
-        />
-      )}
-
-      <GoogleSheetsCard
-        codigoPeriodo={periodoAtual?.codigo}
-        modoApresentacao={modoApresentacao}
-        sheetsConfig={sheetsConfig}
-        setSheetsConfig={setSheetsConfig}
-        sheetsStatus={sheetsStatus}
-        sheetsTitulo={sheetsTitulo}
-        sheetsSalvo={sheetsSalvo}
-        sheetsCarregando={sheetsCarregando}
-        sheetsErro={sheetsErro}
-        sheetsPrevia={sheetsPrevia}
-        abaPrevia={abaPrevia}
-        setAbaPrevia={setAbaPrevia}
-        listaPreviaRef={listaPreviaRef}
-        mapeamentos={mapeamentos}
-        setMapeamentos={setMapeamentos}
-        salvandoMapeamentos={salvandoMapeamentos}
-        mapeamentosAlterados={mapeamentosAlterados}
-        salvarSheets={salvarSheets}
-        gerarPreviaSheets={gerarPreviaSheets}
-        salvarMapeamentos={salvarMapeamentos}
-        totalOperacoesPrevia={totalOperacoesPrevia}
-        sincronizandoSheets={sincronizandoSheets}
-        abrirSincronizacao={() => {
-          setResultadoSync(null);
-          setModalSucessoSync(false);
-          setModalSincronizar(true);
-        }}
-      />
-
-      {erro && <div className="period-error">{erro}</div>}
-
-      <ListaPeriodos
-        tipo="ativos"
-        periodos={ativos}
-        codigoPeriodoAtual={periodoAtual?.codigo}
-        modoApresentacao={modoApresentacao}
-        processando={processando}
-        aoAbrir={selecionarPeriodo}
-        aoAlterarStatus={setConfirmacao}
-      />
-
-      <ListaPeriodos
-        tipo="arquivados"
-        periodos={arquivados}
-        codigoPeriodoAtual={periodoAtual?.codigo}
-        modoApresentacao={modoApresentacao}
-        processando={processando}
-        aoAbrir={selecionarPeriodo}
-        aoAlterarStatus={setConfirmacao}
-      />
-
-      {resultadoSync && (
-        <div className="period-sheets-sync-result">
-          <div>
-            <span>ÚLTIMA SINCRONIZAÇÃO</span>
-            <strong>✓ Google Sheets aplicado ao sistema</strong>
-          </div>
-          <p>
-            {resultadoSync.novos} novo(s) ·{" "}
-            {resultadoSync.alteracoes_cadastrais} cadastro(s) ·{" "}
-            {resultadoSync.documentos_alterados} documento(s) ·{" "}
-            {resultadoSync.cancelamentos} cancelamento(s) ·{" "}
-            {resultadoSync.reativacoes} reativação(ões)
-          </p>
-          <button type="button" onClick={() => setResultadoSync(null)}>
-            ×
-          </button>
-        </div>
-      )}
-
-      {modalSucessoSync && resultadoSync && (
-        <ModalSincronizacaoSucesso
-          codigoPeriodo={periodoAtual?.codigo}
-          resultado={resultadoSync}
-          aoFechar={() => setModalSucessoSync(false)}
-        />
-      )}
-
-      {modalSincronizar && sheetsPrevia && (
-        <ModalConfirmarSincronizacao
-          codigoPeriodo={periodoAtual?.codigo}
-          previa={sheetsPrevia}
-          mostrarAlteracoes={mostrarAlteracoesSync}
-          setMostrarAlteracoes={setMostrarAlteracoesSync}
-          sincronizando={sincronizandoSheets}
-          aoVoltar={() => setModalSincronizar(false)}
-          aoConfirmar={sincronizarSheets}
-        />
-      )}
-      {confirmacao && (
-        <ModalConfirmarStatusPeriodo
-          confirmacao={confirmacao}
-          processando={processando}
-          aoFechar={() => setConfirmacao(null)}
-          aoConfirmar={alterarStatus}
-        />
-      )}
-    </section>
-  );
+export default function Periodos(){
+ const {modoApresentacao}=useAuth();
+ const {periodos,periodoAtual,selecionarPeriodo,recarregarPeriodos}=usePeriodo();
+ const gp=useGerenciamentoPeriodos({recarregarPeriodos,selecionarPeriodo});
+ const gs=useGoogleSheetsPeriodo({periodoAtual,recarregarPeriodos});
+ const [detalhes,setDetalhes]=useState(false);
+ const ativos=useMemo(()=>periodos.filter(p=>p.status==="ATIVO"),[periodos]);
+ const arquivados=useMemo(()=>periodos.filter(p=>p.status==="ARQUIVADO"),[periodos]);
+ const previa=gs.sheetsPrevia;
+ function configField(key:keyof typeof gs.sheetsConfig,label:string){return <div className="cfg-field"><div className="cfg-label">{label}</div><div className="cfg-value" contentEditable={!modoApresentacao} suppressContentEditableWarning onBlur={e=>gs.setSheetsConfig(c=>({...c,[key]:e.currentTarget.textContent||""}))}>{gs.sheetsConfig[key]}</div></div>}
+ function statusModal(){const c=gp.confirmacao;if(!c)return null;const arquivar=c.status==="ATIVO";return <div className="modal-overlay open"><div className="modal-card modal-card-sm"><button className="modal-close" onClick={()=>gp.setConfirmacao(null)}>✕</button><div className="modal-eyebrow">Períodos letivos</div><h2 className="modal-title compact">{arquivar?"Arquivar período?":"Restaurar período?"}</h2><p className="modal-sub">O período <b>{c.codigo}</b> {arquivar?"sairá da operação diária, mas continuará acessível e poderá ser editado quando necessário.":"voltará para a lista de períodos ativos e poderá ser usado normalmente."}</p><div className="modal-footer"><a onClick={()=>gp.setConfirmacao(null)}>Cancelar</a><a className="modal-save" onClick={()=>void gp.alterarStatus(c.id,arquivar?"ARQUIVADO":"ATIVO")}>{gp.processando?"Processando...":arquivar?"Arquivar período":"Restaurar período"}</a></div></div></div>}
+ return <>
+ <MockupStyle css={css}/>
+ <div className="page-head"><h1>Períodos letivos</h1><p>Crie novos ciclos, alterne o contexto do sistema e arquive períodos antigos sem perder o acesso aos dados.</p></div>
+ {!modoApresentacao&&<div className="period-section" style={{borderTop:"none",paddingTop:0}}><div className="col-head">Novo período</div><div className="new-period-row"><div className="np-info"><h3>Criar período letivo</h3><p>Use o padrão <b>AAAA-1</b> ou <b>AAAA-2</b>.</p></div><div className="np-action"><div className="np-field"><input className={gp.erroCriacao?"error":""} value={gp.novoCodigo} onChange={e=>{gp.setNovoCodigo(e.target.value);gp.limparErroCriacao()}} placeholder="2027-1"/><span className={`np-error${gp.erroCriacao?" show":""}`}>⚠ {gp.erroCriacao||"Use o formato AAAA-1 ou AAAA-2. Ex.: 2027-1."}</span></div><a className="btn-create" onClick={()=>void gp.criarPeriodo()}>{gp.processando?"Criando...":"+ Criar período"}</a></div></div></div>}
+ <div className="period-section"><div className="col-head">Integração</div><div className="int-config-head"><div><h3>Google Sheets</h3><p>Leitura segura da planilha vinculada ao período <b>{periodoAtual?.codigo}</b>. A prévia não altera o sistema nem a planilha.</p></div><div className="int-badge-group"><span className="int-badge">{gs.sheetsSalvo?"Configurado":gs.sheetsStatus==="carregando"?"Verificando":"Não configurado"}</span>{gs.sheetsTitulo&&<div className="int-badge-sub show"><div className="int-badge-label">Planilha vinculada</div><div className="int-badge-value">{gs.sheetsTitulo}</div></div>}</div></div>
+ {configField("spreadsheet_id","Link ou ID da planilha")}
+ <div className="cfg-grid">{configField("aba_base_face_fea","Base FACE / FEA")}{configField("aba_base_fch_ead","Base FCH / EAD")}{configField("aba_docs_face_fea","Documentos FACE / FEA")}{configField("aba_docs_fch_ead","Documentos FCH / EAD")}{configField("aba_cancelados_face_fea","Cancelados FACE / FEA")}{configField("aba_cancelados_fch_ead","Cancelados FCH / EAD")}</div>
+ {!modoApresentacao&&<div className="int-actions"><a onClick={()=>void gs.salvarSheets()}>{gs.sheetsCarregando?"Salvando...":"Salvar configuração"}</a><a className="primary" onClick={()=>void gs.gerarPreviaSheets()}>{gs.sheetsCarregando?"Lendo planilha...":"Ler planilha e gerar prévia"}</a></div>}
+ {gs.sheetsErro&&<p style={{color:"var(--terracotta)",fontSize:".8rem"}}>{gs.sheetsErro}</p>}
+ {previa&&<div className="preview-block show"><div className="preview-head"><h3>{previa.encontrados.toLocaleString("pt-BR")} alunos encontrados</h3><span className="preview-badge">✓ Nada alterado</span></div><div className="preview-stats">
+ <div className="pstat"><strong>{previa.novos}</strong><span>Novos alunos</span></div><div className="pstat"><strong>{previa.alteracoes_cadastrais}</strong><span>Cadastros diferentes</span></div><div className={`pstat${detalhes?" active":""}`}><strong>{previa.documentos_alterados}</strong><span>Documentos diferentes</span>{previa.documentos_alterados>0&&<a onClick={()=>setDetalhes(v=>!v)}>{detalhes?"Ocultar detalhes":"Ver detalhes"}</a>}</div><div className="pstat"><strong>{previa.prontos_para_cancelar}</strong><span>Cancelamentos</span></div><div className="pstat"><strong>{previa.prontos_para_reativar}</strong><span>Reativações</span></div><div className="pstat"><strong>{previa.prontos_para_remover}</strong><span>Remoções</span></div><div className="pstat"><strong>{previa.cursos_nao_mapeados}</strong><span>Cursos a mapear</span></div></div>
+ {detalhes&&<div className="details-panel show"><button className="details-panel-close" onClick={()=>setDetalhes(false)}>✕</button><div className="col-head" style={{marginBottom:"0.3rem"}}>Conferência</div><h4>Detalhes da prévia</h4>{previa.detalhes.documentos.slice(0,20).map((d,i)=><div className="details-row" key={`${d.ra}-${i}`}><div className="dr-student"><strong>{d.nome}</strong><span>RA {d.ra}</span></div><div className="dr-changes"><div className="dr-change"><div className="dc-label">Alteração documental</div><div className="dc-value">{d.detalhe}</div></div></div></div>)}</div>}
+ <div className="preview-banner">{previa.unidades_nao_resolvidas===0?"✓ Unidades resolvidas. A prévia está pronta para sincronização.":`⚠ ${previa.unidades_nao_resolvidas} unidade(s) ainda precisam ser resolvidas.`}</div><div className="apply-row"><div className="apply-info"><div className="al-label">Aplicar alterações</div><strong>{gs.totalOperacoesPrevia} operação(ões) pronta(s)</strong><p>A planilha será lida novamente no momento da sincronização.</p></div><button className="btn-sync" disabled={previa.unidades_nao_resolvidas>0||gs.sincronizandoSheets} onClick={()=>gs.setModalSincronizar(true)}>Sincronizar agora</button></div></div>}
+ </div>
+ <div className="period-section"><div className="section-head-row"><div className="col-head" style={{marginBottom:0}}>Operação</div></div><div className="section-head-row"><h3 style={{margin:0,fontSize:"1.02rem",fontWeight:700}}>Períodos ativos</h3><span className="section-count">{ativos.length}</span></div><ul className="period-row-list">{ativos.map(p=><li className="period-row" key={p.id}><span className="pr-badge active">Ativo</span><span className="pr-name">{p.codigo}</span><span className="pr-meta">{p.total_alunos?.toLocaleString?.("pt-BR")||0} alunos vinculados</span><div className="pr-actions"><a className={p.codigo===periodoAtual?.codigo?"disabled":""} onClick={()=>selecionarPeriodo(p.codigo)}>Abrir período</a>{!modoApresentacao&&<a className="danger" onClick={()=>gp.setConfirmacao({id:p.id,codigo:p.codigo,status:"ATIVO"})}>Arquivar</a>}</div></li>)}</ul></div>
+ <div className="period-section"><div className="section-head-row"><h3 style={{margin:0,fontSize:"1.02rem",fontWeight:700}}>Períodos arquivados</h3><span className="section-count">{arquivados.length}</span></div><div className="col-head" style={{margin:"-0.9rem 0 0.9rem"}}>Histórico</div><ul className="period-row-list">{arquivados.map(p=><li className="period-row" key={p.id}><span className="pr-badge archived">Arquivado</span><span className="pr-name">{p.codigo}</span><span className="pr-meta">{p.total_alunos?.toLocaleString?.("pt-BR")||0} alunos vinculados</span><div className="pr-actions"><a onClick={()=>selecionarPeriodo(p.codigo)}>Abrir período</a>{!modoApresentacao&&<a className="restore" onClick={()=>gp.setConfirmacao({id:p.id,codigo:p.codigo,status:"ARQUIVADO"})}>Restaurar</a>}</div></li>)}</ul></div>
+ {statusModal()}
+ {gs.modalSincronizar&&previa&&<div className="modal-overlay open"><div className="modal-card modal-card-wide"><button className="modal-close" onClick={()=>gs.setModalSincronizar(false)}>✕</button><div className="modal-eyebrow">Sincronização</div><h2 className="modal-title compact">Sincronizar agora?</h2><p className="modal-sub">Isso vai aplicar as alterações no período <b>{periodoAtual?.codigo}</b>. Antes de escrever, o servidor lerá a planilha novamente.</p><div className="modal-stats"><div className="mstat"><strong>{previa.novos}</strong><span>Novos</span></div><div className="mstat"><strong>{previa.alteracoes_cadastrais}</strong><span>Cadastros</span></div><div className="mstat"><strong>{previa.documentos_alterados}</strong><span>Documentos</span></div><div className="mstat"><strong>{previa.prontos_para_cancelar}</strong><span>Cancelamentos</span></div><div className="mstat"><strong>{previa.prontos_para_reativar}</strong><span>Reativações</span></div><div className="mstat"><strong>{previa.prontos_para_remover}</strong><span>Remoções</span></div></div><div className="modal-warn-banner">⚠ Essa ação vai alterar o banco do sistema e será registrada no LOG.</div><div className="modal-footer"><a onClick={()=>gs.setModalSincronizar(false)}>Voltar</a><a className="modal-save teal" onClick={()=>void gs.sincronizarSheets()}>{gs.sincronizandoSheets?"Sincronizando...":"Confirmar sincronização"}</a></div></div></div>}
+ {gs.modalSucessoSync&&gs.resultadoSync&&<div className="modal-overlay open"><div className="modal-card modal-card-wide modal-centered"><button className="modal-close" onClick={()=>gs.setModalSucessoSync(false)}>✕</button><div className="modal-icon-teal">✓</div><div className="modal-eyebrow teal">Sincronização concluída</div><h2 className="modal-title compact">Google Planilhas sincronizado com sucesso</h2><p className="modal-sub">A sincronização do período <b>{periodoAtual?.codigo}</b> foi concluída.</p><div className="modal-stats"><div className="mstat"><strong>{gs.resultadoSync.novos}</strong><span>Novos</span></div><div className="mstat"><strong>{gs.resultadoSync.alteracoes_cadastrais}</strong><span>Cadastros</span></div><div className="mstat"><strong>{gs.resultadoSync.documentos_alterados}</strong><span>Documentos</span></div><div className="mstat"><strong>{gs.resultadoSync.cancelamentos}</strong><span>Cancelamentos</span></div><div className="mstat"><strong>{gs.resultadoSync.reativacoes}</strong><span>Reativações</span></div><div className="mstat"><strong>{gs.resultadoSync.remocoes}</strong><span>Remoções</span></div></div><p className="modal-op-caption">{gs.resultadoSync.total_operacoes} operação(ões) aplicada(s) ao sistema.</p><div className="modal-footer centered"><a className="modal-save teal" onClick={()=>gs.setModalSucessoSync(false)}>Fechar</a></div></div></div>}
+ </>;
 }
-
-export default Periodos;

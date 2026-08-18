@@ -1,458 +1,91 @@
+import { useDeferredValue, useEffect, useRef, useState } from "react";
+import MockupStyle from "../components/MockupStyle";
+import css from "../mockups/conferencia.css?raw";
+import { useAuth } from "../contexts/auth";
 import { useFiltrosUrlConferencia } from "./conferencia/hooks/useFiltrosUrlConferencia";
 import { useSelecaoAluno } from "./conferencia/hooks/useSelecaoAluno";
-import "./HistoricoAluno.css";
-import { useAuth } from "../contexts/auth";
-import { ModalHistoricoAluno } from "./conferencia/ModalHistoricoAluno";
-import { ModalAdicionarAluno } from "./conferencia/ModalAdicionarAluno";
-import { ModalTrocaAluno } from "./conferencia/ModalTrocaAluno";
-import { ModalNovoAluno } from "./conferencia/ModalNovoAluno";
-import { ModalEditarAluno } from "./conferencia/ModalEditarAluno";
-import { ModalStatusAluno } from "./conferencia/ModalStatusAluno";
-import { ModalExcluirAluno } from "./conferencia/ModalExcluirAluno";
-import { ModalImportarCancelados } from "./conferencia/ModalImportarCancelados";
-import { ModalImportarAlunos } from "./conferencia/ModalImportarAlunos";
-import { ModalSucessoImportacao } from "./conferencia/ModalSucessoImportacao";
-import { PainelListaAlunos } from "./conferencia/PainelListaAlunos";
-import { DetalhesAluno } from "./conferencia/DetalhesAluno";
 import { useHistoricoAluno } from "./conferencia/hooks/useHistoricoAluno";
-import { useImportacaoCancelados } from "./conferencia/hooks/useImportacaoCancelados";
 import { useImportacaoAlunos } from "./conferencia/hooks/useImportacaoAlunos";
 import { useAlunos } from "./conferencia/hooks/useAlunos";
 import { useFiltrosConferencia } from "./conferencia/hooks/useFiltrosConferencia";
-import { useLayoutConferencia } from "./conferencia/hooks/useLayoutConferencia";
-import { useAtalhosConferencia } from "./conferencia/hooks/useAtalhosConferencia";
 import { useDocumentosAluno } from "./conferencia/hooks/useDocumentosAluno";
 import { useGerenciamentoAluno } from "./conferencia/hooks/useGerenciamentoAluno";
 import { useResumoAluno } from "./conferencia/hooks/useResumoAluno";
-import { type FiltroStatus, type Unidade } from "./conferencia/model";
-import PageLoading from "../components/PageLoading";
+import type { FiltroStatus, Unidade } from "./conferencia/model";
 
-import { useEffect, useRef, useState } from "react";
-function Conferencia() {
-  const {
-    alunosSalvos,
-    setAlunosSalvos,
-    alunosEmEdicao,
-    setAlunosEmEdicao,
-    raSelecionado,
-    setRaSelecionado,
-    carregando,
-    erro,
-    carregarAlunos: carregarAlunosDoServidor,
-  } = useAlunos();
-  const [busca, setBusca] = useState("");
-  const { modoApresentacao } = useAuth();
+const fullDoc:Record<string,string>={ID:"Identidade",CPF:"CPF","CERTIDÃO":"Certidão de Registro Civil","RESIDÊNCIA":"Comprovante de Residência","TÍTULO":"Título de Eleitor","ENSINO MÉDIO":"Histórico do Ensino Médio",CONTRATO:"Contrato"};
+const docKey:Record<string,string>={ID:"identidade",CPF:"cpf","CERTIDÃO":"certidao","RESIDÊNCIA":"residencia","TÍTULO":"titulo","ENSINO MÉDIO":"ensino_medio",CONTRATO:"contrato"};
+const unidades:Unidade[]=["EAD","FACE","FCH","FEA"];
 
-  const {
-    unidadeSelecionada,
-    setUnidadeSelecionada,
-    filtroStatus,
-    setFiltroStatus,
-    filtroDocumentalDashboard,
-    setFiltroDocumentalDashboard,
-    pendenciasDashboard,
-    setPendenciasDashboard,
-  } = useFiltrosUrlConferencia();
+function CustomSelect({value,onChange}:{value:string;onChange:(v:string)=>void}){const [open,setOpen]=useState(false);return <div className={`custom-select${open?" open":""}`} data-value={value}><button type="button" className="cs-trigger" onClick={()=>setOpen(v=>!v)}><span className="cs-label">{value}</span><span className="cs-chev"/></button><div className="cs-dropdown"><ul>{unidades.map(u=><li key={u} className={u===value?"selected":""} onClick={()=>{onChange(u);setOpen(false)}}>{u}</li>)}</ul></div></div>}
+function fmtData(valor:string){const x=valor.includes("T")?valor:`${valor.replace(" ","T")}Z`;const d=new Date(x);return Number.isNaN(d.getTime())?valor:d.toLocaleString("pt-BR")}
 
-  const [modalAdicionarAluno, setModalAdicionarAluno] = useState(false);
-
-  const fluxoImportacao = useImportacaoAlunos({
-    alunosSalvos,
-    unidadeInicial: unidadeSelecionada,
-    aoSincronizar: setUnidadeSelecionada,
-    aoFecharSucesso: async (unidade) => {
-      await carregarAlunos(undefined, unidade, filtroStatus);
-    },
-  });
-
-  const {
-    modalImportarAlunos,
-    sucessoImportacao,
-    abrirImportacao,
-    fecharSucessoImportacao,
-  } = fluxoImportacao;
-
-  const [modalSaindo, setModalSaindo] = useState<string | null>(null);
-
-  const {
-    modalHistoricoAluno,
-    setModalHistoricoAluno,
-    historicoAluno,
-    carregandoHistorico,
-    erroHistorico,
-    historicoPossivelmenteLimitado,
-    carregarHistoricoAluno,
-    abrirHistoricoAluno,
-  } = useHistoricoAluno();
-
-  const { painelListaRef, detalhesAlunoRef, conferenciaGridRef } =
-    useLayoutConferencia({
-      carregando,
-      raSelecionado,
-      unidadeSelecionada,
-      filtroStatus,
-    });
-  const buscaAlunoRef = useRef<HTMLInputElement | null>(null);
-  const listaAlunosRef = useRef<HTMLDivElement | null>(null);
-
-  const fluxoCancelados = useImportacaoCancelados({
-    unidadeInicial: unidadeSelecionada || "FACE",
-    aoConcluir: async (ra, unidade) => {
-      setUnidadeSelecionada(unidade);
-      setFiltroStatus("CANCELADO");
-      await carregarAlunos(ra, unidade, "CANCELADO");
-    },
-  });
-
-  const {
-    modalImportarCancelados,
-    setModalImportarCancelados,
-    processandoCancelados,
-    abrirImportacaoCancelados,
-  } = fluxoCancelados;
-
-  async function carregarAlunos(
-    raParaSelecionar?: string,
-    unidadeFiltro: Unidade | "" = unidadeSelecionada,
-    statusFiltro: FiltroStatus = filtroStatus,
-  ) {
-    await carregarAlunosDoServidor(
-      raParaSelecionar,
-      unidadeFiltro,
-      statusFiltro,
-    );
-  }
-
-  useEffect(() => {
-    void carregarAlunosDoServidor(undefined, "", "ATIVO");
-  }, [carregarAlunosDoServidor]);
-
-  const {
-    alunoSelecionado,
-    alunoSalvo,
-    status,
-    setStatus,
-    salvando,
-    erroSalvamento,
-    temAlteracoes,
-    alternarDocumento,
-    restaurarAlteracoes,
-    salvarAlteracoes,
-  } = useDocumentosAluno({
-    alunosSalvos,
-    setAlunosSalvos,
-    alunosEmEdicao,
-    setAlunosEmEdicao,
-    raSelecionado,
-  });
-
-  const {
-    trocaAlunoPendente,
-    setTrocaAlunoPendente,
-    selecionarAluno,
-    descartarAlteracoesETrocarAluno,
-  } = useSelecaoAluno({
-    setAlunosEmEdicao,
-    raSelecionado,
-    setRaSelecionado,
-    alunoSalvo,
-    temAlteracoes,
-    setStatus,
-  });
-
-  const {
-    novoAluno,
-    setNovoAluno,
-    alunoEdicao,
-    setAlunoEdicao,
-    modalNovoAluno,
-    setModalNovoAluno,
-    modalEditarAluno,
-    setModalEditarAluno,
-    modalExcluirAluno,
-    setModalExcluirAluno,
-    modalStatusAluno,
-    setModalStatusAluno,
-    cadastrando,
-    editando,
-    excluindo,
-    alterandoStatusAluno,
-    erroCadastro,
-    setErroCadastro,
-    erroEdicao,
-    cadastrarAluno,
-    abrirEdicaoAluno,
-    salvarEdicaoAluno,
-    alterarStatusMatricula,
-    excluirAluno,
-  } = useGerenciamentoAluno({
-    alunoSelecionado,
-    carregarAlunos,
-    setFiltroStatus,
-    setUnidadeSelecionada,
-  });
-
-  useAtalhosConferencia({
-    algumModalAberto: Boolean(
-      modalAdicionarAluno ||
-      modalImportarAlunos ||
-      sucessoImportacao ||
-      modalNovoAluno ||
-      modalEditarAluno ||
-      modalExcluirAluno ||
-      modalStatusAluno ||
-      modalImportarCancelados ||
-      trocaAlunoPendente ||
-      modalHistoricoAluno,
-    ),
-    busca,
-    raSelecionado,
-    buscaAlunoRef,
-    listaAlunosRef,
-    setBusca,
-    podeSalvar: () => temAlteracoes && temAlunoSelecionadoNoFiltro,
-    aoSalvar: () => void salvarAlteracoes(),
-  });
-
-  const {
-    alunosNoStatus,
-    quantidadesPorUnidade,
-    temFiltroDashboard,
-    alunosFiltrados,
-    temAlunoSelecionadoNoFiltro,
-    descricaoFiltroDashboard,
-  } = useFiltrosConferencia({
-    alunosSalvos,
-    raSelecionado,
-    busca,
-    filtroStatus,
-    unidadeSelecionada,
-    filtroDocumentalDashboard,
-    pendenciasDashboard,
-  });
-
-  const { entregues, pendentes, statusResumo, percentual, iniciais } =
-    useResumoAluno(alunoSelecionado);
-
-  if (carregando) {
-    return (
-      <section className="conference-page conference-page--replica">
-        <PageLoading label="Carregando alunos..." />
-      </section>
-    );
-  }
-
-  if (erro) {
-    return (
-      <section className="conference-page conference-page--replica">
-<div className="conference-replica-loading error">{erro}</div>
-      </section>
-    );
-  }
-
-  function limparFiltroDashboard() {
-    setFiltroDocumentalDashboard("");
-    setPendenciasDashboard([]);
-    setRaSelecionado("");
-    setStatus("salvo");
-    window.history.replaceState(null, "", "/conferencia");
-  }
-
-  function fecharModalAnimado(
-    nome: string,
-    fechar: () => void,
-    depois?: () => void,
-  ) {
-    if (modalSaindo) return;
-
-    setModalSaindo(nome);
-
-    window.setTimeout(() => {
-      fechar();
-      setModalSaindo(null);
-      depois?.();
-    }, 180);
-  }
-
-  function fecharImportacaoCancelados() {
-    if (processandoCancelados) return;
-
-    fecharModalAnimado("importar-cancelados", () =>
-      setModalImportarCancelados(false),
-    );
-  }
-
-  return (
-    <section className="conference-page conference-page--replica">
-<div ref={conferenciaGridRef} className="conference-grid conference-grid--replica">
-        <PainelListaAlunos
-          painelListaRef={painelListaRef}
-          buscaAlunoRef={buscaAlunoRef}
-          listaAlunosRef={listaAlunosRef}
-          modoApresentacao={modoApresentacao}
-          raSelecionado={raSelecionado}
-          busca={busca}
-          filtroStatus={filtroStatus}
-          unidadeSelecionada={unidadeSelecionada}
-          alunosNoStatus={alunosNoStatus}
-          alunosFiltrados={alunosFiltrados}
-          quantidadesPorUnidade={quantidadesPorUnidade}
-          temFiltroDashboard={temFiltroDashboard}
-          descricaoFiltroDashboard={descricaoFiltroDashboard}
-          carregarAlunos={async (ra) => carregarAlunos(ra)}
-          abrirImportacaoCancelados={abrirImportacaoCancelados}
-          setModalAdicionarAluno={setModalAdicionarAluno}
-          setFiltroStatus={setFiltroStatus}
-          setRaSelecionado={setRaSelecionado}
-          setStatus={setStatus}
-          setUnidadeSelecionada={setUnidadeSelecionada}
-          setBusca={setBusca}
-          limparFiltroDashboard={limparFiltroDashboard}
-          selecionarAluno={selecionarAluno}
-        />
-
-        <DetalhesAluno
-          detalhesAlunoRef={detalhesAlunoRef}
-          temAlunoSelecionadoNoFiltro={temAlunoSelecionadoNoFiltro}
-          alunoSelecionado={alunoSelecionado}
-          iniciais={iniciais}
-          modoApresentacao={modoApresentacao}
-          statusResumo={statusResumo}
-          percentual={percentual}
-          entregues={entregues}
-          pendentes={pendentes}
-          erroSalvamento={erroSalvamento}
-          salvando={salvando}
-          temAlteracoes={temAlteracoes}
-          status={status}
-          unidadeSelecionada={unidadeSelecionada}
-          alunosFiltrados={alunosFiltrados}
-          abrirHistoricoAluno={abrirHistoricoAluno}
-          abrirEdicaoAluno={abrirEdicaoAluno}
-          abrirModalStatusAluno={() => setModalStatusAluno(true)}
-          alternarDocumento={alternarDocumento}
-          restaurarAlteracoes={restaurarAlteracoes}
-          salvarAlteracoes={salvarAlteracoes}
-        />
-      </div>
-
-      <ModalHistoricoAluno
-        aberto={modalHistoricoAluno}
-        aluno={alunoSelecionado}
-        historico={historicoAluno}
-        carregando={carregandoHistorico}
-        erro={erroHistorico}
-        possivelmenteLimitado={historicoPossivelmenteLimitado}
-        aoAtualizar={() => void carregarHistoricoAluno(alunoSelecionado.ra)}
-        aoFechar={() => setModalHistoricoAluno(false)}
-      />
-
-      <ModalTrocaAluno
-        aberto={Boolean(trocaAlunoPendente)}
-        nomeAluno={alunoSelecionado.nome}
-        aoVoltar={() => setTrocaAlunoPendente(null)}
-        aoDescartar={descartarAlteracoesETrocarAluno}
-      />
-
-      <ModalAdicionarAluno
-        aberto={modalAdicionarAluno}
-        saindo={modalSaindo === "adicionar-aluno"}
-        aoFechar={() =>
-          fecharModalAnimado("adicionar-aluno", () =>
-            setModalAdicionarAluno(false),
-          )
-        }
-        aoNovoAluno={() =>
-          fecharModalAnimado(
-            "adicionar-aluno",
-            () => setModalAdicionarAluno(false),
-            () => {
-              setErroCadastro("");
-              setModalNovoAluno(true);
-            },
-          )
-        }
-        aoImportar={() =>
-          fecharModalAnimado(
-            "adicionar-aluno",
-            () => setModalAdicionarAluno(false),
-            abrirImportacao,
-          )
-        }
-      />
-
-      <ModalNovoAluno
-        aberto={modalNovoAluno}
-        saindo={modalSaindo === "novo-aluno"}
-        dados={novoAluno}
-        setDados={setNovoAluno}
-        erro={erroCadastro}
-        cadastrando={cadastrando}
-        aoFechar={() =>
-          fecharModalAnimado("novo-aluno", () => setModalNovoAluno(false))
-        }
-        aoCadastrar={() => void cadastrarAluno()}
-      />
-
-      <ModalEditarAluno
-        aberto={modalEditarAluno}
-        saindo={modalSaindo === "editar-aluno"}
-        dados={alunoEdicao}
-        setDados={setAlunoEdicao}
-        erro={erroEdicao}
-        editando={editando}
-        aoFechar={() =>
-          fecharModalAnimado("editar-aluno", () => setModalEditarAluno(false))
-        }
-        aoSalvar={() => void salvarEdicaoAluno()}
-        aoExcluir={() =>
-          fecharModalAnimado(
-            "editar-aluno",
-            () => setModalEditarAluno(false),
-            () => setModalExcluirAluno(true),
-          )
-        }
-      />
-
-      <ModalImportarAlunos
-        fluxo={fluxoImportacao}
-        saindo={modalSaindo === "importar-alunos"}
-      />
-
-      <ModalSucessoImportacao
-        sucesso={sucessoImportacao}
-        aoFechar={() => void fecharSucessoImportacao()}
-      />
-
-      <ModalImportarCancelados
-        fluxo={fluxoCancelados}
-        saindo={modalSaindo === "importar-cancelados"}
-        aoFechar={fecharImportacaoCancelados}
-      />
-
-      <ModalStatusAluno
-        aberto={modalStatusAluno}
-        saindo={modalSaindo === "status-aluno"}
-        aluno={alunoSelecionado}
-        processando={alterandoStatusAluno}
-        aoFechar={() =>
-          fecharModalAnimado("status-aluno", () => setModalStatusAluno(false))
-        }
-        aoConfirmar={() => void alterarStatusMatricula()}
-      />
-
-      <ModalExcluirAluno
-        aberto={modalExcluirAluno}
-        saindo={modalSaindo === "excluir-aluno"}
-        aluno={alunoSelecionado}
-        excluindo={excluindo}
-        aoFechar={() =>
-          fecharModalAnimado("excluir-aluno", () => setModalExcluirAluno(false))
-        }
-        aoConfirmar={() => void excluirAluno()}
-      />
-    </section>
-  );
+export default function Conferencia(){
+ const {modoApresentacao}=useAuth();
+ const {alunosSalvos,setAlunosSalvos,alunosEmEdicao,setAlunosEmEdicao,raSelecionado,setRaSelecionado,carregando,erro,carregarAlunos:carregarServidor}=useAlunos();
+ const [busca,setBusca]=useState("");
+ const buscaAdiada=useDeferredValue(busca);
+ const [limiteVisivel,setLimiteVisivel]=useState(60);
+ const sentinelaListaRef=useRef<HTMLLIElement|null>(null);
+ const {unidadeSelecionada,setUnidadeSelecionada,filtroStatus,setFiltroStatus,filtroDocumentalDashboard,setFiltroDocumentalDashboard,pendenciasDashboard,setPendenciasDashboard}=useFiltrosUrlConferencia();
+ const [unitOpen,setUnitOpen]=useState(false),[addModal,setAddModal]=useState(false),[editModal,setEditModal]=useState(false),[historyModal,setHistoryModal]=useState(false),[statusModal,setStatusModal]=useState(false),[deleteModal,setDeleteModal]=useState(false),[newModal,setNewModal]=useState(false),[importModal,setImportModal]=useState(false);
+ async function carregar(ra?:string,u:Unidade|""=unidadeSelecionada,s:FiltroStatus=filtroStatus){await carregarServidor(ra,u,s)}
+ useEffect(()=>{void carregarServidor(undefined,"","ATIVO")},[carregarServidor]);
+ const docFlow=useDocumentosAluno({alunosSalvos,setAlunosSalvos,alunosEmEdicao,setAlunosEmEdicao,raSelecionado});
+ const sel=useSelecaoAluno({setAlunosEmEdicao,raSelecionado,setRaSelecionado,alunoSalvo:docFlow.alunoSalvo,temAlteracoes:docFlow.temAlteracoes,setStatus:docFlow.setStatus});
+ const hist=useHistoricoAluno();
+ const manage=useGerenciamentoAluno({alunoSelecionado:docFlow.alunoSelecionado,carregarAlunos:carregar,setFiltroStatus,setUnidadeSelecionada});
+ const filtros=useFiltrosConferencia({alunosSalvos,raSelecionado,busca:buscaAdiada,filtroStatus,unidadeSelecionada,filtroDocumentalDashboard,pendenciasDashboard});
+ const resumo=useResumoAluno(docFlow.alunoSelecionado);
+ const alunosVisiveis=filtros.alunosFiltrados.slice(0,limiteVisivel);
+ const temMaisAlunos=limiteVisivel<filtros.alunosFiltrados.length;
+ useEffect(()=>{setLimiteVisivel(60)},[buscaAdiada,filtroStatus,unidadeSelecionada,filtroDocumentalDashboard,pendenciasDashboard]);
+ useEffect(()=>{
+  const alvo=sentinelaListaRef.current;
+  if(!alvo||!temMaisAlunos)return;
+  const observer=new IntersectionObserver((entradas)=>{
+   if(entradas[0]?.isIntersecting)setLimiteVisivel(v=>Math.min(v+60,filtros.alunosFiltrados.length));
+  },{root:alvo.closest(".student-list"),rootMargin:"240px 0px"});
+  observer.observe(alvo);
+  return()=>observer.disconnect();
+ },[temMaisAlunos,filtros.alunosFiltrados.length]);
+ const importFlow=useImportacaoAlunos({alunosSalvos,unidadeInicial:unidadeSelecionada,aoSincronizar:setUnidadeSelecionada,aoFecharSucesso:async(u)=>{await carregar(undefined,u,filtroStatus)}});
+ useEffect(()=>{if(!raSelecionado&&filtros.alunosFiltrados.length){setRaSelecionado(filtros.alunosFiltrados[0].ra)}},[filtros.alunosFiltrados,raSelecionado,setRaSelecionado]);
+ const aluno=raSelecionado?docFlow.alunoSelecionado:null;
+ const stat=resumo.statusResumo; const cls=stat==="COMPLETO"?"good":stat==="PARCIAL"?"warning":"critical"; const statLabel=stat==="COMPLETO"?"Completo":stat==="PARCIAL"?"Parcial":"Crítico";
+ function abrirEdicao(){manage.abrirEdicaoAluno();setEditModal(true)}
+ async function abrirHistorico(){if(!aluno)return;await hist.carregarHistoricoAluno(aluno.ra);setHistoryModal(true)}
+ function limparDashboard(){setFiltroDocumentalDashboard("");setPendenciasDashboard([]);window.history.replaceState(null,"","/conferencia")}
+ if(carregando)return <><MockupStyle css={css}/><div className="page-head"><h1>Conferência</h1><p>Carregando alunos...</p></div></>;
+ return <>
+ <MockupStyle css={css}/>
+ <div className="page-head"><h1>Conferência</h1><p>Confira e atualize a documentação dos alunos.</p></div>
+ {erro&&<p style={{color:"var(--terracotta)"}}>{erro}</p>}
+ <div className="conf-grid"><div>
+ <div className="list-toolbar"><h2>Alunos</h2><div className="toolbar-actions">{!modoApresentacao&&<a className="add-student" onClick={()=>setAddModal(true)}>+ Adicionar aluno</a>}<button className="more-btn">⋯</button></div></div>
+ <div className="tabs">{([['ATIVO','Ativos'],['CANCELADO','Cancelados'],['TODOS','Todos']] as const).map(([v,l])=><div key={v} className={`tab${filtroStatus===v?" active":""}`} onClick={()=>{setFiltroStatus(v);setRaSelecionado("")}}>{l}</div>)}</div>
+ <div className="search-row"><div className="search-input"><span className="icon">⌕</span><input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar nome, RA ou curso..." type="text"/></div></div>
+ <div className={`unit-filter${unitOpen?" open":""}`}><div className="filter-row" onClick={()=>setUnitOpen(v=>!v)}><span>{unidadeSelecionada||"Todas as unidades"}</span><span className="chev"/></div><div className="unit-filter-panel"><div className="ufp-head">Filtrar por unidade</div><ul><li className={!unidadeSelecionada?"selected":""} onClick={()=>{setUnidadeSelecionada("");setUnitOpen(false);setRaSelecionado("")}}><span className="radio"/><span className="uf-label">Todas as unidades</span><span className="uf-count">{filtros.alunosNoStatus.length.toLocaleString("pt-BR")}</span></li>{unidades.map(u=><li key={u} className={unidadeSelecionada===u?"selected":""} onClick={()=>{setUnidadeSelecionada(u);setUnitOpen(false);setRaSelecionado("")}}><span className="radio"/><span className="uf-label">{u}</span><span className="uf-count">{filtros.quantidadesPorUnidade[u]}</span></li>)}</ul></div></div>
+ {filtros.temFiltroDashboard&&<div className="result-count" onClick={limparDashboard} style={{cursor:"pointer",color:"var(--terracotta)"}}>Filtro: {filtros.descricaoFiltroDashboard} · limpar</div>}
+ <div className="result-count">{filtros.alunosFiltrados.length.toLocaleString("pt-BR")} alunos encontrados</div>
+ <ul className="student-list">{alunosVisiveis.map(a=>{const n=a.documentos.filter(d=>d.entregue).length;return <li className={`student-row${a.ra===raSelecionado?" selected":""}`} key={a.ra} onClick={()=>sel.selecionarAluno(a.ra)}><div className="s-main"><div className="s-name">{a.nome.toUpperCase()}</div><div className="s-meta">RA {a.ra}<span className="sep">•</span>{a.curso.toUpperCase()}<span className="sep">•</span>{a.unidade}</div></div><div className={`s-frac${n===7?" good":n>0?" warning":""}`}>{n}/7</div></li>})}{temMaisAlunos&&<li ref={sentinelaListaRef} aria-hidden="true" style={{height:1,padding:0,border:0}}/>}</ul>
+ </div>
+ <div className={`detail-panel${!aluno?" empty":""}`}>{!aluno?<div className="detail-empty"><div className="e-icon">☑</div><h3>Selecione um aluno</h3><p>Escolha um aluno na lista para conferir a documentação.</p></div>:<>
+ <div className="d-header"><div className="d-avatar">{resumo.iniciais.toUpperCase()}</div><div className="d-id"><h3>{aluno.nome.toUpperCase()}</h3><p>RA {aluno.ra} <span className="sep">•</span> {aluno.unidade}<br/>{aluno.curso.toUpperCase()}</p></div><span className={`d-status ${cls}`}>{statLabel}</span></div>
+ <div className="d-actions">{!modoApresentacao&&<><a onClick={()=>void abrirHistorico()}>↺ Histórico</a><a onClick={abrirEdicao}>✎ Editar aluno</a><a onClick={()=>setStatusModal(true)}>{aluno.status==="ATIVO"?"⊘ Cancelar matrícula":"↺ Reativar matrícula"}</a></>}</div>
+ <div className="d-progress"><div className="d-progress-head"><span>Progresso documental</span><strong>{resumo.entregues.length}/7</strong></div><div className="d-progress-track"><div className={`d-progress-fill ${cls}`} style={{width:`${resumo.percentual}%`}}/></div></div>
+ <div className="d-docs"><h4>Documentos {!modoApresentacao&&<span className="d-docs-hint">— clique para marcar como entregue</span>}</h4><ul>{aluno.documentos.map(d=><li key={d.nome} className={d.entregue?"good":""} onClick={()=>!modoApresentacao&&docFlow.alternarDocumento(d.nome)}><span className="doc-name"><span className={`dot ${d.entregue?"good":"critical"}`}/>{fullDoc[d.nome]||d.nome}</span><span className={`doc-status ${d.entregue?"good":"critical"}`}>{d.entregue?"Entregue":"Pendente"}</span></li>)}</ul></div>
+ <div className="d-summary"><h4>Resumo</h4><p className="d-summary-count">{resumo.pendentes.length} pendência{resumo.pendentes.length===1?"":"s"}</p><p className="d-summary-list">{resumo.pendentes.length?resumo.pendentes.map(p=>fullDoc[p.nome]||p.nome).join(" • "):"Nenhuma pendência documental."}</p></div>
+ {!modoApresentacao&&<div className="d-footer"><span className={`d-footer-status${docFlow.temAlteracoes?" dirty":""}`}>{docFlow.salvando?"Salvando...":docFlow.temAlteracoes?"Alterações não salvas":"Nenhuma alteração"}</span><div className="d-footer-actions"><button className="btn-ghost" disabled={!docFlow.temAlteracoes||docFlow.salvando} onClick={docFlow.restaurarAlteracoes}>Restaurar</button><button className="btn-primary" disabled={!docFlow.temAlteracoes||docFlow.salvando} onClick={()=>void docFlow.salvarAlteracoes()}>Salvar alterações</button></div></div>}
+ </>}</div>
+ </div>
+ {addModal&&<div className="modal-overlay open"><div className="modal-card modal-card-sm"><button className="modal-close" onClick={()=>setAddModal(false)}>✕</button><div className="modal-eyebrow">Alunos</div><h2 className="modal-title compact">Adicionar alunos</h2><p className="modal-sub" style={{marginBottom:"0.5rem"}}>Escolha como deseja incluir alunos na conferência.</p><div className="choice-grid"><div className="choice-card" onClick={()=>{setAddModal(false);manage.setErroCadastro("");manage.setModalNovoAluno(true);setNewModal(true)}}><div className="choice-title">+ Novo aluno</div><p>Cadastrar um aluno manualmente.</p></div><div className="choice-card" onClick={()=>{setAddModal(false);importFlow.abrirImportacao();setImportModal(true)}}><div className="choice-title">⇧ Importar lista</div><p>Adicionar ou atualizar vários alunos de uma vez.</p></div></div></div></div>}
+ {newModal&&<div className="modal-overlay open"><div className="modal-card"><button className="modal-close" onClick={()=>setNewModal(false)}>✕</button><div className="modal-eyebrow">Cadastro</div><h2 className="modal-title">Novo aluno</h2><p className="modal-sub">Adicione um aluno ao controle de documentos.</p><div className="form-grid">
+ <label className="field"><span>RA <em>*</em></span><input value={manage.novoAluno.ra} onChange={e=>manage.setNovoAluno(v=>({...v,ra:e.target.value}))} placeholder="Ex.: 2910136038"/></label><label className="field"><span>Nome <em>*</em></span><input value={manage.novoAluno.nome} onChange={e=>manage.setNovoAluno(v=>({...v,nome:e.target.value}))} placeholder="Nome completo"/></label><label className="field"><span>Curso <em>*</em></span><input value={manage.novoAluno.curso} onChange={e=>manage.setNovoAluno(v=>({...v,curso:e.target.value}))} placeholder="Ex.: PSICOLOGIA"/></label><div className="field"><span>Unidade <em>*</em></span><CustomSelect value={manage.novoAluno.unidade} onChange={v=>manage.setNovoAluno(x=>({...x,unidade:v}))}/></div><label className="field"><span>E-mail institucional</span><input value={manage.novoAluno.email} onChange={e=>manage.setNovoAluno(v=>({...v,email:e.target.value}))} placeholder="a0000000000@fumec.edu.br"/></label><label className="field"><span>E-mail alternativo</span><input value={manage.novoAluno.email_outro} onChange={e=>manage.setNovoAluno(v=>({...v,email_outro:e.target.value}))} placeholder="aluno@email.com"/></label></div><div className="section-divider">Documentos já entregues</div><p className="section-hint">Marque somente o que já estiver conferido no cadastro inicial.</p><div className="doc-check-grid">{Object.entries(fullDoc).map(([nome,label])=><label className="doc-check" key={nome}><input type="checkbox" checked={Boolean(manage.novoAluno.documentos[docKey[nome] as keyof typeof manage.novoAluno.documentos])} onChange={e=>manage.setNovoAluno(v=>({...v,documentos:{...v.documentos,[docKey[nome]]:e.target.checked}}))}/><span>{label}</span></label>)}</div>{manage.erroCadastro&&<p style={{color:"var(--terracotta)",fontSize:".8rem"}}>{manage.erroCadastro}</p>}<div className="modal-footer"><a onClick={()=>setNewModal(false)}>Cancelar</a><a className="modal-save" onClick={async()=>{await manage.cadastrarAluno();setNewModal(false)}}>{manage.cadastrando?"Cadastrando...":"Cadastrar aluno"}</a></div></div></div>}
+ {editModal&&<div className="modal-overlay open"><div className="modal-card"><button className="modal-close" onClick={()=>setEditModal(false)}>✕</button><div className="modal-eyebrow">Edição</div><h2 className="modal-title">Editar aluno</h2><p className="modal-sub">Atualize os dados cadastrais do aluno.</p><div className="form-grid"><label className="field"><span>RA <em>*</em></span><input value={manage.alunoEdicao.ra} onChange={e=>manage.setAlunoEdicao(v=>({...v,ra:e.target.value}))}/></label><label className="field"><span>Nome <em>*</em></span><input value={manage.alunoEdicao.nome} onChange={e=>manage.setAlunoEdicao(v=>({...v,nome:e.target.value}))}/></label><label className="field"><span>Curso <em>*</em></span><input value={manage.alunoEdicao.curso} onChange={e=>manage.setAlunoEdicao(v=>({...v,curso:e.target.value}))}/></label><div className="field"><span>Unidade <em>*</em></span><CustomSelect value={manage.alunoEdicao.unidade} onChange={v=>manage.setAlunoEdicao(x=>({...x,unidade:v}))}/></div><label className="field"><span>E-mail institucional</span><input value={manage.alunoEdicao.email} onChange={e=>manage.setAlunoEdicao(v=>({...v,email:e.target.value}))}/></label><label className="field"><span>E-mail alternativo</span><input value={manage.alunoEdicao.email_outro} onChange={e=>manage.setAlunoEdicao(v=>({...v,email_outro:e.target.value}))}/></label></div><div className="danger-zone"><div className="dz-label">Zona de perigo</div><p>Excluir permanentemente deve ser usado apenas quando este cadastro foi criado por engano. Para saída do aluno, use o cancelamento de matrícula.</p><button className="btn-danger" onClick={()=>{setEditModal(false);setDeleteModal(true)}}>Excluir permanentemente</button></div>{manage.erroEdicao&&<p style={{color:"var(--terracotta)",fontSize:".8rem"}}>{manage.erroEdicao}</p>}<div className="modal-footer"><a onClick={()=>setEditModal(false)}>Cancelar</a><a className="modal-save" onClick={async()=>{await manage.salvarEdicaoAluno();setEditModal(false)}}>{manage.editando?"Salvando...":"Salvar alterações"}</a></div></div></div>}
+ {historyModal&&aluno&&<div className="modal-overlay open"><div className="modal-card"><button className="modal-close" onClick={()=>setHistoryModal(false)}>✕</button><div className="modal-eyebrow">Histórico</div><div className="modal-header-row"><div><h2 className="modal-title compact">{aluno.nome.toUpperCase()}</h2><p className="modal-sub">RA {aluno.ra} <span className="sep">•</span> {aluno.unidade} <span className="sep">•</span> {aluno.curso.toUpperCase()}</p></div><a className="refresh-link" onClick={()=>void hist.carregarHistoricoAluno(aluno.ra)}>↻ Atualizar</a></div><ul className="history-list">{hist.carregandoHistorico?<li>Carregando...</li>:hist.historicoAluno.map(h=><li key={h.id}><div className="h-meta"><strong>{h.usuario_nome||"Sistema"}</strong>{h.usuario_username&&<span className="handle">@{h.usuario_username}</span>}<span className="h-time">{fmtData(h.criado_em)}</span></div><p>{h.descricao}</p></li>)}</ul><div className="modal-footer"><a onClick={()=>setHistoryModal(false)}>Fechar</a></div></div></div>}
+ {statusModal&&aluno&&<div className="modal-overlay open"><div className="modal-card modal-card-sm"><button className="modal-close" onClick={()=>setStatusModal(false)}>✕</button><div className="modal-warn-icon">!</div><div className="modal-eyebrow">{aluno.status==="ATIVO"?"Cancelamento":"Reativação"}</div><h2 className="modal-title compact">{aluno.status==="ATIVO"?"Cancelar matrícula?":"Reativar matrícula?"}</h2><p className="modal-sub">O cadastro e a conferência documental serão preservados.</p><div className="cancel-student-box"><strong>{aluno.nome.toUpperCase()}</strong><p>RA {aluno.ra} <span className="sep">•</span> {aluno.curso.toUpperCase()} - {aluno.unidade}</p></div><p className="status-change">Status atual: <b>{aluno.status}</b> → novo status: <b>{aluno.status==="ATIVO"?"CANCELADO":"ATIVO"}</b></p><div className="modal-footer"><a onClick={()=>setStatusModal(false)}>Voltar</a><a className="modal-save" onClick={async()=>{await manage.alterarStatusMatricula();setStatusModal(false)}}>{manage.alterandoStatusAluno?"Processando...":aluno.status==="ATIVO"?"Cancelar matrícula":"Reativar matrícula"}</a></div></div></div>}
+ {deleteModal&&aluno&&<div className="modal-overlay open"><div className="modal-card modal-card-sm"><button className="modal-close" onClick={()=>setDeleteModal(false)}>✕</button><div className="modal-warn-icon">!</div><div className="modal-eyebrow">Exclusão</div><h2 className="modal-title compact">Excluir aluno permanentemente?</h2><p className="modal-sub">Esta ação remove o cadastro do sistema. Use apenas para registros criados por engano.</p><div className="cancel-student-box"><strong>{aluno.nome}</strong><p>RA {aluno.ra} · {aluno.unidade}</p></div><div className="modal-footer"><a onClick={()=>setDeleteModal(false)}>Cancelar</a><a className="modal-save" onClick={async()=>{await manage.excluirAluno();setDeleteModal(false)}}>{manage.excluindo?"Excluindo...":"Excluir permanentemente"}</a></div></div></div>}
+ {importModal&&<div className="modal-overlay open"><div className="modal-card"><button className="modal-close" onClick={()=>{setImportModal(false);importFlow.fecharImportacao()}}>✕</button><div className="modal-eyebrow">Importação em lote</div><h2 className="modal-title">Importar alunos</h2><p className="modal-sub">Cole os dados da planilha ou selecione um arquivo CSV e confira a prévia antes de confirmar.</p><div className="field" style={{marginBottom:"1.1rem"}}><span>Unidade de destino</span><CustomSelect value={importFlow.unidadeImportacao||"FCH"} onChange={v=>importFlow.setUnidadeImportacao(v as Unidade)}/></div><div className="segmented"><button className={importFlow.modoImportacao==="colar"?"active":""} onClick={()=>importFlow.setModoImportacao("colar")}>Colar dados</button><button className={importFlow.modoImportacao==="csv"?"active":""} onClick={()=>importFlow.setModoImportacao("csv")}>Arquivo CSV</button></div>{importFlow.modoImportacao==="colar"?<div className="import-panel active"><textarea className="import-textarea" value={importFlow.textoImportacao} onChange={e=>importFlow.setTextoImportacao(e.target.value)} placeholder="Cole aqui os dados copiados da planilha."/></div>:<div className="import-panel active"><input type="file" accept=".csv" onChange={e=>void importFlow.selecionarArquivoImportacao(e)} style={{display:"none"}} id="csv-import-v3"/><label className="csv-drop" htmlFor="csv-import-v3"><strong>{importFlow.arquivoImportacao||"Selecionar arquivo CSV"}</strong><span>Clique para selecionar um arquivo .csv</span></label></div>}{importFlow.erroImportacao&&<p style={{color:"var(--terracotta)",fontSize:".8rem"}}>{importFlow.erroImportacao}</p>}{importFlow.previaImportacao.length>0&&<div style={{fontSize:".78rem",marginTop:"1rem",color:"var(--ink-soft)"}}>{importFlow.previaImportacao.length} linha(s) analisada(s).</div>}<div className="import-footer"><a onClick={()=>{setImportModal(false);importFlow.fecharImportacao()}} style={{fontSize:"0.86rem",fontWeight:600,color:"var(--ink-soft)",cursor:"pointer"}}>Cancelar</a>{importFlow.previaImportacao.length===0?<button className="btn-primary" onClick={importFlow.gerarPreviaImportacao}>Gerar prévia</button>:<button className="btn-primary" onClick={async()=>{await importFlow.confirmarImportacao();setImportModal(false)}}>{importFlow.importando?"Importando...":"Importar alunos"}</button>}</div></div></div>}
+ </>;
 }
-
-export default Conferencia;

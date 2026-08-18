@@ -1,0 +1,161 @@
+
+<div class="page-head">
+<h1>Períodos letivos</h1>
+<p>Crie novos ciclos, alterne o contexto do sistema e arquive períodos antigos sem perder o acesso aos dados.</p>
+</div>
+<div class="period-section" style="border-top:none; padding-top:0;">
+<div class="col-head">Novo período</div>
+<div class="new-period-row">
+<div class="np-info">
+<h3>Criar período letivo</h3>
+<p>Use o padrão <b>AAAA-1</b> ou <b>AAAA-2</b>.</p>
+</div>
+<div class="np-action">
+<div class="np-field">
+<input id="newPeriodInput" type="text" value="2027-1"/>
+<span class="np-error" id="newPeriodError">⚠ Use o formato AAAA-1 ou AAAA-2. Ex.: 2027-1.</span>
+</div>
+<a class="btn-create" id="createPeriodBtn">+ Criar período</a>
+</div>
+</div>
+</div>
+<div class="period-section">
+<div class="col-head">Integração</div>
+<div class="int-config-head">
+<div>
+<h3>Google Sheets</h3>
+<p>Leitura segura da planilha vinculada ao período <b>2026-2</b>. A prévia não altera o sistema nem a planilha.</p>
+</div>
+<div class="int-badge-group">
+<span class="int-badge">Configurado</span>
+<div class="int-badge-sub" id="linkedSheetInfo">
+<div class="int-badge-label">Planilha vinculada</div>
+<div class="int-badge-value">Cópia de CONTRATOS 2026 - 2° TESTE</div>
+</div>
+</div>
+</div>
+<div class="cfg-field">
+<div class="cfg-label">Link ou ID da planilha</div>
+<div class="cfg-value">1QLDyxb1fad6sG_KBEVoRFEcFVBAlj87t4aG5UUq3L5U</div>
+</div>
+<div class="cfg-grid">
+<div class="cfg-field">
+<div class="cfg-label">Base FACE / FEA</div>
+<div class="cfg-value">FACE - FEA 2026 - 2</div>
+</div>
+<div class="cfg-field">
+<div class="cfg-label">Base FCH / EAD</div>
+<div class="cfg-value">FCH - EAD 2026 - 2</div>
+</div>
+<div class="cfg-field">
+<div class="cfg-label">Documentos FACE / FEA</div>
+<div class="cfg-value">CONTROLE DE DOCUMENTOS FACE FEA</div>
+</div>
+<div class="cfg-field">
+<div class="cfg-label">Documentos FCH / EAD</div>
+<div class="cfg-value">CONTROLE DE DOCUMENTOS FCH EAD</div>
+</div>
+<div class="cfg-field">
+<div class="cfg-label">Cancelados FACE / FEA</div>
+<div class="cfg-value">CANCELADOS FACE - FEA 2026-2</div>
+</div>
+<div class="cfg-field">
+<div class="cfg-label">Cancelados FCH / EAD</div>
+<div class="cfg-value">CANCELADOS FCH - EAD 2026-2</div>
+</div>
+</div>
+<div class="int-actions">
+<a>Salvar configuração</a>
+<a class="primary" id="genPreviewBtn">Ler planilha e gerar prévia</a>
+</div>
+<div class="preview-block" id="previewBlock">
+<div class="preview-head">
+<h3>1.140 alunos encontrados</h3>
+<span class="preview-badge">✓ Nada alterado</span>
+</div>
+<div class="preview-stats">
+<div class="pstat"><strong>0</strong><span>Novos alunos</span></div>
+<div class="pstat"><strong>0</strong><span>Cadastros diferentes</span></div>
+<div class="pstat" id="docDiffStat"><strong>3</strong><span>Documentos diferentes</span><a id="toggleDetailsBtn">Ver detalhes</a></div>
+<div class="pstat"><strong>0</strong><span>Cancelamentos</span></div>
+<div class="pstat"><strong>0</strong><span>Reativações</span></div>
+<div class="pstat"><strong>0</strong><span>Remoções</span></div>
+<div class="pstat"><strong>0</strong><span>Cursos a mapear</span></div>
+</div>
+<div class="details-panel" id="detailsPanel">
+<button aria-label="Fechar" class="details-panel-close" id="closeDetailsBtn">✕</button>
+<div class="col-head" style="margin-bottom:0.3rem;">Conferência</div>
+<h4>Detalhes da prévia</h4>
+<div class="details-row">
+<div class="dr-student">
+<strong>Teste Wakeme</strong>
+<span>RA 2910135337</span>
+</div>
+<div class="dr-changes">
+<div class="dr-change">
+<div class="dc-label">CPF</div>
+<div class="dc-value">Pendente <span class="arrow">→</span><span class="to">Entregue</span></div>
+</div>
+<div class="dr-change">
+<div class="dc-label">Certidão</div>
+<div class="dc-value">Pendente <span class="arrow">→</span><span class="to">Entregue</span></div>
+</div>
+</div>
+</div>
+</div>
+<div class="preview-banner">✓ Unidades resolvidas. A prévia está pronta para sincronização.</div>
+<div class="apply-row">
+<div class="apply-info">
+<div class="al-label">Aplicar alterações</div>
+<strong>3 operação(ões) pronta(s)</strong>
+<p>A planilha será lida novamente no momento da sincronização.</p>
+</div>
+<button class="btn-sync" id="syncNowBtn">Sincronizar agora</button>
+</div>
+</div>
+</div>
+<div class="period-section">
+<div class="section-head-row">
+<div class="col-head" style="margin-bottom:0;">Operação</div>
+</div>
+<div class="section-head-row">
+<h3 style="margin:0; font-size:1.02rem; font-weight:700;">Períodos ativos</h3>
+<span class="section-count" id="activeCount">1</span>
+</div>
+<ul class="period-row-list" id="activeList">
+<li class="period-row" data-period="2026-2" id="activePeriodRow">
+<span class="pr-badge active">Ativo</span>
+<span class="pr-name">2026-2</span>
+<span class="pr-meta">1.140 alunos vinculados</span>
+<div class="pr-actions">
+<a class="disabled">Abrir período</a>
+<a class="danger" id="archivePeriodLink">Arquivar</a>
+</div>
+</li>
+</ul>
+</div>
+<div class="period-section">
+<div class="section-head-row">
+<h3 style="margin:0; font-size:1.02rem; font-weight:700;">Períodos arquivados</h3>
+<span class="section-count" id="archivedCount">2</span>
+</div>
+<div class="col-head" style="margin: -0.9rem 0 0.9rem;">Histórico</div>
+<ul class="period-row-list" id="archivedList">
+<li class="period-row" data-period="2027-2">
+<span class="pr-badge archived">Arquivado</span>
+<span class="pr-name">2027-2</span>
+<span class="pr-meta">0 alunos vinculados</span>
+<div class="pr-actions">
+<a class="restore">Restaurar</a>
+</div>
+</li>
+<li class="period-row" data-period="2027-1">
+<span class="pr-badge archived">Arquivado</span>
+<span class="pr-name">2027-1</span>
+<span class="pr-meta">0 alunos vinculados</span>
+<div class="pr-actions">
+<a class="restore">Restaurar</a>
+</div>
+</li>
+</ul>
+</div>
