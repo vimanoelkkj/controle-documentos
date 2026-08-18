@@ -154,20 +154,15 @@ export default function Login() {
         <form autoComplete="off" className="login-form" id="loginForm" onSubmit={enviar}>
           {/* Isca de autofill: o navegador ignora autocomplete="off"/"new-password" quando já existe
               uma credencial salva para esta origem e insiste em preencher (e pintar de amarelo) o
-              primeiro campo de usuário/senha que encontrar. Damos a ele campos escondidos pra preencher
-              no lugar dos campos reais visíveis. */}
+              primeiro campo de usuário que encontrar — damos a ele um campo de usuário escondido pra
+              preencher no lugar do campo real visível. Sem isca de senha aqui de propósito: o campo de
+              senha abaixo nunca é type="password" de verdade (veja PONTO_SENHA), então não sobra nenhum
+              input de senha nativo nesta tela pro navegador associar ao e-mail — um <input
+              type="password"> escondido reintroduziria essa associação mesmo invisível. */}
           <input
             type="text"
             name="username"
             autoComplete="username"
-            tabIndex={-1}
-            aria-hidden="true"
-            style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: 0, border: 0, opacity: 0, pointerEvents: "none", left: -9999 }}
-          />
-          <input
-            type="password"
-            name="password"
-            autoComplete="current-password"
             tabIndex={-1}
             aria-hidden="true"
             style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: 0, border: 0, opacity: 0, pointerEvents: "none", left: -9999 }}

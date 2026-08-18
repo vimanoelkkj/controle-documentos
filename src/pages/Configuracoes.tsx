@@ -46,11 +46,11 @@ export default function Configuracoes(){
  <div className="settings-section"><div className="settings-eyebrow">Novo usuário</div><h2>Criar acesso</h2><div className="create-access-row">
  <label className="field"><span>Nome</span><input value={nome} onChange={e=>setNome(e.target.value)} placeholder="Nome completo" type="text"/></label>
  <label className="field"><span>Usuário</span><input value={username} onChange={e=>setUsername(e.target.value)} placeholder="ex.: vitormanoel" type="text"/></label>
- {/* Iscas escondidas: o Firefox associa o campo de e-mail deste formulário ao "Senha
-     inicial" logo abaixo e oferece a credencial salva do login real. Damos a ele um
-     par usuário/senha invisível pra preencher no lugar dos campos visíveis. */}
- <input type="text" name="username" autoComplete="username" tabIndex={-1} aria-hidden="true" style={{position:"absolute",width:1,height:1,padding:0,margin:0,border:0,opacity:0,pointerEvents:"none",left:-9999}}/>
- <input type="password" name="password" autoComplete="current-password" tabIndex={-1} aria-hidden="true" style={{position:"absolute",width:1,height:1,padding:0,margin:0,border:0,opacity:0,pointerEvents:"none",left:-9999}}/>
+ {/* Sem iscas aqui de propósito: como "Senha inicial" logo abaixo nunca é um
+     type="password" de verdade (veja aplicarMascaraSenha), não sobra nenhum campo de
+     senha nativo nesta seção pro Firefox associar ao e-mail — é esse pareamento que
+     fazia a sugestão de credencial salva aparecer. Um <input type="password"> escondido
+     aqui reintroduziria o problema mesmo invisível, então não usamos decoy nesta tela. */}
  <label className="field"><span>E-mail</span><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email@fumec.br" type="text" autoComplete="off" readOnly={!acessoLiberado} onPointerDown={liberarAcesso} onKeyDown={liberarAcesso}/></label>
  <label className="field"><span>Senha inicial</span><input ref={senhaInputRef} value={PONTO_SENHA.repeat(senha.length)} onChange={e=>{const{valor,cursor}=aplicarMascaraSenha(senha,e.target.value);cursorPendenteRef.current=cursor;setSenha(valor)}} type="text" autoComplete="off" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" readOnly={!acessoLiberado} onPointerDown={liberarAcesso} onKeyDown={liberarAcesso}/></label>
  <div className={`custom-select${profileOpen?" open":""}`} data-value={perfilUI}><span style={{fontWeight:700,letterSpacing:"0.05em",textTransform:"uppercase",fontSize:"0.66rem",color:"var(--muted)",display:"block",marginBottom:"0.4rem"}}>Perfil</span><button className="cs-trigger" type="button" onClick={()=>setProfileOpen(v=>!v)}><span className="cs-label">{perfilUI}</span><span className="cs-chev"/></button><div className="cs-dropdown"><ul>{(Object.keys(mapPerfil) as PerfilUI[]).map(p=><li key={p} className={p===perfilUI?"selected":""} onClick={()=>{setPerfilUI(p);setProfileOpen(false)}}><span className="radio"/><span>{p}</span></li>)}</ul></div></div>
