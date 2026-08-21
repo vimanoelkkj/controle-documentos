@@ -20,7 +20,7 @@ export function useHistoricoComunicacao() {
 
   const carregarHistorico = useCallback(async () => {
     try {
-      const resposta = await fetch("/api/comunicacoes?limit=100");
+      const resposta = await fetch("/api/comunicacoes?limit=500");
 
       if (!resposta.ok) {
         const dados = (await resposta.json().catch(() => ({}))) as {

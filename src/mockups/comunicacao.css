@@ -463,6 +463,18 @@
   .p-sep { color: var(--muted); margin: 0 0.3rem; }
   .ci-sub { font-size: 0.72rem; color: var(--muted); }
 
+  .charged-groups { margin-top: 0.65rem; border-top: 1px solid var(--grid); }
+  .charged-groups-toggle { width: 100%; border: 0; background: transparent; padding: 0.75rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; color: var(--ink-soft); font: inherit; font-size: 0.76rem; font-weight: 700; cursor: pointer; text-align: left; }
+  .charged-groups-toggle:hover { color: var(--teal); }
+  .charged-check { color: var(--teal); margin-right: 0.35rem; }
+  .charged-groups-meta { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .charged-chevron { display: inline-block; margin-left: 0.35rem; transition: transform 0.15s ease; }
+  .charged-groups.open .charged-chevron { transform: rotate(180deg); }
+  .charged-groups-list { list-style: none; margin: 0; padding: 0 0.35rem 0 0; max-height: 220px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .combo-item.charged { opacity: 0.78; }
+  .combo-item.charged:hover, .combo-item.charged.selected { opacity: 1; }
+  .charged-count { color: var(--teal); }
+
   .combo-detail h3 { margin: 0 0 0.5rem; font-size: 1.02rem; font-weight: 700; }
   .cd-desc { margin: 0 0 1rem; font-size: 0.82rem; color: var(--ink-soft); line-height: 1.6; }
   .cd-stat { font-size: 0.86rem; font-weight: 700; margin-bottom: 0.3rem; }

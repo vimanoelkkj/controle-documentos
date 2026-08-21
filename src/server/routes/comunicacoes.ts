@@ -40,7 +40,7 @@ async function listarComunicacoes(
 ) {
   try {
     const limiteSolicitado = Number(url.searchParams.get("limit") || "20");
-    const limite = Math.max(1, Math.min(100, limiteSolicitado));
+    const limite = Math.max(1, Math.min(500, limiteSolicitado));
     const resultado = await db
       .prepare(
         `SELECT id,
