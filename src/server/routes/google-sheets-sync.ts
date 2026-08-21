@@ -7,6 +7,7 @@ import {
   lerBaseGoogleSheets,
   lerCanceladosGoogleSheets,
   lerDocumentosGoogleSheets,
+  ehReservaDeVaga,
   type AlunoRow,
   type RangeGoogle,
 } from "./google-sheets-reconciliation";
@@ -70,7 +71,7 @@ export async function handleGoogleSheetsSyncRoute({
         cancelFchEad,
       ] = ranges;
 
-      const bases = [
+      const basesLidas = [
         ...lerBaseGoogleSheets(
           baseFaceFea.linhas,
           "FACE_FEA",
@@ -84,6 +85,15 @@ export async function handleGoogleSheetsSyncRoute({
           normalizarComparacao,
         ),
       ];
+
+      // Reserva de vaga ainda não é aluno efetivamente matriculado para o
+      // Controle de Documentos. Mantemos a linha apenas na planilha de origem
+      // e a tratamos como ausente do sistema até a situação mudar.
+      const reservas = basesLidas.filter((aluno) =>
+        ehReservaDeVaga(aluno, normalizarComparacao),
+      );
+      const rasReserva = new Set(reservas.map((aluno) => aluno.ra));
+      const bases = basesLidas.filter((aluno) => !rasReserva.has(aluno.ra));
 
       const docs = new Map([
         ...lerDocumentosGoogleSheets(
@@ -326,6 +336,7 @@ export async function handleGoogleSheetsSyncRoute({
       }
 
       for (const ra of cancelados) {
+        if (rasReserva.has(ra)) continue;
         const atual = porRa.get(ra);
         if (!atual || atual.status === "CANCELADO") continue;
 
@@ -349,7 +360,10 @@ export async function handleGoogleSheetsSyncRoute({
         const estaNaBaseAtiva = rasAtivosNaPlanilha.has(atual.ra);
         const estaNosCancelados = cancelados.has(atual.ra);
 
-        if (!estaNaBaseAtiva && !estaNosCancelados) {
+        if (
+          rasReserva.has(atual.ra) ||
+          (!estaNaBaseAtiva && !estaNosCancelados)
+        ) {
           remocoes += 1;
 
           comandos.push(

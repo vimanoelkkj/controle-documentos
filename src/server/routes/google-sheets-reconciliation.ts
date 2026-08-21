@@ -39,6 +39,7 @@ export type LinhaBaseGoogleSheets = {
   email_outro: string;
   email: string;
   contrato: boolean;
+  situacao: string;
   origem: OrigemGoogleSheets;
 };
 
@@ -57,9 +58,18 @@ export function lerBaseGoogleSheets(
       email: normalizarTexto(l[3]),
       nome: normalizarTexto(l[4]),
       ra: normalizarTexto(l[5]),
+      situacao: normalizarTexto(l[6]),
       origem,
     }))
     .filter((aluno) => aluno.ra && aluno.nome && aluno.curso);
+}
+
+
+export function ehReservaDeVaga(
+  aluno: Pick<LinhaBaseGoogleSheets, "situacao">,
+  normalizarComparacao: (valor: unknown) => string,
+): boolean {
+  return normalizarComparacao(aluno.situacao).includes("RESERVA DE VAGA");
 }
 
 export function lerDocumentosGoogleSheets(

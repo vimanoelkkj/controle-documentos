@@ -6,6 +6,7 @@ import {
   carregarUnidadePorCurso,
   resolverUnidadeGoogleSheets,
   lerDocumentosGoogleSheets,
+  ehReservaDeVaga,
   type AlunoRow,
   type RangeGoogle,
 } from "./google-sheets-reconciliation";
@@ -56,7 +57,7 @@ export async function handleGoogleSheetsPreviewRoute({
         cancelFchEad,
       ] = ranges;
 
-      const bases = [
+      const basesLidas = [
         ...lerBaseGoogleSheets(
           baseFaceFea.linhas,
           "FACE_FEA",
@@ -70,6 +71,15 @@ export async function handleGoogleSheetsPreviewRoute({
           normalizarComparacao,
         ),
       ];
+
+      // Reserva de vaga ainda não é aluno efetivamente matriculado para o
+      // Controle de Documentos. Mantemos a linha apenas na planilha de origem
+      // e a tratamos como ausente do sistema até a situação mudar.
+      const reservas = basesLidas.filter((aluno) =>
+        ehReservaDeVaga(aluno, normalizarComparacao),
+      );
+      const rasReserva = new Set(reservas.map((aluno) => aluno.ra));
+      const bases = basesLidas.filter((aluno) => !rasReserva.has(aluno.ra));
 
       const docs = new Map([
         ...lerDocumentosGoogleSheets(
@@ -273,6 +283,7 @@ export async function handleGoogleSheetsPreviewRoute({
         }
       }
       for (const ra of cancelados) {
+        if (rasReserva.has(ra)) continue;
         const atual = porRa.get(ra);
 
         // Alunos novos já foram contabilizados acima.
@@ -296,7 +307,7 @@ export async function handleGoogleSheetsPreviewRoute({
         const estaNaBaseAtiva = rasAtivosNaPlanilha.has(ra);
         const estaNosCancelados = cancelados.has(ra);
 
-        if (!estaNaBaseAtiva && !estaNosCancelados) {
+        if (rasReserva.has(ra) || (!estaNaBaseAtiva && !estaNosCancelados)) {
           remover += 1;
 
           detalhesRemocoes.push({
