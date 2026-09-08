@@ -1521,9 +1521,7 @@ html[data-theme="light"] .document-card .document-card-icon-wrap {
   background: #e7f1f8;
 }
 
-html[data-theme="light"]
-  .document-card.delivered
-  .document-card-icon-wrap {
+html[data-theme="light"] .document-card.delivered .document-card-icon-wrap {
   color: #2f9955;
   background: #e3f5e8;
 }

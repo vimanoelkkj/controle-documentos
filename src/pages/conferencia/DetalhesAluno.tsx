@@ -11,11 +11,13 @@ function iconeDocumento(nome: string) {
     .toLowerCase();
 
   if (normalizado.includes("cpf")) return "cpf" as const;
-  if (normalizado.includes("ident") || normalizado.includes("rg")) return "identity" as const;
+  if (normalizado.includes("ident") || normalizado.includes("rg"))
+    return "identity" as const;
   if (normalizado.includes("certidao")) return "certificate" as const;
   if (normalizado.includes("resid")) return "residence" as const;
   if (normalizado.includes("titulo")) return "voter" as const;
-  if (normalizado.includes("ensino") || normalizado.includes("historico")) return "education" as const;
+  if (normalizado.includes("ensino") || normalizado.includes("historico"))
+    return "education" as const;
   if (normalizado.includes("contrato")) return "contract" as const;
   return "document" as const;
 }
@@ -68,7 +70,11 @@ export function DetalhesAluno({
   salvarAlteracoes,
 }: Props) {
   const statusLabel =
-    statusResumo === "COMPLETO" ? "Completo" : statusResumo === "PARCIAL" ? "Parcial" : "Crítico";
+    statusResumo === "COMPLETO"
+      ? "Completo"
+      : statusResumo === "PARCIAL"
+        ? "Parcial"
+        : "Crítico";
 
   return temAlunoSelecionadoNoFiltro ? (
     <article
@@ -81,31 +87,56 @@ export function DetalhesAluno({
 
         <div className="conference-replica-profile-copy">
           <h2>{alunoSelecionado.nome}</h2>
-          <p>RA {alunoSelecionado.ra} &nbsp;•&nbsp; {alunoSelecionado.unidade}</p>
+          <p>
+            RA {alunoSelecionado.ra} &nbsp;•&nbsp; {alunoSelecionado.unidade}
+          </p>
           <span>{alunoSelecionado.curso}</span>
         </div>
 
-        <div className={`conference-replica-status conference-replica-status--${statusResumo.toLowerCase()}`}>
-          <span key={statusResumo} className="conference-replica-status-value">{statusLabel}</span>
+        <div
+          className={`conference-replica-status conference-replica-status--${statusResumo.toLowerCase()}`}
+        >
+          <span key={statusResumo} className="conference-replica-status-value">
+            {statusLabel}
+          </span>
         </div>
       </div>
 
       <div className="conference-replica-actions">
-        <button type="button" onClick={() => abrirHistoricoAluno(alunoSelecionado.ra)}>
+        <button
+          type="button"
+          onClick={() => abrirHistoricoAluno(alunoSelecionado.ra)}
+        >
           <AppIcon name="clock" size={18} strokeWidth={1.7} />
           Histórico
         </button>
         {!modoApresentacao && (
           <>
-            <span className="conference-replica-action-divider" aria-hidden="true" />
+            <span
+              className="conference-replica-action-divider"
+              aria-hidden="true"
+            />
             <button type="button" onClick={abrirEdicaoAluno}>
               <AppIcon name="edit" size={18} strokeWidth={1.7} />
               Editar aluno
             </button>
-            <span className="conference-replica-action-divider" aria-hidden="true" />
-            <button type="button" className="danger" onClick={abrirModalStatusAluno}>
-              <AppIcon name={alunoSelecionado.status === "ATIVO" ? "close" : "reload"} size={18} strokeWidth={1.7} />
-              {alunoSelecionado.status === "ATIVO" ? "Cancelar matrícula" : "Reativar matrícula"}
+            <span
+              className="conference-replica-action-divider"
+              aria-hidden="true"
+            />
+            <button
+              type="button"
+              className="danger"
+              onClick={abrirModalStatusAluno}
+            >
+              <AppIcon
+                name={alunoSelecionado.status === "ATIVO" ? "close" : "reload"}
+                size={18}
+                strokeWidth={1.7}
+              />
+              {alunoSelecionado.status === "ATIVO"
+                ? "Cancelar matrícula"
+                : "Reativar matrícula"}
             </button>
           </>
         )}
@@ -115,9 +146,17 @@ export function DetalhesAluno({
         <section className="conference-replica-progress-section">
           <div className="conference-replica-section-row">
             <span>Progresso documental</span>
-            <strong key={entregues.length} className="conference-replica-progress-count">{entregues.length}/{alunoSelecionado.documentos.length}</strong>
+            <strong
+              key={entregues.length}
+              className="conference-replica-progress-count"
+            >
+              {entregues.length}/{alunoSelecionado.documentos.length}
+            </strong>
           </div>
-          <div className="conference-replica-progress-track" aria-label={`${percentual}% concluído`}>
+          <div
+            className="conference-replica-progress-track"
+            aria-label={`${percentual}% concluído`}
+          >
             <span style={{ width: `${percentual}%` }} />
           </div>
         </section>
@@ -136,8 +175,15 @@ export function DetalhesAluno({
                   disabled={modoApresentacao}
                   onChange={() => alternarDocumento(documento.nome)}
                 />
-                <span className="conference-replica-document-icon" aria-hidden="true">
-                  <AppIcon name={iconeDocumento(documento.nome)} size={18} strokeWidth={1.5} />
+                <span
+                  className="conference-replica-document-icon"
+                  aria-hidden="true"
+                >
+                  <AppIcon
+                    name={iconeDocumento(documento.nome)}
+                    size={18}
+                    strokeWidth={1.5}
+                  />
                 </span>
                 <strong>{documento.nome}</strong>
                 <span className="conference-replica-document-state">
@@ -150,7 +196,9 @@ export function DetalhesAluno({
 
         <section className="conference-replica-summary">
           <h3>Resumo</h3>
-          <div className={`conference-replica-summary-badge ${pendentes.length === 0 ? "complete" : "critical"}`}>
+          <div
+            className={`conference-replica-summary-badge ${pendentes.length === 0 ? "complete" : "critical"}`}
+          >
             {pendentes.length === 0
               ? "Documentação completa"
               : `${pendentes.length} pendência${pendentes.length === 1 ? "" : "s"}`}
@@ -162,9 +210,19 @@ export function DetalhesAluno({
       </div>
 
       {!modoApresentacao && (
-        <footer className={`conference-replica-savebar ${erroSalvamento ? "has-error" : ""}`}>
-          <span className={erroSalvamento ? "error" : temAlteracoes ? "pending" : "saved"} role="status" aria-live="polite">
-            <i aria-hidden="true"><AppIcon name="check" size={15} strokeWidth={1.7} /></i>
+        <footer
+          className={`conference-replica-savebar ${erroSalvamento ? "has-error" : ""}`}
+        >
+          <span
+            className={
+              erroSalvamento ? "error" : temAlteracoes ? "pending" : "saved"
+            }
+            role="status"
+            aria-live="polite"
+          >
+            <i aria-hidden="true">
+              <AppIcon name="check" size={15} strokeWidth={1.7} />
+            </i>
             {erroSalvamento
               ? erroSalvamento
               : salvando
@@ -197,9 +255,14 @@ export function DetalhesAluno({
       )}
     </article>
   ) : (
-    <article ref={detalhesAlunoRef} className="student-details conference-replica-details conference-replica-empty">
+    <article
+      ref={detalhesAlunoRef}
+      className="student-details conference-replica-details conference-replica-empty"
+    >
       <div>
-        <span><AppIcon name="info" size={25} /></span>
+        <span>
+          <AppIcon name="info" size={25} />
+        </span>
         <h2>Selecione um aluno</h2>
         <p>
           {!unidadeSelecionada

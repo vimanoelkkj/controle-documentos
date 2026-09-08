@@ -55,7 +55,7 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: color .14s ease;
+  transition: color 0.14s ease;
 }
 
 .login-theme-selector button::after {
@@ -112,7 +112,7 @@
   color: #0878ff;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
 }
 
 .login-brand h1 {
@@ -121,7 +121,7 @@
   font-size: clamp(34px, 4vw, 42px);
   font-weight: 700;
   line-height: 1.08;
-  letter-spacing: -.035em;
+  letter-spacing: -0.035em;
 }
 
 .login-brand p {
@@ -146,7 +146,7 @@
   color: #617481;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -163,7 +163,7 @@
   box-shadow: none;
   font-size: 15px;
   font-weight: 500;
-  transition: border-color .14s ease;
+  transition: border-color 0.14s ease;
 }
 
 .login-form input::placeholder {
@@ -537,7 +537,6 @@ html[data-theme="black"] .login-form .login-password-toggle {
   }
 }
 
-
 /* v24-89 — login totalmente sem linhas */
 .login-page .login-input,
 .login-page .login-password-row,
@@ -574,7 +573,6 @@ html[data-theme="black"] .login-form .login-password-toggle {
   box-shadow: none !important;
   text-decoration: none !important;
 }
-
 
 /* v24-90 — remove as linhas horizontais residuais dos campos */
 .login-page .login-field,
@@ -635,7 +633,6 @@ html[data-theme="black"] .login-shell .login-password-field {
   background: transparent !important;
 }
 
-
 /* v24-92 — ação de login somente com seta e sem deslocamento no hover */
 .login-shell .login-form .login-submit,
 .login-shell .login-form .login-submit:hover:not(:disabled),
@@ -693,7 +690,6 @@ html[data-theme="black"] .login-shell {
   border-radius: 0 !important;
   transition: background-color 9999s ease-out 0s !important;
 }
-
 
 /* v24-96 · remove definitivamente qualquer bloco visual dos campos do login */
 .login-shell .login-form input,
@@ -775,7 +771,6 @@ html[data-theme="black"] .login-shell {
   border: 0 !important;
 }
 
-
 /* v24-98 · correção específica do tema claro
    Há regras antigas com seletor mais específico:
    html[data-theme="light"] .login-form input:-webkit-autofill
@@ -794,7 +789,10 @@ html[data-theme="light"] .login-shell .login-form input:-moz-autofill:focus,
 html[data-theme="light"] .login-shell .login-form input:-webkit-autofill,
 html[data-theme="light"] .login-shell .login-form input:-webkit-autofill:hover,
 html[data-theme="light"] .login-shell .login-form input:-webkit-autofill:focus,
-html[data-theme="light"] .login-shell .login-form input:-webkit-autofill:active {
+html[data-theme="light"]
+  .login-shell
+  .login-form
+  input:-webkit-autofill:active {
   color: #243743 !important;
   -webkit-text-fill-color: #243743 !important;
   caret-color: #243743 !important;
@@ -817,7 +815,6 @@ html[data-theme="light"] .login-shell .login-password-field:focus-within {
   background-color: #eef3f6 !important;
   box-shadow: none !important;
 }
-
 
 /* v24-101 · credenciais salvas isoladas por tema */
 html[data-theme="dark"] .login-shell .login-form input,
@@ -862,7 +859,10 @@ html[data-theme="black"] .login-shell .login-form input:-moz-autofill:focus,
 html[data-theme="black"] .login-shell .login-form input:-webkit-autofill,
 html[data-theme="black"] .login-shell .login-form input:-webkit-autofill:hover,
 html[data-theme="black"] .login-shell .login-form input:-webkit-autofill:focus,
-html[data-theme="black"] .login-shell .login-form input:-webkit-autofill:active {
+html[data-theme="black"]
+  .login-shell
+  .login-form
+  input:-webkit-autofill:active {
   color: #f5f5f5 !important;
   -webkit-text-fill-color: #f5f5f5 !important;
   caret-color: #f5f5f5 !important;

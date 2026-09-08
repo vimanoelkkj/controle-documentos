@@ -64,7 +64,6 @@ export function lerBaseGoogleSheets(
     .filter((aluno) => aluno.ra && aluno.nome && aluno.curso);
 }
 
-
 export function ehReservaDeVaga(
   aluno: Pick<LinhaBaseGoogleSheets, "situacao">,
   normalizarComparacao: (valor: unknown) => string,

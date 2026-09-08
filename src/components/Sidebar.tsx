@@ -15,32 +15,33 @@ type IconName =
 
 type NavItem = readonly [label: string, to: string, icon: IconName];
 
-const grupos: ReadonlyArray<{ titulo: string; items: ReadonlyArray<NavItem> }> = [
-  {
-    titulo: "Fluxo de trabalho",
-    items: [
-      ["Dashboard", "/", "dashboard"],
-      ["Conferência", "/conferencia", "conferencia"],
-      ["Comunicação", "/comunicacao", "comunicacao"],
-    ],
-  },
-  {
-    titulo: "Análise",
-    items: [
-      ["Estatísticas", "/estatisticas", "estatisticas"],
-      ["Log", "/log", "log"],
-    ],
-  },
-  {
-    titulo: "Administração",
-    items: [
-      ["Períodos", "/periodos", "periodos"],
-      ["Cursos", "/cursos", "cursos"],
-      ["Configurações", "/configuracoes", "configuracoes"],
-      ["Sobre", "/sobre", "sobre"],
-    ],
-  },
-];
+const grupos: ReadonlyArray<{ titulo: string; items: ReadonlyArray<NavItem> }> =
+  [
+    {
+      titulo: "Fluxo de trabalho",
+      items: [
+        ["Dashboard", "/", "dashboard"],
+        ["Conferência", "/conferencia", "conferencia"],
+        ["Comunicação", "/comunicacao", "comunicacao"],
+      ],
+    },
+    {
+      titulo: "Análise",
+      items: [
+        ["Estatísticas", "/estatisticas", "estatisticas"],
+        ["Log", "/log", "log"],
+      ],
+    },
+    {
+      titulo: "Administração",
+      items: [
+        ["Períodos", "/periodos", "periodos"],
+        ["Cursos", "/cursos", "cursos"],
+        ["Configurações", "/configuracoes", "configuracoes"],
+        ["Sobre", "/sobre", "sobre"],
+      ],
+    },
+  ];
 
 function NavIcon({ name }: { name: IconName }) {
   const common = {
@@ -181,8 +182,9 @@ export default function Sidebar({
       </div>
 
       {grupos.map((grupo) => {
-        const items = grupo.items.filter(([, to]) =>
-          !modoApresentacao || !["/log", "/configuracoes"].includes(to),
+        const items = grupo.items.filter(
+          ([, to]) =>
+            !modoApresentacao || !["/log", "/configuracoes"].includes(to),
         );
         if (!items.length) return null;
         return (
@@ -193,10 +195,14 @@ export default function Sidebar({
                 key={to}
                 to={to}
                 end={to === "/"}
-                className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
+                className={({ isActive }) =>
+                  `nav-item${isActive ? " active" : ""}`
+                }
                 onClick={onClose}
               >
-                <span className="nav-icon"><NavIcon name={icon} /></span>
+                <span className="nav-icon">
+                  <NavIcon name={icon} />
+                </span>
                 {label}
               </NavLink>
             ))}
@@ -210,13 +216,25 @@ export default function Sidebar({
             <div className="avatar">{iniciais(usuario.nome)}</div>
             <div className="who">
               {usuario.nome}
-              <div className="role">{modoApresentacao ? "Apresentação" : usuario.perfil === "ADMIN" ? "Admin" : usuario.perfil}</div>
+              <div className="role">
+                {modoApresentacao
+                  ? "Apresentação"
+                  : usuario.perfil === "ADMIN"
+                    ? "Admin"
+                    : usuario.perfil}
+              </div>
             </div>
           </div>
         )}
 
-        <div className="sf-row" onClick={onToggleDark} role="button" tabIndex={0}>
-          <span className="sf-icon">☾</span><span>Modo escuro</span>
+        <div
+          className="sf-row"
+          onClick={onToggleDark}
+          role="button"
+          tabIndex={0}
+        >
+          <span className="sf-icon">☾</span>
+          <span>Modo escuro</span>
           <label className="switch" onClick={(e) => e.stopPropagation()}>
             <input type="checkbox" checked={dark} onChange={onToggleDark} />
             <span className="track" />
@@ -232,7 +250,8 @@ export default function Sidebar({
             navigate("/login", { replace: true });
           }}
         >
-          <span className="sf-icon">↪</span><span>Sair</span>
+          <span className="sf-icon">↪</span>
+          <span>Sair</span>
         </a>
       </div>
     </aside>

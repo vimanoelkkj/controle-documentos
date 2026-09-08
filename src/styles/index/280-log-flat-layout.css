@@ -116,7 +116,6 @@ html[data-theme="black"] .log-page .log-state {
   border-bottom: 0 !important;
 }
 
-
 /* V24.19 — registros totalmente planos: sem marcador vertical e sem pills de metadados. */
 .log-page .log-item {
   display: block;
@@ -214,4 +213,3 @@ html[data-theme="black"] .log-page .log-meta {
   font-weight: 500 !important;
   line-height: 1 !important;
 }
-

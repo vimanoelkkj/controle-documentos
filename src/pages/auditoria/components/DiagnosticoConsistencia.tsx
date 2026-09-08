@@ -44,8 +44,16 @@ export function DiagnosticoConsistencia({
         disabled={verificando || !periodoDisponivel}
       >
         <span>
-          <strong>{verificando ? "Comparando bases..." : diagnostico ? "Verificar novamente" : "Verificar agora"}</strong>
-          <small>Verifique novamente a integridade entre o sistema e a planilha.</small>
+          <strong>
+            {verificando
+              ? "Comparando bases..."
+              : diagnostico
+                ? "Verificar novamente"
+                : "Verificar agora"}
+          </strong>
+          <small>
+            Verifique novamente a integridade entre o sistema e a planilha.
+          </small>
         </span>
       </button>
 
@@ -54,7 +62,9 @@ export function DiagnosticoConsistencia({
       )}
 
       {diagnostico && !erroDiagnostico && (
-        <div className={`audit-consistency-result ${bloqueado ? "blocked" : ""}`}>
+        <div
+          className={`audit-consistency-result ${bloqueado ? "blocked" : ""}`}
+        >
           <strong>
             {bloqueado
               ? "Sincronização bloqueada"

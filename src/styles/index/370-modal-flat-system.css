@@ -5,7 +5,7 @@
    ========================================================= */
 
 .modal-overlay {
-  background: rgba(18, 28, 36, .72) !important;
+  background: rgba(18, 28, 36, 0.72) !important;
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
 }
@@ -19,8 +19,8 @@
 .student-history-modal,
 .unsaved-student-modal {
   background: var(--surface, #f7fafc) !important;
-  border: 1px solid rgba(110, 142, 165, .20) !important;
-  box-shadow: 0 24px 70px rgba(15, 31, 45, .22) !important;
+  border: 1px solid rgba(110, 142, 165, 0.2) !important;
+  box-shadow: 0 24px 70px rgba(15, 31, 45, 0.22) !important;
 }
 
 /* Cabeçalho/rodapé fazem parte da mesma superfície. */
@@ -147,7 +147,7 @@
 button:disabled[class*="botao"],
 .modal-acoes button:disabled,
 .google-sheets-modal-actions button:disabled {
-  opacity: .42 !important;
+  opacity: 0.42 !important;
   background: transparent !important;
 }
 
@@ -187,20 +187,22 @@ html[data-theme="black"] .changelog-modal {
 /* v24-95 · cobertura universal, inclusive modais de conflito */
 .modal-overlay > [role="dialog"] {
   background: var(--surface, #f7fafc) !important;
-  border: 1px solid rgba(110, 142, 165, .20) !important;
-  box-shadow: 0 24px 70px rgba(15, 31, 45, .22) !important;
+  border: 1px solid rgba(110, 142, 165, 0.2) !important;
+  box-shadow: 0 24px 70px rgba(15, 31, 45, 0.22) !important;
 }
 
-.modal-overlay [role="dialog"] :is(
-  [class*="card"],
-  [class*="box"],
-  [class*="panel"],
-  [class*="summary"],
-  [class*="comparison"],
-  [class*="choice"],
-  [class*="option"],
-  [class*="conflict"]
-) {
+.modal-overlay
+  [role="dialog"]
+  :is(
+    [class*="card"],
+    [class*="box"],
+    [class*="panel"],
+    [class*="summary"],
+    [class*="comparison"],
+    [class*="choice"],
+    [class*="option"],
+    [class*="conflict"]
+  ) {
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;

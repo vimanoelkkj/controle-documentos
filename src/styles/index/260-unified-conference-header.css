@@ -37,7 +37,9 @@
   font-weight: 500 !important;
 }
 
-.period-toolbar--conference-replica .conference-replica-period .period-dropdown {
+.period-toolbar--conference-replica
+  .conference-replica-period
+  .period-dropdown {
   width: 158px !important;
   min-width: 158px !important;
 }
@@ -76,8 +78,10 @@
 
 .period-toolbar--conference-replica .conference-replica-period-trigger:hover,
 .period-toolbar--conference-replica .conference-replica-period-trigger:focus,
-.period-toolbar--conference-replica .conference-replica-period-trigger:focus-visible,
-.period-toolbar--conference-replica .conference-replica-period-trigger[aria-expanded="true"],
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger:focus-visible,
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger[aria-expanded="true"],
 .period-toolbar--conference-replica .conference-replica-period-trigger:active {
   padding: 0 12px 2px !important;
   border: 0 !important;
@@ -182,7 +186,6 @@
 /* Títulos/subtítulos locais foram removidos do JSX.
    Restam aqui apenas ações específicas de cada página. */
 
-
 html[data-theme="dark"] .unified-reference-page-heading h1,
 html[data-theme="black"] .unified-reference-page-heading h1 {
   color: #eef4fa !important;
@@ -190,23 +193,45 @@ html[data-theme="black"] .unified-reference-page-heading h1 {
 
 html[data-theme="dark"] .unified-reference-page-heading p,
 html[data-theme="black"] .unified-reference-page-heading p,
-html[data-theme="dark"] .period-toolbar--conference-replica .conference-replica-period > span,
-html[data-theme="black"] .period-toolbar--conference-replica .conference-replica-period > span {
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  > span,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period
+  > span {
   color: #94a3b8 !important;
 }
 
-html[data-theme="dark"] .period-toolbar--conference-replica .conference-replica-period-trigger,
-html[data-theme="black"] .period-toolbar--conference-replica .conference-replica-period-trigger,
-html[data-theme="dark"] .period-toolbar--conference-replica .conference-replica-period-value,
-html[data-theme="black"] .period-toolbar--conference-replica .conference-replica-period-value,
-html[data-theme="dark"] .period-toolbar--conference-replica .conference-replica-sheets,
-html[data-theme="black"] .period-toolbar--conference-replica .conference-replica-sheets {
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger,
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-value,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-value,
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-sheets,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-sheets {
   color: #e5edf7 !important;
   background: transparent !important;
 }
 
-html[data-theme="dark"] .period-toolbar--conference-replica .conference-replica-period-trigger::after,
-html[data-theme="black"] .period-toolbar--conference-replica .conference-replica-period-trigger::after {
+html[data-theme="dark"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger::after,
+html[data-theme="black"]
+  .period-toolbar--conference-replica
+  .conference-replica-period-trigger::after {
   background: #4d9cff !important;
 }
 
@@ -257,29 +282,29 @@ html[data-theme="black"] .period-toolbar--conference-replica .conference-replica
   }
 }
 
-
 /* V18.1 — proteção contra cabeçalho duplicado de builds/HMR antigos.
    O código fonte não renderiza mais esses headings locais. */
-.app-content > :is(
-  .dashboard-page,
-  .communication-page,
-  .audit-page,
-  .statistics-page,
-  .log-page,
-  .period-page,
-  .courses-page,
-  .settings-page,
-  .about-page
-) > :is(
-  .dashboard-v16-title,
-  .communication-header,
-  .page-header:not(.page-local-actions),
-  .courses-header,
-  .settings-header
-) {
+.app-content
+  > :is(
+    .dashboard-page,
+    .communication-page,
+    .audit-page,
+    .statistics-page,
+    .log-page,
+    .period-page,
+    .courses-page,
+    .settings-page,
+    .about-page
+  )
+  > :is(
+    .dashboard-v16-title,
+    .communication-header,
+    .page-header:not(.page-local-actions),
+    .courses-header,
+    .settings-header
+  ) {
   display: none !important;
 }
-
 
 /* V18.2 — local titles/subtitles are rendered only by AppLayout. */
 .page-local-actions {
@@ -337,8 +362,6 @@ body {
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
-
-
 
 /* =========================================================
    V19.3 — estabilidade do header durante estados de loading
@@ -468,8 +491,12 @@ body,
   z-index: 120 !important;
 }
 
-html[data-theme="dark"] .app-main-column > .period-toolbar.period-toolbar--conference-replica,
-html[data-theme="black"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+html[data-theme="dark"]
+  .app-main-column
+  > .period-toolbar.period-toolbar--conference-replica,
+html[data-theme="black"]
+  .app-main-column
+  > .period-toolbar.period-toolbar--conference-replica {
   background: #111923 !important;
 }
 
@@ -521,7 +548,7 @@ html[data-theme="black"] .app-main-column > .period-toolbar.period-toolbar--conf
   opacity: 0 !important;
   visibility: visible !important;
   pointer-events: none !important;
-  transform: translate3d(0, -3px, 0) scaleY(.985) !important;
+  transform: translate3d(0, -3px, 0) scaleY(0.985) !important;
   transition:
     opacity 100ms ease-out,
     transform 120ms ease-out !important;
@@ -584,4 +611,3 @@ html[data-theme="black"] .app-main-column > .period-toolbar.period-toolbar--conf
     transition: none !important;
   }
 }
-

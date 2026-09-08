@@ -9,14 +9,21 @@ type Opcoes = {
   aoConcluir: (ra: string, unidade: Unidade) => Promise<void>;
 };
 
-export function useImportacaoCancelados({ unidadeInicial, aoConcluir }: Opcoes) {
+export function useImportacaoCancelados({
+  unidadeInicial,
+  aoConcluir,
+}: Opcoes) {
   const [modalImportarCancelados, setModalImportarCancelados] = useState(false);
-  const [modoCancelados, setModoCancelados] = useState<"colar" | "csv">("colar");
+  const [modoCancelados, setModoCancelados] = useState<"colar" | "csv">(
+    "colar",
+  );
   const [unidadeCancelados, setUnidadeCancelados] = useState<Unidade>("FACE");
   const [textoCancelados, setTextoCancelados] = useState("");
   const [arquivoCancelados, setArquivoCancelados] = useState("");
-  const [previaCancelados, setPreviaCancelados] = useState<PreviaCancelados | null>(null);
-  const [resultadoCancelados, setResultadoCancelados] = useState<ResultadoCancelados | null>(null);
+  const [previaCancelados, setPreviaCancelados] =
+    useState<PreviaCancelados | null>(null);
+  const [resultadoCancelados, setResultadoCancelados] =
+    useState<ResultadoCancelados | null>(null);
   const [processandoCancelados, setProcessandoCancelados] = useState(false);
   const [erroCancelados, setErroCancelados] = useState("");
 
@@ -35,7 +42,9 @@ export function useImportacaoCancelados({ unidadeInicial, aoConcluir }: Opcoes) 
     setModalImportarCancelados(true);
   }
 
-  async function selecionarArquivoCancelados(event: ChangeEvent<HTMLInputElement>) {
+  async function selecionarArquivoCancelados(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
 
@@ -63,7 +72,11 @@ export function useImportacaoCancelados({ unidadeInicial, aoConcluir }: Opcoes) 
     setErroCancelados("");
     setResultadoCancelados(null);
     if (!textoCancelados.trim()) {
-      setErroCancelados(modoCancelados === "csv" ? "Selecione um arquivo CSV." : "Cole os dados da planilha.");
+      setErroCancelados(
+        modoCancelados === "csv"
+          ? "Selecione um arquivo CSV."
+          : "Cole os dados da planilha.",
+      );
       return;
     }
 
@@ -71,15 +84,22 @@ export function useImportacaoCancelados({ unidadeInicial, aoConcluir }: Opcoes) 
       setProcessandoCancelados(true);
       const ras = extrairRasCancelados(textoCancelados);
       if (ras.length === 0) throw new Error("Nenhum RA foi encontrado.");
-      const dados = await api.post<PreviaCancelados>("/api/alunos/cancelados/previa", {
-        unidade: unidadeCancelados,
-        ras,
-      });
+      const dados = await api.post<PreviaCancelados>(
+        "/api/alunos/cancelados/previa",
+        {
+          unidade: unidadeCancelados,
+          ras,
+        },
+      );
       setPreviaCancelados(dados);
     } catch (erro) {
       console.error(erro);
       setPreviaCancelados(null);
-      setErroCancelados(erro instanceof Error ? erro.message : "Não foi possível analisar os cancelados.");
+      setErroCancelados(
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível analisar os cancelados.",
+      );
     } finally {
       setProcessandoCancelados(false);
     }
@@ -98,10 +118,13 @@ export function useImportacaoCancelados({ unidadeInicial, aoConcluir }: Opcoes) 
     try {
       setProcessandoCancelados(true);
       setErroCancelados("");
-      const dados = await api.post<ResultadoCancelados>("/api/alunos/cancelados", {
-        unidade: unidadeCancelados,
-        ras,
-      });
+      const dados = await api.post<ResultadoCancelados>(
+        "/api/alunos/cancelados",
+        {
+          unidade: unidadeCancelados,
+          ras,
+        },
+      );
       setResultadoCancelados(dados);
       await registrarLogAluno(
         "CANCELAMENTO EM LOTE",
@@ -112,21 +135,34 @@ export function useImportacaoCancelados({ unidadeInicial, aoConcluir }: Opcoes) 
       await aoConcluir(ras[0], unidadeCancelados);
     } catch (erro) {
       console.error(erro);
-      setErroCancelados(erro instanceof Error ? erro.message : "Erro ao cancelar alunos.");
+      setErroCancelados(
+        erro instanceof Error ? erro.message : "Erro ao cancelar alunos.",
+      );
     } finally {
       setProcessandoCancelados(false);
     }
   }
 
   return {
-    modalImportarCancelados, setModalImportarCancelados,
-    modoCancelados, setModoCancelados,
-    unidadeCancelados, setUnidadeCancelados,
-    textoCancelados, setTextoCancelados,
-    arquivoCancelados, previaCancelados, setPreviaCancelados,
-    resultadoCancelados, processandoCancelados,
-    erroCancelados, setErroCancelados,
-    abrirImportacaoCancelados, limparImportacaoCancelados,
-    selecionarArquivoCancelados, gerarPreviaCancelados, confirmarCancelados,
+    modalImportarCancelados,
+    setModalImportarCancelados,
+    modoCancelados,
+    setModoCancelados,
+    unidadeCancelados,
+    setUnidadeCancelados,
+    textoCancelados,
+    setTextoCancelados,
+    arquivoCancelados,
+    previaCancelados,
+    setPreviaCancelados,
+    resultadoCancelados,
+    processandoCancelados,
+    erroCancelados,
+    setErroCancelados,
+    abrirImportacaoCancelados,
+    limparImportacaoCancelados,
+    selecionarArquivoCancelados,
+    gerarPreviaCancelados,
+    confirmarCancelados,
   };
 }

@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { API_SESSION_EXPIRED_EVENT } from "../lib/api";
 import { AuthContext, type Usuario } from "./auth";
 
@@ -51,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       window.removeEventListener(
         API_SESSION_EXPIRED_EVENT,
-        encerrarSessaoExpirada
+        encerrarSessaoExpirada,
       );
     };
   }, []);
@@ -83,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       timerInatividade.current = setTimeout(
         expirarPorInatividade,
-        TEMPO_INATIVIDADE
+        TEMPO_INATIVIDADE,
       );
     }
 

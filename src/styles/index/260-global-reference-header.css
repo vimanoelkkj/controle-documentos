@@ -74,7 +74,8 @@
 
 .period-toolbar--conference-replica .conference-replica-period-trigger:hover,
 .period-toolbar--conference-replica .conference-replica-period-trigger:focus,
-.period-toolbar--conference-replica .conference-replica-period-trigger:focus-visible,
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger:focus-visible,
 .period-toolbar--conference-replica .conference-replica-period-trigger:active,
 .period-toolbar--conference-replica
   .conference-replica-period-trigger[aria-expanded="true"] {
@@ -244,10 +245,12 @@ html[data-theme="black"]
   .conference-replica-sheets,
 html[data-theme="dark"]
   .period-toolbar--conference-replica
-  .conference-replica-sheets strong,
+  .conference-replica-sheets
+  strong,
 html[data-theme="black"]
   .period-toolbar--conference-replica
-  .conference-replica-sheets strong {
+  .conference-replica-sheets
+  strong {
   color: #d8e3ee !important;
 }
 

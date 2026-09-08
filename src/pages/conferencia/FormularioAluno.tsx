@@ -93,7 +93,9 @@ export function FormularioAluno({
         <input
           type="email"
           value={dados.email}
-          onChange={(event) => setDados({ ...dados, email: event.target.value })}
+          onChange={(event) =>
+            setDados({ ...dados, email: event.target.value })
+          }
           placeholder="a0000000000@fumec.edu.br"
         />
       </label>

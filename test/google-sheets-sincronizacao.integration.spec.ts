@@ -45,8 +45,22 @@ const valueRanges = [
   {
     values: [
       baseHeader,
-      ["", "ADMINISTRACAO", "novo@outro.local", "novo@teste.local", "Aluno Existente Atualizado", "RA-SHEETS-001"],
-      ["", "ADMINISTRACAO", "", "novo.aluno@teste.local", "Aluno Novo", "RA-SHEETS-NOVO"],
+      [
+        "",
+        "ADMINISTRACAO",
+        "novo@outro.local",
+        "novo@teste.local",
+        "Aluno Existente Atualizado",
+        "RA-SHEETS-001",
+      ],
+      [
+        "",
+        "ADMINISTRACAO",
+        "",
+        "novo.aluno@teste.local",
+        "Aluno Novo",
+        "RA-SHEETS-NOVO",
+      ],
       ["", "ADMINISTRACAO", "", "", "Aluno Reativado", "RA-SHEETS-REATIVAR"],
     ],
   },
@@ -54,9 +68,39 @@ const valueRanges = [
   {
     values: [
       docsHeader,
-      ["RA-SHEETS-001", "Aluno Existente Atualizado", true, true, false, false, false, false, false],
-      ["RA-SHEETS-NOVO", "Aluno Novo", true, false, false, false, false, false, false],
-      ["RA-SHEETS-REATIVAR", "Aluno Reativado", false, false, false, false, false, false, false],
+      [
+        "RA-SHEETS-001",
+        "Aluno Existente Atualizado",
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+      ],
+      [
+        "RA-SHEETS-NOVO",
+        "Aluno Novo",
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+      ],
+      [
+        "RA-SHEETS-REATIVAR",
+        "Aluno Reativado",
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+      ],
     ],
   },
   { values: [docsHeader] },
@@ -195,7 +239,8 @@ beforeAll(async () => {
     headers: { Cookie: adminCookie },
   });
   expect(periodosResponse.status).toBe(200);
-  const periodos = await periodosResponse.json<Array<{ id: number; codigo: string }>>();
+  const periodos =
+    await periodosResponse.json<Array<{ id: number; codigo: string }>>();
   periodoId = periodos.find((periodo) => periodo.codigo === "2026-2")?.id ?? 0;
   expect(periodoId).toBeGreaterThan(0);
 
@@ -333,18 +378,22 @@ describe.sequential("previa e sincronizacao do Google Sheets", () => {
       identidade: 1,
       cpf: 1,
     });
-    expect(alunos.find((aluno) => aluno.ra === "RA-SHEETS-NOVO")).toMatchObject({
-      status: "ATIVO",
-      unidade: "FACE",
-      identidade: 1,
-    });
-    expect(alunos.find((aluno) => aluno.ra === "RA-SHEETS-CANCELAR")?.status).toBe(
-      "CANCELADO",
+    expect(alunos.find((aluno) => aluno.ra === "RA-SHEETS-NOVO")).toMatchObject(
+      {
+        status: "ATIVO",
+        unidade: "FACE",
+        identidade: 1,
+      },
     );
-    expect(alunos.find((aluno) => aluno.ra === "RA-SHEETS-REATIVAR")?.status).toBe(
-      "ATIVO",
+    expect(
+      alunos.find((aluno) => aluno.ra === "RA-SHEETS-CANCELAR")?.status,
+    ).toBe("CANCELADO");
+    expect(
+      alunos.find((aluno) => aluno.ra === "RA-SHEETS-REATIVAR")?.status,
+    ).toBe("ATIVO");
+    expect(alunos.some((aluno) => aluno.ra === "RA-SHEETS-REMOVER")).toBe(
+      false,
     );
-    expect(alunos.some((aluno) => aluno.ra === "RA-SHEETS-REMOVER")).toBe(false);
 
     // As inclusoes usadas para preparar o teste geram pendencias locais. A
     // sincronizacao de entrada nao as consome; limpamos apenas o fixture para

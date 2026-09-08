@@ -1,9 +1,20 @@
 /* Configurações — flat redesign, sem cards */
-.settings-page { gap: 34px; }
+.settings-page {
+  gap: 34px;
+}
 
-.settings-users-head { margin-bottom: 12px; align-items: end; }
-.settings-users-count { color: var(--muted); font-size: 14px; font-weight: 600; }
-.settings-users-grid { gap: 0; }
+.settings-users-head {
+  margin-bottom: 12px;
+  align-items: end;
+}
+.settings-users-count {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+.settings-users-grid {
+  gap: 0;
+}
 .settings-users-grid article,
 html[data-theme="light"] .settings-users-grid article {
   background: transparent !important;
@@ -16,10 +27,21 @@ html[data-theme="light"] .settings-users-grid article {
   transform: none !important;
   transition: none !important;
 }
-.settings-users-grid article:first-child { border-top: 1px solid color-mix(in srgb, var(--border) 62%, transparent) !important; }
-.settings-users-grid article:hover { background: transparent !important; transform: none !important; box-shadow: none !important; }
-.settings-users-grid article.disabled { opacity: .56; }
-.settings-user-actions { gap: 20px; align-items: center; }
+.settings-users-grid article:first-child {
+  border-top: 1px solid color-mix(in srgb, var(--border) 62%, transparent) !important;
+}
+.settings-users-grid article:hover {
+  background: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.settings-users-grid article.disabled {
+  opacity: 0.56;
+}
+.settings-user-actions {
+  gap: 20px;
+  align-items: center;
+}
 .settings-password-button,
 .settings-user-toggle,
 .settings-user-delete {
@@ -30,20 +52,30 @@ html[data-theme="light"] .settings-users-grid article {
   min-height: 32px;
   border-radius: 0 !important;
   transform: none !important;
-  transition: color .15s ease !important;
+  transition: color 0.15s ease !important;
 }
-.settings-password-button { color: var(--primary) !important; }
+.settings-password-button {
+  color: var(--primary) !important;
+}
 .settings-user-toggle.deactivate,
-.settings-user-delete { color: #ef4444 !important; }
-.settings-user-toggle.reactivate { color: var(--primary) !important; }
+.settings-user-delete {
+  color: #ef4444 !important;
+}
+.settings-user-toggle.reactivate {
+  color: var(--primary) !important;
+}
 .settings-password-button:hover,
 .settings-user-toggle:hover,
-.settings-user-delete:hover { background: transparent !important; transform: none !important; box-shadow: none !important; }
+.settings-user-delete:hover {
+  background: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
 
 .settings-user-form,
 html[data-theme="light"] .settings-user-form {
   display: grid !important;
-  grid-template-columns: 1.2fr .95fr 1.2fr .9fr .7fr;
+  grid-template-columns: 1.2fr 0.95fr 1.2fr 0.9fr 0.7fr;
   gap: 14px 18px !important;
   background: transparent !important;
   border: 0 !important;
@@ -51,7 +83,9 @@ html[data-theme="light"] .settings-user-form {
   box-shadow: none !important;
   padding: 0 !important;
 }
-.settings-user-form > div:first-child { grid-column: 1 / -1; }
+.settings-user-form > div:first-child {
+  grid-column: 1 / -1;
+}
 .settings-user-form > button {
   grid-column: 1 / 2;
   width: max-content !important;
@@ -64,8 +98,14 @@ html[data-theme="light"] .settings-user-form {
   border-radius: 0 !important;
   transform: none !important;
 }
-.settings-user-form > button:hover:not(:disabled) { background: transparent !important; transform: none !important; box-shadow: none !important; }
-.settings-user-form .login-error { grid-column: 1 / -1; }
+.settings-user-form > button:hover:not(:disabled) {
+  background: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.settings-user-form .login-error {
+  grid-column: 1 / -1;
+}
 
 .settings-backup,
 html[data-theme="light"] .settings-backup {
@@ -81,7 +121,9 @@ html[data-theme="light"] .settings-backup-head {
   border: 0 !important;
   padding: 0 0 16px !important;
 }
-.settings-backup-icon { display: none !important; }
+.settings-backup-icon {
+  display: none !important;
+}
 .settings-backup-head > strong,
 html[data-theme="light"] .settings-backup-head > strong {
   background: transparent !important;
@@ -97,7 +139,10 @@ html[data-theme="light"] .settings-backup-action {
   box-shadow: none !important;
   padding: 10px 0 !important;
 }
-.settings-backup-action-icon { background: transparent !important; border: 0 !important; }
+.settings-backup-action-icon {
+  background: transparent !important;
+  border: 0 !important;
+}
 .settings-backup-action button,
 .settings-backup-result a {
   background: transparent !important;
@@ -108,8 +153,15 @@ html[data-theme="light"] .settings-backup-action {
   border-radius: 0 !important;
   transform: none !important;
 }
-.settings-backup-action button:hover:not(:disabled), .settings-backup-result a:hover { background: transparent !important; transform: none !important; }
-.settings-backup-action button:disabled { color: var(--muted) !important; opacity: .62; }
+.settings-backup-action button:hover:not(:disabled),
+.settings-backup-result a:hover {
+  background: transparent !important;
+  transform: none !important;
+}
+.settings-backup-action button:disabled {
+  color: var(--muted) !important;
+  opacity: 0.62;
+}
 .settings-backup-message,
 .settings-backup-result,
 html[data-theme="light"] .settings-backup-message,
@@ -120,8 +172,12 @@ html[data-theme="light"] .settings-backup-result {
   box-shadow: none !important;
   padding: 8px 0 !important;
 }
-.settings-backup-message.warning { color: #c98300 !important; }
-.settings-backup-result { color: #16a34a; }
+.settings-backup-message.warning {
+  color: #c98300 !important;
+}
+.settings-backup-result {
+  color: #16a34a;
+}
 
 .settings-dev-tools,
 html[data-theme="light"] .settings-dev-tools {
@@ -145,7 +201,12 @@ html[data-theme="light"] .settings-dev-tools-head > strong {
   padding: 0 !important;
   box-shadow: none !important;
 }
-.settings-dev-danger { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+.settings-dev-danger {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
 .settings-dev-delete {
   background: transparent !important;
   border: 0 !important;
@@ -155,17 +216,37 @@ html[data-theme="light"] .settings-dev-tools-head > strong {
   border-radius: 0 !important;
   transform: none !important;
 }
-.settings-dev-delete:hover:not(:disabled) { background: transparent !important; transform: none !important; box-shadow: none !important; }
-.settings-dev-delete:disabled { background: transparent !important; color: color-mix(in srgb, #ef4444 45%, var(--muted)) !important; }
-.settings-dev-message { background: transparent !important; border: 0 !important; padding: 8px 0 !important; }
+.settings-dev-delete:hover:not(:disabled) {
+  background: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.settings-dev-delete:disabled {
+  background: transparent !important;
+  color: color-mix(in srgb, #ef4444 45%, var(--muted)) !important;
+}
+.settings-dev-message {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 8px 0 !important;
+}
 
 @media (max-width: 1100px) {
-  .settings-user-form { grid-template-columns: 1fr 1fr !important; }
-  .settings-user-form > button { grid-column: 1 / -1; }
+  .settings-user-form {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .settings-user-form > button {
+    grid-column: 1 / -1;
+  }
 }
 @media (max-width: 760px) {
-  .settings-users-grid article { align-items: flex-start !important; }
-  .settings-user-actions { flex-wrap: wrap; gap: 10px 16px; }
+  .settings-users-grid article {
+    align-items: flex-start !important;
+  }
+  .settings-user-actions {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
 }
 
 /* Configurações — lista de usuários compacta */
@@ -187,7 +268,7 @@ html[data-theme="light"] .settings-users-grid article {
   width: 28px !important;
   height: 28px !important;
   flex: 0 0 28px !important;
-  font-size: .78rem !important;
+  font-size: 0.78rem !important;
 }
 
 .settings-user-main > div:last-child {
@@ -198,13 +279,13 @@ html[data-theme="light"] .settings-users-grid article {
 }
 
 .settings-user-main strong {
-  font-size: .8rem !important;
+  font-size: 0.8rem !important;
   line-height: 1.2 !important;
   white-space: nowrap;
 }
 
 .settings-user-main span {
-  font-size: .72rem !important;
+  font-size: 0.72rem !important;
   line-height: 1.2 !important;
   white-space: nowrap;
   overflow: hidden;
@@ -220,7 +301,7 @@ html[data-theme="light"] .settings-users-grid article {
   min-height: 32px !important;
   height: 32px !important;
   padding-block: 0 !important;
-  font-size: .7rem !important;
+  font-size: 0.7rem !important;
 }
 
 .settings-password-button,
@@ -229,7 +310,7 @@ html[data-theme="light"] .settings-users-grid article {
   min-height: 28px !important;
   height: 28px !important;
   padding: 0 !important;
-  font-size: .72rem !important;
+  font-size: 0.72rem !important;
   line-height: 28px !important;
 }
 
@@ -268,7 +349,10 @@ html[data-theme="light"] .settings-users-grid article {
 
 .settings-user-form,
 html[data-theme="light"] .settings-user-form {
-  grid-template-columns: minmax(150px, .9fr) minmax(150px, .9fr) minmax(210px, 1.15fr) minmax(150px, .85fr) minmax(135px, .65fr) !important;
+  grid-template-columns: minmax(150px, 0.9fr) minmax(150px, 0.9fr) minmax(
+      210px,
+      1.15fr
+    ) minmax(150px, 0.85fr) minmax(135px, 0.65fr) !important;
   gap: 8px 14px !important;
   max-width: 1380px;
 }
@@ -300,10 +384,15 @@ html[data-theme="light"] .settings-user-form {
 }
 
 @media (max-width: 1100px) {
-  .settings-user-form { grid-template-columns: 1fr 1fr !important; max-width: none; }
+  .settings-user-form {
+    grid-template-columns: 1fr 1fr !important;
+    max-width: none;
+  }
 }
 @media (max-width: 760px) {
-  .settings-user-form { grid-template-columns: 1fr !important; }
+  .settings-user-form {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Configurações — ações sem ícones + seletor de perfil no padrão Conferência */
@@ -348,7 +437,7 @@ html[data-theme="light"] .settings-user-form {
 .settings-role-select .app-select-chevron {
   right: 0 !important;
   color: var(--muted) !important;
-  font-size: .65rem !important;
+  font-size: 0.65rem !important;
 }
 
 /* O menu é portalizado no body, então a classe vem em menuClassName. */
@@ -357,7 +446,7 @@ html[data-theme="light"] .settings-user-form {
   border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border)) !important;
   border-radius: 10px !important;
   background: var(--surface-soft, #eef4f8) !important;
-  box-shadow: 0 14px 34px rgba(31, 55, 78, .13) !important;
+  box-shadow: 0 14px 34px rgba(31, 55, 78, 0.13) !important;
   overflow: hidden !important;
 }
 
@@ -371,7 +460,7 @@ html[data-theme="light"] .settings-user-form {
   border-radius: 7px !important;
   background: transparent !important;
   color: var(--text) !important;
-  font-size: .78rem !important;
+  font-size: 0.78rem !important;
   font-weight: 500 !important;
   text-align: left !important;
 }
@@ -408,7 +497,7 @@ html[data-theme="light"] .settings-user-form {
 html[data-theme="black"] .settings-role-menu {
   background: #151b23 !important;
   border-color: #2b3948 !important;
-  box-shadow: 0 18px 42px rgba(0,0,0,.35) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35) !important;
 }
 
 /* Erro de criação de usuário: inline, sem o banner vermelho gigante. */
@@ -425,7 +514,7 @@ html[data-theme="black"] .settings-role-menu {
   border-radius: 0 !important;
   box-shadow: none !important;
   color: #ef4444 !important;
-  font-size: .78rem;
+  font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.35;
 }
@@ -569,7 +658,7 @@ html[data-theme="light"] .settings-user-form .settings-email-simple input {
   border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
   border-radius: 10px;
   background: var(--surface-soft, #eef4f8);
-  box-shadow: 0 14px 34px rgba(31, 55, 78, .13);
+  box-shadow: 0 14px 34px rgba(31, 55, 78, 0.13);
 }
 
 .settings-email-suggestions button {
@@ -582,7 +671,7 @@ html[data-theme="light"] .settings-user-form .settings-email-simple input {
   background: transparent !important;
   color: var(--text) !important;
   font: inherit;
-  font-size: .78rem;
+  font-size: 0.78rem;
   font-weight: 600;
   text-align: left;
   box-shadow: none !important;
@@ -600,7 +689,7 @@ html[data-theme="light"] .settings-user-form .settings-email-simple input {
 html[data-theme="black"] .settings-email-suggestions {
   background: #151b23;
   border-color: #2b3948;
-  box-shadow: 0 18px 42px rgba(0,0,0,.35);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
 }
 
 /* v24-79 — refinamentos finais de Configurações */
@@ -611,7 +700,7 @@ html[data-theme="black"] .settings-email-suggestions {
   color: #65b9ec !important;
   font-size: 11px !important;
   font-weight: 900 !important;
-  letter-spacing: .13em !important;
+  letter-spacing: 0.13em !important;
   line-height: 1.2 !important;
   text-transform: uppercase !important;
 }
@@ -647,11 +736,15 @@ html[data-theme="black"] .settings-backup-eyebrow > span {
   box-shadow: none !important;
   font-size: 10px !important;
   font-weight: 800 !important;
-  letter-spacing: .06em !important;
+  letter-spacing: 0.06em !important;
   line-height: 1 !important;
 }
-.settings-backup-title-row > strong.pending { color: #c98300 !important; }
-.settings-backup-title-row > strong.ready { color: #16a34a !important; }
+.settings-backup-title-row > strong.pending {
+  color: #c98300 !important;
+}
+.settings-backup-title-row > strong.ready {
+  color: #16a34a !important;
+}
 .settings-backup-title-row > strong > i {
   width: 5px !important;
   height: 5px !important;
@@ -755,14 +848,13 @@ html[data-theme="light"] .settings-backup-message.warning {
   }
 }
 
-
 /* v24-80 — corrige hierarquia dos cabeçalhos e restaura contador à esquerda */
 .settings-section-eyebrow {
   color: #65b9ec !important;
   font-family: Inter, "Segoe UI", system-ui, sans-serif !important;
   font-size: 11px !important;
   font-weight: 900 !important;
-  letter-spacing: .13em !important;
+  letter-spacing: 0.13em !important;
   line-height: 1.2 !important;
   text-transform: uppercase !important;
 }
@@ -816,7 +908,7 @@ html[data-theme="black"] .settings-users-count {
   font-family: inherit !important;
   font-size: 11px !important;
   font-weight: 900 !important;
-  letter-spacing: .13em !important;
+  letter-spacing: 0.13em !important;
   line-height: normal !important;
   text-transform: uppercase !important;
 }
@@ -854,7 +946,10 @@ html[data-theme="light"] .settings-users-grid article {
 
 /* v24-82 — NOVO USUÁRIO usa exatamente o mesmo tratamento de NOVO PERÍODO */
 .settings-user-form > div:first-child > .settings-section-eyebrow,
-html[data-theme="light"] .settings-user-form > div:first-child > .settings-section-eyebrow {
+html[data-theme="light"]
+  .settings-user-form
+  > div:first-child
+  > .settings-section-eyebrow {
   color: #6e8ea5 !important;
   font-family: inherit !important;
   font-size: 11px !important;
@@ -864,10 +959,12 @@ html[data-theme="light"] .settings-user-form > div:first-child > .settings-secti
   text-transform: none !important;
 }
 
-html[data-theme="black"] .settings-user-form > div:first-child > .settings-section-eyebrow {
+html[data-theme="black"]
+  .settings-user-form
+  > div:first-child
+  > .settings-section-eyebrow {
   color: #aeb6bb !important;
 }
-
 
 /* v24-96 · criação de usuário sem caixas de autofill/senha salva */
 .settings-user-form input,
@@ -914,7 +1011,6 @@ html[data-theme="black"] .settings-user-form > div:first-child > .settings-secti
   box-shadow: 0 0 0 1000px var(--app-bg, #eef3f6) inset !important;
   background-image: none !important;
 }
-
 
 /* v24-101 · Criar acesso: autofill sem blocos e respeitando o tema */
 .settings-user-form input,

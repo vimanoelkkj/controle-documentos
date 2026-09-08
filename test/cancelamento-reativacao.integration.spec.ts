@@ -130,19 +130,9 @@ beforeAll(async () => {
   );
   expect(novoPeriodo.status).toBe(201);
 
-  await criarAluno(
-    "2026-2",
-    raCompartilhado,
-    "Aluno para Cancelar",
-    "FACE",
-  );
+  await criarAluno("2026-2", raCompartilhado, "Aluno para Cancelar", "FACE");
   await criarAluno("2026-2", "RA-OUTRA-UNIDADE", "Aluno FCH", "FCH");
-  await criarAluno(
-    "2027-1",
-    raCompartilhado,
-    "Aluno do Outro Periodo",
-    "FACE",
-  );
+  await criarAluno("2027-1", raCompartilhado, "Aluno do Outro Periodo", "FACE");
 
   const documentos = await jsonRequest(
     `/api/alunos/${encodeURIComponent(raCompartilhado)}/documentos?periodo=2026-2`,
@@ -168,7 +158,12 @@ describe.sequential("cancelamento e reativacao de alunos", () => {
       "POST",
       {
         unidade: "FACE",
-        ras: [raCompartilhado, raCompartilhado, "RA-OUTRA-UNIDADE", "RA-INEXISTENTE"],
+        ras: [
+          raCompartilhado,
+          raCompartilhado,
+          "RA-OUTRA-UNIDADE",
+          "RA-INEXISTENTE",
+        ],
       },
       editorCookie,
     );

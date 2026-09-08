@@ -13,7 +13,10 @@
   font-size: 10px;
   font-weight: 800;
   cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
 }
 
 .student-history-button:hover {
@@ -31,7 +34,7 @@
   border: 1px solid #2e4d5f;
   border-radius: 15px;
   background: #101e27;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
 }
 
 .student-history-header {
@@ -72,7 +75,7 @@
   color: #61bdf0;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
 }
 
 .student-history-heading h2 {
@@ -147,7 +150,7 @@
 }
 
 .student-history-toolbar button:disabled {
-  opacity: .55;
+  opacity: 0.55;
   cursor: default;
 }
 
@@ -232,7 +235,7 @@
   background: #172b35;
   font-size: 8px;
   font-weight: 900;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .student-history-action.document {
@@ -311,11 +314,13 @@
   border: 2px solid #294958;
   border-top-color: #59baf0;
   border-radius: 50%;
-  animation: student-history-spin .75s linear infinite;
+  animation: student-history-spin 0.75s linear infinite;
 }
 
 @keyframes student-history-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .student-history-limit {
@@ -355,7 +360,7 @@ html[data-theme="light"] .student-history-button:hover {
 html[data-theme="light"] .student-history-modal {
   border-color: #c9dce6;
   background: #fff;
-  box-shadow: 0 30px 90px rgba(38, 66, 82, .22);
+  box-shadow: 0 30px 90px rgba(38, 66, 82, 0.22);
 }
 
 html[data-theme="light"] .student-history-header,
@@ -443,7 +448,6 @@ html[data-theme="light"] .student-history-limit {
     gap: 6px;
   }
 }
-
 
 /* =========================================================
    HISTÓRICO DO ALUNO — LEGIBILIDADE + USUÁRIO RESPONSÁVEL

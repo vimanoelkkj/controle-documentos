@@ -1,7 +1,8 @@
 /* Conferência · coesão visual do mockup aprovado */
 
 :root {
-  --conference-font: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --conference-font:
+    Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .conference-page,
@@ -35,15 +36,15 @@
   min-width: 184px;
   padding: 8px 12px;
   gap: 9px;
-  border: 1px solid rgba(145, 160, 174, .18);
-  background: rgba(255, 255, 255, .025);
+  border: 1px solid rgba(145, 160, 174, 0.18);
+  background: rgba(255, 255, 255, 0.025);
   box-shadow: none;
 }
 
 .period-toolbar--conference .google-sheets-status:hover {
   transform: none;
-  border-color: rgba(103, 150, 255, .34);
-  background: rgba(103, 150, 255, .055);
+  border-color: rgba(103, 150, 255, 0.34);
+  background: rgba(103, 150, 255, 0.055);
 }
 
 .period-toolbar--conference .google-sheets-status-icon {
@@ -58,12 +59,12 @@
 .period-toolbar--conference .google-sheets-status-copy strong {
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
 }
 
 .period-toolbar--conference .google-sheets-status-copy small {
   font-size: 11px;
-  opacity: .72;
+  opacity: 0.72;
 }
 
 .period-toolbar--conference .google-sheets-status-dot {
@@ -77,17 +78,17 @@
   align-content: center;
   gap: 3px;
   padding: 5px 6px 5px 11px;
-  border: 1px solid rgba(145, 160, 174, .18);
-  background: rgba(255, 255, 255, .025);
+  border: 1px solid rgba(145, 160, 174, 0.18);
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .period-toolbar--conference .period-toolbar-select > span {
   padding-left: 2px;
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: .09em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .period-toolbar--conference .period-dropdown-trigger {
@@ -106,7 +107,7 @@
 
 .period-toolbar--conference .period-dropdown-trigger:hover,
 .period-toolbar--conference .period-dropdown-trigger:focus-visible {
-  background: rgba(103, 150, 255, .08);
+  background: rgba(103, 150, 255, 0.08);
 }
 
 /* Cabeçalho da página: menor, mais próximo do conteúdo. */
@@ -121,8 +122,8 @@
 .conference-header--cohesive > span {
   margin-bottom: 6px;
   font-size: 10px;
-  letter-spacing: .13em;
-  opacity: .55;
+  letter-spacing: 0.13em;
+  opacity: 0.55;
 }
 
 .conference-header--cohesive .page-title-row {
@@ -137,13 +138,13 @@
 
 .conference-header--cohesive h1 {
   font-size: clamp(21px, 2vw, 28px);
-  letter-spacing: -.035em;
+  letter-spacing: -0.035em;
 }
 
 .conference-header--cohesive p {
   margin-top: 5px;
   font-size: 12px;
-  opacity: .62;
+  opacity: 0.62;
 }
 
 /* Lista de alunos: título + busca + ações no mesmo bloco. */
@@ -166,17 +167,19 @@
   gap: 3px;
 }
 
-.student-panel-header--cohesive .student-panel-heading span:not(.student-panel-count) {
+.student-panel-header--cohesive
+  .student-panel-heading
+  span:not(.student-panel-count) {
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .12em;
-  opacity: .48;
+  letter-spacing: 0.12em;
+  opacity: 0.48;
 }
 
 .student-panel-header--cohesive .student-panel-heading h2 {
   margin: 0;
   font-size: 16px;
-  letter-spacing: -.025em;
+  letter-spacing: -0.025em;
 }
 
 .student-panel-count {
@@ -186,7 +189,7 @@
   place-items: center;
   padding: 0 8px;
   border-radius: 999px;
-  background: rgba(103, 150, 255, .11);
+  background: rgba(103, 150, 255, 0.11);
   color: #7aa5ff;
   font-size: 11px;
   font-weight: 800;
@@ -206,17 +209,20 @@
   align-items: center;
   gap: 8px;
   padding: 0 10px;
-  border: 1px solid rgba(145, 160, 174, .18);
+  border: 1px solid rgba(145, 160, 174, 0.18);
   border-radius: 10px;
-  background: rgba(255, 255, 255, .025);
-  color: rgba(145, 160, 174, .75);
-  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(145, 160, 174, 0.75);
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .student-search-shell:focus-within {
-  border-color: rgba(103, 150, 255, .55);
-  background: rgba(103, 150, 255, .045);
-  box-shadow: 0 0 0 3px rgba(103, 150, 255, .09);
+  border-color: rgba(103, 150, 255, 0.55);
+  background: rgba(103, 150, 255, 0.045);
+  box-shadow: 0 0 0 3px rgba(103, 150, 255, 0.09);
 }
 
 .student-search-shell .student-search {
@@ -237,11 +243,14 @@
 .student-toolbar-more,
 .student-toolbar-add {
   height: 36px;
-  border: 1px solid rgba(145, 160, 174, .18);
+  border: 1px solid rgba(145, 160, 174, 0.18);
   border-radius: 10px;
-  background: rgba(255, 255, 255, .025);
+  background: rgba(255, 255, 255, 0.025);
   cursor: pointer;
-  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
 }
 
 .student-toolbar-icon,
@@ -264,7 +273,7 @@
   justify-content: center;
   gap: 6px;
   padding: 0 11px;
-  border-color: rgba(76, 126, 255, .42);
+  border-color: rgba(76, 126, 255, 0.42);
   background: #4c7eff;
   color: #fff;
   font-size: 11px;
@@ -274,8 +283,8 @@
 
 .student-toolbar-icon:hover,
 .student-toolbar-more:hover {
-  border-color: rgba(103, 150, 255, .36);
-  background: rgba(103, 150, 255, .075);
+  border-color: rgba(103, 150, 255, 0.36);
+  background: rgba(103, 150, 255, 0.075);
 }
 
 .student-toolbar-add:hover {
@@ -312,19 +321,19 @@
 .documents-section-heading span {
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .12em;
-  opacity: .46;
+  letter-spacing: 0.12em;
+  opacity: 0.46;
 }
 
 .documents-section-heading h3 {
   margin: 0;
   font-size: 15px;
-  letter-spacing: -.02em;
+  letter-spacing: -0.02em;
 }
 
 .documents-section-heading small {
   font-size: 11px;
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .documents-area--cohesive .documents-grid {
@@ -341,22 +350,25 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid rgba(145, 160, 174, .12);
+  border: 1px solid rgba(145, 160, 174, 0.12);
   border-radius: 12px;
-  background: rgba(255, 255, 255, .018);
+  background: rgba(255, 255, 255, 0.018);
   cursor: pointer;
-  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease;
 }
 
 .documents-area--cohesive .document-card:hover {
-  border-color: rgba(103, 150, 255, .30);
-  background: rgba(103, 150, 255, .045);
+  border-color: rgba(103, 150, 255, 0.3);
+  background: rgba(103, 150, 255, 0.045);
   transform: translateY(-1px);
 }
 
 .documents-area--cohesive .document-card.delivered {
-  border-color: rgba(63, 185, 126, .20);
-  background: rgba(63, 185, 126, .075);
+  border-color: rgba(63, 185, 126, 0.2);
+  background: rgba(63, 185, 126, 0.075);
 }
 
 .documents-area--cohesive .document-card > input {
@@ -370,7 +382,7 @@
 }
 
 .documents-area--cohesive .document-card:has(input:focus-visible) {
-  outline: 3px solid rgba(103, 150, 255, .18);
+  outline: 3px solid rgba(103, 150, 255, 0.18);
   outline-offset: 1px;
 }
 
@@ -381,12 +393,12 @@
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: rgba(103, 150, 255, .08);
+  background: rgba(103, 150, 255, 0.08);
   color: #769fff;
 }
 
 .document-card.delivered .document-card-icon {
-  background: rgba(63, 185, 126, .12);
+  background: rgba(63, 185, 126, 0.12);
   color: #46bd84;
 }
 
@@ -415,12 +427,12 @@
 .documents-area--cohesive .document-card strong {
   font-size: 12px;
   font-weight: 720;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
 }
 
 .documents-area--cohesive .document-card > div > span {
   font-size: 10px;
-  opacity: .52;
+  opacity: 0.52;
 }
 
 /* Resumo agora fecha a seção em vez de competir com os documentos. */
@@ -449,13 +461,13 @@
 .summary-card-heading > div > span {
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .12em;
-  opacity: .52;
+  letter-spacing: 0.12em;
+  opacity: 0.52;
 }
 
 .summary-card-heading strong {
   font-size: 13px;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
 }
 
 .summary-card-state {
@@ -467,32 +479,32 @@
 }
 
 .summary-card--critico.summary-card--cohesive {
-  border-color: rgba(231, 93, 101, .18) !important;
-  background: rgba(231, 93, 101, .055) !important;
+  border-color: rgba(231, 93, 101, 0.18) !important;
+  background: rgba(231, 93, 101, 0.055) !important;
 }
 
 .summary-card--critico .summary-card-state {
-  background: rgba(231, 93, 101, .11);
+  background: rgba(231, 93, 101, 0.11);
   color: #ee7d84;
 }
 
 .summary-card--parcial.summary-card--cohesive {
-  border-color: rgba(220, 164, 73, .18) !important;
-  background: rgba(220, 164, 73, .055) !important;
+  border-color: rgba(220, 164, 73, 0.18) !important;
+  background: rgba(220, 164, 73, 0.055) !important;
 }
 
 .summary-card--parcial .summary-card-state {
-  background: rgba(220, 164, 73, .12);
+  background: rgba(220, 164, 73, 0.12);
   color: #dfad59;
 }
 
 .summary-card--completo.summary-card--cohesive {
-  border-color: rgba(63, 185, 126, .18) !important;
-  background: rgba(63, 185, 126, .055) !important;
+  border-color: rgba(63, 185, 126, 0.18) !important;
+  background: rgba(63, 185, 126, 0.055) !important;
 }
 
 .summary-card--completo .summary-card-state {
-  background: rgba(63, 185, 126, .12);
+  background: rgba(63, 185, 126, 0.12);
   color: #49c58c;
 }
 
@@ -504,12 +516,12 @@
 
 .summary-chips span {
   padding: 4px 7px;
-  border: 1px solid rgba(145, 160, 174, .12);
+  border: 1px solid rgba(145, 160, 174, 0.12);
   border-radius: 7px;
-  background: rgba(255, 255, 255, .025);
+  background: rgba(255, 255, 255, 0.025);
   font-size: 9px;
   font-weight: 650;
-  opacity: .72;
+  opacity: 0.72;
 }
 
 /* Tema claro */
@@ -519,21 +531,21 @@ html[data-theme="light"] .student-toolbar-icon,
 html[data-theme="light"] .student-toolbar-more,
 html[data-theme="light"] .period-toolbar--conference .google-sheets-status,
 html[data-theme="light"] .period-toolbar--conference .period-toolbar-select {
-  background: rgba(255, 255, 255, .72);
-  border-color: rgba(44, 62, 80, .10);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(44, 62, 80, 0.1);
 }
 
 html[data-theme="light"] .documents-area--cohesive .document-card {
-  background: rgba(255, 255, 255, .62);
-  border-color: rgba(44, 62, 80, .09);
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(44, 62, 80, 0.09);
 }
 
 html[data-theme="light"] .documents-area--cohesive .document-card:hover {
-  background: rgba(76, 126, 255, .055);
+  background: rgba(76, 126, 255, 0.055);
 }
 
 html[data-theme="light"] .documents-area--cohesive .document-card.delivered {
-  background: rgba(53, 170, 112, .075);
+  background: rgba(53, 170, 112, 0.075);
 }
 
 html[data-theme="light"] .document-card-icon b {
@@ -541,8 +553,8 @@ html[data-theme="light"] .document-card-icon b {
 }
 
 html[data-theme="light"] .summary-chips span {
-  background: rgba(255, 255, 255, .56);
-  border-color: rgba(44, 62, 80, .09);
+  background: rgba(255, 255, 255, 0.56);
+  border-color: rgba(44, 62, 80, 0.09);
 }
 
 /* Black mantém geometria, só aprofunda superfícies. */
@@ -552,8 +564,8 @@ html[data-theme="black"] .student-search-shell,
 html[data-theme="black"] .student-toolbar-icon,
 html[data-theme="black"] .student-toolbar-more,
 html[data-theme="black"] .documents-area--cohesive .document-card {
-  background: rgba(255, 255, 255, .022);
-  border-color: rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, 0.022);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 1180px) {

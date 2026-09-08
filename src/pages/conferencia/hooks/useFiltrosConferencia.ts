@@ -69,9 +69,7 @@ export function useFiltrosConferencia({
 
         const correspondeExatamente =
           pendenciasDoAluno.length === pendenciasSelecionadas.size &&
-          pendenciasDoAluno.every((nome) =>
-            pendenciasSelecionadas.has(nome),
-          );
+          pendenciasDoAluno.every((nome) => pendenciasSelecionadas.has(nome));
 
         if (!correspondeExatamente) return false;
       }
@@ -94,8 +92,7 @@ export function useFiltrosConferencia({
             .join(" "),
         );
 
-        const correspondeBusca =
-          !termo || textoBuscaAluno.includes(termo);
+        const correspondeBusca = !termo || textoBuscaAluno.includes(termo);
 
         return (
           pertenceUnidade &&
@@ -113,9 +110,7 @@ export function useFiltrosConferencia({
     const temAlunoSelecionadoNoFiltro = alunosSalvos.some(
       (aluno) =>
         aluno.ra === raSelecionado &&
-        (unidadeSelecionada
-          ? aluno.unidade === unidadeSelecionada
-          : true) &&
+        (unidadeSelecionada ? aluno.unidade === unidadeSelecionada : true) &&
         correspondeFiltroStatus(aluno) &&
         alunoCorrespondeFiltroDashboard(aluno),
     );
@@ -142,7 +137,7 @@ export function useFiltrosConferencia({
     };
   }, [
     alunosSalvos,
-      raSelecionado,
+    raSelecionado,
     busca,
     filtroStatus,
     unidadeSelecionada,

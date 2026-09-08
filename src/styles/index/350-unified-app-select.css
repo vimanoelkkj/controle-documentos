@@ -45,7 +45,7 @@ html[data-theme="light"] .app-select-menu,
 html[data-theme="black"] .app-select-menu {
   background: #eef3f8 !important;
   border: 0 !important;
-  box-shadow: 0 14px 34px rgba(25, 48, 73, 0.10) !important;
+  box-shadow: 0 14px 34px rgba(25, 48, 73, 0.1) !important;
   border-radius: 12px !important;
   padding: 8px !important;
   overflow: hidden;

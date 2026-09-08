@@ -1,35 +1,48 @@
 :root {
-  --bg: #F7F6F3;
-  --surface: #FFFFFF;
-  --sidebar: #FAFAF8;
-  --border: #E4E2DC;
-  --grid: #EAE8E2;
-  --ink: #2B2620;
-  --ink-soft: #6B6459;
-  --muted: #96897A;
-  --blue: #4A7FB5;
-  --amber: #D99A2B;
-  --teal: #0B8F86;
-  --terracotta: #C97B4A;
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --sidebar: #fafaf8;
+  --border: #e4e2dc;
+  --grid: #eae8e2;
+  --ink: #2b2620;
+  --ink-soft: #6b6459;
+  --muted: #96897a;
+  --blue: #4a7fb5;
+  --amber: #d99a2b;
+  --teal: #0b8f86;
+  --terracotta: #c97b4a;
   --radius-sm: 8px;
   font-size: 16px;
 }
 
 body.dark {
-  --bg: #1E1B15;
-  --surface: #26221A;
-  --sidebar: #211D17;
-  --border: #3B352A;
-  --grid: #2C271F;
-  --ink: #F1EDE5;
-  --ink-soft: #C7BEAE;
-  --muted: #8C8171;
+  --bg: #1e1b15;
+  --surface: #26221a;
+  --sidebar: #211d17;
+  --border: #3b352a;
+  --grid: #2c271f;
+  --ink: #f1ede5;
+  --ink-soft: #c7beae;
+  --muted: #8c8171;
 }
 
-html, body, #root { min-height: 100%; }
-#root { min-height: 100vh; }
-body { margin: 0; }
-button, input, select, textarea { font: inherit; }
+html,
+body,
+#root {
+  min-height: 100%;
+}
+#root {
+  min-height: 100vh;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
 
 /* Claude V3 sidebar icons: exact inline SVG treatment from the mockups. */
 .sidebar .nav-icon {

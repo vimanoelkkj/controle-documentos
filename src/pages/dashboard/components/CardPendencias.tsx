@@ -75,7 +75,9 @@ export function CardPendencias({
                 <span>
                   {item.nome}
                   {prioritario && (
-                    <em className="dashboard-critical-tag">documento crítico</em>
+                    <em className="dashboard-critical-tag">
+                      documento crítico
+                    </em>
                   )}
                 </span>
                 <strong>{item.quantidade.toLocaleString("pt-BR")}</strong>

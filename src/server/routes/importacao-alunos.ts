@@ -236,10 +236,7 @@ export async function handleImportacaoAlunosRoute({
   periodoId,
   registrarPendencia,
 }: ImportacaoAlunosRouteContext): Promise<Response | null> {
-  if (
-    url.pathname !== "/api/alunos/importar" ||
-    request.method !== "POST"
-  ) {
+  if (url.pathname !== "/api/alunos/importar" || request.method !== "POST") {
     return null;
   }
 

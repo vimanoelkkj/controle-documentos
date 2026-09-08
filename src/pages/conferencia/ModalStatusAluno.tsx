@@ -24,14 +24,18 @@ export function ModalStatusAluno({
   return (
     <div className={`modal-overlay ${saindo ? "modal-overlay-exit" : ""}`}>
       <div className="modal-excluir-aluno">
-        <div className={cancelando ? "modal-excluir-icon" : "modal-reativar-icon"}>
+        <div
+          className={cancelando ? "modal-excluir-icon" : "modal-reativar-icon"}
+        >
           {cancelando ? "!" : "↻"}
         </div>
 
         <div className="modal-excluir-conteudo">
           <span
             className={
-              cancelando ? "modal-eyebrow modal-eyebrow-danger" : "modal-eyebrow"
+              cancelando
+                ? "modal-eyebrow modal-eyebrow-danger"
+                : "modal-eyebrow"
             }
           >
             {cancelando ? "CANCELAMENTO" : "REATIVAÇÃO"}
@@ -66,7 +70,9 @@ export function ModalStatusAluno({
           </button>
           <button
             type="button"
-            className={cancelando ? "botao-confirmar-exclusao" : "botao-cadastrar"}
+            className={
+              cancelando ? "botao-confirmar-exclusao" : "botao-cadastrar"
+            }
             onClick={aoConfirmar}
             disabled={processando}
           >

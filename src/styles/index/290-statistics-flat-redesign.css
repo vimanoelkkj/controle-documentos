@@ -51,8 +51,14 @@
 }
 
 .statistics-page .statistics-unit-filter .app-select-trigger,
-html[data-theme="light"] .statistics-page .statistics-unit-filter .app-select-trigger,
-html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-trigger {
+html[data-theme="light"]
+  .statistics-page
+  .statistics-unit-filter
+  .app-select-trigger,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-unit-filter
+  .app-select-trigger {
   min-height: 36px;
   padding: 0 2px;
   border: 0;
@@ -61,13 +67,29 @@ html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-tr
   box-shadow: none;
 }
 
-.statistics-page .statistics-unit-filter .app-select-trigger:hover:not(:disabled),
+.statistics-page
+  .statistics-unit-filter
+  .app-select-trigger:hover:not(:disabled),
 .statistics-page .statistics-unit-filter .app-select-trigger:focus-visible,
-.statistics-page .statistics-unit-filter .app-select-trigger[aria-expanded="true"],
-html[data-theme="light"] .statistics-page .statistics-unit-filter .app-select-trigger:hover:not(:disabled),
-html[data-theme="light"] .statistics-page .statistics-unit-filter .app-select-trigger:focus-visible,
-html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-trigger:hover:not(:disabled),
-html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-trigger:focus-visible {
+.statistics-page
+  .statistics-unit-filter
+  .app-select-trigger[aria-expanded="true"],
+html[data-theme="light"]
+  .statistics-page
+  .statistics-unit-filter
+  .app-select-trigger:hover:not(:disabled),
+html[data-theme="light"]
+  .statistics-page
+  .statistics-unit-filter
+  .app-select-trigger:focus-visible,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-unit-filter
+  .app-select-trigger:hover:not(:disabled),
+html[data-theme="black"]
+  .statistics-page
+  .statistics-unit-filter
+  .app-select-trigger:focus-visible {
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -107,9 +129,20 @@ html[data-theme="black"] .statistics-page .statistics-histogram-track {
 .statistics-page .statistics-document-title > span,
 html[data-theme="light"] .statistics-page .statistics-document-title > span,
 html[data-theme="black"] .statistics-page .statistics-document-title > span,
-.statistics-page .statistics-document-row.critical .statistics-document-title > span,
-html[data-theme="light"] .statistics-page .statistics-document-row.critical .statistics-document-title > span,
-html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title > span {
+.statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  > span,
+html[data-theme="light"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  > span,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  > span {
   display: block;
   width: 18px;
   height: auto;
@@ -125,21 +158,66 @@ html[data-theme="black"] .statistics-page .statistics-document-row.critical .sta
 }
 
 /* Contrato e Histórico continuam visualmente críticos. */
-.statistics-page .statistics-document-row.critical .statistics-document-title > span,
-.statistics-page .statistics-document-row.critical .statistics-document-title strong,
-.statistics-page .statistics-document-row.critical .statistics-document-meter strong,
-html[data-theme="light"] .statistics-page .statistics-document-row.critical .statistics-document-title > span,
-html[data-theme="light"] .statistics-page .statistics-document-row.critical .statistics-document-title strong,
-html[data-theme="light"] .statistics-page .statistics-document-row.critical .statistics-document-meter strong,
-html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title > span,
-html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title strong,
-html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-meter strong {
+.statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  > span,
+.statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  strong,
+.statistics-page
+  .statistics-document-row.critical
+  .statistics-document-meter
+  strong,
+html[data-theme="light"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  > span,
+html[data-theme="light"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  strong,
+html[data-theme="light"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-meter
+  strong,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  > span,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  strong,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-meter
+  strong {
   color: #d92f39;
 }
 
-html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title > span,
-html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-title strong,
-html[data-theme="black"] .statistics-page .statistics-document-row.critical .statistics-document-meter strong {
+html[data-theme="black"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  > span,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-title
+  strong,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-document-row.critical
+  .statistics-document-meter
+  strong {
   color: #ff727b;
 }
 

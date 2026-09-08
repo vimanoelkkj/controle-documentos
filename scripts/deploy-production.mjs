@@ -86,7 +86,9 @@ if (CHECK_ONLY) {
 const wranglerName = process.platform === "win32" ? "wrangler.cmd" : "wrangler";
 const wrangler = path.join(process.cwd(), "node_modules", ".bin", wranglerName);
 if (!existsSync(wrangler)) {
-  cancel("Deploy cancelado: Wrangler local não encontrado. Execute npm install.");
+  cancel(
+    "Deploy cancelado: Wrangler local não encontrado. Execute npm install.",
+  );
 }
 
 console.log("Testes, lint e build aprovados. Publicando produção...");

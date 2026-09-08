@@ -31,8 +31,9 @@ export async function handlePeriodosRoute({
 }: PeriodosRouteContext): Promise<Response | null> {
   if (url.pathname === "/api/periodos" && request.method === "GET") {
     try {
-      const resultado = await db.prepare(
-        `
+      const resultado = await db
+        .prepare(
+          `
           SELECT
             p.id, p.codigo, p.status, p.criado_em, p.atualizado_em,
             COUNT(a.id) AS total_alunos
@@ -41,7 +42,8 @@ export async function handlePeriodosRoute({
           GROUP BY p.id
           ORDER BY p.codigo DESC
         `,
-      ).all<PeriodoComTotal>();
+        )
+        .all<PeriodoComTotal>();
       return Response.json(resultado.results);
     } catch (erro) {
       console.error(erro);

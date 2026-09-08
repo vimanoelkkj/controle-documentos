@@ -42,7 +42,8 @@ function AppSelect({
   const menuRef = useRef<HTMLDivElement | null>(null);
   const listboxId = useId();
 
-  const selecionado = options.find((option) => option.value === value) ?? options[0];
+  const selecionado =
+    options.find((option) => option.value === value) ?? options[0];
 
   const posicionarMenu = useCallback(() => {
     const trigger = triggerRef.current;
@@ -50,14 +51,18 @@ function AppSelect({
 
     const rect = trigger.getBoundingClientRect();
     const alturaEstimada = Math.min(320, options.length * 40 + 12);
-    const cabeAbaixo = rect.bottom + 8 + alturaEstimada <= window.innerHeight - 8;
+    const cabeAbaixo =
+      rect.bottom + 8 + alturaEstimada <= window.innerHeight - 8;
     const top = cabeAbaixo
       ? rect.bottom + 8
       : Math.max(8, rect.top - 8 - alturaEstimada);
 
     setMenuStyle({
       position: "fixed",
-      left: Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8)),
+      left: Math.max(
+        8,
+        Math.min(rect.left, window.innerWidth - rect.width - 8),
+      ),
       top,
       width: rect.width,
       zIndex: 10000,
@@ -66,7 +71,10 @@ function AppSelect({
 
   function abrir() {
     if (disabled || !options.length) return;
-    const atual = Math.max(0, options.findIndex((option) => option.value === value));
+    const atual = Math.max(
+      0,
+      options.findIndex((option) => option.value === value),
+    );
     setIndiceAtivo(atual);
     posicionarMenu();
     setAberto(true);
@@ -160,7 +168,10 @@ function AppSelect({
         onKeyDown={onKeyDown}
       >
         <span className="app-select-value">{selecionado?.label ?? value}</span>
-        <span className={`app-select-chevron ${aberto ? "open" : ""}`} aria-hidden="true">
+        <span
+          className={`app-select-chevron ${aberto ? "open" : ""}`}
+          aria-hidden="true"
+        >
           ▾
         </span>
       </button>

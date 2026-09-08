@@ -26,7 +26,9 @@ export function BackupSection({
 
           <div>
             <div className="settings-backup-eyebrow">
-              <span className="settings-section-eyebrow">PROTEÇÃO DOS DADOS</span>
+              <span className="settings-section-eyebrow">
+                PROTEÇÃO DOS DADOS
+              </span>
             </div>
             <div className="settings-backup-title-row">
               <h2>Backup do banco</h2>

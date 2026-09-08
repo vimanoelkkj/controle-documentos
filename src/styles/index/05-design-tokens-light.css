@@ -18,10 +18,10 @@
 
 html[data-theme="light"] {
   /* Superfícies — do fundo da página até o elemento mais "elevado" */
-  --cds-surface-0: #f7f7f5;   /* fundo da página */
-  --cds-surface-1: #f1f0ea;   /* card dentro de card, linha de tabela */
-  --cds-surface-2: #ffffff;   /* card padrão, painel */
-  --cds-surface-3: #ffffff;   /* popover, modal */
+  --cds-surface-0: #f7f7f5; /* fundo da página */
+  --cds-surface-1: #f1f0ea; /* card dentro de card, linha de tabela */
+  --cds-surface-2: #ffffff; /* card padrão, painel */
+  --cds-surface-3: #ffffff; /* popover, modal */
 
   /* Texto */
   --cds-text-primary: #1a1a18;

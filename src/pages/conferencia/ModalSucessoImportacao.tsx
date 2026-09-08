@@ -28,12 +28,16 @@ export function ModalSucessoImportacao({ sucesso, aoFechar }: Props) {
 
           <div className="importacao-sucesso-resumo">
             <div>
-              <strong>{quantidadeResultado(sucesso.resultado.importados)}</strong>
+              <strong>
+                {quantidadeResultado(sucesso.resultado.importados)}
+              </strong>
               <span>incluídos</span>
             </div>
 
             <div>
-              <strong>{quantidadeResultado(sucesso.resultado.atualizados)}</strong>
+              <strong>
+                {quantidadeResultado(sucesso.resultado.atualizados)}
+              </strong>
               <span>atualizados</span>
             </div>
 

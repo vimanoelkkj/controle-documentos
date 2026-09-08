@@ -27,7 +27,7 @@
   border: 2px solid #dce8f5;
   border-top-color: #0b6df6;
   border-radius: 50%;
-  animation: pageLoadingUnifiedSpin .8s linear infinite;
+  animation: pageLoadingUnifiedSpin 0.8s linear infinite;
 }
 
 .page-loading-unified strong {
@@ -39,7 +39,9 @@
 }
 
 @keyframes pageLoadingUnifiedSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 [data-theme="dark"] .page-loading-unified,
@@ -95,4 +97,3 @@
 .auth-boot {
   display: none !important;
 }
-

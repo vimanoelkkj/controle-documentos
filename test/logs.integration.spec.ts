@@ -72,11 +72,11 @@ beforeAll(async () => {
 
 describe.sequential("LOG de operações", () => {
   it("rejeita evento sem os campos obrigatórios", async () => {
-    const response = await jsonRequest(
-      "/api/log?periodo=2026-2",
-      "POST",
-      { acao: "", entidade: "ALUNO", descricao: "" },
-    );
+    const response = await jsonRequest("/api/log?periodo=2026-2", "POST", {
+      acao: "",
+      entidade: "ALUNO",
+      descricao: "",
+    });
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
@@ -85,17 +85,13 @@ describe.sequential("LOG de operações", () => {
   });
 
   it("registra autoria e lista o evento no período atual", async () => {
-    const registrar = await jsonRequest(
-      "/api/log?periodo=2026-2",
-      "POST",
-      {
-        acao: acaoPeriodoA,
-        entidade: "ALUNO",
-        descricao: "Evento controlado do período A.",
-        ra: "RA-LOG-001",
-        unidade: "FACE",
-      },
-    );
+    const registrar = await jsonRequest("/api/log?periodo=2026-2", "POST", {
+      acao: acaoPeriodoA,
+      entidade: "ALUNO",
+      descricao: "Evento controlado do período A.",
+      ra: "RA-LOG-001",
+      unidade: "FACE",
+    });
     expect(registrar.status).toBe(201);
 
     const logs = await listarLogs("/api/log?periodo=2026-2");
@@ -110,15 +106,11 @@ describe.sequential("LOG de operações", () => {
   });
 
   it("mantém a listagem comum isolada por período", async () => {
-    const registrar = await jsonRequest(
-      "/api/log?periodo=2027-1",
-      "POST",
-      {
-        acao: acaoPeriodoB,
-        entidade: "PERIODO",
-        descricao: "Evento controlado do período B.",
-      },
-    );
+    const registrar = await jsonRequest("/api/log?periodo=2027-1", "POST", {
+      acao: acaoPeriodoB,
+      entidade: "PERIODO",
+      descricao: "Evento controlado do período B.",
+    });
     expect(registrar.status).toBe(201);
 
     const logsA = await listarLogs("/api/log?periodo=2026-2");

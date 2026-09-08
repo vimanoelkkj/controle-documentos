@@ -62,7 +62,11 @@ export async function apiRequest<T>(
   const headers = new Headers(init.headers);
   const hasBody = init.body !== undefined && init.body !== null;
 
-  if (hasBody && !headers.has("Content-Type") && typeof init.body === "string") {
+  if (
+    hasBody &&
+    !headers.has("Content-Type") &&
+    typeof init.body === "string"
+  ) {
     headers.set("Content-Type", "application/json");
   }
 

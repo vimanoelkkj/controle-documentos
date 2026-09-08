@@ -8,7 +8,6 @@
   O card da direita nunca recebe altura por este ajuste.
 */
 @media (min-width: 901px) {
-
   .student-panel {
     display: flex;
     flex-direction: column;

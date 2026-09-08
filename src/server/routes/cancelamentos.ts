@@ -112,10 +112,7 @@ export async function handleCancelamentosRoute({
     }
   }
 
-  if (
-    url.pathname === "/api/alunos/cancelados" &&
-    request.method === "POST"
-  ) {
+  if (url.pathname === "/api/alunos/cancelados" && request.method === "POST") {
     try {
       const body = await request.json<{ unidade: Unidade; ras: string[] }>();
       if (!unidadesValidas.includes(body.unidade)) {
@@ -142,8 +139,8 @@ export async function handleCancelamentosRoute({
         const aluno = encontrados.get(ra);
         return Boolean(
           aluno &&
-            aluno.unidade === body.unidade &&
-            aluno.status === "CANCELADO",
+          aluno.unidade === body.unidade &&
+          aluno.status === "CANCELADO",
         );
       });
       const naoEncontrados = ras.filter((ra) => !encontrados.has(ra));
@@ -205,16 +202,11 @@ export async function handleCancelamentosRoute({
     }
 
     const aluno = await db
-      .prepare(
-        `SELECT id, status FROM alunos WHERE periodo_id = ? AND ra = ?`,
-      )
+      .prepare(`SELECT id, status FROM alunos WHERE periodo_id = ? AND ra = ?`)
       .bind(periodoId, ra)
       .first<{ id: number; status: StatusMatricula }>();
     if (!aluno) {
-      return Response.json(
-        { erro: "Aluno não encontrado." },
-        { status: 404 },
-      );
+      return Response.json({ erro: "Aluno não encontrado." }, { status: 404 });
     }
     if (aluno.status === body.status) {
       return Response.json({

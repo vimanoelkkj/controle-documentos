@@ -5,7 +5,8 @@ import App from "./App";
 
 const temaSalvo = localStorage.getItem("tema-v3");
 document.body.classList.toggle("dark", temaSalvo === "dark");
-document.documentElement.style.colorScheme = temaSalvo === "dark" ? "dark" : "light";
+document.documentElement.style.colorScheme =
+  temaSalvo === "dark" ? "dark" : "light";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -215,9 +215,8 @@ describe.sequential("isolamento de dados entre períodos", () => {
     });
     expect(response.status).toBe(200);
 
-    const periodos = await response.json<
-      Array<{ codigo: string; total_alunos: number }>
-    >();
+    const periodos =
+      await response.json<Array<{ codigo: string; total_alunos: number }>>();
     const periodoA = periodos.find((periodo) => periodo.codigo === "2026-2");
     const periodoB = periodos.find((periodo) => periodo.codigo === "2027-1");
 

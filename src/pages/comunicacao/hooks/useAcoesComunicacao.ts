@@ -18,7 +18,11 @@ type Params = {
 
 function dividirEmLotes(lista: string[]) {
   const lotes: string[][] = [];
-  for (let indice = 0; indice < lista.length; indice += LIMITE_DESTINATARIOS_OUTLOOK) {
+  for (
+    let indice = 0;
+    indice < lista.length;
+    indice += LIMITE_DESTINATARIOS_OUTLOOK
+  ) {
     lotes.push(lista.slice(indice, indice + LIMITE_DESTINATARIOS_OUTLOOK));
   }
   return lotes;
@@ -60,7 +64,8 @@ export function useAcoesComunicacao({
   // Os arrays de e-mail podem ganhar uma nova referência a cada render.
   // Usar o conteúdo como assinatura evita zerar o lote logo após cada clique.
   const assinaturaDestinatarios = useMemo(
-    () => `${emailsInstitucionais.join("\u001f")}\u001e${emailsAlternativos.join("\u001f")}`,
+    () =>
+      `${emailsInstitucionais.join("\u001f")}\u001e${emailsAlternativos.join("\u001f")}`,
     [emailsInstitucionais, emailsAlternativos, emailsAmbos],
   );
 
@@ -79,7 +84,9 @@ export function useAcoesComunicacao({
       quantidadeEmails: listas[tipoLista].length,
       quantidadeLotes,
       loteAtual: quantidadeLotes ? indiceAtual + 1 : 0,
-      quantidadeNoLote: quantidadeLotes ? lotes[tipoLista][indiceAtual].length : 0,
+      quantidadeNoLote: quantidadeLotes
+        ? lotes[tipoLista][indiceAtual].length
+        : 0,
     };
   }
 
@@ -104,7 +111,9 @@ export function useAcoesComunicacao({
       `✓ Lote ${numeroLote}/${totalLotes} copiado: ${lista.length} destinatário${
         lista.length === 1 ? "" : "s"
       } para colar no CCO do Outlook.${
-        temProximo ? ` Próximo clique copia o lote ${numeroLote + 1}/${totalLotes}.` : " Todos os lotes foram copiados."
+        temProximo
+          ? ` Próximo clique copia o lote ${numeroLote + 1}/${totalLotes}.`
+          : " Todos os lotes foram copiados."
       }`,
     );
 
@@ -129,7 +138,9 @@ export function useAcoesComunicacao({
     const lotesInstitucionais = lotes.institucional;
 
     if (!lotesInstitucionais.length) {
-      setFeedback("Nenhum e-mail institucional válido nos alunos selecionados.");
+      setFeedback(
+        "Nenhum e-mail institucional válido nos alunos selecionados.",
+      );
       return;
     }
 
@@ -150,7 +161,9 @@ export function useAcoesComunicacao({
       `✓ Pacote Outlook ${numeroLote}/${totalLotes} copiado: ${lista.length} destinatário${
         lista.length === 1 ? "" : "s"
       }, assunto e mensagem.${
-        temProximo ? ` Próximo clique copia o lote ${numeroLote + 1}/${totalLotes}.` : " Todos os lotes foram copiados."
+        temProximo
+          ? ` Próximo clique copia o lote ${numeroLote + 1}/${totalLotes}.`
+          : " Todos os lotes foram copiados."
       }`,
     );
 

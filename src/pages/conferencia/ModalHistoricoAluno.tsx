@@ -86,7 +86,9 @@ export function ModalHistoricoAluno({
             <div className="student-history-state">
               <div className="student-history-empty-icon">○</div>
               <strong>Nenhum registro encontrado</strong>
-              <span>As próximas alterações feitas neste aluno aparecerão aqui.</span>
+              <span>
+                As próximas alterações feitas neste aluno aparecerão aqui.
+              </span>
             </div>
           ) : (
             <div className="student-history-timeline">

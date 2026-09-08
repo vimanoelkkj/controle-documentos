@@ -61,10 +61,7 @@ export function editarAluno(raAtual: string, dados: FormAluno) {
   );
 }
 
-export function alterarStatusAluno(
-  ra: string,
-  status: "ATIVO" | "CANCELADO",
-) {
+export function alterarStatusAluno(ra: string, status: "ATIVO" | "CANCELADO") {
   return api.put<RespostaStatusAluno>(
     `/api/alunos/${encodeURIComponent(ra)}/status`,
     { status },

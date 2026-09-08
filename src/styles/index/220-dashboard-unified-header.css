@@ -88,7 +88,8 @@
   background: #a32d2d;
 }
 
-.dashboard-sheets-state.google-sheets-status--conectado .google-sheets-status-dot {
+.dashboard-sheets-state.google-sheets-status--conectado
+  .google-sheets-status-dot {
   background: #3b6d11;
 }
 
@@ -101,7 +102,9 @@
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 90ms ease, background 90ms ease;
+  transition:
+    border-color 90ms ease,
+    background 90ms ease;
 }
 
 .dashboard-sheets-action:hover {

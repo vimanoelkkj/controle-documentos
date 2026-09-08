@@ -21,8 +21,14 @@
 }
 
 .statistics-page .statistics-unit-filter .app-select-trigger,
-html[data-theme="light"] .statistics-page .statistics-unit-filter .app-select-trigger,
-html[data-theme="black"] .statistics-page .statistics-unit-filter .app-select-trigger {
+html[data-theme="light"]
+  .statistics-page
+  .statistics-unit-filter
+  .app-select-trigger,
+html[data-theme="black"]
+  .statistics-page
+  .statistics-unit-filter
+  .app-select-trigger {
   min-height: 34px;
   padding: 0 0 6px;
   border-bottom: 2px solid var(--accent, #1677ff);
@@ -323,7 +329,9 @@ html[data-theme="black"] .statistics-page .statistics-kpis,
   transition: transform 120ms ease;
 }
 
-.statistics-page .statistics-unit-disclosure.is-open .statistics-unit-disclosure-chevron {
+.statistics-page
+  .statistics-unit-disclosure.is-open
+  .statistics-unit-disclosure-chevron {
   transform: rotate(225deg) translate(-1px, -1px);
 }
 
@@ -341,24 +349,33 @@ html[data-theme="black"] .statistics-page .statistics-kpis,
   background: #eef3f8;
   box-shadow: 0 12px 28px rgba(52, 73, 94, 0.14);
   transform-origin: top right;
-  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    visibility 120ms ease;
 }
 
-.statistics-page .statistics-unit-disclosure:not(.is-open) .statistics-unit-disclosure-menu {
+.statistics-page
+  .statistics-unit-disclosure:not(.is-open)
+  .statistics-unit-disclosure-menu {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transform: translateY(-4px) scale(0.985);
 }
 
-.statistics-page .statistics-unit-disclosure.is-open .statistics-unit-disclosure-menu {
+.statistics-page
+  .statistics-unit-disclosure.is-open
+  .statistics-unit-disclosure-menu {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translateY(0) scale(1);
 }
 
-.statistics-page .statistics-unit-disclosure.is-open.is-closing .statistics-unit-disclosure-menu {
+.statistics-page
+  .statistics-unit-disclosure.is-open.is-closing
+  .statistics-unit-disclosure-menu {
   opacity: 0;
   transform: translateY(-4px) scale(0.985);
   pointer-events: none;
@@ -407,7 +424,10 @@ html[data-theme="black"] .statistics-page .statistics-kpis,
   box-sizing: border-box;
 }
 
-.statistics-page .statistics-unit-disclosure-menu button.active .statistics-unit-disclosure-radio {
+.statistics-page
+  .statistics-unit-disclosure-menu
+  button.active
+  .statistics-unit-disclosure-radio {
   border: 4px solid #1976e8;
   background: #fff;
 }
@@ -427,15 +447,24 @@ html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu {
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
 }
 
-html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu button {
+html[data-theme="black"]
+  .statistics-page
+  .statistics-unit-disclosure-menu
+  button {
   color: #a9bbcc;
 }
 
-html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu button:hover:not(.active) {
+html[data-theme="black"]
+  .statistics-page
+  .statistics-unit-disclosure-menu
+  button:hover:not(.active) {
   background: rgba(255, 255, 255, 0.05);
 }
 
-html[data-theme="black"] .statistics-page .statistics-unit-disclosure-menu button.active {
+html[data-theme="black"]
+  .statistics-page
+  .statistics-unit-disclosure-menu
+  button.active {
   background: rgba(25, 118, 232, 0.16);
   color: #79b9ff;
 }

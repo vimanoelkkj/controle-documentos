@@ -88,11 +88,9 @@ export function useAtalhosConferencia({
       let proximoIndice: number;
 
       if (event.key === "ArrowDown") {
-        proximoIndice =
-          base < 0 ? 0 : Math.min(base + 1, botoes.length - 1);
+        proximoIndice = base < 0 ? 0 : Math.min(base + 1, botoes.length - 1);
       } else {
-        proximoIndice =
-          base < 0 ? botoes.length - 1 : Math.max(base - 1, 0);
+        proximoIndice = base < 0 ? botoes.length - 1 : Math.max(base - 1, 0);
       }
 
       botoes[proximoIndice]?.focus();

@@ -18,28 +18,58 @@ import { useAuth } from "./contexts/auth";
 function Rotas() {
   const { usuario, carregando, modoApresentacao } = useAuth();
   if (carregando) return null;
-  return <Routes>
-        <Route path="/login" element={<Login />} />
-        {usuario ? <>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/conferencia" element={<Conferencia />} />
-          <Route path="/comunicacao" element={<Comunicacao />} />
-          <Route path="/auditoria" element={modoApresentacao ? <Navigate to="/" replace /> : <Auditoria />} />
-          <Route path="/estatisticas" element={<Estatisticas />} />
-          <Route path="/log" element={modoApresentacao ? <Navigate to="/" replace /> : <Log />} />
-          <Route path="/configuracoes" element={modoApresentacao ? <Navigate to="/" replace /> : <Configuracoes />} />
-          <Route path="/periodos" element={<Periodos />} />
-          <Route path="/cursos" element={<Cursos />} />
-          <Route path="/sobre" element={<Sobre />} />
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      {usuario ? (
+        <>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/conferencia" element={<Conferencia />} />
+            <Route path="/comunicacao" element={<Comunicacao />} />
+            <Route
+              path="/auditoria"
+              element={
+                modoApresentacao ? <Navigate to="/" replace /> : <Auditoria />
+              }
+            />
+            <Route path="/estatisticas" element={<Estatisticas />} />
+            <Route
+              path="/log"
+              element={modoApresentacao ? <Navigate to="/" replace /> : <Log />}
+            />
+            <Route
+              path="/configuracoes"
+              element={
+                modoApresentacao ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <Configuracoes />
+                )
+              }
+            />
+            <Route path="/periodos" element={<Periodos />} />
+            <Route path="/cursos" element={<Cursos />} />
+            <Route path="/sobre" element={<Sobre />} />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-        </> : <Route path="*" element={<Navigate to="/login" replace />} />}
-      </Routes>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </>
+      ) : (
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      )}
+    </Routes>
+  );
 }
 
-function App() { return <BrowserRouter><AuthProvider><Rotas /></AuthProvider></BrowserRouter>;
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Rotas />
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
 export default App;

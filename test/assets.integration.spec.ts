@@ -10,7 +10,9 @@ describe("entrega dos assets", () => {
       const env = {
         ASSETS: { fetch: fetchAsset },
       } as unknown as Env;
-      const request = new Request(`https://controle-documentos.test${pathname}`);
+      const request = new Request(
+        `https://controle-documentos.test${pathname}`,
+      );
 
       const response = await worker.fetch(request, env);
 

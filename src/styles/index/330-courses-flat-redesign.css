@@ -332,12 +332,20 @@ html[data-theme="black"] .course-unit-select .app-select-trigger {
 .course-unit-select .app-select-trigger:hover:not(:disabled),
 .course-unit-select .app-select-trigger:focus-visible,
 .course-unit-select .app-select-trigger[aria-expanded="true"],
-html[data-theme="light"] .course-unit-select .app-select-trigger:hover:not(:disabled),
+html[data-theme="light"]
+  .course-unit-select
+  .app-select-trigger:hover:not(:disabled),
 html[data-theme="light"] .course-unit-select .app-select-trigger:focus-visible,
-html[data-theme="light"] .course-unit-select .app-select-trigger[aria-expanded="true"],
-html[data-theme="black"] .course-unit-select .app-select-trigger:hover:not(:disabled),
+html[data-theme="light"]
+  .course-unit-select
+  .app-select-trigger[aria-expanded="true"],
+html[data-theme="black"]
+  .course-unit-select
+  .app-select-trigger:hover:not(:disabled),
 html[data-theme="black"] .course-unit-select .app-select-trigger:focus-visible,
-html[data-theme="black"] .course-unit-select .app-select-trigger[aria-expanded="true"] {
+html[data-theme="black"]
+  .course-unit-select
+  .app-select-trigger[aria-expanded="true"] {
   border: 0;
   background: rgba(124, 151, 172, 0.11);
   box-shadow: none;
@@ -405,7 +413,7 @@ html[data-theme="black"] .course-unit-select-menu .app-select-option.active {
 html[data-theme="light"] .course-unit-select-menu .app-select-option.selected,
 html[data-theme="black"] .course-unit-select-menu .app-select-option.selected {
   color: #0878df;
-  background: rgba(42, 139, 232, 0.10);
+  background: rgba(42, 139, 232, 0.1);
   font-weight: 600;
 }
 
@@ -419,10 +427,11 @@ html[data-theme="black"] .course-unit-select-menu .app-select-option {
   color: #c4d2dc;
 }
 
-html[data-theme="black"] .course-unit-select-menu .app-select-option.selected::before {
+html[data-theme="black"]
+  .course-unit-select-menu
+  .app-select-option.selected::before {
   box-shadow: inset 0 0 0 3px #14222c;
 }
-
 
 /* v24-62 — ação de aplicar segue o padrão textual flat do restante do sistema. */
 .course-row > .course-apply-action,
@@ -452,8 +461,12 @@ html[data-theme="black"] .course-row > .course-apply-action {
 .course-row > .course-apply-action:hover:not(:disabled),
 .course-row > .course-apply-action:focus-visible:not(:disabled),
 .course-row > .course-apply-action:active:not(:disabled),
-html[data-theme="light"] .course-row > .course-apply-action:hover:not(:disabled),
-html[data-theme="black"] .course-row > .course-apply-action:hover:not(:disabled) {
+html[data-theme="light"]
+  .course-row
+  > .course-apply-action:hover:not(:disabled),
+html[data-theme="black"]
+  .course-row
+  > .course-apply-action:hover:not(:disabled) {
   min-width: 116px;
   min-height: 24px;
   margin: 0;
@@ -498,8 +511,12 @@ html[data-theme="black"] .course-row > .course-apply-action {
 .course-row > .course-apply-action:hover:not(:disabled),
 .course-row > .course-apply-action:focus-visible:not(:disabled),
 .course-row > .course-apply-action:active:not(:disabled),
-html[data-theme="light"] .course-row > .course-apply-action:hover:not(:disabled),
-html[data-theme="black"] .course-row > .course-apply-action:hover:not(:disabled) {
+html[data-theme="light"]
+  .course-row
+  > .course-apply-action:hover:not(:disabled),
+html[data-theme="black"]
+  .course-row
+  > .course-apply-action:hover:not(:disabled) {
   min-height: 36px;
   height: 36px;
   padding: 0 !important;

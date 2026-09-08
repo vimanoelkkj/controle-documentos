@@ -1,4 +1,3 @@
-
 import { handleCursosRoute } from "./routes/cursos";
 import { handlePeriodosRoute } from "./routes/periodos";
 import { handleUsuariosRoute } from "./routes/usuarios";
@@ -31,11 +30,7 @@ import {
   emModoApresentacao,
   podeEditar,
 } from "./middleware/autorizacao";
-import {
-  handleAuthRoute,
-  hashSenha,
-  type UsuarioSessao,
-} from "./routes/auth";
+import { handleAuthRoute, hashSenha, type UsuarioSessao } from "./routes/auth";
 
 export interface Env {
   DB: D1Database;
@@ -148,7 +143,6 @@ export default {
     });
     if (respostaBackup) return respostaBackup;
 
-
     const periodoAtual = url.pathname.startsWith("/api/")
       ? await obterPeriodoAtual(request, env.DB, url)
       : null;
@@ -173,8 +167,6 @@ export default {
       periodoAtual,
     });
     if (respostaDevTools) return respostaDevTools;
-
-
 
     const respostaSheetsOutbox = await handleGoogleSheetsOutboxRoute({
       request,

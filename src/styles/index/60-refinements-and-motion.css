@@ -2150,7 +2150,6 @@ html[data-theme="light"] .settings-backup-message.warning {
   outline: none;
 }
 
-
 /* =========================================================
    v24-75 — seletor DEV no mesmo padrão dos dropdowns do site
    ========================================================= */
@@ -2196,7 +2195,7 @@ html[data-theme="black"] .settings-dev-unit-select .app-select-trigger {
 .settings-dev-unit-select .app-select-chevron {
   margin-left: auto;
   font-size: 9px;
-  opacity: .72;
+  opacity: 0.72;
 }
 
 /* O menu é portalizado no body. */
@@ -2206,7 +2205,7 @@ html[data-theme="light"] .settings-dev-unit-menu {
   border: 0 !important;
   border-radius: 10px !important;
   background: #eef4f8 !important;
-  box-shadow: 0 14px 34px rgba(31, 55, 78, .13) !important;
+  box-shadow: 0 14px 34px rgba(31, 55, 78, 0.13) !important;
   overflow: hidden !important;
 }
 
@@ -2244,12 +2243,12 @@ html[data-theme="light"] .settings-dev-unit-menu {
 .settings-dev-unit-menu .app-select-option:hover,
 .settings-dev-unit-menu .app-select-option.active {
   color: #176fbd !important;
-  background: rgba(42, 139, 232, .07) !important;
+  background: rgba(42, 139, 232, 0.07) !important;
 }
 
 .settings-dev-unit-menu .app-select-option.selected {
   color: #0878df !important;
-  background: rgba(42, 139, 232, .10) !important;
+  background: rgba(42, 139, 232, 0.1) !important;
   font-weight: 600 !important;
 }
 
@@ -2262,14 +2261,16 @@ html[data-theme="light"] .settings-dev-unit-menu {
 html[data-theme="black"] .settings-dev-unit-menu {
   border: 0 !important;
   background: #14222c !important;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, .34) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.34) !important;
 }
 
 html[data-theme="black"] .settings-dev-unit-menu .app-select-option {
   color: #c4d2dc !important;
 }
 
-html[data-theme="black"] .settings-dev-unit-menu .app-select-option.selected::before {
+html[data-theme="black"]
+  .settings-dev-unit-menu
+  .app-select-option.selected::before {
   box-shadow: inset 0 0 0 3px #14222c;
 }
 
@@ -2282,7 +2283,6 @@ html[data-theme="black"] .settings-dev-unit-menu .app-select-option.selected::be
     width: 100%;
   }
 }
-
 
 /* =========================================================
    v24-76 — selo DEV junto ao rótulo da seção
@@ -2307,7 +2307,7 @@ html[data-theme="black"] .settings-dev-unit-menu .app-select-option.selected::be
   color: var(--danger);
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 /* v24-78 — DEV sempre vermelho ao lado do rótulo */

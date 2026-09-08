@@ -15,14 +15,23 @@ export async function registrarAuditoria(
   evento: EventoAuditoria,
 ) {
   try {
-    await db.prepare(`INSERT INTO logs (
+    await db
+      .prepare(
+        `INSERT INTO logs (
       acao, entidade, descricao, ra, unidade, periodo_id,
       usuario_id, usuario_nome, usuario_username
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
       .bind(
-        evento.acao, evento.entidade, evento.descricao,
-        evento.ra || null, evento.unidade || null, periodoId,
-        usuario?.id ?? null, usuario?.nome ?? null, usuario?.username ?? null,
+        evento.acao,
+        evento.entidade,
+        evento.descricao,
+        evento.ra || null,
+        evento.unidade || null,
+        periodoId,
+        usuario?.id ?? null,
+        usuario?.nome ?? null,
+        usuario?.username ?? null,
       )
       .run();
   } catch (erro) {

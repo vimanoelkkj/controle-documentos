@@ -89,18 +89,14 @@ beforeAll(async () => {
   });
   expect(periodo.status).toBe(201);
 
-  const usuario = await jsonRequest(
-    "/api/usuarios?periodo=2026-2",
-    "POST",
-    {
-      nome: "Apresentador",
-      email: "apresentador@teste.local",
-      username: "apresentador",
-      senha,
-      perfil: "VISUALIZADOR",
-      modo_apresentacao: true,
-    },
-  );
+  const usuario = await jsonRequest("/api/usuarios?periodo=2026-2", "POST", {
+    nome: "Apresentador",
+    email: "apresentador@teste.local",
+    username: "apresentador",
+    senha,
+    perfil: "VISUALIZADOR",
+    modo_apresentacao: true,
+  });
   expect(usuario.status).toBe(201);
   apresentacaoCookie = await login("apresentador");
 });

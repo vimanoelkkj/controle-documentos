@@ -41,7 +41,7 @@ export function CriarPeriodoCard({
               const cursorNoFim =
                 input.selectionStart === novoCodigo.length &&
                 input.selectionEnd === novoCodigo.length;
-  
+
               if (
                 e.key === "Backspace" &&
                 novoCodigo.endsWith("-") &&

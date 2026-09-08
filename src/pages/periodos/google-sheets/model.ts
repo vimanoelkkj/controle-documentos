@@ -46,10 +46,7 @@ export type SheetsPrevia = {
 };
 
 export type SheetsStatus =
-  | "carregando"
-  | "configurado"
-  | "nao_configurado"
-  | "indisponivel";
+  "carregando" | "configurado" | "nao_configurado" | "indisponivel";
 
 export type AbaPrevia =
   | "novos"

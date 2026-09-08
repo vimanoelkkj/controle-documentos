@@ -28,7 +28,7 @@
 
 .conference-grid--mockup .student-search-shell:focus-within {
   border-color: #8eb8ff !important;
-  box-shadow: 0 0 0 3px rgba(47, 111, 237, .08) !important;
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.08) !important;
 }
 
 .conference-grid--mockup .student-search-shell > svg {
@@ -53,7 +53,7 @@
   font-size: 13px !important;
   font-weight: 500 !important;
   line-height: 42px !important;
-  letter-spacing: -.01em !important;
+  letter-spacing: -0.01em !important;
 }
 
 .conference-grid--mockup .student-search-shell .student-search::placeholder {
@@ -109,7 +109,7 @@
   color: #1261ea !important;
   font-size: 12px !important;
   font-weight: 650 !important;
-  letter-spacing: -.01em !important;
+  letter-spacing: -0.01em !important;
 }
 
 .conference-grid--mockup .student-toolbar-add:hover {
@@ -128,7 +128,7 @@
   align-items: center !important;
   justify-content: center !important;
   line-height: 1 !important;
-  transform: translateY(.2px);
+  transform: translateY(0.2px);
 }
 
 .conference-grid--mockup .student-toolbar-more {

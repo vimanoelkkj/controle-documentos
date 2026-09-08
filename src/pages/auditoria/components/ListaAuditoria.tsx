@@ -29,7 +29,6 @@ type Props = {
   erro: string;
 };
 
-
 function FiltroAcoes({
   valor,
   onChange,
@@ -71,9 +70,13 @@ function FiltroAcoes({
     return () => document.removeEventListener("mousedown", aoClicarFora);
   }, [aberto]);
 
-  useEffect(() => () => {
-    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current !== null)
+        window.clearTimeout(closeTimerRef.current);
+    },
+    [],
+  );
 
   const fechar = () => {
     if (!aberto || fechando) return;
@@ -156,7 +159,10 @@ function FiltroAcoes({
               onClick={() => selecionar(item)}
             >
               <span className="conference-replica-unit-option-copy">
-                <i className="conference-replica-unit-radio" aria-hidden="true" />
+                <i
+                  className="conference-replica-unit-radio"
+                  aria-hidden="true"
+                />
                 <span>{item}</span>
               </span>
               <strong>{contagens.get(item) ?? 0}</strong>
@@ -203,13 +209,23 @@ export function ListaAuditoria({
   const [pagina, setPagina] = useState(1);
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
 
-  useEffect(() => { setPagina(1); }, [busca, acao, porPagina]);
-  useEffect(() => { if (pagina > totalPaginas) setPagina(totalPaginas); }, [pagina, totalPaginas]);
+  useEffect(() => {
+    setPagina(1);
+  }, [busca, acao, porPagina]);
+  useEffect(() => {
+    if (pagina > totalPaginas) setPagina(totalPaginas);
+  }, [pagina, totalPaginas]);
 
   const paginaAtual = Math.min(pagina, totalPaginas);
-  const registrosPagina = filtrados.slice((paginaAtual - 1) * porPagina, paginaAtual * porPagina);
-  const paginasVisiveis = Array.from({ length: totalPaginas }, (_, i) => i + 1).filter((n) =>
-    n === 1 || n === totalPaginas || Math.abs(n - paginaAtual) <= 1
+  const registrosPagina = filtrados.slice(
+    (paginaAtual - 1) * porPagina,
+    paginaAtual * porPagina,
+  );
+  const paginasVisiveis = Array.from(
+    { length: totalPaginas },
+    (_, i) => i + 1,
+  ).filter(
+    (n) => n === 1 || n === totalPaginas || Math.abs(n - paginaAtual) <= 1,
   );
 
   return (
@@ -217,7 +233,8 @@ export function ListaAuditoria({
       <h2 className="audit-history-title">Histórico de auditoria</h2>
 
       <div className="audit-history-count">
-        {registros.length.toLocaleString("pt-BR")} {registros.length === 1 ? "evento encontrado" : "eventos encontrados"}
+        {registros.length.toLocaleString("pt-BR")}{" "}
+        {registros.length === 1 ? "evento encontrado" : "eventos encontrados"}
       </div>
 
       <div className="audit-toolbar">
@@ -295,20 +312,41 @@ export function ListaAuditoria({
             </tbody>
           </table>
           {totalPaginas > 1 && (
-            <nav className="audit-pagination" aria-label="Paginação do histórico">
-              <button type="button" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={paginaAtual === 1}>‹ <span>Anterior</span></button>
+            <nav
+              className="audit-pagination"
+              aria-label="Paginação do histórico"
+            >
+              <button
+                type="button"
+                onClick={() => setPagina((p) => Math.max(1, p - 1))}
+                disabled={paginaAtual === 1}
+              >
+                ‹ <span>Anterior</span>
+              </button>
               <div className="audit-pagination-pages">
                 {paginasVisiveis.map((n, i) => {
                   const anterior = paginasVisiveis[i - 1];
                   return (
                     <span key={n} className="audit-pagination-slot">
                       {anterior && n - anterior > 1 && <i>…</i>}
-                      <button type="button" className={n === paginaAtual ? "active" : ""} onClick={() => setPagina(n)}>{n}</button>
+                      <button
+                        type="button"
+                        className={n === paginaAtual ? "active" : ""}
+                        onClick={() => setPagina(n)}
+                      >
+                        {n}
+                      </button>
                     </span>
                   );
                 })}
               </div>
-              <button type="button" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={paginaAtual === totalPaginas}><span>Próxima</span> ›</button>
+              <button
+                type="button"
+                onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+                disabled={paginaAtual === totalPaginas}
+              >
+                <span>Próxima</span> ›
+              </button>
               <div className="audit-pagination-meta">
                 <label>
                   <AppSelect
@@ -324,7 +362,9 @@ export function ListaAuditoria({
                     ]}
                   />
                 </label>
-                <span className="audit-pagination-count">Página {paginaAtual} de {totalPaginas}</span>
+                <span className="audit-pagination-count">
+                  Página {paginaAtual} de {totalPaginas}
+                </span>
               </div>
             </nav>
           )}

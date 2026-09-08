@@ -36,10 +36,7 @@ export async function handleDocumentosRoute({
     .first<{ id: number }>();
 
   if (!aluno) {
-    return Response.json(
-      { erro: "Aluno não encontrado." },
-      { status: 404 },
-    );
+    return Response.json({ erro: "Aluno não encontrado." }, { status: 404 });
   }
 
   await db

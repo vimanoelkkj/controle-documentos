@@ -20,7 +20,8 @@ function aplicarEdicaoMascarada(
     inicio < valorExibido.length &&
     inicio < mascaraAnterior.length &&
     valorExibido[inicio] === mascaraAnterior[inicio]
-  ) inicio++;
+  )
+    inicio++;
 
   let fimExibido = valorExibido.length;
   let fimAnterior = mascaraAnterior.length;
@@ -35,7 +36,10 @@ function aplicarEdicaoMascarada(
 
   const trechoDigitado = valorExibido.slice(inicio, fimExibido);
   return {
-    senha: senhaAtual.slice(0, inicio) + trechoDigitado + senhaAtual.slice(fimAnterior),
+    senha:
+      senhaAtual.slice(0, inicio) +
+      trechoDigitado +
+      senhaAtual.slice(fimAnterior),
     cursor: inicio + trechoDigitado.length,
   };
 }
@@ -53,7 +57,9 @@ export default function Login() {
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
-  const [dark, setDark] = useState(() => localStorage.getItem("tema-v3") === "dark");
+  const [dark, setDark] = useState(
+    () => localStorage.getItem("tema-v3") === "dark",
+  );
   const [loginLiberado, setLoginLiberado] = useState(false);
 
   // Mantém o campo readOnly no instante exato do foco (é quando o Chrome decide se
@@ -83,13 +89,19 @@ export default function Login() {
     fetch("/api/auth/bootstrap")
       .then(async (r) => {
         const text = await r.text();
-        return text ? JSON.parse(text) as { necessario?: boolean } : {};
+        return text ? (JSON.parse(text) as { necessario?: boolean }) : {};
       })
       .then((d) => setBootstrap(Boolean(d.necessario)))
       .catch(() => {});
   }, []);
 
-  if (carregando) return <><MockupStyle css={loginCss} /><div className="login-wrap">Carregando...</div></>;
+  if (carregando)
+    return (
+      <>
+        <MockupStyle css={loginCss} />
+        <div className="login-wrap">Carregando...</div>
+      </>
+    );
   if (usuario) return <Navigate to="/" replace />;
 
   async function enviar(e: FormEvent) {
@@ -115,7 +127,7 @@ export default function Login() {
         ),
       });
       const text = await r.text();
-      const d = text ? JSON.parse(text) as { erro?: string } : {};
+      const d = text ? (JSON.parse(text) as { erro?: string }) : {};
       if (!r.ok) throw new Error(d.erro || "Não foi possível entrar.");
       if (bootstrap) {
         setBootstrap(false);
@@ -138,20 +150,43 @@ export default function Login() {
       <div className="bg-blob" />
       <div className="login-wrap">
         <div className="theme-tabs" id="themeTabs">
-          <button className={`theme-tab${!dark ? " active" : ""}`} type="button" onClick={() => setDark(false)}>
-            <span className="t-icon">☀</span><span className="t-label">Claro</span>
+          <button
+            className={`theme-tab${!dark ? " active" : ""}`}
+            type="button"
+            onClick={() => setDark(false)}
+          >
+            <span className="t-icon">☀</span>
+            <span className="t-label">Claro</span>
           </button>
-          <button className={`theme-tab${dark ? " active" : ""}`} type="button" onClick={() => setDark(true)}>
-            <span className="t-icon">◐</span><span className="t-label">Escuro</span>
+          <button
+            className={`theme-tab${dark ? " active" : ""}`}
+            type="button"
+            onClick={() => setDark(true)}
+          >
+            <span className="t-icon">◐</span>
+            <span className="t-label">Escuro</span>
           </button>
         </div>
 
-        <div className="login-icon-wrap"><div className="login-icon">▤</div></div>
+        <div className="login-icon-wrap">
+          <div className="login-icon">▤</div>
+        </div>
         <div className="login-eyebrow">Controle de Documentos</div>
-        <h1 className="login-title">{bootstrap ? "Criar administrador" : "Bem-vindo de volta"}</h1>
-        <p className="login-sub">{bootstrap ? "Configure a primeira conta administrativa para começar." : "Acesse sua conta para continuar no sistema."}</p>
+        <h1 className="login-title">
+          {bootstrap ? "Criar administrador" : "Bem-vindo de volta"}
+        </h1>
+        <p className="login-sub">
+          {bootstrap
+            ? "Configure a primeira conta administrativa para começar."
+            : "Acesse sua conta para continuar no sistema."}
+        </p>
 
-        <form autoComplete="off" className="login-form" id="loginForm" onSubmit={enviar}>
+        <form
+          autoComplete="off"
+          className="login-form"
+          id="loginForm"
+          onSubmit={enviar}
+        >
           {/* Isca de autofill: o navegador ignora autocomplete="off"/"new-password" quando já existe
               uma credencial salva para esta origem e insiste em preencher (e pintar de amarelo) o
               primeiro campo de usuário que encontrar — damos a ele um campo de usuário escondido pra
@@ -165,18 +200,36 @@ export default function Login() {
             autoComplete="username"
             tabIndex={-1}
             aria-hidden="true"
-            style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: 0, border: 0, opacity: 0, pointerEvents: "none", left: -9999 }}
+            style={{
+              position: "absolute",
+              width: 1,
+              height: 1,
+              padding: 0,
+              margin: 0,
+              border: 0,
+              opacity: 0,
+              pointerEvents: "none",
+              left: -9999,
+            }}
           />
 
           {bootstrap && (
             <>
               <label className="field">
                 <span>Nome completo</span>
-                <input autoComplete="name" value={nome} onChange={(e) => setNome(e.target.value)} />
+                <input
+                  autoComplete="name"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                />
               </label>
               <label className="field">
                 <span>Nome de usuário</span>
-                <input autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                <input
+                  autoComplete="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
               </label>
             </>
           )}
@@ -217,25 +270,55 @@ export default function Login() {
                     setSenha(e.target.value);
                     return;
                   }
-                  const { senha: novaSenha, cursor } = aplicarEdicaoMascarada(senha, e.target.value);
+                  const { senha: novaSenha, cursor } = aplicarEdicaoMascarada(
+                    senha,
+                    e.target.value,
+                  );
                   cursorPendenteRef.current = cursor;
                   setSenha(novaSenha);
                 }}
               />
-              <a className="show-toggle" onClick={() => setMostrarSenha((v) => !v)}>{mostrarSenha ? "Ocultar" : "Mostrar"}</a>
+              <a
+                className="show-toggle"
+                onClick={() => setMostrarSenha((v) => !v)}
+              >
+                {mostrarSenha ? "Ocultar" : "Mostrar"}
+              </a>
             </div>
           </label>
 
           <div className="login-submit-row">
-            <span className={`login-error${erro ? " show" : ""}`} id="loginError">{erro || "Preencha os dois campos"}</span>
-            <button aria-label={bootstrap ? "Criar administrador" : "Entrar"} className={`login-submit${enviando ? " loading" : ""}`} type="submit" disabled={enviando}>
-              <span className="arrow">→</span><span className="spinner" />
+            <span
+              className={`login-error${erro ? " show" : ""}`}
+              id="loginError"
+            >
+              {erro || "Preencha os dois campos"}
+            </span>
+            <button
+              aria-label={bootstrap ? "Criar administrador" : "Entrar"}
+              className={`login-submit${enviando ? " loading" : ""}`}
+              type="submit"
+              disabled={enviando}
+            >
+              <span className="arrow">→</span>
+              <span className="spinner" />
             </button>
           </div>
-          <p className={`login-success${sucesso ? " show" : ""}`} id="loginSuccess">✓ {bootstrap ? "Administrador criado. Faça login para continuar." : "Acesso confirmado. Redirecionando…"}</p>
+          <p
+            className={`login-success${sucesso ? " show" : ""}`}
+            id="loginSuccess"
+          >
+            ✓{" "}
+            {bootstrap
+              ? "Administrador criado. Faça login para continuar."
+              : "Acesso confirmado. Redirecionando…"}
+          </p>
         </form>
 
-        <div className="login-footnote"><span className="dot" />Por segurança, a sessão é encerrada após 1 hora de inatividade.</div>
+        <div className="login-footnote">
+          <span className="dot" />
+          Por segurança, a sessão é encerrada após 1 hora de inatividade.
+        </div>
       </div>
     </>
   );

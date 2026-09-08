@@ -1454,8 +1454,10 @@ html[data-theme="black"] .conference-replica-document.delivered {
 /* Hover/focus/aberto: nada de caixa, fundo ou deslocamento */
 .period-toolbar--conference-replica .conference-replica-period-trigger:hover,
 .period-toolbar--conference-replica .conference-replica-period-trigger:focus,
-.period-toolbar--conference-replica .conference-replica-period-trigger:focus-visible,
-.period-toolbar--conference-replica .conference-replica-period-trigger[aria-expanded="true"],
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger:focus-visible,
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger[aria-expanded="true"],
 .period-toolbar--conference-replica .conference-replica-period-trigger:active {
   border: 0 !important;
   border-radius: 0 !important;
@@ -1474,9 +1476,12 @@ html[data-theme="black"] .conference-replica-document.delivered {
   color: #0b6df6 !important;
 }
 
-.period-toolbar--conference-replica .conference-replica-period-trigger:hover::after,
-.period-toolbar--conference-replica .conference-replica-period-trigger:focus-visible::after,
-.period-toolbar--conference-replica .conference-replica-period-trigger[aria-expanded="true"]::after {
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger:hover::after,
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger:focus-visible::after,
+.period-toolbar--conference-replica
+  .conference-replica-period-trigger[aria-expanded="true"]::after {
   background: #075bcf !important;
 }
 
@@ -1501,8 +1506,6 @@ html[data-theme="black"]
   .conference-replica-period-trigger::after {
   background: #4d9cff !important;
 }
-
-
 
 /* =========================================================
    V20.1 — resumo sem pill
@@ -1726,7 +1729,7 @@ html[data-theme="black"]
 .conference-replica-unit-filter .conference-unit-disclosure {
   will-change: opacity, transform !important;
   backface-visibility: hidden !important;
-  transform: translate3d(0, -3px, 0) scaleY(.985) !important;
+  transform: translate3d(0, -3px, 0) scaleY(0.985) !important;
 }
 
 .conference-replica-unit-filter.is-open .conference-unit-disclosure {
@@ -1762,7 +1765,7 @@ html[data-theme="black"]
   opacity: 0 !important;
   visibility: visible !important;
   pointer-events: none !important;
-  transform: translate3d(0, -4px, 0) scaleY(.985) !important;
+  transform: translate3d(0, -4px, 0) scaleY(0.985) !important;
 }
 
 /* A seta volta sem subir/descer. */
@@ -1793,8 +1796,6 @@ html[data-theme="black"]
   pointer-events: none !important;
 }
 
-
-
 /* v24-103 · impede seleção acidental de texto ao alternar documentos rapidamente */
 .conference-replica-document,
 .conference-replica-document * {
@@ -1807,7 +1808,6 @@ html[data-theme="black"]
   -webkit-tap-highlight-color: transparent;
 }
 
-
 /* =========================================================
    v24-104 · microinterações da Conferência
    Movimento curto, funcional e sem alterar a geometria.
@@ -1815,18 +1815,18 @@ html[data-theme="black"]
 
 .conference-replica-progress-track > span {
   transform-origin: left center;
-  transition: width 220ms cubic-bezier(.2,.8,.2,1) !important;
+  transition: width 220ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
   will-change: width;
 }
 
 .conference-replica-progress-count {
   display: inline-block;
-  animation: conference-count-pop 180ms cubic-bezier(.2,.8,.2,1);
+  animation: conference-count-pop 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .conference-replica-status-value {
   display: inline-block;
-  animation: conference-status-in 200ms cubic-bezier(.2,.8,.2,1);
+  animation: conference-status-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .conference-replica-document {
@@ -1844,15 +1844,15 @@ html[data-theme="black"]
   transition:
     color 180ms ease,
     opacity 180ms ease,
-    transform 180ms cubic-bezier(.2,.8,.2,1) !important;
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
 .conference-replica-document:active {
-  transform: scale(.997);
+  transform: scale(0.997);
 }
 
 .conference-replica-document.delivered .conference-replica-document-icon {
-  animation: conference-document-check 200ms cubic-bezier(.2,.8,.2,1);
+  animation: conference-document-check 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .conference-replica-document.delivered .conference-replica-document-state {
@@ -1876,8 +1876,8 @@ html[data-theme="black"]
 
 @keyframes conference-count-pop {
   0% {
-    opacity: .45;
-    transform: translateY(2px) scale(.96);
+    opacity: 0.45;
+    transform: translateY(2px) scale(0.96);
   }
   100% {
     opacity: 1;
@@ -1887,7 +1887,7 @@ html[data-theme="black"]
 
 @keyframes conference-status-in {
   0% {
-    opacity: .35;
+    opacity: 0.35;
     transform: translateY(2px);
   }
   100% {
@@ -1898,8 +1898,8 @@ html[data-theme="black"]
 
 @keyframes conference-document-check {
   0% {
-    opacity: .45;
-    transform: scale(.82);
+    opacity: 0.45;
+    transform: scale(0.82);
   }
   65% {
     transform: scale(1.08);
@@ -1912,7 +1912,7 @@ html[data-theme="black"]
 
 @keyframes conference-document-state-in {
   0% {
-    opacity: .4;
+    opacity: 0.4;
     transform: translateX(3px);
   }
   100% {
@@ -1980,7 +1980,6 @@ html[data-theme="black"] .conference-replica-score--complete {
   color: #4c9cff !important;
 }
 
-
 /* =========================================================
    v24-106 · legibilidade da Conferência nos temas escuros
    ========================================================= */
@@ -2020,10 +2019,18 @@ html[data-theme="black"] .conference-replica-document.delivered strong {
   color: #dceae2 !important;
 }
 
-html[data-theme="dark"] .conference-replica-document.delivered .conference-replica-document-icon,
-html[data-theme="dark"] .conference-replica-document.delivered .conference-replica-document-state,
-html[data-theme="black"] .conference-replica-document.delivered .conference-replica-document-icon,
-html[data-theme="black"] .conference-replica-document.delivered .conference-replica-document-state {
+html[data-theme="dark"]
+  .conference-replica-document.delivered
+  .conference-replica-document-icon,
+html[data-theme="dark"]
+  .conference-replica-document.delivered
+  .conference-replica-document-state,
+html[data-theme="black"]
+  .conference-replica-document.delivered
+  .conference-replica-document-icon,
+html[data-theme="black"]
+  .conference-replica-document.delivered
+  .conference-replica-document-state {
   color: #45c97a !important;
 }
 
@@ -2039,9 +2046,9 @@ html[data-theme="black"] .conference-replica-summary-badge.complete {
 }
 
 html[data-theme="dark"] .conference-replica-document.delivered {
-  background: rgba(28, 72, 49, .66) !important;
+  background: rgba(28, 72, 49, 0.66) !important;
 }
 
 html[data-theme="black"] .conference-replica-document.delivered {
-  background: rgba(20, 62, 40, .72) !important;
+  background: rgba(20, 62, 40, 0.72) !important;
 }

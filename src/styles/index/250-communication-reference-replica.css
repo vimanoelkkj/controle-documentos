@@ -43,7 +43,7 @@
   font-size: 28px;
   font-weight: 760;
   line-height: 1.15;
-  letter-spacing: -.025em;
+  letter-spacing: -0.025em;
 }
 
 .communication-header p {
@@ -106,7 +106,7 @@
 .communication-toolbar {
   width: min(760px, 100%);
   display: grid;
-  grid-template-columns: minmax(210px, .72fr) minmax(280px, 1.28fr);
+  grid-template-columns: minmax(210px, 0.72fr) minmax(280px, 1.28fr);
   gap: 18px;
   margin: 0 0 22px;
   padding: 0;
@@ -191,7 +191,7 @@
   color: var(--comm-muted);
   font-size: 10px;
   font-weight: 760;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .communication-panel-title strong {
@@ -226,7 +226,9 @@
   text-align: left;
   cursor: pointer;
   transform: none !important;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 .communication-group-card::before {
@@ -241,7 +243,7 @@
 }
 
 .communication-group-card:hover {
-  background: rgba(231, 241, 255, .52) !important;
+  background: rgba(231, 241, 255, 0.52) !important;
   transform: none !important;
 }
 
@@ -335,7 +337,7 @@
   font-size: 19px;
   font-weight: 760;
   line-height: 1.2;
-  letter-spacing: -.015em;
+  letter-spacing: -0.015em;
 }
 
 .communication-detail-header p {
@@ -380,7 +382,7 @@
   color: var(--comm-amber);
 }
 
-.communication-charge-summary span:nth-child(n+3) {
+.communication-charge-summary span:nth-child(n + 3) {
   background: #edf1f6;
   color: var(--comm-muted);
 }
@@ -412,7 +414,7 @@
   color: var(--comm-muted);
   font-size: 9.5px;
   font-weight: 760;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
 }
 
 .communication-actions strong,
@@ -475,7 +477,7 @@
 
 .communication-action-buttons button:disabled,
 .communication-select-actions button:disabled {
-  opacity: .42;
+  opacity: 0.42;
   cursor: default;
 }
 
@@ -524,7 +526,7 @@
 /* ---------- editor + alunos ---------- */
 .communication-content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(340px, .92fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
   gap: 34px;
   align-items: start;
   min-width: 0;
@@ -673,7 +675,7 @@
 
 .communication-students-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, .72fr);
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.72fr);
   gap: 14px;
   align-items: end;
   margin-bottom: 10px;
@@ -717,7 +719,7 @@
 }
 
 .communication-student:hover {
-  background: rgba(231, 241, 255, .38) !important;
+  background: rgba(231, 241, 255, 0.38) !important;
   border-radius: 7px;
 }
 
@@ -833,20 +835,20 @@
 /* ---------- dark/black: mantém a mesma gramática ---------- */
 html[data-theme="dark"] .communication-page,
 html[data-theme="black"] .communication-page {
-  --comm-surface-soft: rgba(255,255,255,.055);
-  --comm-surface-active: rgba(55,137,255,.13);
+  --comm-surface-soft: rgba(255, 255, 255, 0.055);
+  --comm-surface-active: rgba(55, 137, 255, 0.13);
   --comm-text: #e7eef8;
   --comm-muted: #9eacc0;
   --comm-faint: #7f90a7;
-  --comm-green-bg: rgba(35,148,84,.14);
-  --comm-amber-bg: rgba(210,146,24,.14);
+  --comm-green-bg: rgba(35, 148, 84, 0.14);
+  --comm-amber-bg: rgba(210, 146, 24, 0.14);
 }
 
 html[data-theme="dark"] .communication-mini-tags span,
 html[data-theme="dark"] .communication-tags span,
 html[data-theme="black"] .communication-mini-tags span,
 html[data-theme="black"] .communication-tags span {
-  background: rgba(255,255,255,.07);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 /* ---------- responsividade ---------- */
@@ -1069,7 +1071,7 @@ html[data-theme="black"] .communication-tags span {
 
 /* Editor e alunos começam na mesma linha */
 .communication-content-grid {
-  grid-template-columns: minmax(0, 1.05fr) minmax(410px, .95fr) !important;
+  grid-template-columns: minmax(0, 1.05fr) minmax(410px, 0.95fr) !important;
   gap: 42px !important;
   align-items: start !important;
 }
@@ -1353,7 +1355,7 @@ html[data-theme="black"] .communication-tags span {
 
 .communication-actions {
   display: grid !important;
-  grid-template-columns: minmax(300px, .8fr) minmax(0, 1.2fr) !important;
+  grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr) !important;
   gap: 24px !important;
   align-items: end !important;
 }
@@ -1371,7 +1373,7 @@ html[data-theme="black"] .communication-tags span {
 
 .communication-validation {
   display: grid !important;
-  grid-template-columns: minmax(260px, .7fr) minmax(0, 1.3fr) !important;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr) !important;
   gap: 24px !important;
   align-items: center !important;
 }
@@ -1385,7 +1387,7 @@ html[data-theme="black"] .communication-tags span {
 .communication-content-grid {
   width: min(1240px, 100%) !important;
   max-width: none !important;
-  grid-template-columns: minmax(0, 1.08fr) minmax(430px, .92fr) !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(430px, 0.92fr) !important;
   gap: 48px !important;
   align-items: start !important;
   margin-top: 0 !important;
@@ -1412,7 +1414,7 @@ html[data-theme="black"] .communication-tags span {
 }
 
 .communication-students-header {
-  grid-template-columns: minmax(0, 1fr) minmax(220px, .78fr) !important;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.78fr) !important;
   gap: 16px !important;
 }
 
@@ -1697,9 +1699,15 @@ html[data-theme="black"] .communication-group-count {
   color: #596b80 !important;
 }
 
-html[data-theme="light"] .communication-group-card.active .communication-group-count,
-html[data-theme="dark"] .communication-group-card.active .communication-group-count,
-html[data-theme="black"] .communication-group-card.active .communication-group-count {
+html[data-theme="light"]
+  .communication-group-card.active
+  .communication-group-count,
+html[data-theme="dark"]
+  .communication-group-card.active
+  .communication-group-count,
+html[data-theme="black"]
+  .communication-group-card.active
+  .communication-group-count {
   color: #0b6df6 !important;
 }
 
@@ -1809,7 +1817,7 @@ html[data-theme="black"] .communication-tags.has-priority span:not(.priority) {
   color: var(--comm-amber) !important;
 }
 
-.communication-charge-summary span:nth-child(n+3) {
+.communication-charge-summary span:nth-child(n + 3) {
   color: var(--comm-muted) !important;
 }
 
@@ -1977,12 +1985,24 @@ html[data-theme="black"] .communication-section-count {
 }
 
 /* Neutraliza variações de tema que poderiam reintroduzir fundos. */
-html[data-theme="light"] .communication-action-buttons .communication-outlook-button,
-html[data-theme="dark"] .communication-action-buttons .communication-outlook-button,
-html[data-theme="black"] .communication-action-buttons .communication-outlook-button,
-html[data-theme="light"] .communication-action-buttons .communication-register-button,
-html[data-theme="dark"] .communication-action-buttons .communication-register-button,
-html[data-theme="black"] .communication-action-buttons .communication-register-button,
+html[data-theme="light"]
+  .communication-action-buttons
+  .communication-outlook-button,
+html[data-theme="dark"]
+  .communication-action-buttons
+  .communication-outlook-button,
+html[data-theme="black"]
+  .communication-action-buttons
+  .communication-outlook-button,
+html[data-theme="light"]
+  .communication-action-buttons
+  .communication-register-button,
+html[data-theme="dark"]
+  .communication-action-buttons
+  .communication-register-button,
+html[data-theme="black"]
+  .communication-action-buttons
+  .communication-register-button,
 html[data-theme="light"] .communication-validation-items span,
 html[data-theme="dark"] .communication-validation-items span,
 html[data-theme="black"] .communication-validation-items span {
@@ -2198,7 +2218,10 @@ html[data-theme="black"] .communication-group-item:hover {
 
 /* V22.9 — remove definitivamente a faixa/card no rodapé da prévia */
 html[data-theme="light"] .communication-page .communication-email-body,
-html[data-theme="light"] .communication-page .communication-email-body p:last-child,
+html[data-theme="light"]
+  .communication-page
+  .communication-email-body
+  p:last-child,
 html[data-theme="light"] .communication-page .communication-email-body::before,
 html[data-theme="light"] .communication-page .communication-email-body::after {
   background: transparent !important;
@@ -2213,7 +2236,10 @@ html[data-theme="light"] .communication-page .communication-email-body::after {
   display: none !important;
 }
 
-html[data-theme="light"] .communication-page .communication-email-body p:last-child {
+html[data-theme="light"]
+  .communication-page
+  .communication-email-body
+  p:last-child {
   padding-bottom: 0 !important;
   margin-bottom: 0 !important;
 }
@@ -2223,7 +2249,7 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
    ========================================================= */
 .communication-detail-top {
   display: grid !important;
-  grid-template-columns: minmax(0, 1.25fr) minmax(360px, .95fr) !important;
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.95fr) !important;
   gap: 42px !important;
   align-items: start !important;
   width: 100% !important;
@@ -2310,7 +2336,10 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
    3) histórico ocupando a grande área vazia da direita. */
 .communication-detail-top {
   display: grid !important;
-  grid-template-columns: minmax(560px, 760px) minmax(80px, 1fr) minmax(620px, 760px) !important;
+  grid-template-columns: minmax(560px, 760px) minmax(80px, 1fr) minmax(
+      620px,
+      760px
+    ) !important;
   gap: 0 !important;
   align-items: start !important;
   width: 100% !important;
@@ -2934,7 +2963,7 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
 }
 
 .communication-unit-filter .conference-replica-chevron {
-  transition: transform 150ms cubic-bezier(.2, .8, .2, 1) !important;
+  transition: transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
 /* Wrapper sempre montado: fechado ocupa 0px, aberto cresce suavemente. */
@@ -2950,11 +2979,11 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
   pointer-events: none !important;
   transform: translateY(-4px) !important;
   transition:
-    grid-template-rows 170ms cubic-bezier(.2, .8, .2, 1),
+    grid-template-rows 170ms cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 120ms ease,
-    transform 170ms cubic-bezier(.2, .8, .2, 1),
+    transform 170ms cubic-bezier(0.2, 0.8, 0.2, 1),
     visibility 0s linear 170ms,
-    padding 170ms cubic-bezier(.2, .8, .2, 1) !important;
+    padding 170ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
 .communication-unit-filter.is-open .communication-unit-disclosure {
@@ -2965,11 +2994,11 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
   pointer-events: auto !important;
   transform: translateY(0) !important;
   transition:
-    grid-template-rows 170ms cubic-bezier(.2, .8, .2, 1),
+    grid-template-rows 170ms cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 110ms ease,
-    transform 170ms cubic-bezier(.2, .8, .2, 1),
+    transform 170ms cubic-bezier(0.2, 0.8, 0.2, 1),
     visibility 0s linear 0s,
-    padding 170ms cubic-bezier(.2, .8, .2, 1) !important;
+    padding 170ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
 .communication-unit-disclosure-inner {
@@ -3012,9 +3041,9 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
   pointer-events: none !important;
   transform: none !important;
   transition:
-    max-height 135ms cubic-bezier(.2, .8, .2, 1),
+    max-height 135ms cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 80ms linear,
-    padding 135ms cubic-bezier(.2, .8, .2, 1) !important;
+    padding 135ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
   will-change: max-height, opacity !important;
 }
 
@@ -3047,7 +3076,7 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
   line-height: 0 !important;
   transform: rotate(0deg) !important;
   transform-origin: 50% 50% !important;
-  transition: transform 125ms cubic-bezier(.2, .8, .2, 1) !important;
+  transition: transform 125ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
 .communication-unit-filter .communication-unit-chevron::before {
@@ -3187,7 +3216,7 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
   opacity: 0 !important;
   visibility: visible !important;
   pointer-events: none !important;
-  transform: translate3d(0, -4px, 0) scaleY(.985) !important;
+  transform: translate3d(0, -4px, 0) scaleY(0.985) !important;
 }
 
 .communication-unit-filter.is-open.is-closing .communication-unit-chevron {
@@ -3232,7 +3261,6 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
   overflow-anchor: none !important;
 }
 
-
 /* =========================================================
    V24.23 — tipografia da Comunicação = Conferência
    ========================================================= */
@@ -3242,7 +3270,13 @@ html[data-theme="light"] .communication-page .communication-email-body p:last-ch
 .communication-page select,
 .communication-page textarea,
 .communication-page [role="combobox"] {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif !important;
 }
 
 .communication-toolbar label,

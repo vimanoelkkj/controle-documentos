@@ -91,7 +91,11 @@ export function FormNovoUsuario({
           />
 
           {emailFocado && (
-            <div className="settings-email-suggestions" role="listbox" aria-label="Sugestões de domínio de e-mail">
+            <div
+              className="settings-email-suggestions"
+              role="listbox"
+              aria-label="Sugestões de domínio de e-mail"
+            >
               {sugestoesEmail.map((sugestao) => (
                 <button
                   key={sugestao}
@@ -157,7 +161,11 @@ export function FormNovoUsuario({
         />
       </label>
 
-      {erro && <div className="settings-user-inline-error" role="alert">{erro}</div>}
+      {erro && (
+        <div className="settings-user-inline-error" role="alert">
+          {erro}
+        </div>
+      )}
 
       <button type="submit">Criar usuário</button>
     </form>

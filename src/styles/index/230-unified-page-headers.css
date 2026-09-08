@@ -81,7 +81,6 @@
   }
 }
 
-
 /* =========================================================
    Estado de carregamento unificado
    Mesmo eixo e largura do cabeçalho global, sem card gigante.
@@ -125,7 +124,7 @@
   border: 3px solid #dbeafe;
   border-top-color: #2563eb;
   border-radius: 50%;
-  animation: unified-page-loading-spin .8s linear infinite;
+  animation: unified-page-loading-spin 0.8s linear infinite;
 }
 
 .page-loading-state > strong {
@@ -152,7 +151,9 @@
 }
 
 @keyframes unified-page-loading-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 html[data-theme="dark"] .page-loading-state {

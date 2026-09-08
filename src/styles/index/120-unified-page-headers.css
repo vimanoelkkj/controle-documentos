@@ -23,7 +23,7 @@
   border: 1px solid #223744;
   border-radius: 14px;
   background: #101a23;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 /* Conferência não possui bloco lateral: mantém todo o texto agrupado à esquerda. */
@@ -32,105 +32,112 @@
 }
 
 :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) h1 {
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  h1 {
   margin: 0;
   font-size: clamp(28px, 2.2vw, 34px);
   line-height: 1.08;
 }
 
 :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) .page-title-row {
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  .page-title-row {
   gap: 11px;
   margin: 5px 0 0;
 }
 
 :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) .page-title-icon {
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  .page-title-icon {
   width: 40px;
   height: 40px;
 }
 
 :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) > div:first-child > span,
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  > div:first-child
+  > span,
 :is(.conference-page, .audit-page, .log-page) > .page-header > span {
   display: block;
   margin: 0;
   font-size: 11px;
   font-weight: 900;
   line-height: 1.2;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
 }
 
 :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) p {
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  p {
   max-width: 780px;
   margin: 7px 0 0;
   font-size: 13px;
   line-height: 1.5;
 }
 
-html[data-theme="light"] :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) {
+html[data-theme="light"]
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  ) {
   border-color: var(--cds-border);
   background: var(--cds-surface-2);
   box-shadow: none;
@@ -141,34 +148,41 @@ html[data-theme="light"] :is(
    em caixa alta ("FLUXO DE TRABALHO" etc) acima do título — só ícone,
    título e descrição. Escondo em vez de apagar do JSX porque é
    reversível e não obriga a mexer em 10 arquivos de página. */
-html[data-theme="light"] :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) > div:first-child > span,
-html[data-theme="light"] :is(.conference-page, .audit-page, .log-page) > .page-header > span {
+html[data-theme="light"]
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  > div:first-child
+  > span,
+html[data-theme="light"]
+  :is(.conference-page, .audit-page, .log-page)
+  > .page-header
+  > span {
   display: none;
 }
 
-html[data-theme="black"] :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) {
+html[data-theme="black"]
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  ) {
   border-color: #292929;
   background: #090909;
   box-shadow: none;
@@ -212,83 +226,89 @@ html[data-theme="black"] :is(
   --page-header-description: #8196a4;
 }
 
-html[data-theme="light"] :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) {
+html[data-theme="light"]
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  ) {
   --page-header-title: var(--cds-text-primary);
   --page-header-eyebrow: var(--cds-accent);
   --page-header-description: var(--cds-text-secondary);
 }
 
-html[data-theme="black"] :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) {
+html[data-theme="black"]
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  ) {
   --page-header-title: #f2f2f2;
   --page-header-eyebrow: #b8b8b8;
   --page-header-description: #a0a0a0;
 }
 
 :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) h1 {
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  h1 {
   color: var(--page-header-title) !important;
 }
 
 :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) > div:first-child > span,
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  > div:first-child
+  > span,
 :is(.conference-page, .audit-page, .log-page) > .page-header > span {
   color: var(--page-header-eyebrow) !important;
 }
 
 :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) p {
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  p {
   color: var(--page-header-description) !important;
 }
 
@@ -325,7 +345,9 @@ html[data-theme="light"] .google-sheets-status--nao-conectado:hover {
   background: var(--cds-surface-1);
 }
 
-html[data-theme="light"] .google-sheets-status--nao-conectado .google-sheets-status-dot {
+html[data-theme="light"]
+  .google-sheets-status--nao-conectado
+  .google-sheets-status-dot {
   background: #d83d48;
 }
 
@@ -334,50 +356,55 @@ html[data-theme="light"] .google-sheets-status--nao-conectado .google-sheets-sta
    vazio a direita. Titulo maior/mais peso + banner mais baixo reduzem
    essa sensacao, mesmo com a largura total da pagina bem maior que a
    do card estreito usado no mockup de referencia. */
-html[data-theme="light"] :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) {
+html[data-theme="light"]
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  ) {
   min-height: 92px;
   padding: 20px 26px;
 }
 
-html[data-theme="light"] :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) h1 {
+html[data-theme="light"]
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  h1 {
   font-size: clamp(26px, 2vw, 32px) !important;
   font-weight: 700 !important;
 }
 
-html[data-theme="light"] :is(
-  .dashboard-page > .dashboard-hero,
-  .conference-page > .page-header,
-  .communication-page > .communication-header,
-  .audit-page > .page-header,
-  .statistics-page > .statistics-hero,
-  .log-page > .page-header,
-  .period-page > .period-hero,
-  .courses-page > .courses-header,
-  .settings-page > .settings-header,
-  .about-page > .about-hero
-) .page-title-icon {
+html[data-theme="light"]
+  :is(
+    .dashboard-page > .dashboard-hero,
+    .conference-page > .page-header,
+    .communication-page > .communication-header,
+    .audit-page > .page-header,
+    .statistics-page > .statistics-hero,
+    .log-page > .page-header,
+    .period-page > .period-hero,
+    .courses-page > .courses-header,
+    .settings-page > .settings-header,
+    .about-page > .about-hero
+  )
+  .page-title-icon {
   width: 44px;
   height: 44px;
 }

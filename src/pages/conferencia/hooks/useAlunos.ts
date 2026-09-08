@@ -16,44 +16,47 @@ export function useAlunos() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
-  const carregarAlunos = useCallback(async (
+  const carregarAlunos = useCallback(
+    async (
       raParaSelecionar: string | undefined,
       unidadeFiltro: Unidade | "",
       statusFiltro: FiltroStatus,
     ) => {
-    try {
-      setCarregando(true);
-      setErro("");
+      try {
+        setCarregando(true);
+        setErro("");
 
-      const dados = await api.get<AlunoApi[]>("/api/alunos");
-      const alunosConvertidos = converterAlunosApi(dados);
+        const dados = await api.get<AlunoApi[]>("/api/alunos");
+        const alunosConvertidos = converterAlunosApi(dados);
 
-      setAlunosSalvos(clonarAlunos(alunosConvertidos));
-      setAlunosEmEdicao(clonarAlunos(alunosConvertidos));
+        setAlunosSalvos(clonarAlunos(alunosConvertidos));
+        setAlunosEmEdicao(clonarAlunos(alunosConvertidos));
 
-      const pertenceAoFiltroAtual = (aluno: Aluno) =>
-        aluno.unidade === unidadeFiltro &&
-        (statusFiltro === "TODOS" || aluno.status === statusFiltro);
+        const pertenceAoFiltroAtual = (aluno: Aluno) =>
+          aluno.unidade === unidadeFiltro &&
+          (statusFiltro === "TODOS" || aluno.status === statusFiltro);
 
-      if (raParaSelecionar) {
-        const alunoSolicitado = alunosConvertidos.find(
-          (aluno) => aluno.ra === raParaSelecionar,
-        );
+        if (raParaSelecionar) {
+          const alunoSolicitado = alunosConvertidos.find(
+            (aluno) => aluno.ra === raParaSelecionar,
+          );
 
-        if (alunoSolicitado && pertenceAoFiltroAtual(alunoSolicitado)) {
-          setRaSelecionado(raParaSelecionar);
-          return;
+          if (alunoSolicitado && pertenceAoFiltroAtual(alunoSolicitado)) {
+            setRaSelecionado(raParaSelecionar);
+            return;
+          }
         }
-      }
 
-      setRaSelecionado("");
-    } catch (erro) {
-      console.error(erro);
-      setErro("Não foi possível carregar os alunos.");
-    } finally {
-      setCarregando(false);
-    }
-    }, []);
+        setRaSelecionado("");
+      } catch (erro) {
+        console.error(erro);
+        setErro("Não foi possível carregar os alunos.");
+      } finally {
+        setCarregando(false);
+      }
+    },
+    [],
+  );
 
   return {
     alunosSalvos,

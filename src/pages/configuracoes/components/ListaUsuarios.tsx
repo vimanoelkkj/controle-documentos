@@ -23,7 +23,9 @@ export function ListaUsuarios({
         <div>
           <span className="settings-section-eyebrow">ACESSO</span>
           <h2>Usuários</h2>
-          <span className="settings-users-count">{usuarios.length} usuários cadastrados</span>
+          <span className="settings-users-count">
+            {usuarios.length} usuários cadastrados
+          </span>
         </div>
       </div>
 

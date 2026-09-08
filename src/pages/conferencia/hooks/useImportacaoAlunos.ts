@@ -26,8 +26,9 @@ export function useImportacaoAlunos({
   const [modoImportacao, setModoImportacao] = useState<"colar" | "csv">(
     "colar",
   );
-  const [unidadeImportacao, setUnidadeImportacao] =
-    useState<Unidade | "">(unidadeInicial);
+  const [unidadeImportacao, setUnidadeImportacao] = useState<Unidade | "">(
+    unidadeInicial,
+  );
   const [textoImportacao, setTextoImportacao] = useState("");
   const [arquivoImportacao, setArquivoImportacao] = useState("");
   const [previaImportacao, setPreviaImportacao] = useState<
@@ -147,7 +148,9 @@ export function useImportacaoAlunos({
     }
 
     const alunos: AlunoImportacao[] = previaImportacao
-      .filter((aluno) => aluno.status === "valido" || aluno.status === "alterado")
+      .filter(
+        (aluno) => aluno.status === "valido" || aluno.status === "alterado",
+      )
       .map((aluno) => ({
         ra: aluno.ra,
         nome: aluno.nome,
@@ -173,7 +176,9 @@ export function useImportacaoAlunos({
       });
       const dados = (await resposta.json()) as ResultadoImportacao;
       if (!resposta.ok) {
-        throw new Error(dados.erro || "Não foi possível sincronizar os alunos.");
+        throw new Error(
+          dados.erro || "Não foi possível sincronizar os alunos.",
+        );
       }
 
       setResultadoImportacao(dados);

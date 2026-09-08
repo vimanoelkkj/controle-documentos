@@ -541,7 +541,9 @@ html[data-theme="light"] .audit-outbox-head button.audit-outbox-send {
   background: #198754;
 }
 
-html[data-theme="light"] .audit-outbox-head button.audit-outbox-send:hover:not(:disabled) {
+html[data-theme="light"]
+  .audit-outbox-head
+  button.audit-outbox-send:hover:not(:disabled) {
   color: #fff;
   border-color: #12653d;
   background: #146c43;
@@ -705,7 +707,13 @@ html[data-theme="light"] .audit-sync-confirm input {
    V24.23 — Auditoria alinhada à linguagem da Conferência
    ========================================================= */
 .audit-page {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 /* Ações da página: links/botões flat, sem caixas. */
@@ -720,7 +728,10 @@ html[data-theme="light"] .audit-sync-confirm input {
   background: transparent !important;
   box-shadow: none !important;
   color: #0b6df6 !important;
-  font: 650 13px/1 "Inter", system-ui, sans-serif !important;
+  font:
+    650 13px/1 "Inter",
+    system-ui,
+    sans-serif !important;
 }
 
 .audit-outbox-head .audit-outbox-send {
@@ -731,19 +742,25 @@ html[data-theme="light"] .audit-sync-confirm input {
 .audit-consistency-head button:hover:not(:disabled),
 .audit-outbox-head button:hover:not(:disabled) {
   background: transparent !important;
-  filter: brightness(.82);
+  filter: brightness(0.82);
 }
 
 /* Números: mesmo tratamento tipográfico dos indicadores novos. */
 .audit-outbox-summary strong,
 .audit-summary strong {
-  font: 700 28px/1.05 "Inter", system-ui, sans-serif !important;
+  font:
+    700 28px/1.05 "Inter",
+    system-ui,
+    sans-serif !important;
   letter-spacing: -0.035em;
 }
 
 .audit-outbox-summary span,
 .audit-summary span {
-  font: 500 13px/1.25 "Inter", system-ui, sans-serif !important;
+  font:
+    500 13px/1.25 "Inter",
+    system-ui,
+    sans-serif !important;
   letter-spacing: 0 !important;
 }
 
@@ -758,18 +775,24 @@ html[data-theme="light"] .audit-sync-confirm input {
   background-color: #eef3f8 !important;
   color: #1f2c3e !important;
   box-shadow: none !important;
-  font: 500 13px/1 "Inter", sans-serif !important;
+  font:
+    500 13px/1 "Inter",
+    sans-serif !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2377869a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: 13px center !important;
 }
 
-.audit-toolbar input[type="search"]:hover { background-color: #eaf1f7 !important; }
+.audit-toolbar input[type="search"]:hover {
+  background-color: #eaf1f7 !important;
+}
 .audit-toolbar input[type="search"]:focus {
   background-color: #e8f1fb !important;
-  box-shadow: inset 0 0 0 1px rgba(11,109,246,.18) !important;
+  box-shadow: inset 0 0 0 1px rgba(11, 109, 246, 0.18) !important;
 }
-.audit-toolbar input[type="search"]::placeholder { color: #8a98aa !important; }
+.audit-toolbar input[type="search"]::placeholder {
+  color: #8a98aa !important;
+}
 
 html[data-theme="light"] .audit-toolbar input[type="search"] {
   border: 0 !important;
@@ -785,7 +808,6 @@ html[data-theme="light"] .audit-toolbar input[type="search"] {
   font-family: "Inter", system-ui, sans-serif !important;
   font-weight: 500;
 }
-
 
 /* V24.24 — filtro de ações com o mesmo disclosure visual da Conferência */
 .audit-toolbar .audit-action-filter {
@@ -810,17 +832,27 @@ html[data-theme="light"] .audit-toolbar input[type="search"] {
   scrollbar-color: #b5c3cf transparent;
 }
 
-.audit-toolbar .audit-action-disclosure .conference-unit-disclosure-inner::-webkit-scrollbar {
+.audit-toolbar
+  .audit-action-disclosure
+  .conference-unit-disclosure-inner::-webkit-scrollbar {
   width: 5px;
 }
 
-.audit-toolbar .audit-action-disclosure .conference-unit-disclosure-inner::-webkit-scrollbar-thumb {
+.audit-toolbar
+  .audit-action-disclosure
+  .conference-unit-disclosure-inner::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: #b5c3cf;
 }
 
-html[data-theme="dark"] .audit-toolbar .audit-action-disclosure .conference-unit-disclosure-inner,
-html[data-theme="black"] .audit-toolbar .audit-action-disclosure .conference-unit-disclosure-inner {
+html[data-theme="dark"]
+  .audit-toolbar
+  .audit-action-disclosure
+  .conference-unit-disclosure-inner,
+html[data-theme="black"]
+  .audit-toolbar
+  .audit-action-disclosure
+  .conference-unit-disclosure-inner {
   scrollbar-color: #526473 transparent;
 }
 
@@ -860,13 +892,15 @@ html[data-theme="black"] .audit-toolbar .audit-action-disclosure .conference-uni
   transform: translate3d(0, 0, 0) scaleY(1) !important;
 }
 
-.audit-toolbar .audit-action-filter.is-open.is-closing .audit-action-disclosure {
+.audit-toolbar
+  .audit-action-filter.is-open.is-closing
+  .audit-action-disclosure {
   max-height: none !important;
   padding: 2px 7px 8px !important;
   opacity: 0 !important;
   visibility: visible !important;
   pointer-events: none !important;
-  transform: translate3d(0, -4px, 0) scaleY(.985) !important;
+  transform: translate3d(0, -4px, 0) scaleY(0.985) !important;
 }
 
 .audit-toolbar .audit-action-filter:not(.is-open) .audit-action-disclosure {
@@ -878,7 +912,7 @@ html[data-theme="black"] .audit-toolbar .audit-action-disclosure .conference-uni
   visibility: hidden !important;
   pointer-events: none !important;
   overflow: hidden !important;
-  transform: translate3d(0, -3px, 0) scaleY(.985) !important;
+  transform: translate3d(0, -3px, 0) scaleY(0.985) !important;
 }
 
 /* O menu fica por cima do cabeçalho/lista em vez de alterar a altura do layout. */
@@ -1085,7 +1119,10 @@ html[data-theme="black"] .audit-toolbar .audit-action-disclosure .conference-uni
 
 .audit-pending-head > strong {
   color: #536f81;
-  font: 750 0.7rem/1 "Inter", system-ui, sans-serif;
+  font:
+    750 0.7rem/1 "Inter",
+    system-ui,
+    sans-serif;
   letter-spacing: 0.045em;
 }
 
@@ -1103,7 +1140,10 @@ html[data-theme="black"] .audit-toolbar .audit-action-disclosure .conference-uni
   background: transparent !important;
   box-shadow: none !important;
   color: #0b6df6 !important;
-  font: 650 12px/1 "Inter", system-ui, sans-serif !important;
+  font:
+    650 12px/1 "Inter",
+    system-ui,
+    sans-serif !important;
   cursor: pointer;
 }
 
@@ -1112,12 +1152,12 @@ html[data-theme="black"] .audit-toolbar .audit-action-disclosure .conference-uni
 }
 
 .audit-pending .audit-outbox-actions button:hover:not(:disabled) {
-  filter: brightness(.82);
+  filter: brightness(0.82);
 }
 
 .audit-pending .audit-outbox-actions button:disabled {
   cursor: wait;
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .audit-outbox-list {
@@ -1137,12 +1177,12 @@ html[data-theme="black"] .audit-toolbar .audit-action-disclosure .conference-uni
 }
 
 html[data-theme="light"] .audit-outbox-list article:hover {
-  background: rgba(226, 235, 243, .5);
+  background: rgba(226, 235, 243, 0.5);
 }
 
 html[data-theme="dark"] .audit-outbox-list article:hover,
 html[data-theme="black"] .audit-outbox-list article:hover {
-  background: rgba(70, 96, 114, .12);
+  background: rgba(70, 96, 114, 0.12);
 }
 
 .audit-outbox-list article > div {
@@ -1169,28 +1209,28 @@ html[data-theme="black"] .audit-outbox-list article:hover {
 
 .audit-outbox-operation.atualizar {
   color: #0b6df6;
-  background: rgba(11, 109, 246, .09);
+  background: rgba(11, 109, 246, 0.09);
 }
 
 .audit-outbox-operation.remover {
   color: #c62845;
-  background: rgba(198, 40, 69, .09);
+  background: rgba(198, 40, 69, 0.09);
 }
 
 .audit-outbox-state.pendente {
   color: #a86700;
-  background: rgba(245, 158, 11, .14);
+  background: rgba(245, 158, 11, 0.14);
 }
 
 .audit-outbox-state.enviando {
   color: #0b6df6;
-  background: rgba(11, 109, 246, .09);
+  background: rgba(11, 109, 246, 0.09);
 }
 
 .audit-outbox-state.conflito,
 .audit-outbox-state.erro {
   color: #c62845;
-  background: rgba(198, 40, 69, .09);
+  background: rgba(198, 40, 69, 0.09);
 }
 
 /* Histórico compacto: indicadores + filtros próximos da tabela. */
@@ -1318,20 +1358,34 @@ html[data-theme="black"] .audit-outbox-list article:hover {
 
 .audit-changes-layout .audit-outbox-summary article span {
   min-width: 74px;
-  font: 500 0.74rem/1.2 "Inter", system-ui, sans-serif;
+  font:
+    500 0.74rem/1.2 "Inter",
+    system-ui,
+    sans-serif;
   color: #6f8497;
 }
 
 .audit-changes-layout .audit-outbox-summary article strong {
-  font: 700 1.15rem/1 "Inter", system-ui, sans-serif;
+  font:
+    700 1.15rem/1 "Inter",
+    system-ui,
+    sans-serif;
   color: #60a5fa;
 }
 
-.audit-changes-layout .audit-outbox-summary article.remove strong { color: #34d399; }
-.audit-changes-layout .audit-outbox-summary article.warning strong { color: #f59e0b; }
-.audit-changes-layout .audit-outbox-summary article.danger strong { color: #1f2f3d; }
+.audit-changes-layout .audit-outbox-summary article.remove strong {
+  color: #34d399;
+}
+.audit-changes-layout .audit-outbox-summary article.warning strong {
+  color: #f59e0b;
+}
+.audit-changes-layout .audit-outbox-summary article.danger strong {
+  color: #1f2f3d;
+}
 
-.audit-table-wrap { overflow: visible; }
+.audit-table-wrap {
+  overflow: visible;
+}
 
 .audit-pagination {
   display: flex;
@@ -1351,22 +1405,57 @@ html[data-theme="black"] .audit-outbox-list article:hover {
   border-radius: 7px;
   background: transparent;
   color: #50677b;
-  font: 500 0.74rem/1 "Inter", system-ui, sans-serif;
+  font:
+    500 0.74rem/1 "Inter",
+    system-ui,
+    sans-serif;
   cursor: pointer;
 }
 .audit-pagination > button:hover:not(:disabled),
-.audit-pagination-pages button:hover { background: rgba(96,165,250,.09); color: #0b6df6; }
-.audit-pagination > button:disabled { opacity: .35; cursor: default; }
-.audit-pagination-pages { display: flex; align-items: center; gap: 4px; }
-.audit-pagination-slot { display: inline-flex; align-items: center; gap: 4px; }
-.audit-pagination-slot i { color: #8296a8; font-style: normal; }
-.audit-pagination-pages button.active { background: rgba(96,165,250,.14); color: #0b6df6; font-weight: 700; }
-.audit-pagination-count { margin-left: auto; color: #8296a8; font-size: .72rem; }
+.audit-pagination-pages button:hover {
+  background: rgba(96, 165, 250, 0.09);
+  color: #0b6df6;
+}
+.audit-pagination > button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.audit-pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.audit-pagination-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.audit-pagination-slot i {
+  color: #8296a8;
+  font-style: normal;
+}
+.audit-pagination-pages button.active {
+  background: rgba(96, 165, 250, 0.14);
+  color: #0b6df6;
+  font-weight: 700;
+}
+.audit-pagination-count {
+  margin-left: auto;
+  color: #8296a8;
+  font-size: 0.72rem;
+}
 
 @media (max-width: 900px) {
-  .audit-changes-layout { grid-template-columns: 1fr; gap: 12px; }
-  .audit-changes-layout .audit-outbox-summary { padding-top: 0; }
-  .audit-pagination-count { display: none; }
+  .audit-changes-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .audit-changes-layout .audit-outbox-summary {
+    padding-top: 0;
+  }
+  .audit-pagination-count {
+    display: none;
+  }
 }
 
 /* =========================================================
@@ -1408,12 +1497,18 @@ html[data-theme="black"] .audit-outbox-list article:hover {
 .audit-changes-layout .audit-outbox-summary article span {
   min-width: 92px;
   color: #6f8497;
-  font: 500 .74rem/1.2 "Inter", system-ui, sans-serif;
+  font:
+    500 0.74rem/1.2 "Inter",
+    system-ui,
+    sans-serif;
 }
 
 .audit-changes-layout .audit-outbox-summary article strong {
-  font: 700 1.18rem/1 "Inter", system-ui, sans-serif !important;
-  letter-spacing: -.025em;
+  font:
+    700 1.18rem/1 "Inter",
+    system-ui,
+    sans-serif !important;
+  letter-spacing: -0.025em;
 }
 
 .audit-consistency-compact {
@@ -1431,27 +1526,42 @@ html[data-theme="black"] .audit-outbox-list article:hover {
   border-radius: 0;
   background: transparent;
   color: #0b6df6;
-  font: 650 12px/1 "Inter", system-ui, sans-serif;
+  font:
+    650 12px/1 "Inter",
+    system-ui,
+    sans-serif;
   cursor: pointer;
 }
 
-.audit-verify-link:hover:not(:disabled) { filter: brightness(.82); }
-.audit-verify-link:disabled { opacity: .55; cursor: wait; }
+.audit-verify-link:hover:not(:disabled) {
+  filter: brightness(0.82);
+}
+.audit-verify-link:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
 
 .audit-consistency-compact .audit-consistency-error {
   padding: 0;
   color: #d83a32;
-  font: 500 .73rem/1.45 "Inter", system-ui, sans-serif;
+  font:
+    500 0.73rem/1.45 "Inter",
+    system-ui,
+    sans-serif;
 }
 
 .audit-consistency-result {
   display: grid;
   gap: 3px;
   color: #18794e;
-  font-size: .72rem;
+  font-size: 0.72rem;
 }
-.audit-consistency-result.blocked { color: #b42318; }
-.audit-consistency-result span { color: #71879a; }
+.audit-consistency-result.blocked {
+  color: #b42318;
+}
+.audit-consistency-result span {
+  color: #71879a;
+}
 
 .audit-pending {
   min-width: 0;
@@ -1518,7 +1628,10 @@ html[data-theme="black"] .audit-outbox-list article:hover {
   background: transparent !important;
   box-shadow: none !important;
   color: #536f81;
-  font: 550 .74rem/1 "Inter", system-ui, sans-serif;
+  font:
+    550 0.74rem/1 "Inter",
+    system-ui,
+    sans-serif;
 }
 
 .audit-pagination > button:hover:not(:disabled),
@@ -1555,16 +1668,21 @@ html[data-theme="black"] .audit-outbox-list article:hover {
   border: 0;
   border-radius: 0;
   outline: 0;
-  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23536f81' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right center;
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23536f81' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right center;
   color: #263946;
-  font: 600 .72rem/1 "Inter", system-ui, sans-serif;
+  font:
+    600 0.72rem/1 "Inter",
+    system-ui,
+    sans-serif;
   cursor: pointer;
 }
 
 .audit-pagination-count {
   margin-left: 0 !important;
   color: #536f81;
-  font-size: .72rem;
+  font-size: 0.72rem;
   white-space: nowrap;
 }
 
@@ -1620,7 +1738,6 @@ html[data-theme="black"] .audit-pagination-meta select {
   }
 }
 
-
 /* v24-34: histórico sem métricas, contador discreto no padrão da Conferência */
 .audit-history-count {
   color: #6f849c;
@@ -1672,7 +1789,6 @@ html[data-theme="black"] .audit-history-count {
   }
 }
 
-
 /* =========================================================
    V24.37 — resumo reduzido: pendências como indicador principal
    ========================================================= */
@@ -1690,12 +1806,12 @@ html[data-theme="black"] .audit-history-count {
 .audit-changes-layout .audit-outbox-summary article strong {
   min-width: 0;
   font-size: 2rem !important;
-  line-height: .9 !important;
+  line-height: 0.9 !important;
   letter-spacing: -0.055em;
 }
 
 .audit-changes-layout .audit-outbox-summary article span {
-  font-size: .78rem;
+  font-size: 0.78rem;
   line-height: 1.2;
 }
 
@@ -1745,14 +1861,20 @@ html[data-theme="black"] .audit-history-count {
 
 .audit-pending-title > strong {
   color: #536f81;
-  font: 750 .7rem/1 "Inter", system-ui, sans-serif;
-  letter-spacing: .045em;
+  font:
+    750 0.7rem/1 "Inter",
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.045em;
 }
 
 .audit-pending-count {
   color: #d88600;
-  font: 800 1rem/1 "Inter", system-ui, sans-serif;
-  letter-spacing: -.025em;
+  font:
+    800 1rem/1 "Inter",
+    system-ui,
+    sans-serif;
+  letter-spacing: -0.025em;
 }
 
 .audit-outbox-list article {
@@ -1790,7 +1912,10 @@ html[data-theme="black"] .audit-history-count {
   background: transparent !important;
   box-shadow: none !important;
   color: #0b6df6 !important;
-  font: 650 12px/1 "Inter", system-ui, sans-serif !important;
+  font:
+    650 12px/1 "Inter",
+    system-ui,
+    sans-serif !important;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -1801,12 +1926,12 @@ html[data-theme="black"] .audit-history-count {
 
 .audit-integrity-actions button:hover:not(:disabled),
 .audit-integrity-actions .audit-verify-link:hover:not(:disabled) {
-  filter: brightness(.82);
+  filter: brightness(0.82);
 }
 
 .audit-integrity-actions button:disabled,
 .audit-integrity-actions .audit-verify-link:disabled {
-  opacity: .55;
+  opacity: 0.55;
   cursor: wait;
 }
 
@@ -1830,7 +1955,9 @@ html[data-theme="black"] .audit-history-count {
     grid-template-columns: minmax(0, 1120px) 180px !important;
     gap: 56px !important;
   }
-  .audit-pending { max-width: 1120px; }
+  .audit-pending {
+    max-width: 1120px;
+  }
 }
 
 @media (max-width: 1180px) {
@@ -1886,8 +2013,8 @@ html[data-theme="black"] .audit-history-count {
 }
 
 .audit-pending-title > strong {
-  font-size: .78rem;
-  letter-spacing: .035em;
+  font-size: 0.78rem;
+  letter-spacing: 0.035em;
 }
 
 .audit-pending-count {
@@ -1898,8 +2025,8 @@ html[data-theme="black"] .audit-history-count {
   padding: 0 7px;
   border-radius: 999px;
   color: #b97700;
-  background: rgba(245, 158, 11, .14);
-  font-size: .82rem;
+  background: rgba(245, 158, 11, 0.14);
+  font-size: 0.82rem;
 }
 
 .audit-outbox-list {
@@ -1915,7 +2042,7 @@ html[data-theme="black"] .audit-history-count {
 }
 
 .audit-outbox-list article + article {
-  border-top: 1px solid rgba(113, 135, 154, .16) !important;
+  border-top: 1px solid rgba(113, 135, 154, 0.16) !important;
 }
 
 .audit-outbox-operation {
@@ -1964,12 +2091,18 @@ html[data-theme="black"] .audit-history-count {
 
 .audit-integrity-action > span > strong {
   color: #0b6df6;
-  font: 700 .95rem/1.15 "Inter", system-ui, sans-serif;
+  font:
+    700 0.95rem/1.15 "Inter",
+    system-ui,
+    sans-serif;
 }
 
 .audit-integrity-action > span > small {
   color: #6f8497;
-  font: 500 .79rem/1.55 "Inter", system-ui, sans-serif;
+  font:
+    500 0.79rem/1.55 "Inter",
+    system-ui,
+    sans-serif;
 }
 
 .audit-integrity-actions .audit-outbox-send > svg,
@@ -1985,7 +2118,7 @@ html[data-theme="black"] .audit-history-count {
 
 html[data-theme="dark"] .audit-outbox-list article + article,
 html[data-theme="black"] .audit-outbox-list article + article {
-  border-top-color: rgba(159, 178, 191, .12) !important;
+  border-top-color: rgba(159, 178, 191, 0.12) !important;
 }
 
 html[data-theme="dark"] .audit-integrity-action > span > small,
@@ -1999,7 +2132,9 @@ html[data-theme="black"] .audit-integrity-action > span > small {
     gap: 92px !important;
     width: min(100%, 1450px);
   }
-  .audit-pending { max-width: 1020px !important; }
+  .audit-pending {
+    max-width: 1020px !important;
+  }
 }
 
 @media (max-width: 1180px) {

@@ -75,7 +75,8 @@ export class AuthStorageUnavailableError extends Error {
   constructor(causa?: unknown) {
     super("O banco de autenticação está temporariamente indisponível.");
     this.name = "AuthStorageUnavailableError";
-    if (causa) console.error("Falha temporária no D1 durante autenticação:", causa);
+    if (causa)
+      console.error("Falha temporária no D1 durante autenticação:", causa);
   }
 }
 
@@ -141,7 +142,9 @@ export async function handleAuthRoute(
       return Response.json({ necessario: Number(total?.total || 0) === 0 });
     } catch {
       return Response.json(
-        { erro: "Autenticação indisponível. Execute a migration 005_auth.sql." },
+        {
+          erro: "Autenticação indisponível. Execute a migration 005_auth.sql.",
+        },
         { status: 500 },
       );
     }
@@ -170,13 +173,17 @@ export async function handleAuthRoute(
     const senha = body.senha || "";
     if (!nome || !email || !username || senha.length < 8) {
       return Response.json(
-        { erro: "Informe nome, usuário, e-mail e uma senha com pelo menos 8 caracteres." },
+        {
+          erro: "Informe nome, usuário, e-mail e uma senha com pelo menos 8 caracteres.",
+        },
         { status: 400 },
       );
     }
     if (!/^[a-z0-9._-]{3,40}$/i.test(username)) {
       return Response.json(
-        { erro: "O nome de usuário deve ter de 3 a 40 caracteres e usar apenas letras, números, ponto, hífen ou underline." },
+        {
+          erro: "O nome de usuário deve ter de 3 a 40 caracteres e usar apenas letras, números, ponto, hífen ou underline.",
+        },
         { status: 400 },
       );
     }
@@ -255,7 +262,8 @@ export async function handleAuthRoute(
   if (url.pathname === "/api/auth/atividade" && request.method === "POST") {
     try {
       const token = obterCookie(request, "cd_session");
-      if (!token) return Response.json({ erro: "Não autenticado." }, { status: 401 });
+      if (!token)
+        return Response.json({ erro: "Não autenticado." }, { status: 401 });
 
       const resultado = await env.DB.prepare(
         `UPDATE sessoes
@@ -268,7 +276,10 @@ export async function handleAuthRoute(
       if (!resultado.meta.changes) {
         return Response.json(
           { erro: "Sessão expirada." },
-          { status: 401, headers: { "Set-Cookie": cookieSessao("", request, 0) } },
+          {
+            status: 401,
+            headers: { "Set-Cookie": cookieSessao("", request, 0) },
+          },
         );
       }
       return Response.json(
@@ -299,7 +310,8 @@ export async function handleAuthRoute(
   if (url.pathname === "/api/auth/me" && request.method === "GET") {
     try {
       const usuario = await usuarioDaRequisicao(request, env);
-      if (!usuario) return Response.json({ erro: "Não autenticado." }, { status: 401 });
+      if (!usuario)
+        return Response.json({ erro: "Não autenticado." }, { status: 401 });
       return Response.json({ usuario: usuarioPublico(usuario) });
     } catch (erro) {
       if (erro instanceof AuthStorageUnavailableError) {

@@ -22,9 +22,7 @@ export function ModalTrocaAluno({
         aria-labelledby="unsaved-student-title"
       >
         <div className="unsaved-student-icon">!</div>
-        <span className="unsaved-student-eyebrow">
-          ALTERAÇÕES NÃO SALVAS
-        </span>
+        <span className="unsaved-student-eyebrow">ALTERAÇÕES NÃO SALVAS</span>
         <h2 id="unsaved-student-title">Trocar de aluno?</h2>
         <p>
           Você modificou a documentação de <strong>{nomeAluno}</strong>. Se

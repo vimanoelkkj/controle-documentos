@@ -227,7 +227,6 @@ html[data-theme="black"] .period-page .period-card.current {
   }
 }
 
-
 /* v24-52 — status de período totalmente flat: só texto e cor. */
 .period-page .period-status,
 html[data-theme="light"] .period-page .period-status,
@@ -382,7 +381,7 @@ html[data-theme="black"] .period-page .period-actions button,
   background: transparent !important;
   box-shadow: none !important;
   transform: none !important;
-  transition: color .12s ease !important;
+  transition: color 0.12s ease !important;
 }
 
 /* Quando existe apenas Restaurar, ele fica na segunda coluna sem alterar a linha. */
@@ -512,7 +511,6 @@ html[data-theme="black"] .period-page .period-card > div:first-child {
     grid-column: 2 !important;
   }
 }
-
 
 /* v24-59 — erro do Google Sheets inline, sem faixa/banner. */
 .period-page .period-sheets-inline-error {

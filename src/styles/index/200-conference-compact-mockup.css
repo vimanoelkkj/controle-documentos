@@ -655,7 +655,6 @@
   stroke: currentColor !important;
 }
 
-
 /* ============================================================
    FILTRO DE UNIDADE — mockup 1:1
    ============================================================ */
@@ -679,13 +678,18 @@ html[data-theme="light"] .conference-grid--mockup .unit-filter-trigger {
 }
 
 html[data-theme="light"] .conference-grid--mockup .unit-filter-trigger:hover,
-html[data-theme="light"] .conference-grid--mockup .unit-filter-trigger[aria-expanded="true"] {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-trigger[aria-expanded="true"] {
   border-color: #c3d4e5 !important;
   background: #ffffff !important;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
 }
 
-html[data-theme="light"] .conference-grid--mockup .unit-filter-trigger > strong {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-trigger
+  > strong {
   min-width: 42px !important;
   height: 24px !important;
   padding: 0 9px !important;
@@ -732,29 +736,44 @@ html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button {
   font-size: 13px !important;
   font-weight: 600 !important;
   line-height: 1 !important;
-  transition: background-color 90ms ease, color 90ms ease !important;
+  transition:
+    background-color 90ms ease,
+    color 90ms ease !important;
 }
 
 /* Hover: propositalmente MUITO mais suave que o selecionado */
-html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button:hover:not(.active) {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button:hover:not(.active) {
   background: #f5f8fb !important;
   color: #172d46 !important;
 }
 
 /* Selecionado */
-html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button.active {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active {
   background: #eaf5fd !important;
   color: #0867b2 !important;
 }
 
 /* Hover em cima do selecionado */
-html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button.active:hover {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active:hover {
   background: #deeffb !important;
   color: #075d9f !important;
 }
 
 /* Pills de contagem */
-html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button strong {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button
+  strong {
   min-width: 42px !important;
   height: 24px !important;
   padding: 0 8px !important;
@@ -770,17 +789,29 @@ html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button st
   line-height: 1 !important;
 }
 
-html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button:hover:not(.active) strong {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button:hover:not(.active)
+  strong {
   background: #edf2f6 !important;
   color: #3f5871 !important;
 }
 
-html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button.active strong {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active
+  strong {
   background: #d5ebfa !important;
   color: #0867b2 !important;
 }
 
-html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button.active:hover strong {
+html[data-theme="light"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active:hover
+  strong {
   background: #c9e5f8 !important;
   color: #075d9f !important;
 }
@@ -788,7 +819,7 @@ html[data-theme="light"] .conference-grid--mockup .unit-filter-popover button.ac
 /* Mantém a mesma gramática visual nos temas escuros. */
 html[data-theme="dark"] .conference-grid--mockup .unit-filter-popover,
 html[data-theme="black"] .conference-grid--mockup .unit-filter-popover {
-  border-color: rgba(148, 163, 184, 0.20) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
   background: var(--surface, #101d27) !important;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28) !important;
 }
@@ -799,31 +830,65 @@ html[data-theme="black"] .conference-grid--mockup .unit-filter-popover button {
   background: transparent !important;
 }
 
-html[data-theme="dark"] .conference-grid--mockup .unit-filter-popover button:hover:not(.active),
-html[data-theme="black"] .conference-grid--mockup .unit-filter-popover button:hover:not(.active) {
+html[data-theme="dark"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button:hover:not(.active),
+html[data-theme="black"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button:hover:not(.active) {
   background: rgba(148, 163, 184, 0.07) !important;
   color: #eef6fb !important;
 }
 
-html[data-theme="dark"] .conference-grid--mockup .unit-filter-popover button.active,
-html[data-theme="black"] .conference-grid--mockup .unit-filter-popover button.active {
+html[data-theme="dark"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active,
+html[data-theme="black"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active {
   background: rgba(59, 130, 246, 0.17) !important;
   color: #8dc5ff !important;
 }
 
-html[data-theme="dark"] .conference-grid--mockup .unit-filter-popover button.active:hover,
-html[data-theme="black"] .conference-grid--mockup .unit-filter-popover button.active:hover {
+html[data-theme="dark"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active:hover,
+html[data-theme="black"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active:hover {
   background: rgba(59, 130, 246, 0.23) !important;
 }
 
-html[data-theme="dark"] .conference-grid--mockup .unit-filter-popover button strong,
-html[data-theme="black"] .conference-grid--mockup .unit-filter-popover button strong {
-  background: rgba(148, 163, 184, 0.10) !important;
+html[data-theme="dark"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button
+  strong,
+html[data-theme="black"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button
+  strong {
+  background: rgba(148, 163, 184, 0.1) !important;
   color: #aebfce !important;
 }
 
-html[data-theme="dark"] .conference-grid--mockup .unit-filter-popover button.active strong,
-html[data-theme="black"] .conference-grid--mockup .unit-filter-popover button.active strong {
-  background: rgba(59, 130, 246, 0.20) !important;
+html[data-theme="dark"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active
+  strong,
+html[data-theme="black"]
+  .conference-grid--mockup
+  .unit-filter-popover
+  button.active
+  strong {
+  background: rgba(59, 130, 246, 0.2) !important;
   color: #9bd0ff !important;
 }

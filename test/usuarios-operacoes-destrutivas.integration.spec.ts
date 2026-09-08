@@ -112,7 +112,8 @@ beforeAll(async () => {
   visualizadorId = Number(visualizador.id);
 
   const usuarios = await listarUsuarios();
-  adminId = usuarios.find((usuario) => usuario.username === "admin.usuarios")?.id ?? 0;
+  adminId =
+    usuarios.find((usuario) => usuario.username === "admin.usuarios")?.id ?? 0;
   expect(adminId).toBeGreaterThan(0);
   expect(editorId).toBeGreaterThan(0);
   expect(visualizadorId).toBeGreaterThan(0);
@@ -287,11 +288,13 @@ describe.sequential("operacoes administrativas de usuarios", () => {
 
     const usuarios = await listarUsuarios();
     expect(
-      usuarios.some((usuario) => usuario.username === "visualizador.gerenciado"),
+      usuarios.some(
+        (usuario) => usuario.username === "visualizador.gerenciado",
+      ),
     ).toBe(false);
-    expect(usuarios.some((usuario) => usuario.username === "admin.usuarios")).toBe(
-      true,
-    );
+    expect(
+      usuarios.some((usuario) => usuario.username === "admin.usuarios"),
+    ).toBe(true);
     expect(
       usuarios.some((usuario) => usuario.username === "editor.gerenciado"),
     ).toBe(true);

@@ -70,15 +70,11 @@ async function listarComunicacoes(
         unidade: registro.unidade,
         documentos: JSON.parse(registro.documentos_json || "[]"),
         quantidade_alunos: registro.quantidade_alunos,
-        quantidade_emails: modoApresentacao
-          ? 0
-          : registro.quantidade_emails,
+        quantidade_emails: modoApresentacao ? 0 : registro.quantidade_emails,
         assunto: registro.assunto,
         prazo: registro.prazo,
         tipo_destinatario: registro.tipo_destinatario,
-        ras: modoApresentacao
-          ? []
-          : JSON.parse(registro.ras_json || "[]"),
+        ras: modoApresentacao ? [] : JSON.parse(registro.ras_json || "[]"),
       })),
     );
   } catch (erro) {

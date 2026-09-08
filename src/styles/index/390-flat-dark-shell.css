@@ -10,7 +10,9 @@ html[data-theme="dark"] .app-layout,
 html[data-theme="dark"] .app-main-column,
 html[data-theme="dark"] .app-main-column > .app-content,
 html[data-theme="dark"] .sidebar,
-html[data-theme="dark"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+html[data-theme="dark"]
+  .app-main-column
+  > .period-toolbar.period-toolbar--conference-replica {
   background: #081018 !important;
 }
 
@@ -23,7 +25,9 @@ html[data-theme="dark"] .sidebar {
 html[data-theme="dark"] .sidebar .sidebar-brand,
 html[data-theme="dark"] .sidebar .sidebar-nav,
 html[data-theme="dark"] .sidebar .sidebar-footer,
-html[data-theme="dark"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+html[data-theme="dark"]
+  .app-main-column
+  > .period-toolbar.period-toolbar--conference-replica {
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -35,7 +39,9 @@ html[data-theme="black"] .app-layout,
 html[data-theme="black"] .app-main-column,
 html[data-theme="black"] .app-main-column > .app-content,
 html[data-theme="black"] .sidebar,
-html[data-theme="black"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+html[data-theme="black"]
+  .app-main-column
+  > .period-toolbar.period-toolbar--conference-replica {
   background: #000 !important;
 }
 
@@ -48,7 +54,9 @@ html[data-theme="black"] .sidebar {
 html[data-theme="black"] .sidebar .sidebar-brand,
 html[data-theme="black"] .sidebar .sidebar-nav,
 html[data-theme="black"] .sidebar .sidebar-footer,
-html[data-theme="black"] .app-main-column > .period-toolbar.period-toolbar--conference-replica {
+html[data-theme="black"]
+  .app-main-column
+  > .period-toolbar.period-toolbar--conference-replica {
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;

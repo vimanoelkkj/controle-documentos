@@ -20,11 +20,7 @@ type UsuariosRouteContext = {
   ) => Promise<void>;
 };
 
-const perfisValidos: PerfilUsuario[] = [
-  "ADMIN",
-  "EDITOR",
-  "VISUALIZADOR",
-];
+const perfisValidos: PerfilUsuario[] = ["ADMIN", "EDITOR", "VISUALIZADOR"];
 
 function respostaSemPermissao() {
   return Response.json(
@@ -267,11 +263,17 @@ export async function handleUsuariosRoute({
         )
         .bind(cred.hash, cred.salt, id)
         .run();
-      await db.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`).bind(id).run();
+      await db
+        .prepare(`DELETE FROM sessoes WHERE usuario_id = ?`)
+        .bind(id)
+        .run();
     }
 
     if (atual.ativo === 1 && ativo === 0) {
-      await db.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`).bind(id).run();
+      await db
+        .prepare(`DELETE FROM sessoes WHERE usuario_id = ?`)
+        .bind(id)
+        .run();
     }
 
     const alteracoes = [
@@ -318,10 +320,7 @@ export async function handleUsuariosRoute({
       ativo: number;
     }>();
   if (!usuarioExcluir) {
-    return Response.json(
-      { erro: "Usuário não encontrado." },
-      { status: 404 },
-    );
+    return Response.json({ erro: "Usuário não encontrado." }, { status: 404 });
   }
 
   if (usuarioExcluir.perfil === "ADMIN" && usuarioExcluir.ativo === 1) {

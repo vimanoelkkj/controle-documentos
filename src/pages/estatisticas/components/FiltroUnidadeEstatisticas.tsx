@@ -119,7 +119,10 @@ export function FiltroUnidadeEstatisticas({
         aria-controls="statistics-unit-disclosure-menu"
       >
         <span>{aberto ? "Filtrar por unidade" : rotuloAtual}</span>
-        <span className="statistics-unit-disclosure-chevron" aria-hidden="true" />
+        <span
+          className="statistics-unit-disclosure-chevron"
+          aria-hidden="true"
+        />
       </button>
 
       <div
@@ -141,7 +144,10 @@ export function FiltroUnidadeEstatisticas({
               onClick={() => selecionar(opcao.value)}
             >
               <span className="statistics-unit-disclosure-option-copy">
-                <i className="statistics-unit-disclosure-radio" aria-hidden="true" />
+                <i
+                  className="statistics-unit-disclosure-radio"
+                  aria-hidden="true"
+                />
                 <span>{opcao.label}</span>
               </span>
               <strong>{opcao.total.toLocaleString("pt-BR")}</strong>

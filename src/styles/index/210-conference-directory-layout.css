@@ -4,7 +4,13 @@
    ========================================================= */
 
 .conference-page--directory {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 .conference-page--directory > .conference-grid--directory {
@@ -17,7 +23,7 @@
   background: #fff !important;
   border: 1px solid #e3eaf2 !important;
   border-radius: 12px !important;
-  box-shadow: 0 5px 18px rgba(30, 55, 90, .035) !important;
+  box-shadow: 0 5px 18px rgba(30, 55, 90, 0.035) !important;
 }
 
 /* ---------- lista / diretório ---------- */
@@ -113,7 +119,9 @@
   border-radius: 9px !important;
   background: transparent !important;
   text-align: left !important;
-  transition: background-color 80ms ease, border-color 80ms ease !important;
+  transition:
+    background-color 80ms ease,
+    border-color 80ms ease !important;
 }
 
 .conference-grid--directory .student-card--directory:hover {
@@ -138,7 +146,9 @@
   font-weight: 750;
 }
 
-.conference-grid--directory .student-card--directory.active .student-card-avatar {
+.conference-grid--directory
+  .student-card--directory.active
+  .student-card-avatar {
   background: #dceefe;
   color: #0869c6;
 }
@@ -184,7 +194,7 @@
   border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: .02em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -210,7 +220,6 @@
   font-weight: 700;
 }
 
-
 .conference-grid--directory .student-pagination {
   min-height: 52px;
   display: flex;
@@ -235,7 +244,10 @@
   background: #ffffff;
   color: #31506f;
   cursor: pointer;
-  transition: background-color 90ms ease, border-color 90ms ease, color 90ms ease;
+  transition:
+    background-color 90ms ease,
+    border-color 90ms ease,
+    color 90ms ease;
 }
 
 .conference-grid--directory .student-pagination button svg {
@@ -289,15 +301,24 @@
 }
 
 html[data-theme="dark"] .conference-grid--directory .student-pagination button,
-html[data-theme="black"] .conference-grid--directory .student-pagination button {
+html[data-theme="black"]
+  .conference-grid--directory
+  .student-pagination
+  button {
   background: var(--minimal-surface, #111b25);
   border-color: var(--minimal-border, #263746);
   color: var(--minimal-text, #dce7ef);
 }
 
-html[data-theme="dark"] .conference-grid--directory .student-pagination button:disabled,
-html[data-theme="black"] .conference-grid--directory .student-pagination button:disabled {
-  opacity: .42;
+html[data-theme="dark"]
+  .conference-grid--directory
+  .student-pagination
+  button:disabled,
+html[data-theme="black"]
+  .conference-grid--directory
+  .student-pagination
+  button:disabled {
+  opacity: 0.42;
 }
 
 /* ---------- ficha do aluno ---------- */
@@ -444,7 +465,7 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
   color: #7690a9;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .conference-grid--directory .directory-section-title h3 {
@@ -528,7 +549,9 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
   color: #687e94;
 }
 
-.conference-grid--directory .directory-document-row.delivered .directory-document-icon {
+.conference-grid--directory
+  .directory-document-row.delivered
+  .directory-document-icon {
   background: #eaf7ef;
   color: #279052;
 }
@@ -549,11 +572,13 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
   color: #9b6e22;
   font-size: 10.5px;
   font-weight: 800;
-  letter-spacing: .03em;
+  letter-spacing: 0.03em;
   white-space: nowrap;
 }
 
-.conference-grid--directory .directory-document-row.delivered .directory-document-state {
+.conference-grid--directory
+  .directory-document-row.delivered
+  .directory-document-state {
   color: #39905a;
 }
 
@@ -568,7 +593,10 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
   font-size: 8px;
 }
 
-.conference-grid--directory .directory-document-row.delivered .directory-document-state i {
+.conference-grid--directory
+  .directory-document-row.delivered
+  .directory-document-state
+  i {
   background: #e3f5e9;
 }
 
@@ -577,7 +605,7 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
 }
 
 .conference-grid--directory .directory-document-row:has(input:focus-visible) {
-  outline: 2px solid rgba(45, 128, 209, .22);
+  outline: 2px solid rgba(45, 128, 209, 0.22);
   outline-offset: 1px;
 }
 
@@ -597,9 +625,15 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
   font-size: 11px;
 }
 
-.conference-grid--directory .directory-savebar > span.pending { color: #657c91; }
-.conference-grid--directory .directory-savebar > span.saved { color: #3a8b59; }
-.conference-grid--directory .directory-savebar > span.error { color: #cf4350; }
+.conference-grid--directory .directory-savebar > span.pending {
+  color: #657c91;
+}
+.conference-grid--directory .directory-savebar > span.saved {
+  color: #3a8b59;
+}
+.conference-grid--directory .directory-savebar > span.error {
+  color: #cf4350;
+}
 
 .conference-grid--directory .directory-savebar > div {
   display: flex;
@@ -618,13 +652,17 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
   font-weight: 700 !important;
 }
 
-.conference-grid--directory .directory-savebar .secondary-action:not(:disabled) {
+.conference-grid--directory
+  .directory-savebar
+  .secondary-action:not(:disabled) {
   background: #fff !important;
   border-color: #d9e2ec !important;
   color: #223047 !important;
 }
 
-.conference-grid--directory .directory-savebar .secondary-action:hover:not(:disabled) {
+.conference-grid--directory
+  .directory-savebar
+  .secondary-action:hover:not(:disabled) {
   background: #f6f9fc !important;
   border-color: #b8c7d9 !important;
   color: #172033 !important;
@@ -636,7 +674,9 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
   color: #fff !important;
 }
 
-.conference-grid--directory .directory-savebar .primary-action:hover:not(:disabled) {
+.conference-grid--directory
+  .directory-savebar
+  .primary-action:hover:not(:disabled) {
   background: #075fdc !important;
   border-color: #075fdc !important;
 }
@@ -664,14 +704,18 @@ html[data-theme="black"] .conference-grid--directory .student-pagination button:
 }
 
 [data-theme="dark"] .conference-grid--directory .student-card--directory:hover,
-[data-theme="black"] .conference-grid--directory .student-card--directory:hover {
-  background: rgba(255,255,255,.035) !important;
+[data-theme="black"]
+  .conference-grid--directory
+  .student-card--directory:hover {
+  background: rgba(255, 255, 255, 0.035) !important;
 }
 
 [data-theme="dark"] .conference-grid--directory .student-card--directory.active,
-[data-theme="black"] .conference-grid--directory .student-card--directory.active {
-  background: rgba(42, 131, 207, .13) !important;
-  border-color: rgba(68, 151, 218, .2) !important;
+[data-theme="black"]
+  .conference-grid--directory
+  .student-card--directory.active {
+  background: rgba(42, 131, 207, 0.13) !important;
+  border-color: rgba(68, 151, 218, 0.2) !important;
 }
 
 [data-theme="dark"] .conference-grid--directory .directory-savebar,

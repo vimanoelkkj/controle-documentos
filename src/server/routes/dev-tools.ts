@@ -45,10 +45,7 @@ export async function handleDevToolsRoute({
     });
   }
 
-  if (
-    url.pathname !== "/api/dev/alunos-reset" ||
-    request.method !== "DELETE"
-  ) {
+  if (url.pathname !== "/api/dev/alunos-reset" || request.method !== "DELETE") {
     return null;
   }
 
@@ -60,7 +57,9 @@ export async function handleDevToolsRoute({
   }
   if (usuarioAtual?.perfil !== "ADMIN") {
     return Response.json(
-      { erro: "Apenas administradores podem usar ferramentas de desenvolvimento." },
+      {
+        erro: "Apenas administradores podem usar ferramentas de desenvolvimento.",
+      },
       { status: 403 },
     );
   }
@@ -92,7 +91,8 @@ export async function handleDevToolsRoute({
     }
 
     const filtroUnidade = unidade === "TODOS" ? "" : " AND unidade = ?";
-    const parametros = unidade === "TODOS" ? [periodoAtual.id] : [periodoAtual.id, unidade];
+    const parametros =
+      unidade === "TODOS" ? [periodoAtual.id] : [periodoAtual.id, unidade];
     const contagem = await env.DB.prepare(
       `SELECT COUNT(*) AS total FROM alunos WHERE periodo_id = ?${filtroUnidade}`,
     )

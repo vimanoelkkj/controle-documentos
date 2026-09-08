@@ -8,7 +8,9 @@ function salvarPeriodo(codigo: string) {
 
 export function PeriodoProvider({ children }: { children: ReactNode }) {
   const [periodos, setPeriodos] = useState<Periodo[]>([]);
-  const [codigoAtual, setCodigoAtual] = useState(() => localStorage.getItem("periodoAtual") || "");
+  const [codigoAtual, setCodigoAtual] = useState(
+    () => localStorage.getItem("periodoAtual") || "",
+  );
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
@@ -31,7 +33,11 @@ export function PeriodoProvider({ children }: { children: ReactNode }) {
 
       const salvo = codigoAtual || localStorage.getItem("periodoAtual") || "";
       const existe = dados.find((periodo) => periodo.codigo === salvo);
-      const preferido = existe ?? dados.find((periodo) => periodo.status === "ATIVO") ?? dados[0] ?? null;
+      const preferido =
+        existe ??
+        dados.find((periodo) => periodo.status === "ATIVO") ??
+        dados[0] ??
+        null;
 
       if (preferido) {
         setCodigoAtual(preferido.codigo);
@@ -60,12 +66,21 @@ export function PeriodoProvider({ children }: { children: ReactNode }) {
   function selecionarPeriodo(codigo: string) {
     setCodigoAtual(codigo);
     salvarPeriodo(codigo);
-    window.dispatchEvent(new CustomEvent("periodo-alterado", { detail: codigo }));
+    window.dispatchEvent(
+      new CustomEvent("periodo-alterado", { detail: codigo }),
+    );
   }
 
   return (
     <PeriodoContext.Provider
-      value={{ periodos, periodoAtual, carregando, erro, selecionarPeriodo, recarregarPeriodos }}
+      value={{
+        periodos,
+        periodoAtual,
+        carregando,
+        erro,
+        selecionarPeriodo,
+        recarregarPeriodos,
+      }}
     >
       {children}
     </PeriodoContext.Provider>

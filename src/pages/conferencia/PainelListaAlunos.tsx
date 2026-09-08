@@ -8,11 +8,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import {
-  type Aluno,
-  type FiltroStatus,
-  type Unidade,
-} from "./model";
+import { type Aluno, type FiltroStatus, type Unidade } from "./model";
 import AppIcon from "../../components/AppIcon";
 
 type Props = {
@@ -40,7 +36,6 @@ type Props = {
   limparFiltroDashboard: () => void;
   selecionarAluno: (ra: string) => void;
 };
-
 
 type ConferenceUnitFilterProps = {
   unidadeSelecionada: Unidade | "";
@@ -166,7 +161,10 @@ function ConferenceUnitFilter({
               onClick={() => selecionar(unidade)}
             >
               <span className="conference-replica-unit-option-copy">
-                <i className="conference-replica-unit-radio" aria-hidden="true" />
+                <i
+                  className="conference-replica-unit-radio"
+                  aria-hidden="true"
+                />
                 <span>{unidade}</span>
               </span>
               <strong>{quantidadesPorUnidade[unidade]}</strong>
@@ -202,16 +200,24 @@ export function PainelListaAlunos({
   limparFiltroDashboard,
   selecionarAluno,
 }: Props) {
-  const [filtroStatusVisual, setFiltroStatusVisual] = useState<FiltroStatus>(filtroStatus);
+  const [filtroStatusVisual, setFiltroStatusVisual] =
+    useState<FiltroStatus>(filtroStatus);
   const selecionarAlunoRef = useRef(selecionarAluno);
   selecionarAlunoRef.current = selecionarAluno;
 
   const listaAlunosRenderizada = useMemo(
     () =>
       alunosFiltrados.map((aluno) => {
-        const entreguesAluno = aluno.documentos.filter((documento) => documento.entregue).length;
+        const entreguesAluno = aluno.documentos.filter(
+          (documento) => documento.entregue,
+        ).length;
         const total = aluno.documentos.length;
-        const scoreClass = entreguesAluno === total ? "complete" : entreguesAluno === 0 ? "critical" : "partial";
+        const scoreClass =
+          entreguesAluno === total
+            ? "complete"
+            : entreguesAluno === 0
+              ? "critical"
+              : "partial";
 
         return (
           <button
@@ -223,10 +229,14 @@ export function PainelListaAlunos({
           >
             <span className="conference-replica-student-copy">
               <strong>{aluno.nome}</strong>
-              <small>RA {aluno.ra} &nbsp;•&nbsp; {aluno.unidade}</small>
+              <small>
+                RA {aluno.ra} &nbsp;•&nbsp; {aluno.unidade}
+              </small>
               <span>{aluno.curso}</span>
             </span>
-            <b className={`conference-replica-score conference-replica-score--${scoreClass}`}>
+            <b
+              className={`conference-replica-score conference-replica-score--${scoreClass}`}
+            >
               {entreguesAluno}/{total}
             </b>
           </button>
@@ -240,12 +250,19 @@ export function PainelListaAlunos({
   }, [filtroStatus]);
 
   return (
-    <aside ref={painelListaRef} className="student-panel conference-replica-list-panel">
+    <aside
+      ref={painelListaRef}
+      className="student-panel conference-replica-list-panel"
+    >
       <div className="conference-replica-list-head">
         <h2>Alunos</h2>
         {!modoApresentacao && (
           <div className="conference-replica-list-actions">
-            <button type="button" className="conference-replica-add" onClick={() => setModalAdicionarAluno(true)}>
+            <button
+              type="button"
+              className="conference-replica-add"
+              onClick={() => setModalAdicionarAluno(true)}
+            >
               <AppIcon name="plus" size={17} strokeWidth={1.7} />
               <span>Adicionar aluno</span>
             </button>
@@ -279,7 +296,11 @@ export function PainelListaAlunos({
               });
             }}
           >
-            {filtro === "ATIVO" ? "Ativos" : filtro === "CANCELADO" ? "Cancelados" : "Todos"}
+            {filtro === "ATIVO"
+              ? "Ativos"
+              : filtro === "CANCELADO"
+                ? "Cancelados"
+                : "Todos"}
           </button>
         ))}
       </div>
@@ -313,7 +334,9 @@ export function PainelListaAlunos({
             <span>DASHBOARD</span>
             <strong>{descricaoFiltroDashboard}</strong>
           </div>
-          <button type="button" onClick={limparFiltroDashboard}>×</button>
+          <button type="button" onClick={limparFiltroDashboard}>
+            ×
+          </button>
         </div>
       )}
 
