@@ -177,6 +177,17 @@
   background: color-mix(in srgb, var(--blue) 9%, transparent);
 }
 
+.details-row-body .dr-change.is-critical-pending .dc-label {
+  color: #c93f3f;
+  font-weight: 700;
+}
+
+.details-row-body .dr-change.is-critical-pending .dc-status.is-danger {
+  color: #c93f3f;
+  border-color: color-mix(in srgb, #d94b4b 42%, var(--border));
+  background: color-mix(in srgb, #d94b4b 12%, transparent);
+}
+
 body.dark .dc-status.is-pending {
   color: #e7b650;
 }
@@ -191,6 +202,16 @@ body.dark .dc-status.is-danger {
 
 body.dark .dc-status.is-neutral {
   color: #8fb5da;
+}
+
+body.dark .details-row-body .dr-change.is-critical-pending .dc-label,
+body.dark .details-row-body .dr-change.is-critical-pending .dc-status.is-danger {
+  color: #ff7f7f;
+}
+
+body.dark .details-row-body .dr-change.is-critical-pending .dc-status.is-danger {
+  border-color: color-mix(in srgb, #ff6666 38%, var(--border));
+  background: color-mix(in srgb, #ff6666 11%, transparent);
 }
 
 @media (max-width: 700px) {
