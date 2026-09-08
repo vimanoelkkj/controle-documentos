@@ -42,6 +42,26 @@ function tomStatus(valor: string) {
   return "is-neutral";
 }
 
+function statusPendente(valor: string) {
+  const normalizado = valor.trim().toLocaleLowerCase("pt-BR");
+  return ["pendente", "não entregue", "nao entregue"].includes(normalizado);
+}
+
+function documentoCritico(campo: string) {
+  const normalizado = campo.trim().toLocaleLowerCase("pt-BR");
+  return [
+    "ensino médio",
+    "histórico",
+    "histórico do ensino médio",
+    "contrato",
+  ].includes(normalizado);
+}
+
+function tomStatusDocumento(campo: string, valor: string) {
+  if (documentoCritico(campo) && statusPendente(valor)) return "is-danger";
+  return tomStatus(valor);
+}
+
 export default function Periodos() {
   const { modoApresentacao } = useAuth();
   const { periodos, periodoAtual, selecionarPeriodo, recarregarPeriodos } =
@@ -332,38 +352,45 @@ export default function Periodos() {
                       {aberto && (
                         <div className="details-row-body">
                           <div className="dr-changes">
-                            {alteracoes.map((alteracao, j) => (
-                              <div
-                                className="dr-change"
-                                key={`${chave}-${alteracao.campo}-${j}`}
-                              >
-                                <div className="dc-label">
-                                  {alteracao.campo}
+                            {alteracoes.map((alteracao, j) => {
+                              const criticoPendente =
+                                documentoCritico(alteracao.campo) &&
+                                [alteracao.antes, alteracao.depois].some(
+                                  statusPendente,
+                                );
+                              return (
+                                <div
+                                  className={`dr-change${criticoPendente ? " is-critical-pending" : ""}`}
+                                  key={`${chave}-${alteracao.campo}-${j}`}
+                                >
+                                  <div className="dc-label">
+                                    {alteracao.campo}
+                                  </div>
+                                  <div className="dc-value">
+                                    <span
+                                      className={`dc-status ${tomStatusDocumento(alteracao.campo, alteracao.antes)}`}
+                                    >
+                                      {alteracao.antes}
+                                    </span>
+                                    {alteracao.depois && (
+                                      <>
+                                        <span
+                                          className="arrow"
+                                          aria-hidden="true"
+                                        >
+                                          →
+                                        </span>
+                                        <span
+                                          className={`dc-status ${tomStatusDocumento(alteracao.campo, alteracao.depois)}`}
+                                        >
+                                          {alteracao.depois}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="dc-value">
-                                  <span
-                                    className={`dc-status ${tomStatus(alteracao.antes)}`}
-                                  >
-                                    {alteracao.antes}
-                                  </span>
-                                  {alteracao.depois && (
-                                    <>
-                                      <span
-                                        className="arrow"
-                                        aria-hidden="true"
-                                      >
-                                        →
-                                      </span>
-                                      <span
-                                        className={`dc-status ${tomStatus(alteracao.depois)}`}
-                                      >
-                                        {alteracao.depois}
-                                      </span>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}
