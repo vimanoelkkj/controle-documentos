@@ -1,10 +1,27 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MockupStyle from "../components/MockupStyle";
 import css from "../mockups/periodos.css?raw";
+import previewAccordionCss from "../mockups/periodos-preview-accordion.css?raw";
 import { usePeriodo } from "../contexts/periodo";
 import { useAuth } from "../contexts/auth";
 import { useGoogleSheetsPeriodo } from "./periodos/hooks/useGoogleSheetsPeriodo";
 import { useGerenciamentoPeriodos } from "./periodos/hooks/useGerenciamentoPeriodos";
+
+function separarAlteracao(linha:string){
+ const separador=linha.indexOf(": ");
+ const campo=separador>=0?linha.slice(0,separador):"Documento";
+ const valor=separador>=0?linha.slice(separador+2):linha;
+ const seta=valor.indexOf(" → ");
+ return {campo,antes:seta>=0?valor.slice(0,seta):valor,depois:seta>=0?valor.slice(seta+3):""};
+}
+
+function tomStatus(valor:string){
+ const normalizado=valor.trim().toLocaleLowerCase("pt-BR");
+ if(["entregue","ativo","regular"].includes(normalizado))return "is-good";
+ if(["pendente","não entregue","nao entregue","parcial"].includes(normalizado))return "is-pending";
+ if(["cancelado","cancelada","removido","removida","crítico","critico"].includes(normalizado))return "is-danger";
+ return "is-neutral";
+}
 
 export default function Periodos(){
  const {modoApresentacao}=useAuth();
@@ -12,13 +29,24 @@ export default function Periodos(){
  const gp=useGerenciamentoPeriodos({recarregarPeriodos,selecionarPeriodo});
  const gs=useGoogleSheetsPeriodo({periodoAtual,recarregarPeriodos});
  const [detalhes,setDetalhes]=useState(false);
+ const [detalhesAbertos,setDetalhesAbertos]=useState<Set<string>>(()=>new Set());
  const ativos=useMemo(()=>periodos.filter(p=>p.status==="ATIVO"),[periodos]);
  const arquivados=useMemo(()=>periodos.filter(p=>p.status==="ARQUIVADO"),[periodos]);
  const previa=gs.sheetsPrevia;
+ useEffect(()=>{
+  if(!detalhes||!previa){
+   if(!detalhes)setDetalhesAbertos(new Set());
+   return;
+  }
+  const documentos=previa.detalhes.documentos.slice(0,20);
+  setDetalhesAbertos(documentos.length?new Set([`${documentos[0].ra}-0`]):new Set());
+ },[detalhes,previa]);
+ function alternarAlunoDetalhe(chave:string){setDetalhesAbertos(atual=>{const proximo=new Set(atual);if(proximo.has(chave))proximo.delete(chave);else proximo.add(chave);return proximo})}
  function configField(key:keyof typeof gs.sheetsConfig,label:string){return <div className="cfg-field"><div className="cfg-label">{label}</div><div className="cfg-value" contentEditable={!modoApresentacao} suppressContentEditableWarning onBlur={e=>gs.setSheetsConfig(c=>({...c,[key]:e.currentTarget.textContent||""}))}>{gs.sheetsConfig[key]}</div></div>}
  function statusModal(){const c=gp.confirmacao;if(!c)return null;const arquivar=c.status==="ATIVO";return <div className="modal-overlay open"><div className="modal-card modal-card-sm"><button className="modal-close" onClick={()=>gp.setConfirmacao(null)}>✕</button><div className="modal-eyebrow">Períodos letivos</div><h2 className="modal-title compact">{arquivar?"Arquivar período?":"Restaurar período?"}</h2><p className="modal-sub">O período <b>{c.codigo}</b> {arquivar?"sairá da operação diária, mas continuará acessível e poderá ser editado quando necessário.":"voltará para a lista de períodos ativos e poderá ser usado normalmente."}</p><div className="modal-footer"><a onClick={()=>gp.setConfirmacao(null)}>Cancelar</a><a className="modal-save" onClick={()=>void gp.alterarStatus(c.id,arquivar?"ARQUIVADO":"ATIVO")}>{gp.processando?"Processando...":arquivar?"Arquivar período":"Restaurar período"}</a></div></div></div>}
  return <>
  <MockupStyle css={css}/>
+ <MockupStyle css={previewAccordionCss}/>
  <div className="page-head"><h1>Períodos letivos</h1><p>Crie novos ciclos, alterne o contexto do sistema e arquive períodos antigos sem perder o acesso aos dados.</p></div>
  {!modoApresentacao&&<div className="period-section" style={{borderTop:"none",paddingTop:0}}><div className="col-head">Novo período</div><div className="new-period-row"><div className="np-info"><h3>Criar período letivo</h3><p>Use o padrão <b>AAAA-1</b> ou <b>AAAA-2</b>.</p></div><div className="np-action"><div className="np-field"><input className={gp.erroCriacao?"error":""} value={gp.novoCodigo} onChange={e=>{gp.setNovoCodigo(e.target.value);gp.limparErroCriacao()}} placeholder="2027-1"/><span className={`np-error${gp.erroCriacao?" show":""}`}>⚠ {gp.erroCriacao||"Use o formato AAAA-1 ou AAAA-2. Ex.: 2027-1."}</span></div><a className="btn-create" onClick={()=>void gp.criarPeriodo()}>{gp.processando?"Criando...":"+ Criar período"}</a></div></div></div>}
  <div className="period-section"><div className="col-head">Integração</div><div className="int-config-head"><div><h3>Google Sheets</h3><p>Leitura segura da planilha vinculada ao período <b>{periodoAtual?.codigo}</b>. A prévia não altera o sistema nem a planilha.</p></div><div className="int-badge-group"><span className="int-badge">{gs.sheetsSalvo?"Configurado":gs.sheetsStatus==="carregando"?"Verificando":"Não configurado"}</span>{gs.sheetsTitulo&&<div className="int-badge-sub show"><div className="int-badge-label">Planilha vinculada</div><div className="int-badge-value">{gs.sheetsTitulo}</div></div>}</div></div>
@@ -28,7 +56,7 @@ export default function Periodos(){
  {gs.sheetsErro&&<p style={{color:"var(--terracotta)",fontSize:".8rem"}}>{gs.sheetsErro}</p>}
  {previa&&<div className="preview-block show"><div className="preview-head"><h3>{previa.encontrados.toLocaleString("pt-BR")} alunos encontrados</h3><span className="preview-badge">✓ Nada alterado</span></div><div className="preview-stats">
  <div className="pstat"><strong>{previa.novos}</strong><span>Novos alunos</span></div><div className="pstat"><strong>{previa.alteracoes_cadastrais}</strong><span>Cadastros diferentes</span></div><div className={`pstat${detalhes?" active":""}`}><strong>{previa.documentos_alterados}</strong><span>Documentos diferentes</span>{previa.documentos_alterados>0&&<a onClick={()=>setDetalhes(v=>!v)}>{detalhes?"Ocultar detalhes":"Ver detalhes"}</a>}</div><div className="pstat"><strong>{previa.prontos_para_cancelar}</strong><span>Cancelamentos</span></div><div className="pstat"><strong>{previa.prontos_para_reativar}</strong><span>Reativações</span></div><div className="pstat"><strong>{previa.prontos_para_remover}</strong><span>Remoções</span></div><div className="pstat"><strong>{previa.cursos_nao_mapeados}</strong><span>Cursos a mapear</span></div></div>
- {detalhes&&<div className="details-panel show"><button className="details-panel-close" onClick={()=>setDetalhes(false)}>✕</button><div className="col-head" style={{marginBottom:"0.3rem"}}>Conferência</div><h4>Detalhes da prévia</h4>{previa.detalhes.documentos.slice(0,20).map((d,i)=><div className="details-row" key={`${d.ra}-${i}`}><div className="dr-student"><strong>{d.nome}</strong><span>RA {d.ra}</span></div><div className="dr-changes"><div className="dr-change"><div className="dc-label">Alteração documental</div><div className="dc-value">{d.detalhe}</div></div></div></div>)}</div>}
+ {detalhes&&<div className="details-panel show"><button className="details-panel-close" onClick={()=>setDetalhes(false)}>✕</button><div className="col-head" style={{marginBottom:"0.3rem"}}>Conferência</div><h4>Detalhes da prévia</h4>{previa.detalhes.documentos.slice(0,20).map((d,i)=>{const chave=`${d.ra}-${i}`;const alteracoes=d.detalhe.split("\n").map(linha=>linha.trim()).filter(Boolean).map(separarAlteracao);const aberto=detalhesAbertos.has(chave);return <div className={`details-row${aberto?" open":""}`} key={chave}><button type="button" className="details-row-toggle" aria-expanded={aberto} onClick={()=>alternarAlunoDetalhe(chave)}><span className="details-chevron" aria-hidden="true"/><span className="dr-student"><strong>{d.nome}</strong><span>RA {d.ra}</span></span><span className="details-change-count">{alteracoes.length} {alteracoes.length===1?"alteração":"alterações"}</span></button>{aberto&&<div className="details-row-body"><div className="dr-changes">{alteracoes.map((alteracao,j)=><div className="dr-change" key={`${chave}-${alteracao.campo}-${j}`}><div className="dc-label">{alteracao.campo}</div><div className="dc-value"><span className={`dc-status ${tomStatus(alteracao.antes)}`}>{alteracao.antes}</span>{alteracao.depois&&<><span className="arrow" aria-hidden="true">→</span><span className={`dc-status ${tomStatus(alteracao.depois)}`}>{alteracao.depois}</span></>}</div></div>)}</div></div>}</div>})}</div>}
  <div className="preview-banner">{previa.unidades_nao_resolvidas===0?"✓ Unidades resolvidas. A prévia está pronta para sincronização.":`⚠ ${previa.unidades_nao_resolvidas} unidade(s) ainda precisam ser resolvidas.`}</div><div className="apply-row"><div className="apply-info"><div className="al-label">Aplicar alterações</div><strong>{gs.totalOperacoesPrevia} operação(ões) pronta(s)</strong><p>A planilha será lida novamente no momento da sincronização.</p></div><button className="btn-sync" disabled={previa.unidades_nao_resolvidas>0||gs.sincronizandoSheets} onClick={()=>gs.setModalSincronizar(true)}>Sincronizar agora</button></div></div>}
  </div>
  <div className="period-section"><div className="section-head-row"><div className="col-head" style={{marginBottom:0}}>Operação</div></div><div className="section-head-row"><h3 style={{margin:0,fontSize:"1.02rem",fontWeight:700}}>Períodos ativos</h3><span className="section-count">{ativos.length}</span></div><ul className="period-row-list">{ativos.map(p=><li className="period-row" key={p.id}><span className="pr-badge active">Ativo</span><span className="pr-name">{p.codigo}</span><span className="pr-meta">{p.total_alunos?.toLocaleString?.("pt-BR")||0} alunos vinculados</span><div className="pr-actions"><a className={p.codigo===periodoAtual?.codigo?"disabled":""} onClick={()=>selecionarPeriodo(p.codigo)}>Abrir período</a>{!modoApresentacao&&<a className="danger" onClick={()=>gp.setConfirmacao({id:p.id,codigo:p.codigo,status:"ATIVO"})}>Arquivar</a>}</div></li>)}</ul></div>
