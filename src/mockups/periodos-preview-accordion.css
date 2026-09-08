@@ -9,6 +9,7 @@
 }
 
 .details-row-toggle {
+  position: relative;
   width: 100%;
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr) auto;
@@ -22,8 +23,35 @@
   cursor: pointer;
 }
 
-.details-row-toggle:hover .dr-student strong {
+.details-row-toggle::before {
+  content: "";
+  position: absolute;
+  inset: 0.2rem -0.55rem;
+  z-index: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--grid) 62%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+}
+
+.details-row-toggle:hover::before,
+.details-row-toggle:focus-visible::before {
+  opacity: 1;
+}
+
+.details-row-toggle > * {
+  position: relative;
+  z-index: 1;
+}
+
+.details-row-toggle:hover .dr-student strong,
+.details-row-toggle:focus-visible .dr-student strong {
   color: var(--terracotta);
+}
+
+.details-row-toggle:focus-visible {
+  outline: none;
 }
 
 .details-chevron {
