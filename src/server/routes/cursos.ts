@@ -45,6 +45,7 @@ export async function handleCursosRoute({
         .first<{ id: number }>();
 
       if (anterior) {
+        // Primeiro herda os mapeamentos explícitos do período anterior.
         await db
           .prepare(
             `INSERT INTO google_sheets_mapeamentos
@@ -52,6 +53,25 @@ export async function handleCursosRoute({
              SELECT ?, curso_chave, curso, unidade, CURRENT_TIMESTAMP
              FROM google_sheets_mapeamentos
              WHERE periodo_id = ?
+             ON CONFLICT(periodo_id, curso_chave) DO NOTHING`,
+          )
+          .bind(periodoId, anterior.id)
+          .run();
+
+        // O período antigo pode ter cursos válidos apenas na tabela de alunos,
+        // sem uma linha correspondente em google_sheets_mapeamentos.
+        // Se o curso tinha uma única unidade no período anterior, ela é segura
+        // para ser herdada também.
+        await db
+          .prepare(
+            `INSERT INTO google_sheets_mapeamentos
+               (periodo_id, curso_chave, curso, unidade, atualizado_em)
+             SELECT ?, UPPER(TRIM(curso)), curso, MIN(unidade), CURRENT_TIMESTAMP
+             FROM alunos
+             WHERE periodo_id = ?
+               AND TRIM(curso) <> ''
+             GROUP BY curso
+             HAVING COUNT(DISTINCT unidade) = 1
              ON CONFLICT(periodo_id, curso_chave) DO NOTHING`,
           )
           .bind(periodoId, anterior.id)
