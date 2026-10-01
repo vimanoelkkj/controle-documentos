@@ -84,6 +84,33 @@ export async function handlePeriodosRoute({
         .run();
       const periodoId = Number(resultado.meta.last_row_id);
 
+      // Herda os mapeamentos de curso do período imediatamente anterior.
+      // A cópia fica vinculada ao novo período, preservando o histórico anterior.
+      const periodoAnterior = await db
+        .prepare(
+          `SELECT id, codigo
+           FROM periodos
+           WHERE codigo < ?
+           ORDER BY codigo DESC
+           LIMIT 1`,
+        )
+        .bind(codigo)
+        .first<{ id: number; codigo: string }>();
+
+      if (periodoAnterior) {
+        await db
+          .prepare(
+            `INSERT INTO google_sheets_mapeamentos
+               (periodo_id, curso_chave, curso, unidade, atualizado_em)
+             SELECT ?, curso_chave, curso, unidade, CURRENT_TIMESTAMP
+             FROM google_sheets_mapeamentos
+             WHERE periodo_id = ?
+             ON CONFLICT(periodo_id, curso_chave) DO NOTHING`,
+          )
+          .bind(periodoId, periodoAnterior.id)
+          .run();
+      }
+
       await registrarAuditoria(periodoId, {
         acao: "CRIAR",
         entidade: "PERIODO",
