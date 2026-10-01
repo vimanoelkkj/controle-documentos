@@ -1320,3 +1320,129 @@ input {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+/* Google Sheets: mapeamento de cursos */
+.period-course-map {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.period-course-map > article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--grid);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.period-course-info {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.period-course-info strong {
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.period-course-info span,
+.period-course-info small {
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.period-course-info small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.period-course-actions,
+.period-course-actions .app-select,
+.period-course-actions .app-select-trigger {
+  width: 100%;
+}
+
+.period-course-map-save {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 82%, var(--bg));
+}
+
+.period-course-map-save > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.period-course-map-save span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.period-course-map-save strong {
+  font-size: 0.88rem;
+}
+
+.period-course-map-save small {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+}
+
+.period-course-map-save button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  background: var(--teal);
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.period-course-map-save button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.period-sheets-resolved {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--teal) 35%, var(--border));
+  border-radius: var(--radius-sm);
+  color: var(--teal);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .period-course-map > article {
+    grid-template-columns: 1fr;
+  }
+
+  .period-course-map-save {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .period-course-map-save button {
+    width: 100%;
+  }
+}
