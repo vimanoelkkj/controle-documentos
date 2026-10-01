@@ -215,6 +215,47 @@ export async function handleGoogleSheetsConfigRoute({
           )
           .bind(periodoId, anterior.id)
           .run();
+
+        // Também herda cursos que existem no período anterior mas nunca
+        // ganharam uma linha explícita de mapeamento. A chave é normalizada
+        // pelo mesmo normalizador usado pela prévia, evitando divergências
+        // por acentos/caixa/espaçamento.
+        const cursosAnteriores = await db
+          .prepare(
+            `SELECT curso, unidade
+             FROM alunos
+             WHERE periodo_id = ? AND TRIM(curso) <> ''
+             GROUP BY curso, unidade
+             ORDER BY curso`,
+          )
+          .bind(anterior.id)
+          .all<{ curso: string; unidade: string }>();
+
+        const unidadesPorCurso = new Map<string, Set<string>>();
+        const nomePorChave = new Map<string, string>();
+        for (const item of cursosAnteriores.results) {
+          const chave = normalizarComparacao(item.curso);
+          if (!chave) continue;
+          nomePorChave.set(chave, item.curso);
+          const unidades = unidadesPorCurso.get(chave) ?? new Set<string>();
+          unidades.add(normalizarComparacao(item.unidade));
+          unidadesPorCurso.set(chave, unidades);
+        }
+
+        for (const [cursoChave, unidades] of unidadesPorCurso) {
+          if (unidades.size !== 1) continue;
+          const unidade = [...unidades][0];
+          if (!["FACE", "FEA", "FCH", "EAD"].includes(unidade)) continue;
+          await db
+            .prepare(
+              `INSERT INTO google_sheets_mapeamentos
+                 (periodo_id, curso_chave, curso, unidade, atualizado_em)
+               VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+               ON CONFLICT(periodo_id, curso_chave) DO NOTHING`,
+            )
+            .bind(periodoId, cursoChave, nomePorChave.get(cursoChave), unidade)
+            .run();
+        }
       }
     }
 
