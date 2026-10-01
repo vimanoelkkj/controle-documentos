@@ -183,6 +183,41 @@ export async function handleGoogleSheetsConfigRoute({
   );
   if (rotaMapeamentos && request.method === "GET") {
     const periodoId = Number(rotaMapeamentos[1]);
+
+    // Para períodos criados antes da herança automática, completa apenas
+    // mapeamentos ausentes usando o período imediatamente anterior.
+    const periodo = await db
+      .prepare(`SELECT codigo FROM periodos WHERE id = ?`)
+      .bind(periodoId)
+      .first<{ codigo: string }>();
+
+    if (periodo) {
+      const anterior = await db
+        .prepare(
+          `SELECT id
+           FROM periodos
+           WHERE codigo < ?
+           ORDER BY codigo DESC
+           LIMIT 1`,
+        )
+        .bind(periodo.codigo)
+        .first<{ id: number }>();
+
+      if (anterior) {
+        await db
+          .prepare(
+            `INSERT INTO google_sheets_mapeamentos
+               (periodo_id, curso_chave, curso, unidade, atualizado_em)
+             SELECT ?, curso_chave, curso, unidade, CURRENT_TIMESTAMP
+             FROM google_sheets_mapeamentos
+             WHERE periodo_id = ?
+             ON CONFLICT(periodo_id, curso_chave) DO NOTHING`,
+          )
+          .bind(periodoId, anterior.id)
+          .run();
+      }
+    }
+
     const dados = await db
       .prepare(
         `SELECT curso, unidade FROM google_sheets_mapeamentos
