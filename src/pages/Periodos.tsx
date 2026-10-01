@@ -110,12 +110,13 @@ export default function Periodos() {
           className="cfg-value"
           contentEditable={!modoApresentacao}
           suppressContentEditableWarning
-          onBlur={(e) =>
+          onBlur={(e) => {
+            const valor = e.currentTarget.textContent || "";
             gs.setSheetsConfig((c) => ({
               ...c,
-              [key]: e.currentTarget.textContent || "",
-            }))
-          }
+              [key]: valor,
+            }));
+          }}
         >
           {gs.sheetsConfig[key]}
         </div>
