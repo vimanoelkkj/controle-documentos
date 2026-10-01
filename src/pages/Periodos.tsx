@@ -6,6 +6,7 @@ import { usePeriodo } from "../contexts/periodo";
 import { useAuth } from "../contexts/auth";
 import { useGoogleSheetsPeriodo } from "./periodos/hooks/useGoogleSheetsPeriodo";
 import { useGerenciamentoPeriodos } from "./periodos/hooks/useGerenciamentoPeriodos";
+import { GoogleSheetsCourseMap } from "./periodos/google-sheets/GoogleSheetsCourseMap";
 
 function separarAlteracao(linha: string) {
   const separador = linha.indexOf(": ");
@@ -304,11 +305,45 @@ export default function Periodos() {
                 <strong>{previa.prontos_para_remover}</strong>
                 <span>Remoções</span>
               </div>
-              <div className="pstat">
+              <div className={`pstat${gs.abaPrevia === "unidades" ? " active" : ""}`}>
                 <strong>{previa.cursos_nao_mapeados}</strong>
                 <span>Cursos a mapear</span>
+                {previa.cursos_nao_mapeados > 0 && (
+                  <a
+                    onClick={() =>
+                      gs.setAbaPrevia(
+                        gs.abaPrevia === "unidades" ? null : "unidades",
+                      )
+                    }
+                  >
+                    {gs.abaPrevia === "unidades" ? "Ocultar" : "Resolver"}
+                  </a>
+                )}
               </div>
             </div>
+            {gs.abaPrevia === "unidades" && (
+              <div className="details-panel show">
+                <button
+                  className="details-panel-close"
+                  onClick={() => gs.setAbaPrevia(null)}
+                >
+                  ✕
+                </button>
+                <div className="col-head" style={{ marginBottom: "0.3rem" }}>
+                  Mapeamento de unidades
+                </div>
+                <h4>Mapear cursos por unidade</h4>
+                <GoogleSheetsCourseMap
+                  cursosPendentes={previa.cursos_pendentes}
+                  mapeamentos={gs.mapeamentos}
+                  setMapeamentos={gs.setMapeamentos}
+                  mapeamentosAlterados={gs.mapeamentosAlterados}
+                  salvandoMapeamentos={gs.salvandoMapeamentos}
+                  modoApresentacao={modoApresentacao}
+                  salvarMapeamentos={gs.salvarMapeamentos}
+                />
+              </div>
+            )}
             {detalhes && (
               <div className="details-panel show">
                 <button
