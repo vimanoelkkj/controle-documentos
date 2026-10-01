@@ -66,7 +66,11 @@ export async function handleCursosRoute({
           .prepare(
             `INSERT INTO google_sheets_mapeamentos
                (periodo_id, curso_chave, curso, unidade, atualizado_em)
-             SELECT ?, UPPER(TRIM(curso)), curso, MIN(unidade), CURRENT_TIMESTAMP
+             SELECT ?,
+                    UPPER(TRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                      curso,
+                      'Á','A'),'À','A'),'Â','A'),'Ã','A'),'É','E'),'Ê','E'),'Í','I'),'Ó','O'),'Ô','O'),'Ú','U'))),
+                    curso, MIN(unidade), CURRENT_TIMESTAMP
              FROM alunos
              WHERE periodo_id = ?
                AND TRIM(curso) <> ''
