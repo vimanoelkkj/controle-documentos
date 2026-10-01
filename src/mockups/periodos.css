@@ -1446,3 +1446,70 @@ input {
     width: 100%;
   }
 }
+
+
+/* Course mapper AppSelect: self-contained because its menu is portaled to <body>. */
+.period-course-unit-select .app-select-trigger {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 38px;
+  padding: 0.55rem 0.75rem !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+  cursor: pointer;
+}
+
+.period-course-unit-select .app-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.period-course-unit-menu {
+  display: grid !important;
+  gap: 0.25rem;
+  padding: 0.4rem !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--surface) !important;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18) !important;
+  overflow: hidden;
+}
+
+.period-course-unit-menu .app-select-option {
+  appearance: none;
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+  min-height: 34px;
+  padding: 0.5rem 0.65rem !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  text-align: left;
+  cursor: pointer;
+}
+
+.period-course-unit-menu .app-select-option::before {
+  content: none !important;
+}
+
+.period-course-unit-menu .app-select-option:hover,
+.period-course-unit-menu .app-select-option.active {
+  background: color-mix(in srgb, var(--terracotta) 12%, var(--surface)) !important;
+  color: var(--terracotta) !important;
+}
+
+.period-course-unit-menu .app-select-option.selected {
+  background: color-mix(in srgb, var(--terracotta) 16%, var(--surface)) !important;
+  color: var(--terracotta) !important;
+  font-weight: 700;
+}
