@@ -25,6 +25,40 @@ export async function handleCursosRoute({
   registrarAuditoria,
 }: CursosRouteContext): Promise<Response | null> {
   if (url.pathname === "/api/cursos" && request.method === "GET") {
+    // O período pode ainda não ter alunos sincronizados. Nesse caso, a tela
+    // também deve mostrar os cursos já mapeados/herdados para o período.
+    const periodo = await db
+      .prepare(`SELECT codigo FROM periodos WHERE id = ?`)
+      .bind(periodoId)
+      .first<{ codigo: string }>();
+
+    if (periodo) {
+      const anterior = await db
+        .prepare(
+          `SELECT id
+           FROM periodos
+           WHERE codigo < ?
+           ORDER BY codigo DESC
+           LIMIT 1`,
+        )
+        .bind(periodo.codigo)
+        .first<{ id: number }>();
+
+      if (anterior) {
+        await db
+          .prepare(
+            `INSERT INTO google_sheets_mapeamentos
+               (periodo_id, curso_chave, curso, unidade, atualizado_em)
+             SELECT ?, curso_chave, curso, unidade, CURRENT_TIMESTAMP
+             FROM google_sheets_mapeamentos
+             WHERE periodo_id = ?
+             ON CONFLICT(periodo_id, curso_chave) DO NOTHING`,
+          )
+          .bind(periodoId, anterior.id)
+          .run();
+      }
+    }
+
     const resultado = await db
       .prepare(
         `SELECT curso, unidade, COUNT(*) AS total
@@ -57,6 +91,26 @@ export async function handleCursosRoute({
         total: Number(item.total),
       });
       cursos.set(item.curso, atual);
+    }
+
+    const mapeados = await db
+      .prepare(
+        `SELECT curso, unidade
+         FROM google_sheets_mapeamentos
+         WHERE periodo_id = ?
+         ORDER BY curso`,
+      )
+      .bind(periodoId)
+      .all<{ curso: string; unidade: string }>();
+
+    for (const item of mapeados.results) {
+      if (!cursos.has(item.curso)) {
+        cursos.set(item.curso, {
+          curso: item.curso,
+          total_alunos: 0,
+          unidades: [{ unidade: item.unidade, total: 0 }],
+        });
+      }
     }
 
     return Response.json([...cursos.values()]);
