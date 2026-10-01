@@ -98,6 +98,21 @@ export function useGoogleSheetsPeriodo({
 
           if (config) {
             try {
+              const herdados = await api.get<Array<{ curso: string; unidade: string }>>(
+                `/api/periodos/${periodo.id}/google-sheets/mapeamentos`,
+              );
+              if (ativo) {
+                const mapa = Object.fromEntries(
+                  herdados.map(({ curso, unidade }) => [curso, unidade]),
+                );
+                setMapeamentos(mapa);
+                setMapeamentosSalvos(mapa);
+              }
+            } catch {
+              // O mapeamento pode ser carregado novamente na prévia.
+            }
+
+            try {
               const dadosStatus = await api.get<{ titulo?: string | null }>(
                 `/api/periodos/${periodo.id}/google-sheets/status`,
               );
