@@ -51,6 +51,8 @@ export function GoogleSheetsCourseMap({
               }
               disabled={modoApresentacao || salvandoMapeamentos}
               ariaLabel={`Mapear ${grupo.curso} para uma unidade`}
+              className="period-course-unit-select"
+              menuClassName="period-course-unit-menu"
               options={[
                 { value: "", label: "Selecionar unidade" },
                 { value: "FACE", label: "FACE" },
