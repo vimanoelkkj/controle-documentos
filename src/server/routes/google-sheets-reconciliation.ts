@@ -53,12 +53,12 @@ export function lerBaseGoogleSheets(
     .slice(1)
     .map((l) => ({
       contrato: normalizarComparacao(l[0]) === "ENTREGUE",
-      curso: normalizarTexto(l[1]),
-      email_outro: normalizarTexto(l[2]),
-      email: normalizarTexto(l[3]),
-      nome: normalizarTexto(l[4]),
-      ra: normalizarTexto(l[5]),
-      situacao: normalizarTexto(l[6]),
+      curso: normalizarTexto(l[2]),
+      email_outro: normalizarTexto(l[3]),
+      email: normalizarTexto(l[4]),
+      nome: normalizarTexto(l[5]),
+      ra: normalizarTexto(l[6]),
+      situacao: normalizarTexto(l[7]),
       origem,
     }))
     .filter((aluno) => aluno.ra && aluno.nome && aluno.curso);
