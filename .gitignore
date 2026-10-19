@@ -35,3 +35,13 @@ backups/
 # Backups locais do banco
 backup-*.sql
 *-backup.sql
+
+
+# Procedimentos administrativos privados com dados reais de produção
+scripts/private/
+*.private.sql
+
+# Agent/Tool working folders
+.agents/
+.claude/
+.codex/
