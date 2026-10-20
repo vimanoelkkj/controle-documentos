@@ -68,12 +68,14 @@ export interface SyncOrchestratorOptions {
   now?: string | Date;
   baseBackoffSeconds?: number;
   logger?: (level: 'info' | 'warn' | 'error', message: string, meta?: any) => void;
+  beforeWriteHook?: (operationId: string) => Promise<void>;
 }
 
 export type SyncOperationStatus =
   | 'OBSERVED'
   | 'OBSERVED_VIA_VERIFY'
   | 'CONFLICT_RECORDED'
+  | 'BLOCKED_BY_OPEN_CONFLICT'
   | 'STRUCTURAL_ERROR'
   | 'UNCERTAIN_PRESERVED'
   | 'RETRY_SCHEDULED'
@@ -101,6 +103,7 @@ export interface SyncBatchResult {
   processedCount: number;
   observedCount: number;
   conflictCount: number;
+  blockedByConflictCount: number;
   uncertainCount: number;
   retryScheduledCount: number;
   structuralErrorCount: number;
@@ -118,6 +121,7 @@ export class SyncV2Orchestrator {
   readonly tabNameResolver: TabNameResolver;
   readonly baseBackoffSeconds: number;
   private readonly logger?: (level: 'info' | 'warn' | 'error', message: string, meta?: any) => void;
+  private readonly beforeWriteHook?: (operationId: string) => Promise<void>;
 
   constructor(options: SyncOrchestratorOptions) {
     this.db = options.db;
@@ -128,6 +132,7 @@ export class SyncV2Orchestrator {
     this.tabNameResolver = options.tabNameResolver ?? defaultTabNameResolver;
     this.baseBackoffSeconds = options.baseBackoffSeconds ?? 10;
     this.logger = options.logger;
+    this.beforeWriteHook = options.beforeWriteHook;
   }
 
   private log(level: 'info' | 'warn' | 'error', message: string, meta?: any) {
@@ -208,6 +213,7 @@ export class SyncV2Orchestrator {
       processedCount: operationResults.length,
       observedCount: operationResults.filter(r => r.status === 'OBSERVED' || r.status === 'OBSERVED_VIA_VERIFY').length,
       conflictCount: operationResults.filter(r => r.status === 'CONFLICT_RECORDED').length,
+      blockedByConflictCount: operationResults.filter(r => r.status === 'BLOCKED_BY_OPEN_CONFLICT').length,
       uncertainCount: operationResults.filter(r => r.status === 'UNCERTAIN_PRESERVED').length,
       retryScheduledCount: operationResults.filter(r => r.status === 'RETRY_SCHEDULED').length,
       structuralErrorCount: operationResults.filter(r => r.status === 'STRUCTURAL_ERROR').length,
@@ -250,7 +256,45 @@ export class SyncV2Orchestrator {
 
     const { payload, leaseEpoch } = claimRes;
 
-    // 2. Despacho e registro de tentativa imutável append-only (G7)
+    // 2. Verificação de Conflitos F3 Abertos:
+    // Uma operação NUNCA pode executar escrita externa se houver um conflito F3 aberto para este registro/campo/alvo!
+    // Exige resolução administrativa explícita (applyAdminConflictResolution) antes de qualquer nova tentativa.
+    const openConflict = await this.db
+      .prepare(
+        `SELECT conflict_id, local_revision, reason
+         FROM sync_conflicts
+         WHERE record_id = ? AND field_key = ? AND target_key = ? AND resolved = 0`
+      )
+      .bind(payload.recordId, payload.fieldKey, payload.targetKey)
+      .first<{ conflict_id: string; local_revision: number; reason: string }>();
+
+    if (openConflict) {
+      const blockMsg = `Conflito F3 aberto (${openConflict.conflict_id}): aguardando resolução administrativa explícita antes de qualquer escrita.`;
+      await markRetryWaitOperation(this.db, {
+        operationId,
+        workerId: this.workerId,
+        leaseEpoch,
+        backoffSeconds: this.baseBackoffSeconds * 12,
+        confirmEffectAbsent: true,
+        errorMessage: blockMsg,
+        now,
+      });
+
+      return {
+        operationId,
+        recordId: payload.recordId,
+        raText: payload.raText,
+        groupKey: payload.groupKey,
+        fieldKey: payload.fieldKey,
+        targetKey: payload.targetKey,
+        targetRevision: payload.targetRevision,
+        status: 'BLOCKED_BY_OPEN_CONFLICT',
+        conflictId: openConflict.conflict_id,
+        error: blockMsg,
+      };
+    }
+
+    // 3. Despacho e registro de tentativa imutável append-only (G7)
     const dispatchRes = await dispatchOperation(this.db, {
       operationId,
       workerId: this.workerId,
@@ -275,7 +319,7 @@ export class SyncV2Orchestrator {
 
     const attemptId = dispatchRes.attemptId;
 
-    // 3. Consulta de integração e metadados de planilha
+    // 4. Consulta de integração e metadados de planilha
     const integration = await this.db
       .prepare(
         `SELECT spreadsheet_id, mode
@@ -312,13 +356,13 @@ export class SyncV2Orchestrator {
       };
     }
 
-    // 4. Resolução da aba de destino
+    // 5. Resolução da aba de destino
     const tabName =
       payload.targetKey === 'CONTROLE'
         ? this.tabNameResolver.getControlTabName(payload.groupKey)
         : this.tabNameResolver.getGeneralTabName(payload.groupKey);
 
-    // 5. Consulta do valor anterior esperado para precondição de CAS (C4)
+    // 6. Consulta do valor anterior esperado para precondição de CAS (C4)
     const eventRow = await this.db
       .prepare(`SELECT value_old FROM sync_events WHERE event_id = ?`)
       .bind(payload.eventId)
@@ -334,7 +378,41 @@ export class SyncV2Orchestrator {
       operationId: payload.operationId,
     };
 
-    // 6. Chamada cirúrgica de célula única no adaptador
+    // 7. Revalidação atômica de titularidade de fencing imediatamente antes da chamada HTTP externa.
+    // Garante que respostas tardias de workers com lease expirado ou revogado durante o preparo
+    // não cheguem a disparar requisições HTTP na planilha.
+    if (this.beforeWriteHook) {
+      await this.beforeWriteHook(operationId);
+    }
+
+    const leaseCheck = await this.db
+      .prepare(
+        `SELECT lease_owner, lease_epoch, lease_until
+         FROM sync_operations
+         WHERE operation_id = ?
+           AND lease_owner = ?
+           AND lease_epoch = ?
+           AND datetime(lease_until) >= datetime(?)`
+      )
+      .bind(operationId, this.workerId, leaseEpoch, now)
+      .first<{ lease_owner: string; lease_epoch: number; lease_until: string }>();
+
+    if (!leaseCheck) {
+      return {
+        operationId,
+        recordId: payload.recordId,
+        raText: payload.raText,
+        groupKey: payload.groupKey,
+        fieldKey: payload.fieldKey,
+        targetKey: payload.targetKey,
+        targetRevision: payload.targetRevision,
+        status: 'FENCING_REJECTED',
+        error: `Fencing lease expirado ou revogado na janela pré-HTTP (worker ${this.workerId}, epoch ${leaseEpoch}). Chamada externa abortada preventivamente.`,
+        attemptId,
+      };
+    }
+
+    // 8. Chamada cirúrgica de célula única no adaptador
     let writeRes: WriteResult;
     try {
       writeRes = await this.adapter.writeDocumentField({
@@ -464,27 +542,15 @@ export class SyncV2Orchestrator {
     }
 
     // Caso de erro estrutural (OUT_OF_BOUNDS, LAYOUT_MUTATED, STUDENT_NOT_FOUND)
+    // Aluno ausente, duplicado ou layout adulterado NÃO comprova conclusivamente ausência de efeito na planilha.
+    // A operação é encaminhada com segurança para UNCERTAIN (quarentena sem retry cego e sem falso atestado de ausência).
     const structErrorMsg = writeRes.error || `Erro estrutural no adaptador: ${writeRes.status}`;
-    const structVerifyAttemptId = crypto.randomUUID();
-    const structVerifyRes = await verifyOperation(this.db, {
+    await markUncertainOperation(this.db, {
       operationId,
       workerId: this.workerId,
       leaseEpoch,
-      attemptId: structVerifyAttemptId,
-      now,
-    });
-
-    const effectiveStructEpoch = structVerifyRes.ok ? structVerifyRes.operation.lease_epoch : leaseEpoch;
-    const effectiveStructAttempt = structVerifyRes.ok ? structVerifyAttemptId : attemptId;
-
-    await markRetryWaitOperation(this.db, {
-      operationId,
-      workerId: this.workerId,
-      leaseEpoch: effectiveStructEpoch,
-      backoffSeconds: this.baseBackoffSeconds * 4,
-      confirmEffectAbsent: true,
       errorMessage: structErrorMsg,
-      attemptId: effectiveStructAttempt,
+      attemptId,
       now,
     });
 
@@ -498,7 +564,7 @@ export class SyncV2Orchestrator {
       targetRevision: payload.targetRevision,
       status: 'STRUCTURAL_ERROR',
       error: structErrorMsg,
-      attemptId: effectiveStructAttempt,
+      attemptId,
     };
   }
 

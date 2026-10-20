@@ -221,7 +221,7 @@ describe("F4-B: Orquestração da Sincronização V2 (SyncV2Orchestrator)", () =
   const integrationFchId = "int-f4b-fch-001";
   const spreadsheetFaceId = "sheet-f4b-face";
   const spreadsheetFchId = "sheet-f4b-fch";
-  const mockAdapter = new MockTestAdapter();
+  let mockAdapter: MockTestAdapter;
 
   beforeAll(async () => {
     // 1. Criação do período e integrações no D1
@@ -262,7 +262,7 @@ describe("F4-B: Orquestração da Sincronização V2 (SyncV2Orchestrator)", () =
   }
 
   async function resetarAmbiente() {
-    mockAdapter.reset();
+    mockAdapter = new MockTestAdapter();
 
     // Grades iniciais com colunas J e K de fórmulas
     mockAdapter.setSheetData(spreadsheetFaceId, 'CONTROLE DE DOCUMENTOS FACE FEA', [
@@ -798,5 +798,143 @@ describe("F4-B: Orquestração da Sincronização V2 (SyncV2Orchestrator)", () =
     // Confirma que a tabela legada google_sheets_pendencias permanece 100% vazia
     const pendenciasV1 = await env.DB.prepare(`SELECT count(*) as total FROM google_sheets_pendencias`).first<{ total: number }>();
     expect(pendenciasV1?.total).toBe(0);
+  });
+
+  it('F4-B.12 — Bloqueio Estrito de Escrita com Conflito F3 Aberto (Sem Sobrescrita sem Resolução)', async () => {
+    await resetarAmbiente();
+    const { recordId, integrationId } = await setupAlunoComBaseline({
+      ra: '000123',
+      nome: 'Aluno Face 1',
+    });
+
+    await dispararMutacao({ recordId, integrationId, fieldKey: 'identidade' });
+
+    // Simula que já existe um conflito F3 aberto para este registro e campo
+    const conflictId = 'conf_aberto_test_123';
+    await env.DB.prepare(
+      `INSERT INTO sync_conflicts (
+        conflict_id, record_id, field_key, target_key, local_revision,
+        local_value, external_value, reason, resolved
+      ) VALUES (?, ?, 'identidade', 'CONTROLE', 1, 1, 0, 'Edição humana divergente na planilha', 0)`
+    )
+      .bind(conflictId, recordId)
+      .run();
+
+    let writeChamado = false;
+    mockAdapter.writeDocumentField = async () => {
+      writeChamado = true;
+      throw new Error('writeDocumentField não deveria ter sido chamado enquanto conflito estiver aberto!');
+    };
+
+    const orchestrator = new SyncV2Orchestrator({
+      db: env.DB,
+      adapter: mockAdapter,
+      workerId: 'worker-conflict-blocked',
+    });
+
+    const batchRes = await orchestrator.executeBatch();
+
+    // 1. Confirma que a operação foi bloqueada sem chamar a planilha externa
+    expect(writeChamado).toBe(false);
+    expect(batchRes.blockedByConflictCount).toBe(1);
+    expect(batchRes.operations[0].status).toBe('BLOCKED_BY_OPEN_CONFLICT');
+    expect(batchRes.operations[0].conflictId).toBe(conflictId);
+
+    // 2. Confirma que a operação foi mantida em RETRY_WAIT no D1
+    const op = await env.DB.prepare(`SELECT state FROM sync_operations WHERE operation_id = ?`)
+      .bind(batchRes.operations[0].operationId)
+      .first<{ state: string }>();
+    expect(op?.state).toBe('RETRY_WAIT');
+
+    // 3. Agora simula a resolução administrativa do conflito (resolved = 1)
+    await env.DB.prepare(`UPDATE sync_conflicts SET resolved = 1 WHERE conflict_id = ?`)
+      .bind(conflictId)
+      .run();
+
+    // Redefine o adaptador para comportamento normal
+    mockAdapter.writeDocumentField = new MockTestAdapter().writeDocumentField;
+
+    // Força next_attempt_at para agora para simular decurso do backoff
+    await env.DB.prepare(`UPDATE sync_operations SET next_attempt_at = datetime('now', '-1 minute') WHERE operation_id = ?`)
+      .bind(batchRes.operations[0].operationId)
+      .run();
+
+    const secondBatch = await orchestrator.executeBatch();
+    expect(secondBatch.observedCount).toBe(1);
+    expect(secondBatch.operations[0].status).toBe('OBSERVED');
+  });
+
+  it('F4-B.13 — Janela Pré-HTTP: Perda de Fencing Aborta Escrita Externa Antes da Requisição de Rede', async () => {
+    await resetarAmbiente();
+    const { recordId, integrationId } = await setupAlunoComBaseline({
+      ra: '000123',
+      nome: 'Aluno Face 1',
+    });
+
+    await dispararMutacao({ recordId, integrationId, fieldKey: 'identidade' });
+
+    let writeExecutado = false;
+    mockAdapter.writeDocumentField = async () => {
+      writeExecutado = true;
+      return { success: true, status: 'COMMITTED' };
+    };
+
+    // Cria orquestrador com hook que usurpa o lease do worker na janela imediata pré-HTTP
+    const orchestrator = new SyncV2Orchestrator({
+      db: env.DB,
+      adapter: mockAdapter,
+      workerId: 'worker-zombie',
+      beforeWriteHook: async (opId) => {
+        // Simula que outro worker tomou a operação e avançou epoch antes da chamada HTTP
+        await env.DB.prepare(
+          `UPDATE sync_operations
+           SET lease_owner = 'worker-usurper',
+               lease_epoch = 99,
+               lease_until = datetime('now', '+60 seconds')
+           WHERE operation_id = ?`
+        )
+          .bind(opId)
+          .run();
+      },
+    });
+
+    const batchRes = await orchestrator.executeBatch();
+
+    // 1. Confirma categoricamente que a escrita externa NÃO foi executada
+    expect(writeExecutado).toBe(false);
+    // 2. Confirma que a operação foi rejeitada por fencing antes da requisição HTTP
+    expect(batchRes.fencingRejectedCount).toBe(1);
+    expect(batchRes.operations[0].status).toBe('FENCING_REJECTED');
+  });
+
+  it('F4-B.14 — Erro Estrutural (Layout Inválido ou RA Não Encontrado) Transiciona para UNCERTAIN sem Falso Atestado de Ausência', async () => {
+    await resetarAmbiente();
+    const { recordId, integrationId } = await setupAlunoComBaseline({
+      ra: '000123',
+      nome: 'Aluno Face 1',
+    });
+
+    await dispararMutacao({ recordId, integrationId, fieldKey: 'identidade' });
+
+    mockAdapter.simulateWriteErrorStatus = 'STUDENT_NOT_FOUND';
+
+    const orchestrator = new SyncV2Orchestrator({
+      db: env.DB,
+      adapter: mockAdapter,
+      workerId: 'worker-structural-quarantine',
+    });
+
+    const batchRes = await orchestrator.executeBatch();
+
+    expect(batchRes.structuralErrorCount).toBe(1);
+    expect(batchRes.operations[0].status).toBe('STRUCTURAL_ERROR');
+
+    // Confirma categoricamente que o estado no D1 é UNCERTAIN (quarentena segura),
+    // e que a operação NÃO foi colocada em RETRY_WAIT com falsa prova de ausência de efeito
+    const op = await env.DB.prepare(`SELECT state FROM sync_operations WHERE operation_id = ?`)
+      .bind(batchRes.operations[0].operationId)
+      .first<{ state: string }>();
+
+    expect(op?.state).toBe('UNCERTAIN');
   });
 });
