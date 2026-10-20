@@ -145,6 +145,7 @@ export interface ControlTabReadResult {
   headerFingerprint: string;
   readAt: string;
   rowsByRa: Map<string, ControlRowSnapshot>;
+  duplicateRas?: string[];
 }
 
 /**

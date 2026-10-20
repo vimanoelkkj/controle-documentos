@@ -375,6 +375,7 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
       headerFingerprint: headerCheck.fingerprint,
       readAt: new Date().toISOString(),
       rowsByRa,
+      duplicateRas: Array.from(duplicateRas),
     };
   }
 

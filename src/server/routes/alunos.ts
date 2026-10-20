@@ -1,3 +1,5 @@
+import { initSyncRecord, type GroupKey } from "../services/sync-d1-core";
+
 type DocumentosAluno = {
   identidade: boolean;
   cpf: boolean;
@@ -176,7 +178,45 @@ async function cadastrarAluno(
       )
       .run();
 
-    await registrarPendencia(dados.ra, "ATUALIZAR", "NOVO ALUNO");
+    const integracao = await db
+      .prepare(
+        `SELECT integration_id, mode, epoch
+         FROM sync_integrations
+         WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{ integration_id: string; mode: string; epoch: number }>();
+
+    const v2Ativa = Boolean(integracao) && integracao!.mode !== "LEGACY";
+
+    if (v2Ativa) {
+      const groupKey: GroupKey = ["FACE", "FEA"].includes(dados.unidade)
+        ? "FACE_FEA"
+        : "FCH_EAD";
+      const recordId = `rec-${periodoId}-${groupKey}-${dados.ra}`;
+
+      await initSyncRecord(db, {
+        recordId,
+        integrationId: integracao!.integration_id,
+        raText: dados.ra,
+        groupKey,
+        alunoId: resultado.meta.last_row_id,
+        generation: 1,
+        lifecycle: "ACTIVE",
+        initialValues: {
+          identidade: documentos?.identidade ? 1 : 0,
+          cpf_documento: documentos?.cpf ? 1 : 0,
+          certidao: documentos?.certidao ? 1 : 0,
+          residencia: documentos?.residencia ? 1 : 0,
+          titulo: documentos?.titulo ? 1 : 0,
+          ensino_medio: documentos?.ensino_medio ? 1 : 0,
+          contrato: documentos?.contrato ? 1 : 0,
+        },
+      });
+    } else {
+      await registrarPendencia(dados.ra, "ATUALIZAR", "NOVO ALUNO");
+    }
+
     return Response.json(
       { sucesso: true, ra: dados.ra, id: resultado.meta.last_row_id },
       { status: 201 },
@@ -246,10 +286,63 @@ async function editarAluno(
       )
       .run();
 
-    if (dados.ra !== raAtual) {
-      await registrarPendencia(raAtual, "REMOVER", "TROCA DE RA");
+    const integracao = await db
+      .prepare(
+        `SELECT integration_id, mode
+         FROM sync_integrations
+         WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{ integration_id: string; mode: string }>();
+
+    const v2Ativa = Boolean(integracao) && integracao!.mode !== "LEGACY";
+
+    if (v2Ativa) {
+      if (dados.ra !== raAtual) {
+        await db
+          .prepare(
+            `UPDATE sync_records
+             SET lifecycle = 'TOMBSTONE', updated_at = CURRENT_TIMESTAMP
+             WHERE integration_id = ? AND ra_text = ?`,
+          )
+          .bind(integracao!.integration_id, raAtual)
+          .run();
+
+        const groupKey: GroupKey = ["FACE", "FEA"].includes(dados.unidade)
+          ? "FACE_FEA"
+          : "FCH_EAD";
+        const recordId = `rec-${periodoId}-${groupKey}-${dados.ra}`;
+
+        const docRow = await db
+          .prepare(`SELECT * FROM documentos WHERE aluno_id = ?`)
+          .bind(aluno.id)
+          .first<any>();
+
+        await initSyncRecord(db, {
+          recordId,
+          integrationId: integracao!.integration_id,
+          raText: dados.ra,
+          groupKey,
+          alunoId: aluno.id,
+          generation: 1,
+          lifecycle: "ACTIVE",
+          initialValues: {
+            identidade: docRow?.identidade ? 1 : 0,
+            cpf_documento: docRow?.cpf ? 1 : 0,
+            certidao: docRow?.certidao ? 1 : 0,
+            residencia: docRow?.residencia ? 1 : 0,
+            titulo: docRow?.titulo ? 1 : 0,
+            ensino_medio: docRow?.ensino_medio ? 1 : 0,
+            contrato: docRow?.contrato ? 1 : 0,
+          },
+        });
+      }
+    } else {
+      if (dados.ra !== raAtual) {
+        await registrarPendencia(raAtual, "REMOVER", "TROCA DE RA");
+      }
+      await registrarPendencia(dados.ra, "ATUALIZAR", "CADASTRO");
     }
-    await registrarPendencia(dados.ra, "ATUALIZAR", "CADASTRO");
 
     return Response.json({
       sucesso: true,
@@ -281,8 +374,31 @@ async function excluirAluno(
       return Response.json({ erro: "Aluno não encontrado." }, { status: 404 });
     }
 
+    const integracao = await db
+      .prepare(
+        `SELECT integration_id, mode
+         FROM sync_integrations
+         WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{ integration_id: string; mode: string }>();
+
+    const v2Ativa = Boolean(integracao) && integracao!.mode !== "LEGACY";
+
+    if (v2Ativa) {
+      await db
+        .prepare(
+          `UPDATE sync_records
+           SET lifecycle = 'TOMBSTONE', updated_at = CURRENT_TIMESTAMP
+           WHERE integration_id = ? AND ra_text = ?`,
+        )
+        .bind(integracao!.integration_id, ra)
+        .run();
+    } else {
+      await registrarPendencia(ra, "REMOVER", "EXCLUSÃO");
+    }
+
     await db.prepare("DELETE FROM alunos WHERE id = ?").bind(aluno.id).run();
-    await registrarPendencia(ra, "REMOVER", "EXCLUSÃO");
     return Response.json({ sucesso: true, ra });
   } catch (erro) {
     console.error(erro);

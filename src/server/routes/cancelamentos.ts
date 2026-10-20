@@ -164,7 +164,20 @@ export async function handleCancelamentosRoute({
           ),
         );
       }
-      for (const ra of paraCancelar) await registrarPendencia(ra);
+      const integracao = await db
+        .prepare(
+          `SELECT integration_id, mode
+           FROM sync_integrations
+           WHERE periodo_id = ?`,
+        )
+        .bind(periodoId)
+        .first<{ integration_id: string; mode: string }>();
+
+      const v2Ativa = Boolean(integracao) && integracao!.mode !== "LEGACY";
+
+      if (!v2Ativa) {
+        for (const ra of paraCancelar) await registrarPendencia(ra);
+      }
 
       return Response.json({
         sucesso: true,
@@ -225,7 +238,20 @@ export async function handleCancelamentosRoute({
       )
       .bind(body.status, aluno.id)
       .run();
-    await registrarPendencia(ra);
+    const integracao = await db
+      .prepare(
+        `SELECT integration_id, mode
+         FROM sync_integrations
+         WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{ integration_id: string; mode: string }>();
+
+    const v2Ativa = Boolean(integracao) && integracao!.mode !== "LEGACY";
+
+    if (!v2Ativa) {
+      await registrarPendencia(ra);
+    }
 
     return Response.json({
       sucesso: true,

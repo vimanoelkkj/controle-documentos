@@ -1,4 +1,5 @@
 import { normalizarCampo } from "../../lib/texto";
+import { initSyncRecord, type GroupKey } from "../services/sync-d1-core";
 type Unidade = "FACE" | "FEA" | "FCH" | "EAD";
 
 type AlunoImportacao = {
@@ -288,12 +289,58 @@ export async function handleImportacaoAlunosRoute({
     await inserirNovos(db, periodoId, body.unidade, novos);
     await atualizarExistentes(db, periodoId, body.unidade, alterados);
 
-    const novosRa = new Set(novos.map((aluno) => aluno.ra));
-    for (const aluno of [...novos, ...alterados]) {
-      await registrarPendencia(
-        aluno.ra,
-        novosRa.has(aluno.ra) ? "NOVO ALUNO" : "CADASTRO",
-      );
+    const integracao = await db
+      .prepare(
+        `SELECT integration_id, mode
+         FROM sync_integrations
+         WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{ integration_id: string; mode: string }>();
+
+    const v2Ativa = Boolean(integracao) && integracao!.mode !== "LEGACY";
+
+    if (v2Ativa) {
+      const groupKey: GroupKey = ["FACE", "FEA"].includes(body.unidade)
+        ? "FACE_FEA"
+        : "FCH_EAD";
+
+      for (const aluno of novos) {
+        const alunoDb = await db
+          .prepare(`SELECT id FROM alunos WHERE periodo_id = ? AND ra = ?`)
+          .bind(periodoId, aluno.ra)
+          .first<{ id: number }>();
+
+        if (alunoDb) {
+          const recordId = `rec-${periodoId}-${groupKey}-${aluno.ra}`;
+          await initSyncRecord(db, {
+            recordId,
+            integrationId: integracao!.integration_id,
+            raText: aluno.ra,
+            groupKey,
+            alunoId: alunoDb.id,
+            generation: 1,
+            lifecycle: "ACTIVE",
+            initialValues: {
+              contrato: aluno.contrato ? 1 : 0,
+              identidade: 0,
+              cpf_documento: 0,
+              certidao: 0,
+              residencia: 0,
+              titulo: 0,
+              ensino_medio: 0,
+            },
+          });
+        }
+      }
+    } else {
+      const novosRa = new Set(novos.map((aluno) => aluno.ra));
+      for (const aluno of [...novos, ...alterados]) {
+        await registrarPendencia(
+          aluno.ra,
+          novosRa.has(aluno.ra) ? "NOVO ALUNO" : "CADASTRO",
+        );
+      }
     }
 
     return Response.json({
