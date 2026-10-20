@@ -77,3 +77,4 @@ A sincronização V2 substitui o mecanismo legado (V1) por uma arquitetura orien
 - [Variáveis de Ambiente e Segredos de Homologação](../homologacao/SECRETS_E_VARIAVEIS.md)
 - [Procedimentos de Backup e Robustez do D1](../operacao/ROBUSTEZ_BACKUP.md)
 - [Regras de Escrita Segura no Google Sheets](../operacao/GOOGLE_SHEETS_ESCRITA_SEGURA.md)
+

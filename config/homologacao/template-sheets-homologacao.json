@@ -3,7 +3,7 @@
   "descricao": "Template estrutural da planilha de homologação isolada para testes da sincronização bidirecional V2",
   "abas": [
     {
-      "nome_aba": "DOCS_FACE_FEA",
+      "nome_aba": "CONTROLE DE DOCUMENTOS FACE FEA",
       "tipo": "CONTROLE_DOCUMENTAL",
       "grupo": "FACE_FEA",
       "cabecalhos": [
@@ -20,15 +20,15 @@
         "STATUS DOCUMENTAL"
       ],
       "regras_colunas": {
-        "A": "RA do aluno (FORMATTED_VALUE preservando zeros e traços, ex: HOM-1001)",
+        "A": "RA do aluno (FORMATTED_VALUE preservando zeros à esquerda, ex: '0090001001')",
         "B": "Nome completo fictício do aluno",
-        "C_a_I": "Colunas monitoradas pela V2. Valores canônicos: OK (1), PENDENTE (0), '-' ou vazio (null)",
-        "J": "Fórmula protegida não editada pelo V2: =CONT.SE(C2:I2; \"OK\")",
+        "C_a_I": "Colunas monitoradas pela V2. A V2 escreve TRUE/FALSE (interpretado como VERDADEIRO/FALSO pelo Google Sheets). Valores aceitos na leitura: OK, SIM, 1, TRUE, VERDADEIRO",
+        "J": "Fórmula protegida não editada pelo V2: =CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; TRUE) + CONT.SE(C2:I2; \"OK\")",
         "K": "Fórmula protegida não editada pelo V2: =SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
       },
       "dados_ficticios_iniciais": [
         {
-          "col_A_ra": "HOM-1001",
+          "col_A_ra": "0090001001",
           "col_B_nome": "ALUNO TESTE ALFA",
           "col_C_identidade": "OK",
           "col_D_cpf": "OK",
@@ -37,11 +37,11 @@
           "col_G_titulo": "OK",
           "col_H_ensino_medio": "OK",
           "col_I_contrato": "PENDENTE",
-          "col_J_total": "=CONT.SE(C2:I2; \"OK\")",
+          "col_J_total": "=CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; TRUE) + CONT.SE(C2:I2; \"OK\")",
           "col_K_status": "=SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
         },
         {
-          "col_A_ra": "HOM-1002",
+          "col_A_ra": "0090001002",
           "col_B_nome": "ALUNO TESTE BETA",
           "col_C_identidade": "PENDENTE",
           "col_D_cpf": "PENDENTE",
@@ -50,13 +50,13 @@
           "col_G_titulo": "PENDENTE",
           "col_H_ensino_medio": "PENDENTE",
           "col_I_contrato": "PENDENTE",
-          "col_J_total": "=CONT.SE(C3:I3; \"OK\")",
+          "col_J_total": "=CONT.SE(C3:I3; VERDADEIRO) + CONT.SE(C3:I3; TRUE) + CONT.SE(C3:I3; \"OK\")",
           "col_K_status": "=SE(J3=7; \"COMPLETO\"; \"PENDENTE\")"
         }
       ]
     },
     {
-      "nome_aba": "DOCS_FCH_EAD",
+      "nome_aba": "CONTROLE DE DOCUMENTOS FCH EAD",
       "tipo": "CONTROLE_DOCUMENTAL",
       "grupo": "FCH_EAD",
       "cabecalhos": [
@@ -74,7 +74,7 @@
       ],
       "dados_ficticios_iniciais": [
         {
-          "col_A_ra": "HOM-2001",
+          "col_A_ra": "0090002001",
           "col_B_nome": "ALUNO TESTE GAMA",
           "col_C_identidade": "OK",
           "col_D_cpf": "OK",
@@ -83,11 +83,11 @@
           "col_G_titulo": "PENDENTE",
           "col_H_ensino_medio": "OK",
           "col_I_contrato": "PENDENTE",
-          "col_J_total": "=CONT.SE(C2:I2; \"OK\")",
+          "col_J_total": "=CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; TRUE) + CONT.SE(C2:I2; \"OK\")",
           "col_K_status": "=SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
         },
         {
-          "col_A_ra": "HOM-2002",
+          "col_A_ra": "0090002002",
           "col_B_nome": "ALUNO TESTE DELTA",
           "col_C_identidade": "OK",
           "col_D_cpf": "OK",
@@ -96,7 +96,7 @@
           "col_G_titulo": "OK",
           "col_H_ensino_medio": "OK",
           "col_I_contrato": "OK",
-          "col_J_total": "=CONT.SE(C3:I3; \"OK\")",
+          "col_J_total": "=CONT.SE(C3:I3; VERDADEIRO) + CONT.SE(C3:I3; TRUE) + CONT.SE(C3:I3; \"OK\")",
           "col_K_status": "=SE(J3=7; \"COMPLETO\"; \"PENDENTE\")"
         }
       ]
@@ -122,7 +122,7 @@
           "col_D_modalidade": "PRESENCIAL",
           "col_E_nome": "ALUNO TESTE ALFA",
           "col_F_cpf": "000.000.001-99",
-          "col_G_ra": "HOM-1001"
+          "col_G_ra": "0090001001"
         },
         {
           "col_A_situacao": "PENDENTE",
@@ -131,7 +131,7 @@
           "col_D_modalidade": "PRESENCIAL",
           "col_E_nome": "ALUNO TESTE BETA",
           "col_F_cpf": "000.000.002-99",
-          "col_G_ra": "HOM-1002"
+          "col_G_ra": "0090001002"
         }
       ]
     },
@@ -156,7 +156,7 @@
           "col_D_modalidade": "DISTÂNCIA",
           "col_E_nome": "ALUNO TESTE GAMA",
           "col_F_cpf": "000.000.003-99",
-          "col_G_ra": "HOM-2001"
+          "col_G_ra": "0090002001"
         },
         {
           "col_A_situacao": "ACEITO",
@@ -165,10 +165,9 @@
           "col_D_modalidade": "DISTÂNCIA",
           "col_E_nome": "ALUNO TESTE DELTA",
           "col_F_cpf": "000.000.004-99",
-          "col_G_ra": "HOM-2002"
+          "col_G_ra": "0090002002"
         }
       ]
     }
   ]
 }
-

@@ -31,8 +31,8 @@ INSERT OR REPLACE INTO google_sheets_periodos (
   'SUBSTITUIR_PELO_SPREADSHEET_ID_DE_HOMOLOGACAO',
   'BASE_FACE_FEA',
   'BASE_FCH_EAD',
-  'DOCS_FACE_FEA',
-  'DOCS_FCH_EAD',
+  'CONTROLE DE DOCUMENTOS FACE FEA',
+  'CONTROLE DE DOCUMENTOS FCH EAD',
   'CANCELADOS_FACE_FEA',
   'CANCELADOS_FCH_EAD'
 );
@@ -81,19 +81,19 @@ VALUES (
 );
 
 -- ----------------------------------------------------------------------------
--- 5. ALUNOS COM DADOS 100% FICTÍCIOS
+-- 5. ALUNOS COM DADOS 100% FICTÍCIOS (RAs Sintéticos Numéricos Canônicos)
 -- ----------------------------------------------------------------------------
 -- Grupo FACE_FEA
 INSERT OR REPLACE INTO alunos (id, periodo_id, ra, nome, email, email_outro, curso, unidade, status)
 VALUES
-  (9001, 999, 'HOM-1001', 'ALUNO TESTE ALFA', 'alfa.teste@exemplo.edu.br', NULL, 'ADMINISTRAÇÃO', 'FACE FEA', 'ATIVO'),
-  (9002, 999, 'HOM-1002', 'ALUNO TESTE BETA', 'beta.teste@exemplo.edu.br', NULL, 'CIÊNCIAS CONTÁBEIS', 'FACE FEA', 'ATIVO');
+  (9001, 999, '0090001001', 'ALUNO TESTE ALFA', 'alfa.teste@exemplo.edu.br', NULL, 'ADMINISTRAÇÃO', 'FACE FEA', 'ATIVO'),
+  (9002, 999, '0090001002', 'ALUNO TESTE BETA', 'beta.teste@exemplo.edu.br', NULL, 'CIÊNCIAS CONTÁBEIS', 'FACE FEA', 'ATIVO');
 
 -- Grupo FCH_EAD
 INSERT OR REPLACE INTO alunos (id, periodo_id, ra, nome, email, email_outro, curso, unidade, status)
 VALUES
-  (9003, 999, 'HOM-2001', 'ALUNO TESTE GAMA', 'gama.teste@exemplo.edu.br', NULL, 'PEDAGOGIA', 'FCH EAD', 'ATIVO'),
-  (9004, 999, 'HOM-2002', 'ALUNO TESTE DELTA', 'delta.teste@exemplo.edu.br', NULL, 'LETRAS EAD', 'FCH EAD', 'ATIVO');
+  (9003, 999, '0090002001', 'ALUNO TESTE GAMA', 'gama.teste@exemplo.edu.br', NULL, 'PEDAGOGIA', 'FCH EAD', 'ATIVO'),
+  (9004, 999, '0090002002', 'ALUNO TESTE DELTA', 'delta.teste@exemplo.edu.br', NULL, 'LETRAS EAD', 'FCH EAD', 'ATIVO');
 
 -- ----------------------------------------------------------------------------
 -- 6. DOCUMENTOS INICIAIS (TABELA DOCUMENTOS)

@@ -52,14 +52,14 @@ Antes de iniciar qualquer execução, certifique-se de preencher e assinar este 
 ### 2.2 Google Cloud & Google Sheets
 1. Criar uma nova planilha Google Sheets no Google Drive com o nome `CONTROLE_DOCUMENTOS_HOMOLOG_2026_2`.
 2. Criar as 4 abas estruturadas conforme `config/homologacao/template-sheets-homologacao.json`:
-   - `DOCS_FACE_FEA`
-   - `DOCS_FCH_EAD`
-   - `BASE_FACE_FEA`
-   - `BASE_FCH_EAD`
-3. Inserir os cabeçalhos e as linhas iniciais com os alunos fictícios (`HOM-1001`, `HOM-1002`, `HOM-2001`, `HOM-2002`).
+   - `CONTROLE DE DOCUMENTOS FACE FEA` (Aba de Controle)
+   - `CONTROLE DE DOCUMENTOS FCH EAD` (Aba de Controle)
+   - `BASE_FACE_FEA` (Aba Geral)
+   - `BASE_FCH_EAD` (Aba Geral)
+3. Inserir os cabeçalhos canônicos e as linhas iniciais com os alunos fictícios (`0090001001`, `0090001002`, `0090002001`, `0090002002`).
 4. Criar uma Service Account no Google Cloud Console com nome `sa-homolog-controle-docs`.
 5. Compartilhar a planilha de teste com o e-mail da Service Account com perfil **Editor**.
-6. Gerar chave privada JSON da Service Account.
+6. Gerar e baixar a chave privada em formato JSON da Service Account (`credentials-homolog.json`).
 7. Atualizar o `spreadsheet_id` no D1 de homologação:
    ```bash
    npx wrangler d1 execute controle-documentos-homolog-db --command="UPDATE sync_integrations SET spreadsheet_id = '<ID_DA_PLANILHA_GOOGLE>' WHERE integration_id = 'integ-homolog-2026-2';"
@@ -69,9 +69,11 @@ Antes de iniciar qualquer execução, certifique-se de preencher e assinar este 
 ### 2.3 Secrets no Cloudflare Worker
 Configurar os segredos via terminal (detalhes em [Variáveis e Segredos de Homologação](./SECRETS_E_VARIAVEIS.md)):
 ```bash
-npx wrangler secret put SYNC_ADMIN_SECRET --config config/homologacao/wrangler.homolog.jsonc
-npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_EMAIL --config config/homologacao/wrangler.homolog.jsonc
-npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.homolog.jsonc
+# 1. Chave administrativa
+npx wrangler secret put SYNC_V2_ADMIN_SECRET --config config/homologacao/wrangler.homolog.jsonc
+
+# 2. JSON de credenciais da Service Account (cole o conteúdo do credentials-homolog.json)
+npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON --config config/homologacao/wrangler.homolog.jsonc
 ```
 
 ---
@@ -82,7 +84,7 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
 - **Objetivo**: Demonstrar que a V2 recusa qualquer processamento enquanto desativada por flag ou pausada, e aceita após liberação explícita.
 - **Passo 1.1**: Tentar disparar lote com `SYNC_V2_ENABLED = "false"`:
   ```bash
-  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/sync-v2/dispatch" \
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/dispatch" \
     -H "Content-Type: application/json" \
     -H "X-Sync-Admin-Secret: <SECRET>" \
     -d '{"integrationId": "integ-homolog-2026-2"}'
@@ -93,10 +95,10 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
   - **Resultado Esperado**: HTTP 409 com código `INTEGRATION_PAUSED`.
 - **Passo 1.4**: Alterar o modo da integração para `SHADOW`:
   ```bash
-  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/sync-v2/resume" \
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/resume" \
     -H "Content-Type: application/json" \
     -H "X-Sync-Admin-Secret: <SECRET>" \
-    -d '{"integrationId": "integ-homolog-2026-2", "periodoId": 999, "modo": "SHADOW"}'
+    -d '{"integrationId": "integ-homolog-2026-2", "modo": "SHADOW"}'
   ```
   - **Resultado Esperado**: HTTP 200 com `"modo": "SHADOW"`, status `"ACTIVE"`.
 - **Critério de Aceite (Pass/Fail)**:
@@ -108,10 +110,10 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
 ### Cenário 2: Baseline Inicial dos Alunos Fictícios
 - **Objetivo**: Estabelecer a linha de base segura sem sobrescrita, confrontando D1 e Sheets.
 - **Passo 2.1**: Executar teste de baseline em modo `dryRun = true`:
-  - Executar script de baseline seeder para período 999.
+  - Executar rotina de baseline seeder para período 999.
   - Verificar que nenhum registro foi alterado no D1.
 - **Passo 2.2**: Executar baseline com persistência real:
-  - Verificar a criação de registros em `sync_records` para os 4 alunos (`HOM-1001`, `HOM-1002`, `HOM-2001`, `HOM-2002`).
+  - Verificar a criação de registros em `sync_records` para os 4 alunos (`0090001001`, `0090001002`, `0090002001`, `0090002002`).
   - Verificar a criação das linhas em `sync_field_state` com `revision = 1` e `evidence_hash` não nulo.
 - **Critério de Aceite (Pass/Fail)**:
   - **PASS**: 4 alunos preparados com 7 campos documentais cada (28 registros em `sync_field_state`), 0 duplicações, total idempotência ao reexecutar a rotina.
@@ -120,13 +122,13 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
 ---
 
 ### Cenário 3: Alteração Documental no Site → Propagação para o Sheets
-- **Objetivo**: O operador da secretaria marca o documento "Contrato" do aluno `HOM-1001` como entregue no site. Propagar com sucesso para a planilha.
+- **Objetivo**: O operador da secretaria marca o documento "Contrato" do aluno `0090001001` (Alfa) como entregue no site. Propagar com sucesso para a planilha.
 - **Passo 3.1**: Alterar o modo da integração para `BIDIRECTIONAL`:
   ```bash
-  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/sync-v2/resume" \
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/resume" \
     -H "Content-Type: application/json" \
     -H "X-Sync-Admin-Secret: <SECRET>" \
-    -d '{"integrationId": "integ-homolog-2026-2", "periodoId": 999, "modo": "BIDIRECTIONAL"}'
+    -d '{"integrationId": "integ-homolog-2026-2", "modo": "BIDIRECTIONAL"}'
   ```
 - **Passo 3.2**: Atualizar o documento no site via endpoint:
   ```bash
@@ -138,14 +140,14 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
   - Verificar no D1: `documentos.contrato = 1`, inserção em `sync_commands`, `sync_events` e outbox `sync_operations` com status `PENDING`.
 - **Passo 3.3**: Disparar ciclo do orquestrador:
   ```bash
-  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/sync-v2/dispatch" \
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/dispatch" \
     -H "Content-Type: application/json" \
     -H "X-Sync-Admin-Secret: <SECRET>" \
     -d '{"integrationId": "integ-homolog-2026-2"}'
   ```
 - **Passo 3.4**: Verificar na planilha Google Sheets:
-  - Aba `DOCS_FACE_FEA`, linha do RA `HOM-1001`, Coluna I (`CONTRATO`) deve estar com valor `"OK"`.
-  - Colunas J e K devem ter recalculado as fórmulas automaticamente sem corrupção.
+  - Aba `CONTROLE DE DOCUMENTOS FACE FEA`, linha do RA `0090001001`, Coluna I (`CONTRATO`) deve estar com valor `"TRUE"` (ou interpretado como `VERDADEIRO`).
+  - Colunas J e K devem recalcular as fórmulas automaticamente sem corrupção.
   - Verificar no D1: `sync_operations.status = 'CONFIRMED'`, `sync_receipts` registrado com HTTP 200.
 - **Critério de Aceite (Pass/Fail)**:
   - **PASS**: Planilha atualizada na célula correta; fórmulas em J e K intactas; operação D1 confirmada com recibo.
@@ -154,9 +156,9 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
 ---
 
 ### Cenário 4: Alteração Concorrente no Sheets → Detecção Causal de Conflito (F3)
-- **Objetivo**: Um humano altera uma célula no Google Sheets diretamente enquanto há uma operação concorrente pendente, disparando detecção de conflito F3.
-- **Passo 4.1**: Na planilha Google Sheets, aba `DOCS_FACE_FEA`, alterar manualmente a célula da Identidade do aluno `HOM-1002` (Coluna C) de `"PENDENTE"` para `"OK"`.
-- **Passo 4.2**: No site D1, tentar atualizar o mesmo campo sem conhecer a edição externa:
+- **Objetivo**: Um humano altera uma célula no Google Sheets diretamente enquanto há uma operação concorrente pendente, demonstrando a proteção da via reversa F3 contra sobrescrita cega.
+- **Passo 4.1**: Na planilha Google Sheets, aba `CONTROLE DE DOCUMENTOS FACE FEA`, alterar manualmente a célula da Identidade do aluno `0090001002` (Beta, Coluna C) de `"PENDENTE"` para `"OK"` (ou `VERDADEIRO`).
+- **Passo 4.2**: No site D1, tentar submeter alteração para o mesmo campo sem conhecer a edição externa:
   ```bash
   curl -X PATCH "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/documentos/9002" \
     -H "Content-Type: application/json" \
@@ -164,9 +166,15 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
     -d '{"identidade": 1, "idempotencyKey": "homolog-cenario4-identidade-001"}'
   ```
 - **Passo 4.3**: Disparar o orquestrador V2:
-  - O orquestrador detecta que o snapshot lido na planilha difere da pré-condição causal (`expectedCurrentValue = 0`, mas a planilha possui `1`).
-  - A operação transiciona para `CONFLICT_DETECTED` ou `RETRY_WAIT` com bloqueio causal.
-  - Um registro é inserido em `sync_conflicts`.
+  ```bash
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/dispatch" \
+    -H "Content-Type: application/json" \
+    -H "X-Sync-Admin-Secret: <SECRET>" \
+    -d '{"integrationId": "integ-homolog-2026-2"}'
+  ```
+  - O orquestrador executa o Read-Before-Write CAS e detecta que a planilha diverge do snapshot causal (`expectedCurrentValue = 0`, mas a planilha possui `1`).
+  - A operação transiciona para `CONFLICT_DETECTED` e é bloqueada.
+  - Um registro de divergência é formalmente gravado na tabela `sync_conflicts`.
 - **Critério de Aceite (Pass/Fail)**:
   - **PASS**: Nenhuma escrita destrutiva ocorreu; o conflito foi formalmente registrado em `sync_conflicts`; nenhuma operação subsequente cega foi permitida para aquele campo.
   - **FAIL**: Sobrescrita silenciosa da alteração humana na planilha.
@@ -177,10 +185,10 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
 - **Objetivo**: Interromper imediatamente o processamento de lotes em caso de anomalia.
 - **Passo 5.1**: Executar pausa:
   ```bash
-  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/sync-v2/pause" \
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/pause" \
     -H "Content-Type: application/json" \
     -H "X-Sync-Admin-Secret: <SECRET>" \
-    -d '{"integrationId": "integ-homolog-2026-2", "periodoId": 999, "motivo": "Homologação de emergência"}'
+    -d '{"integrationId": "integ-homolog-2026-2", "motivo": "Homologação de emergência"}'
   ```
 - **Passo 5.2**: Verificar resposta: HTTP 200, `"modo_anterior": "BIDIRECTIONAL"`, `"modo_novo": "PAUSED"`.
 - **Passo 5.3**: Tentar disparar lote imediatamente (`POST /dispatch`):
@@ -195,10 +203,10 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
 - **Objetivo**: Retomar as operações após a pausa sem assumir BIDIRECTIONAL cegamente.
 - **Passo 6.1**: Chamar `/resume` sem informar modo no payload:
   ```bash
-  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/sync-v2/resume" \
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/resume" \
     -H "Content-Type: application/json" \
     -H "X-Sync-Admin-Secret: <SECRET>" \
-    -d '{"integrationId": "integ-homolog-2026-2", "periodoId": 999}'
+    -d '{"integrationId": "integ-homolog-2026-2"}'
   ```
   - Verificar resposta: HTTP 200, resgatando automaticamente `"modo": "BIDIRECTIONAL"` a partir do log da pausa anterior.
 - **Passo 6.2**: Pausar novamente a partir do modo `SHADOW` e tentar `/resume` sem payload:
@@ -212,7 +220,7 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
 ### Cenário 7: Simulação de Falha Transitória e Retenção Causal / DLQ
 - **Objetivo**: Demonstrar que falhas de rede com a API do Google Sheets não perdem dados nem entram em loop cego.
 - **Passo 7.1**: Simular falha temporária (desativando provisoriamente o compartilhamento da planilha com a Service Account no Google Drive).
-- **Passo 7.2**: Submeter alteração documental no D1 para o aluno `HOM-2001` e disparar despacho:
+- **Passo 7.2**: Submeter alteração documental no D1 para o aluno `0090002001` (Gama) e disparar despacho:
   - O worker tenta comunicar com o Google Sheets e recebe HTTP 403 / erro de rede.
   - A operação transiciona para `RETRY_WAIT` com `next_attempt_at` calculado via backoff exponencial.
   - Registro de tentativa registrado em `sync_attempts`.
@@ -251,10 +259,16 @@ npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.
 
 ### Cenário 9: Conferência Completa de Aluno com Pendências
 - **Objetivo**: Validar a transição de um aluno que possui pendências documentais até a entrega completa de todos os 7 documentos.
-- **Passo 9.1**: O aluno `HOM-1002` (Beta) possui 7 documentos pendentes. Submeter a entrega de 6 documentos (deixando apenas o contrato pendente).
+- **Passo 9.1**: O aluno `0090001002` (Beta) possui documentos pendentes. Submeter a entrega de 6 documentos (deixando apenas o contrato pendente).
   - Verificar recalculo das fórmulas nas colunas J e K da planilha (`TOTAL = 6`, `STATUS = PENDENTE`).
 - **Passo 9.2**: Submeter o 7º documento (contrato = 1):
-  - Disparar despacho.
+  - Disparar despacho:
+    ```bash
+    curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/dispatch" \
+      -H "Content-Type: application/json" \
+      -H "X-Sync-Admin-Secret: <SECRET>" \
+      -d '{"integrationId": "integ-homolog-2026-2"}'
+    ```
   - Verificar na planilha: `TOTAL = 7`, `STATUS = COMPLETO`.
   - Verificar que as células C:I foram atualizadas e J:K mantiveram suas fórmulas intactas.
 - **Critério de Aceite (Pass/Fail)**:

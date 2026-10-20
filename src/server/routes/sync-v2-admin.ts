@@ -2,11 +2,14 @@ import type { UsuarioSessao } from "./auth";
 import {
   SyncV2Orchestrator,
   type SyncBatchResult,
+  type TabNameResolver,
+  defaultTabNameResolver,
 } from "../services/sync-orchestrator";
 import {
   GoogleSheetsRealAdapter,
 } from "../services/sync-sheet-real-adapter";
 import type { ISyncSpreadsheetAdapter } from "../services/sync-sheet-contracts";
+import type { GroupKey } from "../services/sync-d1-core";
 
 export interface SyncV2AdminDependencies {
   request: Request;
@@ -15,6 +18,7 @@ export interface SyncV2AdminDependencies {
   env: {
     SYNC_V2_ENABLED?: string;
     SYNC_V2_ADMIN_SECRET?: string;
+    SYNC_ADMIN_SECRET?: string;
     GOOGLE_SERVICE_ACCOUNT_JSON?: string;
     ENVIRONMENT?: string;
   };
@@ -91,13 +95,59 @@ export async function handleSyncV2AdminRoute(
     customAdapter,
   } = deps;
 
-  const match = url.pathname.match(
+  const matchPeriodo = url.pathname.match(
     /^\/api\/periodos\/(\d+)\/sync-v2\/(status|dispatch|pause|resume)$/,
   );
-  if (!match) return null;
 
-  const periodoId = Number(match[1]);
-  const action = match[2];
+  let periodoId: number | null = null;
+  let action: string | null = null;
+
+  if (matchPeriodo) {
+    periodoId = Number(matchPeriodo[1]);
+    action = matchPeriodo[2];
+  } else {
+    const matchDirect = url.pathname.match(
+      /^\/api\/sync-v2\/(status|dispatch|pause|resume)$/,
+    );
+    if (matchDirect) {
+      action = matchDirect[1];
+      const q = url.searchParams.get("periodoId");
+      if (q) {
+        periodoId = Number(q);
+      }
+    }
+  }
+
+  if (!action) return null;
+
+  if (periodoId === null && (request.method === "POST" || request.method === "PATCH")) {
+    try {
+      const cloned = (await request.clone().json()) as Record<string, unknown> | null;
+      if (cloned && typeof cloned.periodoId === "number") {
+        periodoId = cloned.periodoId;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (periodoId === null) {
+    const integracaoDefault = await db
+      .prepare(`SELECT periodo_id FROM sync_integrations ORDER BY updated_at DESC LIMIT 1`)
+      .first<{ periodo_id: number }>();
+    if (integracaoDefault?.periodo_id) {
+      periodoId = integracaoDefault.periodo_id;
+    } else {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "PERIODO_ID_OBRIGATORIO",
+          mensagem: "O parâmetro periodoId é obrigatório na URL (/api/periodos/:id/sync-v2/...) ou no corpo da requisição.",
+        },
+        { status: 400 },
+      );
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // 1. GET /status — Consulta de Saúde e Prontidão
@@ -237,7 +287,8 @@ export async function handleSyncV2AdminRoute(
   }
 
   // Para endpoints modificadores (dispatch, pause, resume), exige autorização de escrita
-  if (!estaAutorizadoComoAdmin(request, usuarioAtual, env.SYNC_V2_ADMIN_SECRET)) {
+  const adminSecret = env.SYNC_V2_ADMIN_SECRET || env.SYNC_ADMIN_SECRET;
+  if (!estaAutorizadoComoAdmin(request, usuarioAtual, adminSecret)) {
     return Response.json(
       { erro: "PRIVILEGIO_INSUFICIENTE", mensagem: "Esta operação requer privilégio de Administrador do sistema." },
       { status: 403 },
@@ -489,6 +540,32 @@ export async function handleSyncV2AdminRoute(
     activeDispatches.add(dispatchKey);
     const workerId = `worker-${crypto.randomUUID().slice(0, 8)}`;
 
+    // Monta resolver dinâmico de abas a partir de google_sheets_periodos (ou default)
+    const sheetsConfig = await db
+      .prepare(`SELECT aba_docs_face_fea, aba_docs_fch_ead, aba_base_face_fea, aba_base_fch_ead FROM google_sheets_periodos WHERE periodo_id = ?`)
+      .bind(periodoId)
+      .first<{
+        aba_docs_face_fea?: string;
+        aba_docs_fch_ead?: string;
+        aba_base_face_fea?: string;
+        aba_base_fch_ead?: string;
+      }>();
+
+    const tabNameResolver: TabNameResolver = {
+      getControlTabName(groupKey: GroupKey): string {
+        if (groupKey === "FACE_FEA") {
+          return sheetsConfig?.aba_docs_face_fea || defaultTabNameResolver.getControlTabName(groupKey);
+        }
+        return sheetsConfig?.aba_docs_fch_ead || defaultTabNameResolver.getControlTabName(groupKey);
+      },
+      getGeneralTabName(groupKey: GroupKey): string {
+        if (groupKey === "FACE_FEA") {
+          return sheetsConfig?.aba_base_face_fea || defaultTabNameResolver.getGeneralTabName(groupKey);
+        }
+        return sheetsConfig?.aba_base_fch_ead || defaultTabNameResolver.getGeneralTabName(groupKey);
+      },
+    };
+
     try {
       // Cria instância do orquestrador com hook de parada operacional graciosa
       const orchestrator = new SyncV2Orchestrator({
@@ -497,6 +574,7 @@ export async function handleSyncV2AdminRoute(
         workerId,
         integrationId: integracao.integration_id,
         batchSize,
+        tabNameResolver,
         shouldAbort: async () => {
           const row = await db
             .prepare(`SELECT mode FROM sync_integrations WHERE integration_id = ?`)

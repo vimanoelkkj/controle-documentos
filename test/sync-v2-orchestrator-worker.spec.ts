@@ -18,6 +18,7 @@ import {
   type ProvenanceEvidence,
   EXPECTED_CONTROL_HEADERS,
 } from "../src/server/services/sync-sheet-contracts";
+import { validateCanonicalRa } from "../src/server/services/sync-d1-auth";
 import type { UsuarioSessao } from "../src/server/routes/auth";
 
 let seq = 1;
@@ -978,5 +979,148 @@ describe("P0.3 — Integração do Orquestrador V2 ao Ciclo do Worker", () => {
 
     // O adaptador externo recebeu estritamente 1 chamada de escrita, comprovando ausência de corrida distribuída
     expect(adapter.writeCalls).toHaveLength(1);
+  });
+
+  // ---------------------------------------------------------------------------
+  // 14. Validação Canônica de RAs Sintéticos do Seed vs RAs Alfanuméricos
+  // ---------------------------------------------------------------------------
+  it("14. Validação Canônica de RA: aceita estritamente RAs numéricos sintéticos com zeros à esquerda e rejeita alfanuméricos com traço", () => {
+    // RAs válidos do seed sintético de homologação
+    const rasValidos = ["0090001001", "0090001002", "0090002001", "0090002002"];
+    for (const ra of rasValidos) {
+      const res = validateCanonicalRa(ra);
+      expect(res.valid).toBe(true);
+      if (res.valid) {
+        expect(res.raText).toBe(ra);
+      }
+    }
+
+    // RAs inválidos que não devem ser usados em seeds/integrações canônicas
+    const rasInvalidos = ["HOM-1001", "HOM_1002", "RA 123", "", "   ", "abc1234"];
+    for (const ra of rasInvalidos) {
+      const res = validateCanonicalRa(ra);
+      expect(res.valid).toBe(false);
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // 15. Suporte a rotas diretas (/api/sync-v2/dispatch) e compatibilidade com segredos
+  // ---------------------------------------------------------------------------
+  it("15. Rota flexível e segredos: suporta rota direta /api/sync-v2/dispatch com periodoId no body e secret SYNC_ADMIN_SECRET", async () => {
+    const { periodoId, integrationId, spreadsheetId } = await setupPeriodoEIntegracao();
+    const ra = `009000${proximoId()}`;
+    const adapter = new MockTestAdapter();
+    await popularSheetPadrao(adapter, spreadsheetId, ra);
+
+    const { recordId } = await criarAlunoComDocumentosEBaseline({
+      periodoId,
+      integrationId,
+      groupKey: "FACE_FEA",
+      raText: ra,
+    });
+
+    await criarMutacaoValida({
+      recordId,
+      integrationId,
+      periodoId,
+      groupKey: "FACE_FEA",
+      fieldKey: "titulo",
+      fromRevision: 0,
+      proposedValue: 1,
+    });
+
+    // Dispara via rota direta sem /periodos/:id na URL, usando SYNC_ADMIN_SECRET (fallback de compatibilidade)
+    const response = await handleSyncV2AdminRoute({
+      request: new Request("https://local/api/sync-v2/dispatch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Sync-Admin-Secret": "secret-legado-teste-123",
+        },
+        body: JSON.stringify({
+          periodoId,
+          integrationId,
+        }),
+      }),
+      url: new URL("https://local/api/sync-v2/dispatch"),
+      db: env.DB,
+      env: {
+        SYNC_V2_ENABLED: "true",
+        SYNC_ADMIN_SECRET: "secret-legado-teste-123",
+      },
+      usuarioAtual: null,
+      podeEditar: false,
+      registrarAuditoria: async () => {},
+      customAdapter: adapter,
+    });
+
+    expect(response?.status).toBe(200);
+    const json = (await response?.json()) as any;
+    expect(json.sucesso).toBe(true);
+    expect(json.batchResult.processedCount).toBe(1);
+    expect(json.batchResult.observedCount).toBe(1);
+  });
+
+  // ---------------------------------------------------------------------------
+  // 16. TabNameResolver dinâmico respeita abas personalizadas de google_sheets_periodos
+  // ---------------------------------------------------------------------------
+  it("16. TabNameResolver dinâmico: respeita abas customizadas cadastradas em google_sheets_periodos", async () => {
+    const { periodoId, integrationId, spreadsheetId } = await setupPeriodoEIntegracao();
+    const ra = `009000${proximoId()}`;
+    const adapter = new MockTestAdapter();
+
+    // Configura abas customizadas no banco D1 para este período
+    const abaCustomizada = "CONTROLE DE DOCUMENTOS FACE FEA";
+    await env.DB.prepare(
+      `INSERT OR REPLACE INTO google_sheets_periodos (
+        periodo_id, spreadsheet_id, aba_base_face_fea, aba_base_fch_ead,
+        aba_docs_face_fea, aba_docs_fch_ead, aba_cancelados_face_fea, aba_cancelados_fch_ead
+      ) VALUES (?, ?, 'BASE_CUSTOM_FACE', 'BASE_CUSTOM_FCH', ?, 'DOCS_CUSTOM_FCH', 'CANC_FACE', 'CANC_FCH')`,
+    ).bind(periodoId, spreadsheetId, abaCustomizada).run();
+
+    // Popula o mock especificamente na aba customizada
+    await popularSheetPadrao(adapter, spreadsheetId, ra, abaCustomizada);
+
+    const { recordId } = await criarAlunoComDocumentosEBaseline({
+      periodoId,
+      integrationId,
+      groupKey: "FACE_FEA",
+      raText: ra,
+    });
+
+    await criarMutacaoValida({
+      recordId,
+      integrationId,
+      periodoId,
+      groupKey: "FACE_FEA",
+      fieldKey: "residencia",
+      fromRevision: 0,
+      proposedValue: 1,
+    });
+
+    const response = await handleSyncV2AdminRoute({
+      request: new Request(`https://local/api/periodos/${periodoId}/sync-v2/dispatch`, {
+        method: "POST",
+        headers: { "X-Sync-Admin-Secret": "secret-admin-v2" },
+      }),
+      url: new URL(`https://local/api/periodos/${periodoId}/sync-v2/dispatch`),
+      db: env.DB,
+      env: {
+        SYNC_V2_ENABLED: "true",
+        SYNC_V2_ADMIN_SECRET: "secret-admin-v2",
+      },
+      usuarioAtual: null,
+      podeEditar: false,
+      registrarAuditoria: async () => {},
+      customAdapter: adapter,
+    });
+
+    expect(response?.status).toBe(200);
+    const json = (await response?.json()) as any;
+    expect(json.sucesso).toBe(true);
+    expect(json.batchResult.observedCount).toBe(1);
+
+    // Confirma que a escrita foi direcionada exatamente para a aba customizada
+    expect(adapter.writeCalls[0].tabName).toBe(abaCustomizada);
   });
 });

@@ -21,31 +21,30 @@ Este documento detalha todas as variáveis de ambiente e segredos requeridos par
 
 Os segredos **nunca** devem ser commitados no repositório. Devem ser injetados exclusivamente no Cloudflare Worker de homologação através do Wrangler:
 
-### 2.1 `SYNC_ADMIN_SECRET`
-- **Finalidade**: Chave administrativa para autenticação de chamadas M2M ou endpoints administrativos (`POST /api/sync-v2/dispatch`, `POST /api/sync-v2/pause`, `POST /api/sync-v2/resume`) enviados com o header `X-Sync-Admin-Secret`.
+### 2.1 `SYNC_V2_ADMIN_SECRET`
+- **Finalidade**: Chave administrativa para autenticação de chamadas M2M ou endpoints administrativos (`POST /api/periodos/:id/sync-v2/dispatch`, `pause`, `resume`) enviados com o header `X-Sync-Admin-Secret`. (O backend também aceita `SYNC_ADMIN_SECRET` como fallback de compatibilidade).
 - **Como gerar**:
   ```bash
   openssl rand -hex 32
   ```
 - **Como configurar**:
   ```bash
-  npx wrangler secret put SYNC_ADMIN_SECRET --config config/homologacao/wrangler.homolog.jsonc
+  npx wrangler secret put SYNC_V2_ADMIN_SECRET --config config/homologacao/wrangler.homolog.jsonc
   ```
 
-### 2.2 `GOOGLE_SERVICE_ACCOUNT_EMAIL`
-- **Finalidade**: Email da conta de serviço (Service Account) criada no Google Cloud IAM exclusiva para homologação.
-- **Exemplo**: `sync-v2-homolog@seu-projeto-gcp-homolog.iam.gserviceaccount.com`
+### 2.2 `GOOGLE_SERVICE_ACCOUNT_JSON`
+- **Finalidade**: JSON completo da chave privada da Conta de Serviço (Service Account) criada no Google Cloud IAM exclusiva para homologação. O Worker extrai diretamente `client_email` e `private_key` do objeto JSON.
+- **Formato esperado**: Arquivo `.json` baixado diretamente do Google Cloud Console (contendo `"type": "service_account"`, `"client_email"`, `"private_key"`, etc.).
 - **Como configurar**:
-  ```bash
-  npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_EMAIL --config config/homologacao/wrangler.homolog.jsonc
-  ```
-
-### 2.3 `GOOGLE_PRIVATE_KEY`
-- **Finalidade**: Chave privada RSA (formato PEM contendo `-----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY-----`) associada à Service Account.
-- **Como configurar**:
-  ```bash
-  npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.homolog.jsonc
-  ```
+  - Opção A (via pipe no terminal):
+    ```bash
+    cat credentials-homolog.json | npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON --config config/homologacao/wrangler.homolog.jsonc
+    ```
+  - Opção B (interativo):
+    ```bash
+    npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON --config config/homologacao/wrangler.homolog.jsonc
+    ```
+    (cole o conteúdo JSON minificado de uma única linha ou em bloco).
 
 ---
 

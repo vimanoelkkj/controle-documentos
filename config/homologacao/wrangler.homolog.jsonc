@@ -38,9 +38,8 @@
   // =========================================================================
   // SECRETS (NÃO COLOQUE CHAVES SECRETAS AQUI)
   // Devem ser configurados via CLI:
-  // npx wrangler secret put SYNC_ADMIN_SECRET --config config/homologacao/wrangler.homolog.jsonc
-  // npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_EMAIL --config config/homologacao/wrangler.homolog.jsonc
-  // npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.homolog.jsonc
+  // npx wrangler secret put SYNC_V2_ADMIN_SECRET --config config/homologacao/wrangler.homolog.jsonc
+  // npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON --config config/homologacao/wrangler.homolog.jsonc
   // =========================================================================
 }
 
