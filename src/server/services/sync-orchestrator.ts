@@ -69,6 +69,8 @@ export interface SyncOrchestratorOptions {
   baseBackoffSeconds?: number;
   logger?: (level: 'info' | 'warn' | 'error', message: string, meta?: any) => void;
   beforeWriteHook?: (operationId: string) => Promise<void>;
+  integrationId?: string;
+  shouldAbort?: () => Promise<boolean> | boolean;
 }
 
 export type SyncOperationStatus =
@@ -120,8 +122,10 @@ export class SyncV2Orchestrator {
   readonly batchSize: number;
   readonly tabNameResolver: TabNameResolver;
   readonly baseBackoffSeconds: number;
+  readonly integrationId?: string;
   private readonly logger?: (level: 'info' | 'warn' | 'error', message: string, meta?: any) => void;
   private readonly beforeWriteHook?: (operationId: string) => Promise<void>;
+  private readonly shouldAbort?: () => Promise<boolean> | boolean;
 
   constructor(options: SyncOrchestratorOptions) {
     this.db = options.db;
@@ -131,8 +135,10 @@ export class SyncV2Orchestrator {
     this.batchSize = options.batchSize ?? 20;
     this.tabNameResolver = options.tabNameResolver ?? defaultTabNameResolver;
     this.baseBackoffSeconds = options.baseBackoffSeconds ?? 10;
+    this.integrationId = options.integrationId;
     this.logger = options.logger;
     this.beforeWriteHook = options.beforeWriteHook;
+    this.shouldAbort = options.shouldAbort;
   }
 
   private log(level: 'info' | 'warn' | 'error', message: string, meta?: any) {
@@ -164,38 +170,64 @@ export class SyncV2Orchestrator {
       this.log('info', 'Leases expirados recuperados pelo orquestrador', recoveredLeases);
     }
 
-    // 2. Busca de operações elegíveis para processamento
-    const eligibleOps = await this.db
-      .prepare(
-        `SELECT
-           operation_id,
-           state,
-           next_attempt_at,
-           lease_until
-         FROM sync_operations
-         WHERE (
-           -- Operações novas ou aguardando retry que atingiram seu momento
-           (state IN ('PENDING', 'RETRY_WAIT') AND datetime(?) >= datetime(next_attempt_at))
-           -- Operações com lease expirado em CLAIMED
-           OR (state = 'CLAIMED' AND datetime(?) > datetime(lease_until))
-           -- Operações incertas que atingiram o momento de nova conferência
-           OR (state = 'UNCERTAIN' AND datetime(?) >= datetime(next_attempt_at))
-         )
-         ORDER BY next_attempt_at ASC, target_revision ASC
-         LIMIT ?`
-      )
-      .bind(now, now, now, limit)
-      .all<{
-        operation_id: string;
-        state: string;
-        next_attempt_at: string;
-        lease_until: string | null;
-      }>();
-
+    // 2. Busca de operações elegíveis para processamento (com isolamento por integração se informada)
+    const eligibleOps = this.integrationId
+      ? await this.db
+          .prepare(
+            `SELECT
+               o.operation_id,
+               o.state,
+               o.next_attempt_at,
+               o.lease_until
+             FROM sync_operations o
+             JOIN sync_records r ON r.record_id = o.record_id
+             WHERE r.integration_id = ?
+               AND (
+                 (o.state IN ('PENDING', 'RETRY_WAIT') AND datetime(?) >= datetime(o.next_attempt_at))
+                 OR (o.state = 'CLAIMED' AND datetime(?) > datetime(o.lease_until))
+                 OR (o.state = 'UNCERTAIN' AND datetime(?) >= datetime(o.next_attempt_at))
+               )
+             ORDER BY o.next_attempt_at ASC, o.target_revision ASC
+             LIMIT ?`
+          )
+          .bind(this.integrationId, now, now, now, limit)
+          .all<{
+            operation_id: string;
+            state: string;
+            next_attempt_at: string;
+            lease_until: string | null;
+          }>()
+      : await this.db
+          .prepare(
+            `SELECT
+               operation_id,
+               state,
+               next_attempt_at,
+               lease_until
+             FROM sync_operations
+             WHERE (
+               (state IN ('PENDING', 'RETRY_WAIT') AND datetime(?) >= datetime(next_attempt_at))
+               OR (state = 'CLAIMED' AND datetime(?) > datetime(lease_until))
+               OR (state = 'UNCERTAIN' AND datetime(?) >= datetime(next_attempt_at))
+             )
+             ORDER BY next_attempt_at ASC, target_revision ASC
+             LIMIT ?`
+          )
+          .bind(now, now, now, limit)
+          .all<{
+            operation_id: string;
+            state: string;
+            next_attempt_at: string;
+            lease_until: string | null;
+          }>();
     const operationsToProcess = eligibleOps.results || [];
     const operationResults: SyncOperationResult[] = [];
 
     for (const rawOp of operationsToProcess) {
+      if (this.shouldAbort && (await this.shouldAbort())) {
+        this.log('warn', 'Parada operacional acionada durante lote. Interrompendo processamento.');
+        break;
+      }
       let opRes: SyncOperationResult;
 
       if (rawOp.state === 'UNCERTAIN') {

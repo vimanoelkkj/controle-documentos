@@ -13,6 +13,7 @@ import { handleGoogleSheetsConfigRoute } from "./routes/google-sheets-config";
 import { handleGoogleSheetsPreviewRoute } from "./routes/google-sheets-preview";
 import { handleGoogleSheetsSyncRoute } from "./routes/google-sheets-sync";
 import { handleGoogleSheetsOutboxRoute } from "./routes/google-sheets-outbox";
+import { handleSyncV2AdminRoute } from "./routes/sync-v2-admin";
 import {
   escreverValoresGoogle,
   extrairSpreadsheetId,
@@ -40,6 +41,8 @@ export interface Env {
   CLOUDFLARE_API_TOKEN?: string;
   D1_DATABASE_ID?: string;
   ENVIRONMENT?: string;
+  SYNC_V2_ENABLED?: string;
+  SYNC_V2_ADMIN_SECRET?: string;
 }
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -188,6 +191,18 @@ export default {
     });
     if (respostaSheetsOutbox) return respostaSheetsOutbox;
 
+    const respostaSyncV2Admin = await handleSyncV2AdminRoute({
+      request,
+      url,
+      db: env.DB,
+      env,
+      usuarioAtual,
+      podeEditar: Boolean(usuarioAtual && podeEditar(usuarioAtual)),
+      registrarAuditoria: (periodoId, evento) =>
+        registrarAuditoria(env.DB, usuarioAtual, periodoId, evento),
+    });
+    if (respostaSyncV2Admin) return respostaSyncV2Admin;
+
     const respostaLogs = await handleLogsRoute({
       request,
       url,
@@ -304,5 +319,21 @@ export default {
     // =====================================================
 
     return env.ASSETS.fetch(request);
+  },
+
+  async scheduled(
+    controller: ScheduledController,
+    env: Env,
+    _ctx: ExecutionContext,
+  ): Promise<void> {
+    if (env.SYNC_V2_ENABLED !== "true") {
+      console.log(
+        "[Scheduled:SyncV2] Despacho automático por cron desativado por padrão (SYNC_V2_ENABLED !== 'true').",
+      );
+      return;
+    }
+    console.log(
+      `[Scheduled:SyncV2] Cron acionado em ${controller.scheduledTime} (${controller.cron}).`,
+    );
   },
 } satisfies ExportedHandler<Env>;
