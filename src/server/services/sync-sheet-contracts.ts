@@ -93,10 +93,10 @@ export function normalizeDocumentCellValue(rawValue: unknown): 0 | 1 | null {
 export function normalizeContractCellValue(rawValue: unknown): 0 | 1 | null {
   if (rawValue === null || rawValue === undefined) return null;
   const str = String(rawValue).trim().toUpperCase();
-  if (['ACEITO', 'ASSINADO', 'DEFERIDO', 'CONFIRMADO', 'OK', 'SIM', '1'].includes(str)) {
+  if (['ACEITO', 'ASSINADO', 'DEFERIDO', 'CONFIRMADO', 'OK', 'SIM', '1', 'ENTREGUE'].includes(str)) {
     return 1;
   }
-  if (['PENDENTE', 'NAO ASSINADO', 'NÃO ASSINADO', 'INDEFERIDO', 'RECUSADO', '0'].includes(str)) {
+  if (['PENDENTE', 'NAO ASSINADO', 'NÃO ASSINADO', 'INDEFERIDO', 'RECUSADO', '0', 'NAO ENTREGUE', 'NÃO ENTREGUE'].includes(str)) {
     return 0;
   }
   return null;
