@@ -1,0 +1,173 @@
+{
+  "nome_planilha_sugerido": "CONTROLE_DOCUMENTOS_HOMOLOG_2026_2",
+  "descricao": "Template estrutural da planilha de homologação isolada para testes da sincronização bidirecional V2",
+  "abas": [
+    {
+      "nome_aba": "DOCS_FACE_FEA",
+      "tipo": "CONTROLE_DOCUMENTAL",
+      "grupo": "FACE_FEA",
+      "cabecalhos": [
+        "RA",
+        "NOME DO ALUNO",
+        "IDENTIDADE",
+        "CPF",
+        "CERTIDÃO",
+        "COMP. RESIDÊNCIA",
+        "TÍTULO",
+        "ENSINO MÉDIO",
+        "CONTRATO",
+        "TOTAL ENTREGUES",
+        "STATUS DOCUMENTAL"
+      ],
+      "regras_colunas": {
+        "A": "RA do aluno (FORMATTED_VALUE preservando zeros e traços, ex: HOM-1001)",
+        "B": "Nome completo fictício do aluno",
+        "C_a_I": "Colunas monitoradas pela V2. Valores canônicos: OK (1), PENDENTE (0), '-' ou vazio (null)",
+        "J": "Fórmula protegida não editada pelo V2: =CONT.SE(C2:I2; \"OK\")",
+        "K": "Fórmula protegida não editada pelo V2: =SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
+      },
+      "dados_ficticios_iniciais": [
+        {
+          "col_A_ra": "HOM-1001",
+          "col_B_nome": "ALUNO TESTE ALFA",
+          "col_C_identidade": "OK",
+          "col_D_cpf": "OK",
+          "col_E_certidao": "OK",
+          "col_F_residencia": "OK",
+          "col_G_titulo": "OK",
+          "col_H_ensino_medio": "OK",
+          "col_I_contrato": "PENDENTE",
+          "col_J_total": "=CONT.SE(C2:I2; \"OK\")",
+          "col_K_status": "=SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
+        },
+        {
+          "col_A_ra": "HOM-1002",
+          "col_B_nome": "ALUNO TESTE BETA",
+          "col_C_identidade": "PENDENTE",
+          "col_D_cpf": "PENDENTE",
+          "col_E_certidao": "PENDENTE",
+          "col_F_residencia": "PENDENTE",
+          "col_G_titulo": "PENDENTE",
+          "col_H_ensino_medio": "PENDENTE",
+          "col_I_contrato": "PENDENTE",
+          "col_J_total": "=CONT.SE(C3:I3; \"OK\")",
+          "col_K_status": "=SE(J3=7; \"COMPLETO\"; \"PENDENTE\")"
+        }
+      ]
+    },
+    {
+      "nome_aba": "DOCS_FCH_EAD",
+      "tipo": "CONTROLE_DOCUMENTAL",
+      "grupo": "FCH_EAD",
+      "cabecalhos": [
+        "RA",
+        "NOME DO ALUNO",
+        "IDENTIDADE",
+        "CPF",
+        "CERTIDÃO",
+        "COMP. RESIDÊNCIA",
+        "TÍTULO",
+        "ENSINO MÉDIO",
+        "CONTRATO",
+        "TOTAL ENTREGUES",
+        "STATUS DOCUMENTAL"
+      ],
+      "dados_ficticios_iniciais": [
+        {
+          "col_A_ra": "HOM-2001",
+          "col_B_nome": "ALUNO TESTE GAMA",
+          "col_C_identidade": "OK",
+          "col_D_cpf": "OK",
+          "col_E_certidao": "PENDENTE",
+          "col_F_residencia": "OK",
+          "col_G_titulo": "PENDENTE",
+          "col_H_ensino_medio": "OK",
+          "col_I_contrato": "PENDENTE",
+          "col_J_total": "=CONT.SE(C2:I2; \"OK\")",
+          "col_K_status": "=SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
+        },
+        {
+          "col_A_ra": "HOM-2002",
+          "col_B_nome": "ALUNO TESTE DELTA",
+          "col_C_identidade": "OK",
+          "col_D_cpf": "OK",
+          "col_E_certidao": "OK",
+          "col_F_residencia": "OK",
+          "col_G_titulo": "OK",
+          "col_H_ensino_medio": "OK",
+          "col_I_contrato": "OK",
+          "col_J_total": "=CONT.SE(C3:I3; \"OK\")",
+          "col_K_status": "=SE(J3=7; \"COMPLETO\"; \"PENDENTE\")"
+        }
+      ]
+    },
+    {
+      "nome_aba": "BASE_FACE_FEA",
+      "tipo": "GERAL_CONTRATUAL",
+      "grupo": "FACE_FEA",
+      "cabecalhos": [
+        "SITUAÇÃO CONTRATUAL",
+        "CURSO",
+        "TURNO",
+        "MODALIDADE",
+        "NOME",
+        "CPF",
+        "RA"
+      ],
+      "dados_ficticios_iniciais": [
+        {
+          "col_A_situacao": "PENDENTE",
+          "col_B_curso": "ADMINISTRAÇÃO",
+          "col_C_turno": "NOTURNO",
+          "col_D_modalidade": "PRESENCIAL",
+          "col_E_nome": "ALUNO TESTE ALFA",
+          "col_F_cpf": "000.000.001-99",
+          "col_G_ra": "HOM-1001"
+        },
+        {
+          "col_A_situacao": "PENDENTE",
+          "col_B_curso": "CIÊNCIAS CONTÁBEIS",
+          "col_C_turno": "NOTURNO",
+          "col_D_modalidade": "PRESENCIAL",
+          "col_E_nome": "ALUNO TESTE BETA",
+          "col_F_cpf": "000.000.002-99",
+          "col_G_ra": "HOM-1002"
+        }
+      ]
+    },
+    {
+      "nome_aba": "BASE_FCH_EAD",
+      "tipo": "GERAL_CONTRATUAL",
+      "grupo": "FCH_EAD",
+      "cabecalhos": [
+        "SITUAÇÃO CONTRATUAL",
+        "CURSO",
+        "TURNO",
+        "MODALIDADE",
+        "NOME",
+        "CPF",
+        "RA"
+      ],
+      "dados_ficticios_iniciais": [
+        {
+          "col_A_situacao": "PENDENTE",
+          "col_B_curso": "PEDAGOGIA",
+          "col_C_turno": "EAD",
+          "col_D_modalidade": "DISTÂNCIA",
+          "col_E_nome": "ALUNO TESTE GAMA",
+          "col_F_cpf": "000.000.003-99",
+          "col_G_ra": "HOM-2001"
+        },
+        {
+          "col_A_situacao": "ACEITO",
+          "col_B_curso": "LETRAS EAD",
+          "col_C_turno": "EAD",
+          "col_D_modalidade": "DISTÂNCIA",
+          "col_E_nome": "ALUNO TESTE DELTA",
+          "col_F_cpf": "000.000.004-99",
+          "col_G_ra": "HOM-2002"
+        }
+      ]
+    }
+  ]
+}

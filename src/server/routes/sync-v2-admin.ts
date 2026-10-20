@@ -54,13 +54,16 @@ async function verificarTabelasV2Existem(db: D1Database): Promise<boolean> {
  * Valida autorização da requisição administrativa:
  * Exige usuário com privilégio de escrita OU secret administrativo no header.
  */
-function estaAutorizado(
+function estaAutorizadoComoAdmin(
   request: Request,
   usuarioAtual: UsuarioSessao | null,
-  podeEditar: boolean,
   adminSecretConfigurado?: string,
 ): boolean {
-  if (usuarioAtual && podeEditar) {
+  if (
+    usuarioAtual &&
+    (usuarioAtual.perfil === "ADMIN" ||
+      (usuarioAtual as unknown as { role?: string }).role === "ADMIN")
+  ) {
     return true;
   }
   const secretHeader = request.headers.get("X-Sync-Admin-Secret");
@@ -83,7 +86,7 @@ export async function handleSyncV2AdminRoute(
     db,
     env,
     usuarioAtual,
-    podeEditar,
+    podeEditar: _podeEditar,
     registrarAuditoria,
     customAdapter,
   } = deps;
@@ -234,9 +237,9 @@ export async function handleSyncV2AdminRoute(
   }
 
   // Para endpoints modificadores (dispatch, pause, resume), exige autorização de escrita
-  if (!estaAutorizado(request, usuarioAtual, podeEditar, env.SYNC_V2_ADMIN_SECRET)) {
+  if (!estaAutorizadoComoAdmin(request, usuarioAtual, env.SYNC_V2_ADMIN_SECRET)) {
     return Response.json(
-      { erro: "Acesso não autorizado para operação de sincronização V2." },
+      { erro: "PRIVILEGIO_INSUFICIENTE", mensagem: "Esta operação requer privilégio de Administrador do sistema." },
       { status: 403 },
     );
   }
@@ -264,10 +267,15 @@ export async function handleSyncV2AdminRoute(
       .bind(periodoId)
       .run();
 
+    const modoAnterior = integracao.mode;
     await registrarAuditoria(periodoId, {
       acao: "SYNC_V2_PARADA_OPERACIONAL",
       entidade: "SYNC_INTEGRATION",
-      descricao: `Integração '${integracao.integration_id}' colocada em PAUSED por parada operacional.`,
+      descricao: JSON.stringify({
+        integration_id: integracao.integration_id,
+        modo_anterior: modoAnterior,
+        motivo: "Parada operacional acionada por administrador",
+      }),
     });
 
     return Response.json({
@@ -293,23 +301,58 @@ export async function handleSyncV2AdminRoute(
       );
     }
 
+    const body = (await request.json().catch(() => ({}))) as any;
+    let modoDestino = body?.modo;
+
+    if (!modoDestino) {
+      const ultimaParada = await db
+        .prepare(
+          `SELECT descricao FROM logs WHERE periodo_id = ? AND acao = 'SYNC_V2_PARADA_OPERACIONAL' ORDER BY id DESC LIMIT 1`,
+        )
+        .bind(periodoId)
+        .first<{ descricao: string }>();
+
+      if (ultimaParada?.descricao) {
+        try {
+          const parsed = JSON.parse(ultimaParada.descricao);
+          if (["SHADOW", "CAPTURE", "BIDIRECTIONAL"].includes(parsed.modo_anterior)) {
+            modoDestino = parsed.modo_anterior;
+          }
+        } catch {
+          // parsing legado
+        }
+      }
+    }
+
+    if (!modoDestino || !["SHADOW", "CAPTURE", "BIDIRECTIONAL"].includes(modoDestino)) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "MODO_EXPLICITO_OBRIGATORIO",
+          mensagem:
+            "O modo anterior não pôde ser determinado com segurança. É obrigatório informar explicitamente o modo autorizado no corpo da requisição (ex: { \"modo\": \"SHADOW\" | \"CAPTURE\" | \"BIDIRECTIONAL\" }).",
+        },
+        { status: 400 },
+      );
+    }
+
     await db
       .prepare(
-        `UPDATE sync_integrations SET mode = 'BIDIRECTIONAL', updated_at = CURRENT_TIMESTAMP WHERE periodo_id = ?`,
+        `UPDATE sync_integrations SET mode = ?, updated_at = CURRENT_TIMESTAMP WHERE periodo_id = ?`,
       )
-      .bind(periodoId)
+      .bind(modoDestino, periodoId)
       .run();
 
     await registrarAuditoria(periodoId, {
       acao: "SYNC_V2_RETOMADA_OPERACIONAL",
       entidade: "SYNC_INTEGRATION",
-      descricao: `Integração '${integracao.integration_id}' retomada para modo BIDIRECTIONAL.`,
+      descricao: `Integração '${integracao.integration_id}' retomada para modo ${modoDestino}.`,
     });
 
     return Response.json({
       sucesso: true,
-      modo: "BIDIRECTIONAL",
-      mensagem: "Integração retomada para modo BIDIRECTIONAL com sucesso.",
+      modo: modoDestino,
+      mensagem: `Integração retomada para modo ${modoDestino} com sucesso.`,
     });
   }
 

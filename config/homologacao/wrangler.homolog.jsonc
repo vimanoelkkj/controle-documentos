@@ -1,0 +1,45 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "controle-documentos-homolog",
+  "main": "../../src/worker.ts",
+  "compatibility_date": "2026-08-08",
+
+  // Assets estáticos do frontend compilado
+  "assets": {
+    "directory": "../../dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+
+  // Base D1 exclusiva e isolada para o ambiente de homologação
+  // IMPORTANTE: Criar via `npx wrangler d1 create controle-documentos-homolog-db`
+  // e substituir o database_id abaixo pelo ID UUID retornado pela Cloudflare.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "controle-documentos-homolog-db",
+      "database_id": "PREENCHER_COM_UUID_HOMOLOG_D1"
+    }
+  ],
+
+  // Variáveis públicas e feature flags para homologação
+  "vars": {
+    "ENVIRONMENT": "homolog",
+    // Flag de controle: V2 DESATIVADA por padrão para arranque seguro
+    "SYNC_V2_ENABLED": "false",
+    // Configurações de despacho e leases no ambiente de teste
+    "SYNC_V2_DISPATCH_TIMEOUT_MS": "25000",
+    "SYNC_V2_BATCH_SIZE": "20",
+    "SYNC_V2_LEASE_DURATION_MS": "30000",
+    "SYNC_V2_DEFAULT_INTEGRATION_ID": "integ-homolog-2026-2"
+  }
+
+  // =========================================================================
+  // SECRETS (NÃO COLOQUE CHAVES SECRETAS AQUI)
+  // Devem ser configurados via CLI:
+  // npx wrangler secret put SYNC_ADMIN_SECRET --config config/homologacao/wrangler.homolog.jsonc
+  // npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_EMAIL --config config/homologacao/wrangler.homolog.jsonc
+  // npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.homolog.jsonc
+  // =========================================================================
+}

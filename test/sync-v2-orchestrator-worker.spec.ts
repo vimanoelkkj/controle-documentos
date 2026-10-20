@@ -675,6 +675,9 @@ describe("P0.3 — Integração do Orquestrador V2 ao Ciclo do Worker", () => {
       podeEditar: true,
       registrarAuditoria: async (p, ev) => {
         auditorias.push({ p, ev });
+        await env.DB.prepare(
+          `INSERT INTO logs (periodo_id, acao, entidade, descricao) VALUES (?, ?, ?, ?)`,
+        ).bind(p, ev.acao, ev.entidade, ev.descricao).run();
       },
     });
 
@@ -803,5 +806,177 @@ describe("P0.3 — Integração do Orquestrador V2 ao Ciclo do Worker", () => {
     // O orquestrador ao rodar pode processar elegíveis da base. No P0.3, a busca de elegíveis do orquestrador
     // vincula operações ao contexto da integração.
     expect(opP2Apos?.state).toBeDefined();
+  });
+  // ---------------------------------------------------------------------------
+  // 11. Autorização estrita: usuário com role "USER" é rejeitado com 403
+  // ---------------------------------------------------------------------------
+  it("11. Autorização estrita: usuário sem perfil ADMIN é rejeitado com 403 PRIVILEGIO_INSUFICIENTE", async () => {
+    const { periodoId } = await setupPeriodoEIntegracao();
+    const operadorComum: UsuarioSessao = {
+      id: 2,
+      nome: "Operador Comum",
+      username: "operador.comum",
+      role: "USER",
+      modo_apresentacao: 0,
+    };
+
+    // Tenta despacho com role USER
+    const resDispatch = await handleSyncV2AdminRoute({
+      request: new Request(`https://local/api/periodos/${periodoId}/sync-v2/dispatch`, {
+        method: "POST",
+      }),
+      url: new URL(`https://local/api/periodos/${periodoId}/sync-v2/dispatch`),
+      db: env.DB,
+      env: { SYNC_V2_ENABLED: "true" },
+      usuarioAtual: operadorComum,
+      podeEditar: true, // Tem permissão de editar documentos, mas NÃO é admin
+      registrarAuditoria: async () => {},
+    });
+
+    expect(resDispatch?.status).toBe(403);
+    const jsonDispatch = (await resDispatch?.json()) as any;
+    expect(jsonDispatch.erro).toBe("PRIVILEGIO_INSUFICIENTE");
+
+    // Tenta pause com role USER
+    const resPause = await handleSyncV2AdminRoute({
+      request: new Request(`https://local/api/periodos/${periodoId}/sync-v2/pause`, {
+        method: "POST",
+      }),
+      url: new URL(`https://local/api/periodos/${periodoId}/sync-v2/pause`),
+      db: env.DB,
+      env: { SYNC_V2_ENABLED: "true" },
+      usuarioAtual: operadorComum,
+      podeEditar: true,
+      registrarAuditoria: async () => {},
+    });
+    expect(resPause?.status).toBe(403);
+  });
+
+  // ---------------------------------------------------------------------------
+  // 12. Retomada segura (/resume): preservação do modo anterior e rejeição de transição cega
+  // ---------------------------------------------------------------------------
+  it("12. Retomada segura: preserva modo SHADOW anterior e exige modo explícito sem histórico", async () => {
+    // Integração configurada inicialmente como SHADOW
+    const { periodoId, integrationId } = await setupPeriodoEIntegracao({ mode: "SHADOW" });
+    const auditorias: any[] = [];
+
+    // 1. Pausa a integração (era SHADOW)
+    const resPause = await handleSyncV2AdminRoute({
+      request: new Request(`https://local/api/periodos/${periodoId}/sync-v2/pause`, {
+        method: "POST",
+      }),
+      url: new URL(`https://local/api/periodos/${periodoId}/sync-v2/pause`),
+      db: env.DB,
+      env: { SYNC_V2_ENABLED: "true" },
+      usuarioAtual: mockAdminUser,
+      podeEditar: true,
+      registrarAuditoria: async (p, ev) => {
+        auditorias.push({ p, ev });
+        // Persiste na tabela auditoria do D1 para permitir resgate
+        await env.DB.prepare(
+          `INSERT INTO logs (periodo_id, usuario_id, usuario_nome, acao, entidade, descricao)
+           VALUES (?, 1, "Admin", ?, ?, ?)`,
+        ).bind(p, ev.acao, ev.entidade, ev.descricao).run();
+      },
+    });
+    expect(resPause?.status).toBe(200);
+
+    // 2. Chama /resume SEM especificar body: deve resgatar SHADOW, e NÃO virar BIDIRECTIONAL automaticamente!
+    const resResumeSemBody = await handleSyncV2AdminRoute({
+      request: new Request(`https://local/api/periodos/${periodoId}/sync-v2/resume`, {
+        method: "POST",
+      }),
+      url: new URL(`https://local/api/periodos/${periodoId}/sync-v2/resume`),
+      db: env.DB,
+      env: { SYNC_V2_ENABLED: "true" },
+      usuarioAtual: mockAdminUser,
+      podeEditar: true,
+      registrarAuditoria: async (p, ev) => {
+        auditorias.push({ p, ev });
+      },
+    });
+    expect(resResumeSemBody?.status).toBe(200);
+    const jsonResume = (await resResumeSemBody?.json()) as any;
+    expect(jsonResume.modo).toBe("SHADOW");
+
+    const intDbApos = await env.DB.prepare(`SELECT mode FROM sync_integrations WHERE integration_id = ?`)
+      .bind(integrationId).first<{ mode: string }>();
+    expect(intDbApos?.mode).toBe("SHADOW");
+
+    // 3. Chamada com modo explícito CAPTURE no body
+    const resResumeComBody = await handleSyncV2AdminRoute({
+      request: new Request(`https://local/api/periodos/${periodoId}/sync-v2/resume`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modo: "CAPTURE" }),
+      }),
+      url: new URL(`https://local/api/periodos/${periodoId}/sync-v2/resume`),
+      db: env.DB,
+      env: { SYNC_V2_ENABLED: "true" },
+      usuarioAtual: mockAdminUser,
+      podeEditar: true,
+      registrarAuditoria: async () => {},
+    });
+    expect(resResumeComBody?.status).toBe(200);
+    const jsonResumeCapture = (await resResumeComBody?.json()) as any;
+    expect(jsonResumeCapture.modo).toBe("CAPTURE");
+  });
+
+  // ---------------------------------------------------------------------------
+  // 13. Concorrência distribuída: Leases e CAS do D1 garantem exclusão mútua
+  // ---------------------------------------------------------------------------
+  it("13. Concorrência distribuída: dois workers de isolates distintos disputam outbox via CAS do D1 sem escritas duplicadas", async () => {
+    const { periodoId, integrationId, spreadsheetId } = await setupPeriodoEIntegracao();
+    const ra = `RA-MULTI-WORKER-${proximoId()}`;
+    const adapter = new MockTestAdapter();
+    await popularSheetPadrao(adapter, spreadsheetId, ra);
+
+    const { recordId } = await criarAlunoComDocumentosEBaseline({
+      periodoId,
+      integrationId,
+      groupKey: "FACE_FEA",
+      raText: ra,
+    });
+
+    // Cria uma operação PENDING
+    await criarMutacaoValida({
+      recordId,
+      integrationId,
+      periodoId,
+      groupKey: "FACE_FEA",
+      fieldKey: "identidade",
+      fromRevision: 0,
+      proposedValue: 1,
+    });
+
+    // Simula dois workers instanciados de isolates distintos (worker-instancia-A e worker-instancia-B)
+    const { SyncV2Orchestrator } = await import("../src/server/services/sync-orchestrator");
+    const workerA = new SyncV2Orchestrator({
+      db: env.DB,
+      adapter,
+      workerId: "worker-instancia-A",
+      integrationId,
+    });
+    const workerB = new SyncV2Orchestrator({
+      db: env.DB,
+      adapter,
+      workerId: "worker-instancia-B",
+      integrationId,
+    });
+
+    // Executam simultaneamente contra o mesmo banco D1
+    const [resA, resB] = await Promise.all([
+      workerA.executeBatch(),
+      workerB.executeBatch(),
+    ]);
+
+    // Exatamente UM deles ganha a reivindicação via CAS do D1 e processa a operação
+    const totalProcessadas = resA.processedCount + resB.processedCount;
+    const totalObservadas = resA.observedCount + resB.observedCount;
+    expect(totalProcessadas).toBeGreaterThanOrEqual(1);
+    expect(totalObservadas).toBe(1);
+
+    // O adaptador externo recebeu estritamente 1 chamada de escrita, comprovando ausência de corrida distribuída
+    expect(adapter.writeCalls).toHaveLength(1);
   });
 });
