@@ -43,6 +43,7 @@ Antes de iniciar qualquer execução, certifique-se de preencher e assinar este 
    npx wrangler d1 execute controle-documentos-homolog-db --file=migrations/009_google_sheets_pendencias_motivos.sql
    npx wrangler d1 execute controle-documentos-homolog-db --file=migrations/010_modo_apresentacao.sql
    npx wrangler d1 execute controle-documentos-homolog-db --file=migrations/011_sync_v2.sql
+   npx wrangler d1 execute controle-documentos-homolog-db --file=migrations/012_sync_coordinator_leases.sql
    ```
 4. Executar a carga inicial de teste no D1 de homologação:
    ```bash
@@ -329,6 +330,25 @@ npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON --config config/homologacao/
 - **Critério de Aceite (Pass/Fail)**:
   - **PASS**: Cadeia de custódia completa sem lacunas; logs íntegros e rastreáveis até os respectivos atores.
   - **FAIL**: Operações sem log, receipts órfãos ou falta de carimbo temporal.
+
+---
+
+### Cenário 11: Sincronização Automática com Scheduler e Cron de 5 Minutos
+- **Objetivo**: Validar a execução periódica desassistida do ciclo coordenado (Inbound + Outbound) garantindo lease e fencing no D1.
+- **Passo 11.1**: Ativar as flags no Worker de homologação: `SYNC_V2_ENABLED = "true"` e `SYNC_V2_AUTO_ENABLED = "true"`.
+- **Passo 11.2**: Acionar manualmente o ciclo coordenado via endpoint administrativo:
+  ```bash
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/schedule-run" \
+    -H "Content-Type: application/json" \
+    -H "X-Sync-Admin-Secret: <SECRET>"
+  ```
+  - Verificar resposta: HTTP 200 com `"sucesso": true` e relatório detalhado de integrações executadas.
+- **Passo 11.3**: Aguardar disparo automático do Cron Trigger (a cada 5 minutos em homologação):
+  - Verificar no Cloudflare Logs o acionamento do handler `scheduled`.
+  - Consultar `sync_coordinator_leases` e `logs` de auditoria com o evento `SYNC_V2_SCHEDULED_CYCLE`.
+- **Critério de Aceite (Pass/Fail)**:
+  - **PASS**: Ciclo executado na ordem estrita Inbound -> Outbound; lease coordenador adquirido e liberado com incremento de `lease_epoch`; nenhum dado pessoal ou credencial exposto nos logs.
+  - **FAIL**: Concorrência não coordenada, execução com flag desativada ou quebra de fórmulas J/K.
 
 ---
 

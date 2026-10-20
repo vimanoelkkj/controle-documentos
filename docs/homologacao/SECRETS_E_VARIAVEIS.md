@@ -10,6 +10,7 @@ Este documento detalha todas as variáveis de ambiente e segredos requeridos par
 | :--- | :--- | :--- |
 | `ENVIRONMENT` | `"homolog"` | Identificador do ambiente isolado. |
 | `SYNC_V2_ENABLED` | `"false"` | **Feature Flag mestre**. Inicialmente desativada. Controla a permissão de despacho e processamento V2. |
+| `SYNC_V2_AUTO_ENABLED` | `"false"` | **Feature Flag de Scheduler**. Desativada por padrão. Controla a execução automática periódica via Cron Trigger. |
 | `SYNC_V2_DISPATCH_TIMEOUT_MS` | `"25000"` | Limite de tempo em milissegundos para a execução do ciclo de despacho por lote (default 25s). |
 | `SYNC_V2_BATCH_SIZE` | `"20"` | Quantidade máxima de operações da outbox processadas por ciclo de despacho. |
 | `SYNC_V2_LEASE_DURATION_MS` | `"30000"` | Duração da lease atômica no D1 para prevenção de split-brain entre instâncias/workers. |

@@ -75,11 +75,23 @@ A sincronização V2 substitui o mecanismo legado (V1) por uma arquitetura orien
 - **Modos de Operação:** `SHADOW`, `CAPTURE`, `BIDIRECTIONAL`, `PAUSED`, `QUARANTINED`.
 - **Retomada Segura:** O endpoint `/resume` preserva o modo anterior a partir dos logs de auditoria e nunca assume `BIDIRECTIONAL` sem seleção explícita.
 
+### 2.6 Scheduler Automático e Coordenação Persistente (P0.5)
+- **Serviço Coordenador:** `src/server/services/sync-coordinator.ts`.
+- **Coordenação no D1:** Tabela `sync_coordinator_leases` com `lease_epoch` monotônico anti-split brain entre instâncias/workers.
+- **Ordem de Execução Estrita:** Inbound (Captura Causal) antes de Outbound (Despacho com CAS).
+- **Contratos por Modo:**
+  - `BIDIRECTIONAL`: Inbound ativo e Outbound ativo.
+  - `CAPTURE`: Inbound ativo e Outbound desativado.
+  - `SHADOW`: Inbound em simulação (`dryRun=true`) e Outbound simulado.
+  - `PAUSED` / `QUARANTINED` / `LEGACY`: Execução ignorada pelo scheduler (`SKIPPED_NOT_ELIGIBLE`).
+- **Feature Flags Seguras:** Exige `SYNC_V2_ENABLED = "true"` E `SYNC_V2_AUTO_ENABLED = "true"`.
+- **Cron Trigger:** `*/5 * * * *` (5 minutos) configurado exclusivamente no ambiente de homologação isolado (`config/homologacao/wrangler.homolog.jsonc`).
+
 ---
 
 ## 3. Documentação Relacionada
 
-- [Roteiro de Homologação Integrada (10 Cenários)](../homologacao/ROTEIRO_HOMOLOGACAO_ISOLADA.md)
+- [Roteiro de Homologação Integrada (11 Cenários)](../homologacao/ROTEIRO_HOMOLOGACAO_ISOLADA.md)
 - [Variáveis de Ambiente e Segredos de Homologação](../homologacao/SECRETS_E_VARIAVEIS.md)
 - [Procedimentos de Backup e Robustez do D1](../operacao/ROBUSTEZ_BACKUP.md)
 - [Regras de Escrita Segura no Google Sheets](../operacao/GOOGLE_SHEETS_ESCRITA_SEGURA.md)

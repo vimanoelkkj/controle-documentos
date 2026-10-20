@@ -32,6 +32,7 @@ import {
   podeEditar,
 } from "./middleware/autorizacao";
 import { handleAuthRoute, hashSenha, type UsuarioSessao } from "./routes/auth";
+import { runScheduledSyncV2 } from "./services/sync-coordinator";
 
 export interface Env {
   DB: D1Database;
@@ -42,6 +43,7 @@ export interface Env {
   D1_DATABASE_ID?: string;
   ENVIRONMENT?: string;
   SYNC_V2_ENABLED?: string;
+  SYNC_V2_AUTO_ENABLED?: string;
   SYNC_V2_ADMIN_SECRET?: string;
 }
 export default {
@@ -332,8 +334,32 @@ export default {
       );
       return;
     }
+
+    if (env.SYNC_V2_AUTO_ENABLED !== "true") {
+      console.log(
+        "[Scheduled:SyncV2] Scheduler automático V2 desativado por padrão (SYNC_V2_AUTO_ENABLED !== 'true').",
+      );
+      return;
+    }
+
     console.log(
-      `[Scheduled:SyncV2] Cron acionado em ${controller.scheduledTime} (${controller.cron}).`,
+      `[Scheduled:SyncV2] Cron acionado em ${controller.scheduledTime} (${controller.cron}). Iniciando ciclo coordenado...`,
+    );
+
+    const report = await runScheduledSyncV2({
+      db: env.DB,
+      env,
+      registrarAuditoria: async (periodoId, evento) => {
+        await registrarAuditoria(env.DB, null, periodoId, {
+          acao: evento.acao,
+          entidade: evento.entidade,
+          descricao: evento.descricao,
+        });
+      },
+    });
+
+    console.log(
+      `[Scheduled:SyncV2] Ciclo concluído: ${report.integracoesExecutadas} executadas, ${report.integracoesIgnoradas} ignoradas.`,
     );
   },
 } satisfies ExportedHandler<Env>;

@@ -11,6 +11,11 @@ import {
 import type { ISyncSpreadsheetAdapter } from "../services/sync-sheet-contracts";
 import type { GroupKey } from "../services/sync-d1-core";
 import { reconcileInboundFromSpreadsheet } from "../services/sync-inbound-reconciler";
+import {
+  acquireCoordinatorLease,
+  releaseCoordinatorLease,
+  runScheduledSyncV2,
+} from "../services/sync-coordinator";
 
 export interface SyncV2AdminDependencies {
   request: Request;
@@ -18,6 +23,7 @@ export interface SyncV2AdminDependencies {
   db: D1Database;
   env: {
     SYNC_V2_ENABLED?: string;
+    SYNC_V2_AUTO_ENABLED?: string;
     SYNC_V2_ADMIN_SECRET?: string;
     SYNC_ADMIN_SECRET?: string;
     GOOGLE_SERVICE_ACCOUNT_JSON?: string;
@@ -97,7 +103,7 @@ export async function handleSyncV2AdminRoute(
   } = deps;
 
   const matchPeriodo = url.pathname.match(
-    /^\/api\/periodos\/(\d+)\/sync-v2\/(status|dispatch|pause|resume|inbound)$/,
+    /^\/api\/periodos\/(\d+)\/sync-v2\/(status|dispatch|pause|resume|inbound|schedule-run)$/,
   );
 
   let periodoId: number | null = null;
@@ -108,7 +114,7 @@ export async function handleSyncV2AdminRoute(
     action = matchPeriodo[2];
   } else {
     const matchDirect = url.pathname.match(
-      /^\/api\/sync-v2\/(status|dispatch|pause|resume|inbound)$/,
+      /^\/api\/sync-v2\/(status|dispatch|pause|resume|inbound|schedule-run)$/,
     );
     if (matchDirect) {
       action = matchDirect[1];
@@ -268,14 +274,44 @@ export async function handleSyncV2AdminRoute(
       !["LEGACY", "PAUSED", "QUARANTINED"].includes(integracao?.mode ?? "") &&
       credentialsConfigured;
 
+    let activeLease: {
+      lease_owner: string;
+      lease_epoch: number;
+      lease_type: string;
+      lease_until: string;
+    } | null = null;
+
+    if (integracao) {
+      try {
+        const leaseRow = await db
+          .prepare(
+            `SELECT lease_owner, lease_epoch, lease_type, lease_until
+             FROM sync_coordinator_leases
+             WHERE integration_id = ? AND datetime(lease_until) >= datetime('now')`,
+          )
+          .bind(integracao.integration_id)
+          .first<{
+            lease_owner: string;
+            lease_epoch: number;
+            lease_type: string;
+            lease_until: string;
+          }>();
+        activeLease = leaseRow || null;
+      } catch {
+        // Tabela de leases ainda não criada
+      }
+    }
+
     return Response.json({
       sucesso: true,
       status: {
         enabled,
+        autoEnabled: env.SYNC_V2_AUTO_ENABLED === "true",
         environment: env.ENVIRONMENT || "production",
         tablesExist,
         credentialsConfigured,
         integracao,
+        activeLease,
         metrics: {
           operations: operacoesMetrics,
           fieldStates: camposMetrics,
@@ -513,7 +549,7 @@ export async function handleSyncV2AdminRoute(
       });
     }
 
-    // 6. Prevenção de simultaneidade descontrolada (mesmo isolate)
+    // 6. Prevenção de simultaneidade persistente com lease D1 (multi-instância)
     const dispatchKey = `${integracao.integration_id}:${periodoId}`;
     if (activeDispatches.has(dispatchKey)) {
       return Response.json(
@@ -522,6 +558,29 @@ export async function handleSyncV2AdminRoute(
           erro: "DESPACHO_EM_ANDAMENTO",
           mensagem:
             "Já existe um lote de sincronização em execução ativa para esta integração.",
+        },
+        { status: 429 },
+      );
+    }
+
+    const workerId = `worker-${crypto.randomUUID().slice(0, 8)}`;
+    const leaseAcq = await acquireCoordinatorLease({
+      db,
+      integrationId: integracao.integration_id,
+      owner: workerId,
+      leaseType: "OUTBOUND",
+      durationSeconds: 30,
+    });
+
+    if (!leaseAcq.ok) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "DESPACHO_EM_ANDAMENTO",
+          mensagem:
+            "Já existe um processo de sincronização em execução ativa para esta integração.",
+          bloqueadoPor: leaseAcq.currentOwner,
+          expiraEm: leaseAcq.leaseUntil,
         },
         { status: 429 },
       );
@@ -539,7 +598,6 @@ export async function handleSyncV2AdminRoute(
     }
 
     activeDispatches.add(dispatchKey);
-    const workerId = `worker-${crypto.randomUUID().slice(0, 8)}`;
 
     // Monta resolver dinâmico de abas a partir de google_sheets_periodos (ou default)
     const sheetsConfig = await db
@@ -604,6 +662,12 @@ export async function handleSyncV2AdminRoute(
       });
     } finally {
       activeDispatches.delete(dispatchKey);
+      await releaseCoordinatorLease({
+        db,
+        integrationId: integracao.integration_id,
+        owner: workerId,
+        epoch: leaseAcq.epoch,
+      }).catch(() => {});
     }
   }
 
@@ -764,21 +828,77 @@ export async function handleSyncV2AdminRoute(
 
     const actorId = usuarioAtual?.email || `admin-secret:${periodoId}`;
 
-    const report = await reconcileInboundFromSpreadsheet({
-      periodoId,
-      integrationId: integracao.integration_id,
-      actorId,
-      dryRun,
-      adapter,
-      tabNameResolver,
+    const workerId = `inbound-${crypto.randomUUID().slice(0, 8)}`;
+    const leaseAcq = await acquireCoordinatorLease({
       db,
-      targetGroupKey,
+      integrationId: integracao.integration_id,
+      owner: workerId,
+      leaseType: "INBOUND",
+      durationSeconds: 30,
     });
 
-    await registrarAuditoria(periodoId, {
-      acao: "SYNC_V2_INBOUND_INGEST",
-      entidade: "SYNC_INBOUND",
-      descricao: `Ingestão Inbound V2 executada (${dryRun ? "DRY-RUN" : "REAL"}): ${report.camposAtualizadosNoD1} campos atualizados, ${report.camposEmSincronia} em sincronia, ${report.conflitosDetectados} conflitos detectados, ${report.totalAlunosLidosNaPlanilha} alunos processados na planilha.`,
+    if (!leaseAcq.ok) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "DESPACHO_EM_ANDAMENTO",
+          mensagem:
+            "Já existe um processo de sincronização em execução ativa para esta integração.",
+          bloqueadoPor: leaseAcq.currentOwner,
+          expiraEm: leaseAcq.leaseUntil,
+        },
+        { status: 429 },
+      );
+    }
+
+    try {
+      const report = await reconcileInboundFromSpreadsheet({
+        periodoId,
+        integrationId: integracao.integration_id,
+        actorId,
+        dryRun,
+        adapter,
+        tabNameResolver,
+        db,
+        targetGroupKey,
+      });
+
+      await registrarAuditoria(periodoId, {
+        acao: "SYNC_V2_INBOUND_INGEST",
+        entidade: "SYNC_INBOUND",
+        descricao: `Ingestão Inbound V2 executada (${dryRun ? "DRY-RUN" : "REAL"}): ${report.camposAtualizadosNoD1} campos atualizados, ${report.camposEmSincronia} em sincronia, ${report.conflitosDetectados} conflitos detectados, ${report.totalAlunosLidosNaPlanilha} alunos processados na planilha.`,
+      });
+
+      return Response.json({
+        sucesso: report.sucesso,
+        report,
+      });
+    } finally {
+      await releaseCoordinatorLease({
+        db,
+        integrationId: integracao.integration_id,
+        owner: workerId,
+        epoch: leaseAcq.epoch,
+      }).catch(() => {});
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6. POST /schedule-run — Disparo Forçado do Ciclo Completo do Scheduler
+  // ---------------------------------------------------------------------------
+  if (action === "schedule-run" && request.method === "POST") {
+    const report = await runScheduledSyncV2({
+      db,
+      env: {
+        ...env,
+        SYNC_V2_ENABLED: "true",
+        SYNC_V2_AUTO_ENABLED: "true",
+      },
+      targetPeriodoId: periodoId,
+      customAdapter,
+      registrarAuditoria: async (pId, evento) => {
+        await registrarAuditoria(pId, evento);
+      },
     });
 
     return Response.json({

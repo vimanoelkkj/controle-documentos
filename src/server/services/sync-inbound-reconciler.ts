@@ -293,19 +293,39 @@ export async function reconcileInboundFromSpreadsheet(
         // Verifica se existe operação local ativa na outbox pendente de despacho
         const activeOp = await db
           .prepare(
-            `SELECT operation_id, state
-             FROM sync_operations
-             WHERE record_id = ? AND field_key = ? AND state IN ('PENDING', 'CLAIMED', 'RETRY_WAIT', 'UNCERTAIN')
+            `SELECT o.operation_id, o.state, e.value_old, e.value_new
+             FROM sync_operations o
+             LEFT JOIN sync_events e ON e.event_id = o.event_id
+             WHERE o.record_id = ? AND o.field_key = ? AND o.target_key = 'CONTROLE'
+               AND o.state IN ('PENDING', 'CLAIMED', 'RETRY_WAIT', 'UNCERTAIN')
              LIMIT 1`,
           )
           .bind(recordId, field)
           .first<{
             operation_id: string;
             state: string;
+            value_old: number | null;
+            value_new: number | null;
           }>();
 
         if (activeOp) {
-          // CONFLITO: A secretaria submeteu alteração local ainda em trânsito
+          // Se a operação for UNCERTAIN, exige reconciliação humana obrigatória (F3)
+          const isUncertain = activeOp.state === "UNCERTAIN";
+
+          // Se a operação NÃO for UNCERTAIN e a planilha ainda contiver o valor causal anterior (value_old):
+          // Significa que a alteração da secretaria ainda está na fila para ser despachada.
+          // Não sobrescrevemos o D1 e não abrimos conflito falso: deixamos o Outbound despachar.
+          if (!isUncertain && activeOp.value_old !== null && sheetNormalized === activeOp.value_old) {
+            continue;
+          }
+
+          // Se a planilha já convergiu para o novo valor proposto (value_new):
+          if (!isUncertain && activeOp.value_new !== null && sheetNormalized === activeOp.value_new) {
+            report.camposEmSincronia++;
+            continue;
+          }
+
+          // CONFLITO REAL: Divergência não causal ou incerteza operacional em trânsito
           // NÃO sobrescrever! Registra formalmente na tabela de conflitos F3.
           report.conflitosDetectados++;
           report.divergenciasComOutboxPendente.push({

@@ -458,7 +458,7 @@ describe("Sincronização Inbound V2 (Google Sheets → D1)", { timeout: 15000 }
 
     const recordId = `rec-${periodoId}-FACE_FEA-${ra}`;
 
-    // Simula uma mutação documental realizada pelo site que gerou outbox PENDING
+    // Simula uma mutação documental realizada pelo site que transicionou para UNCERTAIN
     const mutRes = await executeFieldMutation(env.DB, {
       commandId: `cmd-conc-${ra}`,
       actorId: "user:secretaria",
@@ -473,6 +473,10 @@ describe("Sincronização Inbound V2 (Google Sheets → D1)", { timeout: 15000 }
       expectedEpoch: 1,
     });
     expect(mutRes.ok).toBe(true);
+
+    await env.DB.prepare(
+      `UPDATE sync_operations SET state = 'UNCERTAIN' WHERE record_id = ? AND field_key = 'residencia'`,
+    ).bind(recordId).run();
 
     const adapter = new MockInboundAdapter();
     // Na planilha, o documento residência foi marcado com valor divergente (FALSE) enquanto a outbox tem PENDING (1)
@@ -494,7 +498,7 @@ describe("Sincronização Inbound V2 (Google Sheets → D1)", { timeout: 15000 }
     expect(report.conflitosDetectados).toBe(1);
     expect(report.camposAtualizadosNoD1).toBe(0);
     expect(report.divergenciasComOutboxPendente).toHaveLength(1);
-    expect(report.divergenciasComOutboxPendente[0].statusOperacaoLocal).toBe("PENDING");
+    expect(report.divergenciasComOutboxPendente[0].statusOperacaoLocal).toBe("UNCERTAIN");
 
     // Conflito formalmente registrado na tabela de auditoria F3
     const conflito = await env.DB.prepare(

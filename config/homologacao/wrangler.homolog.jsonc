@@ -28,11 +28,18 @@
     "ENVIRONMENT": "homolog",
     // Flag de controle: V2 DESATIVADA por padrão para arranque seguro
     "SYNC_V2_ENABLED": "false",
+    // Flag de agendamento automático: DESATIVADA por padrão
+    "SYNC_V2_AUTO_ENABLED": "false",
     // Configurações de despacho e leases no ambiente de teste
     "SYNC_V2_DISPATCH_TIMEOUT_MS": "25000",
     "SYNC_V2_BATCH_SIZE": "20",
     "SYNC_V2_LEASE_DURATION_MS": "30000",
     "SYNC_V2_DEFAULT_INTEGRATION_ID": "integ-homolog-2026-2"
+  },
+
+  // Cron Trigger de 5 minutos exclusivo para homologação isolada
+  "triggers": {
+    "crons": ["*/5 * * * *"]
   }
 
   // =========================================================================
