@@ -583,4 +583,202 @@ describe('F4-A: Adaptador Real Google Sheets (GoogleSheetsRealAdapter)', () => {
       })
     ).rejects.toThrow(GoogleSheetsNetworkError);
   });
+  it('F4-A.14 — Preservação estrita das colunas J e K (fórmulas e contadores)', async () => {
+    // Grade contendo colunas J e K com fórmulas
+    const gradeComFormulas: unknown[][] = [
+      ['RA', 'Nome', ...EXPECTED_CONTROL_HEADERS, 'TOTAL_DOCS', 'STATUS_FINAL'],
+      ['000123', 'Aluno Com Zeros', 'TRUE', 'TRUE', 'FALSE', 'FALSE', 'TRUE', 'FALSE', 'TRUE', '=CONT.SE(C2:I2, TRUE)', '=SE(J2=7, "OK", "PENDENTE")'],
+    ];
+
+    const { mockFetch, store, calls } = createMockFetch({
+      'CONTROLE DE DOCUMENTOS FACE FEA': gradeComFormulas,
+    });
+
+    const adapter = new GoogleSheetsRealAdapter({ fetchFn: mockFetch });
+
+    // 1. Leitura: Range solicitado deve ser estritamente A1:I
+    const snapshot = await adapter.readControlTab({
+      spreadsheetId,
+      tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+      groupKey: 'FACE_FEA',
+    });
+
+    expect(snapshot.rowsByRa.has('000123')).toBe(true);
+    const getCalls = calls.filter(c => c.method === 'GET');
+    const requestedRange = decodeURIComponent(getCalls[0].url);
+    expect(requestedRange).toContain('!A1:I');
+    expect(requestedRange).not.toContain('!A1:K');
+
+    // 2. Escrita: mutação restrita a célula autorizada H2 não toca nas colunas J e K
+    await adapter.writeDocumentField({
+      spreadsheetId,
+      tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+      groupKey: 'FACE_FEA',
+      raText: '000123',
+      fieldKey: 'ensino_medio',
+      preconditions: {
+        targetKey: 'CONTROLE',
+        expectedCurrentValue: 0,
+        targetValue: 1,
+        targetRevision: 1,
+        operationId: 'op-preserve-jk',
+      },
+    });
+
+    const gradeAposEscrita = store.get('CONTROLE DE DOCUMENTOS FACE FEA')!;
+    // Coluna H foi atualizada para TRUE
+    expect(gradeAposEscrita[1][7]).toBe('TRUE');
+    // Colunas J (índice 9) e K (índice 10) preservadas com fórmulas originais intactas
+    expect(gradeAposEscrita[1][9]).toBe('=CONT.SE(C2:I2, TRUE)');
+    expect(gradeAposEscrita[1][10]).toBe('=SE(J2=7, "OK", "PENDENTE")');
+  });
+
+  it('F4-A.15 — Detecção de conflito intermediário por divergência de expectedSnapshotHash (C4)', async () => {
+    const { mockFetch } = createMockFetch({
+      'CONTROLE DE DOCUMENTOS FACE FEA': mockControleFaceFea,
+    });
+
+    const adapter = new GoogleSheetsRealAdapter({ fetchFn: mockFetch });
+
+    // O chamador envia um hash de snapshot desatualizado
+    const res = await adapter.writeDocumentField({
+      spreadsheetId,
+      tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+      groupKey: 'FACE_FEA',
+      raText: '000123',
+      fieldKey: 'ensino_medio',
+      preconditions: {
+        targetKey: 'CONTROLE',
+        expectedCurrentValue: 0,
+        targetValue: 1,
+        targetRevision: 1,
+        operationId: 'op-snap-hash-conflict',
+        expectedSnapshotHash: 'hash-obsoleto-de-snapshot-divergente',
+      },
+    });
+
+    expect(res.success).toBe(false);
+    expect(res.status).toBe('CONFLICT_DETECTED');
+    expect(res.error).toContain('Mutação intermediária detectada');
+  });
+
+  it('F4-A.16 — Regra C3: Aluno ausente ou ambíguo NÃO confirma ausência (isAbsentConfirmed = false)', async () => {
+    const { mockFetch } = createMockFetch({
+      'CONTROLE DE DOCUMENTOS FACE FEA': mockControleFaceFea,
+    });
+
+    const adapter = new GoogleSheetsRealAdapter({ fetchFn: mockFetch });
+
+    // Consulta aluno inexistente
+    const checkInexistente = await adapter.verifyExternalEffect({
+      spreadsheetId,
+      tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+      groupKey: 'FACE_FEA',
+      raText: '999999',
+      fieldKey: 'identidade',
+      targetKey: 'CONTROLE',
+      expectedTargetValue: 1,
+    });
+
+    expect(checkInexistente.effectObserved).toBe(false);
+    // CRUCIAL C3: Não pode confirmar ausência de efeito para aluno ausente ou ambíguo
+    expect(checkInexistente.isAbsentConfirmed).toBe(false);
+  });
+
+  it('F4-A.17 — Regra C3: Confirmação conclusiva de ausência (isAbsentConfirmed = true) apenas com valor oposto', async () => {
+    const { mockFetch } = createMockFetch({
+      'CONTROLE DE DOCUMENTOS FACE FEA': mockControleFaceFea,
+    });
+
+    const adapter = new GoogleSheetsRealAdapter({ fetchFn: mockFetch });
+
+    // RA 000123 tem ensino_medio = FALSE (0)
+    // Se esperamos 1, a observação conclusiva de 0 confirma ausência do efeito esperado
+    const checkOposto = await adapter.verifyExternalEffect({
+      spreadsheetId,
+      tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+      groupKey: 'FACE_FEA',
+      raText: '000123',
+      fieldKey: 'ensino_medio',
+      targetKey: 'CONTROLE',
+      expectedTargetValue: 1,
+    });
+
+    expect(checkOposto.effectObserved).toBe(false);
+    expect(checkOposto.isAbsentConfirmed).toBe(true);
+    expect(checkOposto.currentNormalizedValue).toBe(0);
+  });
+
+  it('F4-A.18 — Tratamento de erro 500 do Google Sheets como incerteza transitória de rede', async () => {
+    const { mockFetch, setSimulateHttpErrorStatus } = createMockFetch({
+      'CONTROLE DE DOCUMENTOS FACE FEA': mockControleFaceFea,
+    });
+
+    const adapter = new GoogleSheetsRealAdapter({ fetchFn: mockFetch });
+    setSimulateHttpErrorStatus(500, 'Internal Server Error do Google Sheets');
+
+    await expect(
+      adapter.readControlTab({
+        spreadsheetId,
+        tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+        groupKey: 'FACE_FEA',
+      })
+    ).rejects.toThrow(GoogleSheetsNetworkError);
+  });
+
+  it('F4-A.19 — Rejeição de emissão de proveniência com AdapterSecret ausente ou curto', async () => {
+    const adapterSemSegredo = new GoogleSheetsRealAdapter({
+      adapterId: 'real-adapter-inseguro',
+      adapterSecret: '123', // Segredo muito curto (< 8 caracteres)
+    });
+
+    await expect(
+      adapterSemSegredo.generateProvenanceEvidence({
+        integrationId: 'int-2027-1',
+        periodoId: 20271,
+        groupKey: 'FACE_FEA',
+        spreadsheetId,
+        tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+        raText: '000123',
+        fieldKey: 'identidade',
+        cellCoordinate: 'C2',
+        rawValue: 'TRUE',
+        normalizedValue: 1,
+        headerFingerprint: EXPECTED_CONTROL_HEADERS.join('::'),
+      })
+    ).rejects.toThrow(GoogleSheetsAuthError);
+  });
+
+  it('F4-A.20 — Janela de CAS otimista: previne sobrescrita quando estado prévio diverge', async () => {
+    const { mockFetch, store } = createMockFetch({
+      'CONTROLE DE DOCUMENTOS FACE FEA': mockControleFaceFea,
+    });
+
+    const adapter = new GoogleSheetsRealAdapter({ fetchFn: mockFetch });
+
+    // Modificação humana concorrente foi feita antes da execução do lote (célula H2 passou para TRUE)
+    const grid = store.get('CONTROLE DE DOCUMENTOS FACE FEA')!;
+    grid[1][7] = 'TRUE';
+
+    // Tentativa do sistema de escrever com base em snapshot antigo onde esperava 0
+    const res = await adapter.writeDocumentField({
+      spreadsheetId,
+      tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+      groupKey: 'FACE_FEA',
+      raText: '000123',
+      fieldKey: 'ensino_medio',
+      preconditions: {
+        targetKey: 'CONTROLE',
+        expectedCurrentValue: 0,
+        targetValue: 1,
+        targetRevision: 1,
+        operationId: 'op-cas-window-conflict',
+      },
+    });
+
+    // O adaptador identifica a divergência pré-escrita e bloqueia a mutação sem alterar a célula
+    expect(res.success).toBe(false);
+    expect(res.status).toBe('CONFLICT_DETECTED');
+    expect(grid[1][7]).toBe('TRUE'); // Mantém o valor editado pelo humano intacto
+  });
 });

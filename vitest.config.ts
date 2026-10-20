@@ -39,6 +39,7 @@ export default defineConfig({
     }),
   ],
   test: {
+    include: ["test/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
     setupFiles: ["./test/apply-migrations.ts"],
   },
 });

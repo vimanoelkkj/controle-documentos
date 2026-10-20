@@ -76,6 +76,24 @@ export class GoogleSheetsLayoutError extends Error {
   }
 }
 
+/**
+ * Calcula um hash canônico determinístico para o conteúdo de uma célula e seu layout.
+ * Usado para detectar mutações intermediárias entre snapshot e escrita (C4).
+ */
+export function computeCellSnapshotHash(
+  cellCoordinate: string,
+  rawValue: string,
+  fingerprint: string
+): string {
+  let h = 0x811c9dc5;
+  const str = cellCoordinate + ':' + rawValue + ':' + fingerprint;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
 export interface GoogleSheetsRealAdapterOptions {
   adapterId?: string;
   tokenProvider?: () => Promise<string>;
@@ -206,6 +224,10 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
       if (res.status === 404) {
         const text = await res.text().catch(() => '');
         throw new GoogleSheetsNotFoundError(`Google Sheets Resource Not Found (404): ${text.slice(0, 200)}`);
+      }
+            if (res.status >= 500) {
+        const text = await res.text().catch(() => '');
+        throw new GoogleSheetsNetworkError('Google Sheets Server Error (' + res.status + '): ' + text.slice(0, 200), true);
       }
       if (res.status === 429) {
         const text = await res.text().catch(() => '');
@@ -531,7 +553,11 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
       currentNormalized = row.contractNormalizedValue;
     }
 
-    // 3. Verificação de CAS contra edições humanas
+    // 3. Verificação de CAS contra edições humanas (Optimistic Read-Before-Write Check)
+    // NOTA ARQUITETURAL: A API REST v4 do Google Sheets não fornece primitivas nativas
+    // de transação ACID ou Compare-And-Swap (CAS) atômico condicional a nível de célula individual.
+    // O mecanismo executa verificação prévia otimista para prevenir sobrescrita de modificações
+    // humanas anteriores à requisição, mas existe janela de concorrência inerente à chamada HTTP.
     if (params.preconditions.expectedCurrentValue !== undefined) {
       if (currentNormalized !== params.preconditions.expectedCurrentValue) {
         return {
@@ -540,6 +566,27 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
           cellCoordinate,
           observedValue: currentRaw,
           error: `Valor remoto atual (${currentNormalized ?? 'null'}) difere do esperado (${params.preconditions.expectedCurrentValue})`,
+        };
+      }
+    }
+
+    // 4. Verificação de versão/snapshot hash intermediário (C4)
+    if (params.preconditions.expectedSnapshotHash) {
+      const observedHash = computeCellSnapshotHash(
+        cellCoordinate,
+        currentRaw,
+        isControl ? 'CONTROLE' : 'GERAL'
+      );
+      if (
+        params.preconditions.expectedSnapshotHash !== observedHash &&
+        params.preconditions.expectedSnapshotHash !== currentRaw
+      ) {
+        return {
+          success: false,
+          status: 'CONFLICT_DETECTED',
+          cellCoordinate,
+          observedValue: currentRaw,
+          error: `Mutação intermediária detectada entre snapshot e escrita (hash esperado ${params.preconditions.expectedSnapshotHash} !== ${observedHash})`,
         };
       }
     }
@@ -643,9 +690,10 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
 
       const row = readRes.rowsByRa.get(params.raText);
       if (!row) {
+        // C3: Aluno ausente ou ambíguo NÃO comprova conclusivamente ausência de efeito na planilha
         return {
           effectObserved: false,
-          isAbsentConfirmed: true,
+          isAbsentConfirmed: false,
           currentRawValue: null,
           currentNormalizedValue: null,
           inspectedAt: nowIso,
@@ -653,9 +701,15 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
       }
 
       const fieldData = row.fields[params.fieldKey];
+      const effectObserved = fieldData.normalizedValue === params.expectedTargetValue;
+      // C3: A confirmação de ausência (isAbsentConfirmed) só é verdadeira quando a célula
+      // possui um valor normalizado conclusivo (0 ou 1) que é comprovadamente OPOSTO ao esperado.
+      const isAbsentConfirmed =
+        fieldData.normalizedValue !== null && fieldData.normalizedValue !== params.expectedTargetValue;
+
       return {
-        effectObserved: fieldData.normalizedValue === params.expectedTargetValue,
-        isAbsentConfirmed: false,
+        effectObserved,
+        isAbsentConfirmed,
         currentRawValue: fieldData.rawValue,
         currentNormalizedValue: fieldData.normalizedValue,
         cellCoordinate: fieldData.cellCoordinate,
@@ -669,18 +723,23 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
 
       const row = readRes.rowsByRa.get(params.raText);
       if (!row) {
+        // C3: Aluno ausente ou ambíguo NÃO comprova conclusivamente ausência de efeito na planilha
         return {
           effectObserved: false,
-          isAbsentConfirmed: true,
+          isAbsentConfirmed: false,
           currentRawValue: null,
           currentNormalizedValue: null,
           inspectedAt: nowIso,
         };
       }
 
+      const effectObserved = row.contractNormalizedValue === params.expectedTargetValue;
+      const isAbsentConfirmed =
+        row.contractNormalizedValue !== null && row.contractNormalizedValue !== params.expectedTargetValue;
+
       return {
-        effectObserved: row.contractNormalizedValue === params.expectedTargetValue,
-        isAbsentConfirmed: false,
+        effectObserved,
+        isAbsentConfirmed,
         currentRawValue: row.contractRawValue,
         currentNormalizedValue: row.contractNormalizedValue,
         cellCoordinate: row.cellCoordinate,
@@ -703,6 +762,9 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
     headerFingerprint: string;
     readTimestamp?: string;
   }): Promise<ProvenanceEvidence> {
+    if (!this.adapterSecret || this.adapterSecret.length < 8) {
+      throw new GoogleSheetsAuthError('AdapterSecret não configurado ou muito curto para assinatura criptográfica de proveniência');
+    }
     const timestamp = params.readTimestamp || new Date().toISOString();
     const evidenceId = `evid_${crypto.randomUUID()}`;
 
