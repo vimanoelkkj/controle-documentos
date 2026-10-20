@@ -1581,6 +1581,17 @@ export async function executeFieldMutation(
   }
 }
 
+export interface RootCommandInput {
+  commandId: string;
+  actorId: string;
+  recordId: string;
+  requestHash: string;
+}
+
+export interface MultiMutationOptions {
+  rootCommand?: RootCommandInput;
+}
+
 export type MultiMutationResult =
   | {
       ok: true;
@@ -1604,8 +1615,31 @@ export type MultiMutationResult =
  */
 export async function executeMultiFieldMutation(
   db: D1Database,
-  inputs: MutationInput[]
+  inputs: MutationInput[],
+  options?: MultiMutationOptions
 ): Promise<MultiMutationResult> {
+  if (options?.rootCommand) {
+    const existingRoot = await db
+      .prepare(
+        `SELECT command_id, request_hash, status
+         FROM sync_commands
+         WHERE actor_id = ? AND command_id = ?`
+      )
+      .bind(options.rootCommand.actorId, options.rootCommand.commandId)
+      .first<{ command_id: string; request_hash: string; status: string }>();
+
+    if (existingRoot) {
+      if (existingRoot.request_hash !== options.rootCommand.requestHash) {
+        return {
+          ok: false,
+          status: 'INTEGRITY_ERROR',
+          error: 'Chave de idempotência reutilizada com payload divergente.',
+        };
+      }
+      return { ok: true, status: 'IDEMPOTENT_REPLAY', results: [] };
+    }
+  }
+
   if (!inputs || inputs.length === 0) {
     return { ok: true, status: 'CONVERGED', results: [] };
   }
@@ -1917,6 +1951,24 @@ export async function executeMultiFieldMutation(
   const stmts: D1PreparedStatement[] = [];
   const results: MutationResult[] = [];
 
+  // Se houver rootCommand de idempotência da requisição HTTP:
+  if (options?.rootCommand) {
+    stmts.push(
+      db
+        .prepare(
+          `INSERT INTO sync_commands (
+            command_id, actor_id, record_id, field_key, from_revision, proposed_value, request_hash, status
+          ) VALUES (?, ?, ?, 'root_request', 0, 1, ?, 'ACCEPTED')`
+        )
+        .bind(
+          options.rootCommand.commandId,
+          options.rootCommand.actorId,
+          options.rootCommand.recordId,
+          options.rootCommand.requestHash
+        )
+    );
+  }
+
   for (const m of preparedMutations) {
     if (m.isReplay) {
       results.push({
@@ -2191,6 +2243,29 @@ export async function executeMultiFieldMutation(
     return { ok: true, status: 'COMMITTED', results };
   } catch (error: any) {
     const msg = String(error?.message ?? error);
+
+    // Corrida com chave de idempotência concorrente (Ponto 2)
+    if (msg.includes('UNIQUE constraint failed: sync_commands') && options?.rootCommand) {
+      const existingRoot = await db
+        .prepare(
+          `SELECT command_id, request_hash, status
+           FROM sync_commands
+           WHERE actor_id = ? AND command_id = ?`
+        )
+        .bind(options.rootCommand.actorId, options.rootCommand.commandId)
+        .first<{ command_id: string; request_hash: string; status: string }>();
+
+      if (existingRoot) {
+        if (existingRoot.request_hash !== options.rootCommand.requestHash) {
+          return {
+            ok: false,
+            status: 'INTEGRITY_ERROR',
+            error: 'Chave de idempotência reutilizada com payload divergente.',
+          };
+        }
+        return { ok: true, status: 'IDEMPOTENT_REPLAY', results: [] };
+      }
+    }
 
     if (
       msg.includes('NOT NULL constraint failed: sync_events.to_revision') ||

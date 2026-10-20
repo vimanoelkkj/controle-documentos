@@ -876,4 +876,449 @@ describe("P0.1 — Integração de Conferência Documental com Sincronização V
     expect(typeof json.ra).toBe("string");
     expect(json.ra).toBe(cenario.ra);
   });
+
+  // ===========================================================================
+  // GARANTIAS ADICIONAIS DE SEGURANÇA TRANSACIONAL (P0.1 FECHAMENTO)
+  // ===========================================================================
+  describe("Garantias Adicionais de Segurança Transacional (P0.1 Fechamento)", () => {
+    // -------------------------------------------------------------------------
+    // 1. Idempotência: Rejeição explícita com payload divergente
+    // -------------------------------------------------------------------------
+    it("Rejeita explicitamente (HTTP 422) quando a mesma chave de idempotência é reutilizada com payload divergente", async () => {
+      const cenario = await criarCenarioBase();
+      const idempotencyKey = `idemp-divergente-${proximoId()}`;
+
+      const payloadOriginal = {
+        identidade: true,
+        cpf: false,
+        certidao: false,
+        residencia: false,
+        titulo: false,
+        ensino_medio: false,
+        contrato: false,
+      };
+
+      // 1. Primeira chamada com payload original -> 200
+      const res1 = await handleDocumentosRoute({
+        request: new Request(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "x-idempotency-key": idempotencyKey,
+            },
+            body: JSON.stringify(payloadOriginal),
+          },
+        ),
+        url: new URL(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+        ),
+        db: env.DB,
+        periodoId: cenario.periodoId,
+        usuarioAtual: adminUser,
+        podeEditar: true,
+        registrarAuditoria: cenario.registrarAuditoria,
+        registrarPendencia: cenario.registrarPendencia,
+      });
+
+      expect(res1?.status).toBe(200);
+
+      // 2. Segunda chamada com a MESMA chave, mas com payload diferente (certidao: true)
+      const payloadDivergente = {
+        identidade: true,
+        cpf: false,
+        certidao: true,
+        residencia: false,
+        titulo: false,
+        ensino_medio: false,
+        contrato: false,
+      };
+
+      const res2 = await handleDocumentosRoute({
+        request: new Request(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "x-idempotency-key": idempotencyKey,
+            },
+            body: JSON.stringify(payloadDivergente),
+          },
+        ),
+        url: new URL(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+        ),
+        db: env.DB,
+        periodoId: cenario.periodoId,
+        usuarioAtual: adminUser,
+        podeEditar: true,
+        registrarAuditoria: cenario.registrarAuditoria,
+        registrarPendencia: cenario.registrarPendencia,
+      });
+
+      // Rejeição explícita exigida pelo Ponto 2!
+      expect(res2?.status).toBe(422);
+      const json2 = (await res2?.json()) as any;
+      expect(json2.erro).toContain("Chave de idempotência reutilizada com payload divergente");
+
+      // Confere que certidão NÃO foi alterada
+      const doc = await env.DB.prepare(
+        `SELECT certidao FROM documentos WHERE aluno_id = ?`,
+      )
+        .bind(cenario.alunoId)
+        .first<{ certidao: number }>();
+      expect(doc?.certidao).toBe(0);
+    });
+
+    // -------------------------------------------------------------------------
+    // 2. Idempotência: Duas requisições simultâneas com a mesma chave e payload
+    // -------------------------------------------------------------------------
+    it("Trata duas requisições simultâneas com a mesma chave e mesmo payload de forma consistente e segura", async () => {
+      const cenario = await criarCenarioBase();
+      const idempotencyKey = `idemp-concorrente-${proximoId()}`;
+
+      const payload = {
+        identidade: true,
+        cpf: false,
+        certidao: false,
+        residencia: false,
+        titulo: false,
+        ensino_medio: false,
+        contrato: false,
+      };
+
+      const enviar = () =>
+        handleDocumentosRoute({
+          request: new Request(
+            `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                "x-idempotency-key": idempotencyKey,
+              },
+              body: JSON.stringify(payload),
+            },
+          ),
+          url: new URL(
+            `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+          ),
+          db: env.DB,
+          periodoId: cenario.periodoId,
+          usuarioAtual: adminUser,
+          podeEditar: true,
+          registrarAuditoria: cenario.registrarAuditoria,
+          registrarPendencia: cenario.registrarPendencia,
+        });
+
+      // Dispara em paralelo
+      const [res1, res2] = await Promise.all([enviar(), enviar()]);
+
+      // Ambas respondem sucesso 200
+      expect(res1?.status).toBe(200);
+      expect(res2?.status).toBe(200);
+
+      // Confere que existe exatamente 1 evento gerado, não 2
+      const events = await env.DB.prepare(
+        `SELECT count(*) as count FROM sync_events WHERE record_id = ?`,
+      )
+        .bind(cenario.recordId)
+        .first<{ count: number }>();
+      expect(events?.count).toBe(1);
+    });
+
+    // -------------------------------------------------------------------------
+    // 3. Cutover Fail-Closed: Período V2 sem sync_record para o aluno
+    // -------------------------------------------------------------------------
+    it("Fail-Closed: Período configurado para V2 rejeita alteração (422) se aluno não possui sync_records, sem fallback V1", async () => {
+      const cenario = await criarCenarioBase({ v2Ativa: true });
+
+      // Removemos o registro do aluno da V2 para simular aluno sem registro V2 em período V2
+      await env.DB.prepare(`DELETE FROM sync_records WHERE record_id = ?`)
+        .bind(cenario.recordId)
+        .run();
+
+      const response = await handleDocumentosRoute({
+        request: new Request(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identidade: true,
+              cpf: false,
+              certidao: false,
+              residencia: false,
+              titulo: false,
+              ensino_medio: false,
+              contrato: false,
+            }),
+          },
+        ),
+        url: new URL(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+        ),
+        db: env.DB,
+        periodoId: cenario.periodoId,
+        usuarioAtual: adminUser,
+        podeEditar: true,
+        registrarAuditoria: cenario.registrarAuditoria,
+        registrarPendencia: cenario.registrarPendencia,
+      });
+
+      expect(response?.status).toBe(422);
+      const json = (await response?.json()) as any;
+      expect(json.erro).toContain("Aluno não possui registro de sincronização V2");
+
+      // ZERO chamadas para outbox V1 (fallback V1 expressamente bloqueado em períodos V2)
+      expect(cenario.pendenciasV1Registradas).toHaveLength(0);
+    });
+
+    // -------------------------------------------------------------------------
+    // 4. Cutover Fail-Closed: Período V2 com modo PAUSED ou QUARANTINED
+    // -------------------------------------------------------------------------
+    it("Fail-Closed: Período configurado para V2 em modo PAUSED bloqueia com 409, sem fallback V1", async () => {
+      const cenario = await criarCenarioBase({ v2Ativa: true });
+
+      // Coloca a integração em modo PAUSED
+      await env.DB.prepare(
+        `UPDATE sync_integrations SET mode = 'PAUSED' WHERE integration_id = ?`,
+      )
+        .bind(cenario.integrationId)
+        .run();
+
+      const response = await handleDocumentosRoute({
+        request: new Request(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identidade: true,
+              cpf: false,
+              certidao: false,
+              residencia: false,
+              titulo: false,
+              ensino_medio: false,
+              contrato: false,
+            }),
+          },
+        ),
+        url: new URL(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+        ),
+        db: env.DB,
+        periodoId: cenario.periodoId,
+        usuarioAtual: adminUser,
+        podeEditar: true,
+        registrarAuditoria: cenario.registrarAuditoria,
+        registrarPendencia: cenario.registrarPendencia,
+      });
+
+      expect(response?.status).toBe(409);
+      const json = (await response?.json()) as any;
+      expect(json.erro).toContain("o período está em modo PAUSED");
+
+      // ZERO chamadas para outbox V1
+      expect(cenario.pendenciasV1Registradas).toHaveLength(0);
+    });
+
+    // -------------------------------------------------------------------------
+    // 5. Cutover Fail-Closed: Campo com baseline UNBASELINED
+    // -------------------------------------------------------------------------
+    it("Fail-Closed: Campo no estado UNBASELINED rejeita mutação com 422, sem fallback V1", async () => {
+      const cenario = await criarCenarioBase({ v2Ativa: true });
+
+      // Coloca campo 'identidade' como UNBASELINED
+      await env.DB.prepare(
+        `UPDATE sync_field_state SET status = 'UNBASELINED', value = NULL WHERE record_id = ? AND field_key = 'identidade'`,
+      )
+        .bind(cenario.recordId)
+        .run();
+
+      const response = await handleDocumentosRoute({
+        request: new Request(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identidade: true,
+              cpf: false,
+              certidao: false,
+              residencia: false,
+              titulo: false,
+              ensino_medio: false,
+              contrato: false,
+            }),
+          },
+        ),
+        url: new URL(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+        ),
+        db: env.DB,
+        periodoId: cenario.periodoId,
+        usuarioAtual: adminUser,
+        podeEditar: true,
+        registrarAuditoria: cenario.registrarAuditoria,
+        registrarPendencia: cenario.registrarPendencia,
+      });
+
+      expect(response?.status).toBe(422);
+      const json = (await response?.json()) as any;
+      expect(json.erro).toContain("UNBASELINED");
+
+      // ZERO chamadas para outbox V1
+      expect(cenario.pendenciasV1Registradas).toHaveLength(0);
+    });
+
+    // -------------------------------------------------------------------------
+    // 6. Atomicidade Bidirecional: Falha na outbox não deixa 'documentos' alterado
+    // -------------------------------------------------------------------------
+    it("Atomicidade Bidirecional: Falha no batch V2 (ex: violação de constraint) faz rollback total em 'documentos'", async () => {
+      const cenario = await criarCenarioBase({
+        v2Ativa: true,
+        initialDocs: { identidade: 0, cpf: 0 },
+      });
+
+      // Criamos um trigger temporário que impede inserção em sync_operations para simular falha na outbox
+      await env.DB.prepare(
+        `CREATE TRIGGER trigger_falha_outbox_teste
+         BEFORE INSERT ON sync_operations
+         WHEN NEW.target_key = 'CONTROLE'
+         BEGIN
+           SELECT RAISE(FAIL, 'FALHA_SIMULADA_OUTBOX');
+         END;`,
+      ).run();
+
+      const response = await handleDocumentosRoute({
+        request: new Request(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identidade: true,
+              cpf: false,
+              certidao: false,
+              residencia: false,
+              titulo: false,
+              ensino_medio: false,
+              contrato: false,
+            }),
+          },
+        ),
+        url: new URL(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+        ),
+        db: env.DB,
+        periodoId: cenario.periodoId,
+        usuarioAtual: adminUser,
+        podeEditar: true,
+        registrarAuditoria: cenario.registrarAuditoria,
+        registrarPendencia: cenario.registrarPendencia,
+      });
+
+      expect(response?.status).toBe(500);
+
+      // Rollback verificado: documentos.identidade continua 0!
+      const doc = await env.DB.prepare(
+        `SELECT identidade FROM documentos WHERE aluno_id = ?`,
+      )
+        .bind(cenario.alunoId)
+        .first<{ identidade: number }>();
+      expect(doc?.identidade).toBe(0);
+
+      // Nenhum evento gravado
+      const events = await env.DB.prepare(
+        `SELECT count(*) as count FROM sync_events WHERE record_id = ?`,
+      )
+        .bind(cenario.recordId)
+        .first<{ count: number }>();
+      expect(events?.count).toBe(0);
+
+      // Limpeza do trigger
+      await env.DB.prepare(`DROP TRIGGER IF EXISTS trigger_falha_outbox_teste`).run();
+    });
+
+    // -------------------------------------------------------------------------
+    // 7. Atomicidade Bidirecional: Falha em 'documentos' não deixa V2 persistido
+    // -------------------------------------------------------------------------
+    it("Atomicidade Bidirecional (Sentido 2): Falha na tabela 'documentos' reverte o batch inteiro e não persiste eventos nem outbox V2", async () => {
+      const cenario = await criarCenarioBase({
+        v2Ativa: true,
+        initialDocs: { identidade: 0, cpf: 0 },
+      });
+
+      // Criamos um trigger que impede update na tabela documentos
+      await env.DB.prepare(
+        `CREATE TRIGGER trigger_falha_docs_teste
+         BEFORE UPDATE ON documentos
+         BEGIN
+           SELECT RAISE(FAIL, 'FALHA_SIMULADA_DOCUMENTOS');
+         END;`,
+      ).run();
+
+      const response = await handleDocumentosRoute({
+        request: new Request(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identidade: true,
+              cpf: false,
+              certidao: false,
+              residencia: false,
+              titulo: false,
+              ensino_medio: false,
+              contrato: false,
+            }),
+          },
+        ),
+        url: new URL(
+          `https://local/api/alunos/${encodeURIComponent(cenario.ra)}/documentos`,
+        ),
+        db: env.DB,
+        periodoId: cenario.periodoId,
+        usuarioAtual: adminUser,
+        podeEditar: true,
+        registrarAuditoria: cenario.registrarAuditoria,
+        registrarPendencia: cenario.registrarPendencia,
+      });
+
+      expect(response?.status).toBe(500);
+
+      // Verificação: nenhum evento gerado em sync_events
+      const events = await env.DB.prepare(
+        `SELECT count(*) as count FROM sync_events WHERE record_id = ?`,
+      )
+        .bind(cenario.recordId)
+        .first<{ count: number }>();
+      expect(events?.count).toBe(0);
+
+      // Verificação: nenhuma operação gravada em sync_operations
+      const ops = await env.DB.prepare(
+        `SELECT count(*) as count FROM sync_operations WHERE record_id = ?`,
+      )
+        .bind(cenario.recordId)
+        .first<{ count: number }>();
+      expect(ops?.count).toBe(0);
+
+      // Verificação: estado em sync_field_state não foi alterado
+      const state = await env.DB.prepare(
+        `SELECT value, revision FROM sync_field_state WHERE record_id = ? AND field_key = 'identidade'`,
+      )
+        .bind(cenario.recordId)
+        .first<{ value: number; revision: number }>();
+      expect(state?.value).toBe(0);
+      expect(state?.revision).toBe(0);
+
+      // Limpeza do trigger
+      await env.DB.prepare(`DROP TRIGGER IF EXISTS trigger_falha_docs_teste`).run();
+    });
+  });
+
 });
