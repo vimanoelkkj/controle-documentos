@@ -130,12 +130,21 @@ npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON --config config/homologacao/
     -H "X-Sync-Admin-Secret: <SECRET>" \
     -d '{"integrationId": "integ-homolog-2026-2", "modo": "BIDIRECTIONAL"}'
   ```
-- **Passo 3.2**: Atualizar o documento no site via endpoint:
+- **Passo 3.2**: Atualizar o documento no site via endpoint real da conferência (`PUT /api/alunos/:ra/documentos`):
   ```bash
-  curl -X PATCH "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/documentos/9001" \
+  curl -X PUT "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/alunos/0090001001/documentos" \
     -H "Content-Type: application/json" \
-    -H "X-Sync-Admin-Secret: <SECRET>" \
-    -d '{"contrato": 1, "idempotencyKey": "homolog-cenario3-contrato-001"}'
+    -H "X-Idempotency-Key: homolog-cenario3-contrato-001" \
+    -H "Cookie: auth_session=<COOKIE_CONFERENTE>" \
+    -d '{
+      "identidade": true,
+      "cpf": true,
+      "certidao": true,
+      "residencia": true,
+      "titulo": true,
+      "ensino_medio": true,
+      "contrato": true
+    }'
   ```
   - Verificar no D1: `documentos.contrato = 1`, inserção em `sync_commands`, `sync_events` e outbox `sync_operations` com status `PENDING`.
 - **Passo 3.3**: Disparar ciclo do orquestrador:
@@ -147,37 +156,49 @@ npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON --config config/homologacao/
   ```
 - **Passo 3.4**: Verificar na planilha Google Sheets:
   - Aba `CONTROLE DE DOCUMENTOS FACE FEA`, linha do RA `0090001001`, Coluna I (`CONTRATO`) deve estar com valor `"TRUE"` (ou interpretado como `VERDADEIRO`).
-  - Colunas J e K devem recalcular as fórmulas automaticamente sem corrupção.
-  - Verificar no D1: `sync_operations.status = 'CONFIRMED'`, `sync_receipts` registrado com HTTP 200.
+  - Colunas J e K recalculam automaticamente via fórmulas protegidas (`TOTAL = 7`, `STATUS = COMPLETO`).
+  - Verificar no D1: `sync_operations.state = 'CONFIRMED'`, `sync_receipts` registrado com HTTP 200.
 - **Critério de Aceite (Pass/Fail)**:
   - **PASS**: Planilha atualizada na célula correta; fórmulas em J e K intactas; operação D1 confirmada com recibo.
   - **FAIL**: Célula errada modificada, fórmula sobrescrita ou status do D1 em desacordo.
 
 ---
 
-### Cenário 4: Alteração Concorrente no Sheets → Detecção Causal de Conflito (F3)
-- **Objetivo**: Um humano altera uma célula no Google Sheets diretamente enquanto há uma operação concorrente pendente, demonstrando a proteção da via reversa F3 contra sobrescrita cega.
-- **Passo 4.1**: Na planilha Google Sheets, aba `CONTROLE DE DOCUMENTOS FACE FEA`, alterar manualmente a célula da Identidade do aluno `0090001002` (Beta, Coluna C) de `"PENDENTE"` para `"OK"` (ou `VERDADEIRO`).
-- **Passo 4.2**: No site D1, tentar submeter alteração para o mesmo campo sem conhecer a edição externa:
+### Cenário 4: Alteração Concorrente no Sheets → Detecção Causal de Conflito (F3) e Fluxo Inverso
+- **Objetivo**: Proteger contra sobrescrita cega quando ocorrem edições concorrentes entre site e planilha, e validar a ingestão do fluxo inverso (Sheets → D1).
+- **Passo 4.1 (Concorrência F3)**: Na planilha Google Sheets, aba `CONTROLE DE DOCUMENTOS FACE FEA`, alterar manualmente a célula do Contrato do aluno `0090001002` (Beta, Coluna I) para `"VERDADEIRO"`.
+- **Passo 4.2**: No site D1, tentar submeter alteração divergente com outbox pendente (ex: contrato como `false`):
   ```bash
-  curl -X PATCH "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/documentos/9002" \
+  curl -X PUT "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/alunos/0090001002/documentos" \
     -H "Content-Type: application/json" \
-    -H "X-Sync-Admin-Secret: <SECRET>" \
-    -d '{"identidade": 1, "idempotencyKey": "homolog-cenario4-identidade-001"}'
+    -H "X-Idempotency-Key: homolog-cenario4-contrato-001" \
+    -H "Cookie: auth_session=<COOKIE_CONFERENTE>" \
+    -d '{
+      "identidade": false,
+      "cpf": false,
+      "certidao": false,
+      "residencia": false,
+      "titulo": false,
+      "ensino_medio": false,
+      "contrato": false
+    }'
   ```
-- **Passo 4.3**: Disparar o orquestrador V2:
+- **Passo 4.3**: Executar ingestão inbound:
   ```bash
-  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/dispatch" \
+  curl -X POST "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/periodos/999/sync-v2/inbound" \
     -H "Content-Type: application/json" \
     -H "X-Sync-Admin-Secret: <SECRET>" \
     -d '{"integrationId": "integ-homolog-2026-2"}'
   ```
-  - O orquestrador executa o Read-Before-Write CAS e detecta que a planilha diverge do snapshot causal (`expectedCurrentValue = 0`, mas a planilha possui `1`).
-  - A operação transiciona para `CONFLICT_DETECTED` e é bloqueada.
-  - Um registro de divergência é formalmente gravado na tabela `sync_conflicts`.
+  - O reconciliador inbound detecta que há divergência e existe operação pendente na outbox local.
+  - Conflito F3 formalmente registrado em `sync_conflicts` com motivo `DIVERGENCIA_COM_OPERACAO_PENDENTE`.
+  - A alteração local NÃO é sobrescrita cegamente.
+- **Passo 4.4 (Ingestão Inbound sem Concorrência)**: Na planilha, marcar o RG de `0090001002` como `"VERDADEIRO"` sem operação pendente no site. Disparar `POST /api/periodos/999/sync-v2/inbound`:
+  - Verificar no D1: `documentos.identidade = 1`, `sync_field_state.value = 1` com status `CONFIRMED`.
+  - **Ausência estrita de eco**: Nenhuma operação pendente de envio gerada na outbox para a planilha.
 - **Critério de Aceite (Pass/Fail)**:
-  - **PASS**: Nenhuma escrita destrutiva ocorreu; o conflito foi formalmente registrado em `sync_conflicts`; nenhuma operação subsequente cega foi permitida para aquele campo.
-  - **FAIL**: Sobrescrita silenciosa da alteração humana na planilha.
+  - **PASS**: Nenhuma escrita destrutiva ocorreu; conflito registrado formalmente em `sync_conflicts`; alteração unilateral da planilha capturada com ausência de eco.
+  - **FAIL**: Sobrescrita silenciosa da alteração humana ou geração de loop infinito de eco.
 
 ---
 
@@ -233,26 +254,44 @@ npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON --config config/homologacao/
 
 ---
 
-### Cenário 8: Rejeição Estrita de Payload Divergente com Idempotency Key Repetida (409)
+### Cenário 8: Rejeição Estrita de Payload Divergente com Idempotency Key Repetida (422)
 - **Objetivo**: Proteger contra replay com mutação indevida de dados.
 - **Passo 8.1**: Enviar mutação com uma chave de idempotência:
   ```bash
-  curl -X PATCH "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/documentos/9003" \
+  curl -X PUT "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/alunos/0090001002/documentos" \
     -H "Content-Type: application/json" \
-    -H "X-Sync-Admin-Secret: <SECRET>" \
-    -d '{"titulo": 1, "idempotencyKey": "idemp-homolog-teste-888"}'
+    -H "X-Idempotency-Key: idemp-homolog-teste-888" \
+    -H "Cookie: auth_session=<COOKIE_CONFERENTE>" \
+    -d '{
+      "identidade": true,
+      "cpf": true,
+      "certidao": false,
+      "residencia": true,
+      "titulo": true,
+      "ensino_medio": true,
+      "contrato": false
+    }'
   ```
   - Resposta: HTTP 200 com a mutação aplicada.
 - **Passo 8.2**: Reenviar a MESMA chave `idemp-homolog-teste-888`, porém com PAYLOAD DIFERENTE:
   ```bash
-  curl -X PATCH "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/documentos/9003" \
+  curl -X PUT "https://controle-documentos-homolog.<seu-subdominio>.workers.dev/api/alunos/0090001002/documentos" \
     -H "Content-Type: application/json" \
-    -H "X-Sync-Admin-Secret: <SECRET>" \
-    -d '{"titulo": 0, "residencia": 0, "idempotencyKey": "idemp-homolog-teste-888"}'
+    -H "X-Idempotency-Key: idemp-homolog-teste-888" \
+    -H "Cookie: auth_session=<COOKIE_CONFERENTE>" \
+    -d '{
+      "identidade": false,
+      "cpf": false,
+      "certidao": false,
+      "residencia": false,
+      "titulo": false,
+      "ensino_medio": false,
+      "contrato": false
+    }'
   ```
-  - Resposta obrigatória: HTTP 409 com código `IDEMPOTENCY_PAYLOAD_MISMATCH`.
+  - Resposta obrigatória: HTTP 422 com código de erro `Chave de idempotência reutilizada com payload divergente.`.
 - **Critério de Aceite (Pass/Fail)**:
-  - **PASS**: HTTP 409 imediato; nenhuma alteração gravada no banco; chave de idempotência respeitada.
+  - **PASS**: HTTP 422 imediato; nenhuma alteração gravada no banco; chave de idempotência respeitada.
   - **FAIL**: Aceitação da alteração divergente ou sobrescrita do evento original.
 
 ---

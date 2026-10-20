@@ -10,6 +10,7 @@ import {
 } from "../services/sync-sheet-real-adapter";
 import type { ISyncSpreadsheetAdapter } from "../services/sync-sheet-contracts";
 import type { GroupKey } from "../services/sync-d1-core";
+import { reconcileInboundFromSpreadsheet } from "../services/sync-inbound-reconciler";
 
 export interface SyncV2AdminDependencies {
   request: Request;
@@ -96,7 +97,7 @@ export async function handleSyncV2AdminRoute(
   } = deps;
 
   const matchPeriodo = url.pathname.match(
-    /^\/api\/periodos\/(\d+)\/sync-v2\/(status|dispatch|pause|resume)$/,
+    /^\/api\/periodos\/(\d+)\/sync-v2\/(status|dispatch|pause|resume|inbound)$/,
   );
 
   let periodoId: number | null = null;
@@ -107,7 +108,7 @@ export async function handleSyncV2AdminRoute(
     action = matchPeriodo[2];
   } else {
     const matchDirect = url.pathname.match(
-      /^\/api\/sync-v2\/(status|dispatch|pause|resume)$/,
+      /^\/api\/sync-v2\/(status|dispatch|pause|resume|inbound)$/,
     );
     if (matchDirect) {
       action = matchDirect[1];
@@ -604,6 +605,186 @@ export async function handleSyncV2AdminRoute(
     } finally {
       activeDispatches.delete(dispatchKey);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. POST /inbound — Ingestão Inbound a partir do Google Sheets (Fluxo Inverso)
+  // ---------------------------------------------------------------------------
+  if (action === "inbound" && request.method === "POST") {
+    // 1. Verificação de flag mestre
+    if (env.SYNC_V2_ENABLED !== "true") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "FEATURE_DISABLED",
+          mensagem:
+            "Sincronização V2 está desativada por configuração (SYNC_V2_ENABLED !== 'true').",
+        },
+        { status: 503 },
+      );
+    }
+
+    // 2. Busca e validação da integração
+    const integracao = await db
+      .prepare(
+        `SELECT integration_id, periodo_id, spreadsheet_id, epoch, layout_revision, mode
+         FROM sync_integrations
+         WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{
+        integration_id: string;
+        periodo_id: number;
+        spreadsheet_id: string;
+        epoch: number;
+        layout_revision: number;
+        mode: string;
+      }>();
+
+    if (!integracao) {
+      return Response.json(
+        {
+          erro: "INTEGRACAO_NAO_ENCONTRADA",
+          mensagem: "Nenhuma integração V2 vinculada a este período.",
+        },
+        { status: 404 },
+      );
+    }
+
+    if (integracao.mode === "PAUSED") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "INTEGRATION_PAUSED",
+          mensagem: `A integração '${integracao.integration_id}' está em pausa operacional.`,
+        },
+        { status: 409 },
+      );
+    }
+
+    if (integracao.mode === "QUARANTINED") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "INTEGRATION_QUARANTINED",
+          mensagem: `A integração '${integracao.integration_id}' está em quarentena por inconsistência estrutural.`,
+        },
+        { status: 409 },
+      );
+    }
+
+    // 3. Verificação de credenciais / adapter
+    let adapter = customAdapter;
+    if (!adapter) {
+      if (!env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "CREDENCIAIS_AUSENTES",
+            mensagem:
+              "Credenciais de serviço do Google Sheets (GOOGLE_SERVICE_ACCOUNT_JSON) não configuradas no ambiente.",
+          },
+          { status: 503 },
+        );
+      }
+      try {
+        const parsed = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT_JSON);
+        if (!parsed.client_email || !parsed.private_key) {
+          throw new Error("Campos client_email ou private_key ausentes.");
+        }
+      } catch (err: any) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "CREDENCIAIS_INVALIDAS",
+            mensagem: `Formato de credenciais inválido: ${err?.message ?? err}`,
+          },
+          { status: 503 },
+        );
+      }
+      adapter = new GoogleSheetsRealAdapter({
+        serviceAccountJson: env.GOOGLE_SERVICE_ACCOUNT_JSON,
+      });
+    }
+
+    // 4. Parse de opções do body (dryRun, targetGroupKey)
+    let dryRun = false;
+    let targetGroupKey: GroupKey | undefined;
+    try {
+      const body = (await request.json().catch(() => ({}))) as any;
+      if (body) {
+        if (body.dryRun === true) dryRun = true;
+        if (body.groupKey === "FACE_FEA" || body.groupKey === "FCH_EAD") {
+          targetGroupKey = body.groupKey;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // 5. Monta resolver dinâmico de abas
+    const sheetsConfig = await db
+      .prepare(
+        `SELECT aba_docs_face_fea, aba_docs_fch_ead, aba_base_face_fea, aba_base_fch_ead FROM google_sheets_periodos WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{
+        aba_docs_face_fea?: string;
+        aba_docs_fch_ead?: string;
+        aba_base_face_fea?: string;
+        aba_base_fch_ead?: string;
+      }>();
+
+    const tabNameResolver: TabNameResolver = {
+      getControlTabName(groupKey: GroupKey): string {
+        if (groupKey === "FACE_FEA") {
+          return (
+            sheetsConfig?.aba_docs_face_fea ||
+            defaultTabNameResolver.getControlTabName(groupKey)
+          );
+        }
+        return (
+          sheetsConfig?.aba_docs_fch_ead ||
+          defaultTabNameResolver.getControlTabName(groupKey)
+        );
+      },
+      getGeneralTabName(groupKey: GroupKey): string {
+        if (groupKey === "FACE_FEA") {
+          return (
+            sheetsConfig?.aba_base_face_fea ||
+            defaultTabNameResolver.getGeneralTabName(groupKey)
+          );
+        }
+        return (
+          sheetsConfig?.aba_base_fch_ead ||
+          defaultTabNameResolver.getGeneralTabName(groupKey)
+        );
+      },
+    };
+
+    const actorId = usuarioAtual?.email || `admin-secret:${periodoId}`;
+
+    const report = await reconcileInboundFromSpreadsheet({
+      periodoId,
+      integrationId: integracao.integration_id,
+      actorId,
+      dryRun,
+      adapter,
+      tabNameResolver,
+      db,
+      targetGroupKey,
+    });
+
+    await registrarAuditoria(periodoId, {
+      acao: "SYNC_V2_INBOUND_INGEST",
+      entidade: "SYNC_INBOUND",
+      descricao: `Ingestão Inbound V2 executada (${dryRun ? "DRY-RUN" : "REAL"}): ${report.camposAtualizadosNoD1} campos atualizados, ${report.camposEmSincronia} em sincronia, ${report.conflitosDetectados} conflitos detectados, ${report.totalAlunosLidosNaPlanilha} alunos processados na planilha.`,
+    });
+
+    return Response.json({
+      sucesso: report.sucesso,
+      report,
+    });
   }
 
   return null;

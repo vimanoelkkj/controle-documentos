@@ -12,32 +12,32 @@ A sincronização V2 substitui o mecanismo legado (V1) por uma arquitetura orien
 +-----------------------------------------------------------------------------------+
 | INTERFACE DO USUÁRIO (React / Vite)                                               |
 +-----------------------------------------------------------------------------------+
-       │  (PATCH /api/documentos/:id com idempotencyKey)
+       │  (PUT /api/alunos/:ra/documentos com X-Idempotency-Key)
        ▼
 +-----------------------------------------------------------------------------------+
 | ENDPOINTS TRANSACIONAIS (src/server/routes/documentos.ts)                         |
-|   1. Validação de Idempotência (sync_commands - 409 em divergência de payload)    |
+|   1. Validação de Idempotência (sync_commands - 422 em divergência de payload)     |
 |   2. Transação Atômica Única no D1:                                               |
 |      - Atualiza tabela `documentos` (estado consolidado da UI)                    |
 |      - Atualiza `sync_field_state` (revisão e histórico documental)               |
 |      - Insere evento em `sync_events`                                             |
 |      - Insere operação pendente na outbox `sync_operations`                       |
 +-----------------------------------------------------------------------------------+
-       │
-       ▼ (Outbox no D1)
-+-----------------------------------------------------------------------------------+
-| ORQUESTRADOR DE SINCRONIZAÇÃO (SyncV2Orchestrator)                                |
-|   - Reivindicação atômica de operações (CAS com lease e lease_epoch)              |
-|   - Proteção de fencing contra split-brain e expiração de tempo limite            |
-|   - Verificação de pré-condições causais contra edições externas no Sheets        |
-+-----------------------------------------------------------------------------------+
-       │
-       ▼ (HTTPS / OAuth2 Service Account)
+       │                                                      ▲
+       ▼ (Outbox no D1)                                       │ (Fluxo Inverso)
++----------------------------------------------------+        │
+| ORQUESTRADOR DE SINCRONIZAÇÃO (SyncV2Orchestrator) |        │
+|   - Reivindicação atômica de operações             |        │
+|   - Fencing contra split-brain e timeouts          |        │
+|   - Verificação CAS contra edições externas        |        │
++----------------------------------------------------+        │
+       │                                                      │
+       ▼ (HTTPS / OAuth2 Service Account)                     │
 +-----------------------------------------------------------------------------------+
 | GOOGLE SHEETS API (v4)                                                            |
-|   - Leitura seletiva: Range A1:I (sem tocar nas colunas J e K com fórmulas)       |
-|   - Escrita determinística: Apenas células documentais C:I                        |
-|   - Retorno de recibos de auditoria gravados em `sync_receipts`                   |
+|   - Outbound: Escrita determinística em células C:I                               |
+|   - Inbound: Leitura incremental / Reconciliação (sync-inbound-reconciler)        |
+|   - Fórmulas J e K totalmente preservadas                                         |
 +-----------------------------------------------------------------------------------+
 ```
 
@@ -48,7 +48,13 @@ A sincronização V2 substitui o mecanismo legado (V1) por uma arquitetura orien
 ### 2.1 Núcleo Transacional e Outbox (F1-A / F1-B)
 - **Tabelas D1:** `sync_integrations`, `sync_records`, `sync_field_state`, `sync_commands`, `sync_events`, `sync_operations`, `sync_receipts`, `sync_attempts`, `sync_conflicts`.
 - **Atomicidade Total:** Nenhuma alteração documental é visível na interface sem que a respectiva operação esteja gravada na outbox, e vice-versa.
-- **Idempotência Estrita:** Replays com a mesma chave e payload retornam resposta em cache (200); requisições com a mesma chave e payload diferente são sumariamente rejeitadas com **HTTP 409** (`IDEMPOTENCY_PAYLOAD_MISMATCH`).
+- **Idempotência Estrita:** Replays com a mesma chave e payload retornam resposta em cache (200); requisições com a mesma chave e payload diferente são sumariamente rejeitadas com **HTTP 422** (`Chave de idempotência reutilizada com payload divergente`).
+
+### 2.2 Ingestão Inbound e Fluxo Inverso (Sheets → D1)
+- **Serviço:** `src/server/services/sync-inbound-reconciler.ts`.
+- **Endpoint Administrativo:** `POST /api/periodos/:id/sync-v2/inbound`.
+- **Ausência de Eco:** Ingestões externas atualizam `documentos` e `sync_field_state` sem gerar novas operações pendentes na outbox para a planilha.
+- **Detecção de Concorrência F3:** Se houver operação local em trânsito (`PENDING`, `CLAIMED`, `RETRY_WAIT`, `UNCERTAIN`), o campo é preservado e um conflito formal é aberto em `sync_conflicts`.
 
 ### 2.2 Contratos e Adaptador Sheets (F2)
 - **Range Documental:** Colunas C até I da aba de controle (`identidade`, `cpf_documento`, `certidao`, `residencia`, `titulo`, `ensino_medio`, `contrato`).

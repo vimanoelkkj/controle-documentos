@@ -23,7 +23,7 @@
         "A": "RA do aluno (FORMATTED_VALUE preservando zeros à esquerda, ex: '0090001001')",
         "B": "Nome completo fictício do aluno",
         "C_a_I": "Colunas monitoradas pela V2. A V2 escreve TRUE/FALSE (interpretado como VERDADEIRO/FALSO pelo Google Sheets). Valores aceitos na leitura: OK, SIM, 1, TRUE, VERDADEIRO",
-        "J": "Fórmula protegida não editada pelo V2: =CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; TRUE) + CONT.SE(C2:I2; \"OK\")",
+        "J": "Fórmula protegida não editada pelo V2: =CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; \"OK\") + CONT.SE(C2:I2; \"SIM\")",
         "K": "Fórmula protegida não editada pelo V2: =SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
       },
       "dados_ficticios_iniciais": [
@@ -37,7 +37,7 @@
           "col_G_titulo": "OK",
           "col_H_ensino_medio": "OK",
           "col_I_contrato": "PENDENTE",
-          "col_J_total": "=CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; TRUE) + CONT.SE(C2:I2; \"OK\")",
+          "col_J_total": "=CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; \"OK\") + CONT.SE(C2:I2; \"SIM\")",
           "col_K_status": "=SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
         },
         {
@@ -50,7 +50,7 @@
           "col_G_titulo": "PENDENTE",
           "col_H_ensino_medio": "PENDENTE",
           "col_I_contrato": "PENDENTE",
-          "col_J_total": "=CONT.SE(C3:I3; VERDADEIRO) + CONT.SE(C3:I3; TRUE) + CONT.SE(C3:I3; \"OK\")",
+          "col_J_total": "=CONT.SE(C3:I3; VERDADEIRO) + CONT.SE(C3:I3; \"OK\") + CONT.SE(C3:I3; \"SIM\")",
           "col_K_status": "=SE(J3=7; \"COMPLETO\"; \"PENDENTE\")"
         }
       ]
@@ -83,7 +83,7 @@
           "col_G_titulo": "PENDENTE",
           "col_H_ensino_medio": "OK",
           "col_I_contrato": "PENDENTE",
-          "col_J_total": "=CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; TRUE) + CONT.SE(C2:I2; \"OK\")",
+          "col_J_total": "=CONT.SE(C2:I2; VERDADEIRO) + CONT.SE(C2:I2; \"OK\") + CONT.SE(C2:I2; \"SIM\")",
           "col_K_status": "=SE(J2=7; \"COMPLETO\"; \"PENDENTE\")"
         },
         {
@@ -96,7 +96,7 @@
           "col_G_titulo": "OK",
           "col_H_ensino_medio": "OK",
           "col_I_contrato": "OK",
-          "col_J_total": "=CONT.SE(C3:I3; VERDADEIRO) + CONT.SE(C3:I3; TRUE) + CONT.SE(C3:I3; \"OK\")",
+          "col_J_total": "=CONT.SE(C3:I3; VERDADEIRO) + CONT.SE(C3:I3; \"OK\") + CONT.SE(C3:I3; \"SIM\")",
           "col_K_status": "=SE(J3=7; \"COMPLETO\"; \"PENDENTE\")"
         }
       ]
