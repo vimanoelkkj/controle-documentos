@@ -274,6 +274,10 @@ export default {
       url,
       db: env.DB,
       periodoId: periodoAtual!.id,
+      usuarioAtual,
+      podeEditar: podeEditar(usuarioAtual!),
+      registrarAuditoria: (evento) =>
+        registrarAuditoria(env.DB, usuarioAtual, periodoAtual!.id, evento),
       registrarPendencia: (ra) =>
         registrarPendenciaGoogleSheets(
           env.DB,

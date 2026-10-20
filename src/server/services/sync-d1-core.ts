@@ -1580,3 +1580,654 @@ export async function executeFieldMutation(
     };
   }
 }
+
+export type MultiMutationResult =
+  | {
+      ok: true;
+      status: 'COMMITTED' | 'IDEMPOTENT_REPLAY' | 'CONVERGED';
+      results: MutationResult[];
+    }
+  | {
+      ok: false;
+      status:
+        | 'CAS_CONFLICT'
+        | 'REVISION_CONFLICT'
+        | 'INTEGRITY_ERROR'
+        | 'CONSTRAINT_VIOLATION'
+        | 'SQL_ERROR';
+      error: string;
+    };
+
+/**
+ * Executa uma mutação atômica de múltiplos campos documentais em um único lote D1.batch().
+ * Se qualquer verificação ou CAS falhar, o lote inteiro sofre rollback automático.
+ */
+export async function executeMultiFieldMutation(
+  db: D1Database,
+  inputs: MutationInput[]
+): Promise<MultiMutationResult> {
+  if (!inputs || inputs.length === 0) {
+    return { ok: true, status: 'CONVERGED', results: [] };
+  }
+
+  const preparedMutations: Array<{
+    input: MutationInput;
+    epoch: number;
+    canonicalHash: string;
+    existingCommand: {
+      command_id: string;
+      request_hash: string;
+      from_revision: number;
+      status: string;
+    } | null;
+    receiptId: string;
+    isReplay: boolean;
+    isConverged: boolean;
+    currentState?: { value: number | null; revision: number; status: string };
+    recordRow?: any;
+    eventId?: string;
+    opIdControle?: string;
+    opIdGeral?: string;
+  }> = [];
+
+  for (const input of inputs) {
+    const epoch = input.expectedEpoch ?? input.epoch;
+    if (
+      !input.commandId ||
+      !input.actorId ||
+      !input.recordId ||
+      !input.fieldKey ||
+      input.fromRevision === undefined ||
+      input.proposedValue === undefined ||
+      !input.integrationId ||
+      input.periodoId === undefined ||
+      !input.groupKey ||
+      input.generation === undefined ||
+      epoch === undefined ||
+      typeof epoch !== 'number'
+    ) {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error:
+          'Contrato de escopo incompleto: commandId, actorId, recordId, fieldKey, integrationId, periodoId, groupKey, generation e expectedEpoch são estritamente obrigatórios.',
+      };
+    }
+
+    const canonicalHash = await computeCanonicalCommandHash({
+      commandId: input.commandId,
+      actorId: input.actorId,
+      recordId: input.recordId,
+      fieldKey: input.fieldKey,
+      fromRevision: input.fromRevision,
+      proposedValue: input.proposedValue,
+      integrationId: input.integrationId,
+      periodoId: input.periodoId,
+      groupKey: input.groupKey,
+      generation: input.generation,
+      epoch,
+    });
+
+    if (input.requestHash && input.requestHash !== canonicalHash) {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Hash da requisição fornecido (${input.requestHash}) diverge do hash canônico calculado (${canonicalHash}).`,
+      };
+    }
+
+    const existingCommand = await db
+      .prepare(
+        `SELECT command_id, request_hash, from_revision, status
+         FROM sync_commands
+         WHERE actor_id = ? AND command_id = ?`
+      )
+      .bind(input.actorId, input.commandId)
+      .first<{
+        command_id: string;
+        request_hash: string;
+        from_revision: number;
+        status: string;
+      }>();
+
+    if (existingCommand) {
+      if (existingCommand.request_hash !== canonicalHash) {
+        return {
+          ok: false,
+          status: 'INTEGRITY_ERROR',
+          error: `Comando ${input.commandId} já existe com payload/hash canônico divergente.`,
+        };
+      }
+      preparedMutations.push({
+        input,
+        epoch,
+        canonicalHash,
+        existingCommand,
+        receiptId: input.receiptId ?? '',
+        isReplay: true,
+        isConverged: false,
+      });
+      continue;
+    }
+
+    const recordRow = await db
+      .prepare(
+        `SELECT
+           r.record_id,
+           r.integration_id,
+           r.aluno_id,
+           r.ra_text,
+           r.group_key,
+           r.generation,
+           r.lifecycle,
+           i.periodo_id,
+           i.epoch,
+           i.mode,
+           a.id AS aluno_id_real,
+           a.ra AS aluno_ra,
+           a.periodo_id AS aluno_periodo_id,
+           d.id AS doc_id
+         FROM sync_records r
+         LEFT JOIN sync_integrations i ON i.integration_id = r.integration_id
+         LEFT JOIN alunos a ON a.id = r.aluno_id
+         LEFT JOIN documentos d ON d.aluno_id = r.aluno_id
+         WHERE r.record_id = ?`
+      )
+      .bind(input.recordId)
+      .first<{
+        record_id: string;
+        integration_id: string;
+        aluno_id: number | null;
+        ra_text: string;
+        group_key: GroupKey;
+        generation: number;
+        lifecycle: string;
+        periodo_id: number | null;
+        epoch: number | null;
+        mode: string | null;
+        aluno_id_real: number | null;
+        aluno_ra: string | null;
+        aluno_periodo_id: number | null;
+        doc_id: number | null;
+      }>();
+
+    if (!recordRow) {
+      return {
+        ok: false,
+        status: 'SQL_ERROR',
+        error: `Registro de sincronização ${input.recordId} não encontrado.`,
+      };
+    }
+
+    if (
+      input.integrationId !== recordRow.integration_id ||
+      input.groupKey !== recordRow.group_key ||
+      input.generation !== recordRow.generation ||
+      input.periodoId !== recordRow.periodo_id
+    ) {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: 'Contrato de escopo incompatível com o registro no banco.',
+      };
+    }
+
+    if (recordRow.epoch === null || epoch !== recordRow.epoch) {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Epoch informada (${epoch}) diverge da integração (${recordRow.epoch}).`,
+      };
+    }
+
+    if (recordRow.lifecycle === 'INACTIVE' || recordRow.lifecycle === 'TOMBSTONE') {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Registro ${input.recordId} está ${recordRow.lifecycle} e não aceita mutações documentais.`,
+      };
+    }
+
+    const maxGenRow = await db
+      .prepare(
+        `SELECT MAX(generation) as max_gen
+         FROM sync_records
+         WHERE integration_id = ? AND group_key = ? AND ra_text = ?`
+      )
+      .bind(recordRow.integration_id, recordRow.group_key, recordRow.ra_text)
+      .first<{ max_gen: number | null }>();
+
+    if (maxGenRow?.max_gen && recordRow.generation < maxGenRow.max_gen) {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Geração ${recordRow.generation} é obsoleta (geração ativa atual é ${maxGenRow.max_gen}).`,
+      };
+    }
+
+    if (recordRow.mode === 'PAUSED' || recordRow.mode === 'QUARANTINED') {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Integração ${recordRow.integration_id} está no modo ${recordRow.mode} e não aceita mutações documentais.`,
+      };
+    }
+
+    if (recordRow.aluno_id === null || recordRow.aluno_id === undefined) {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Projeção documental ausente: registro ${input.recordId} possui aluno_id nulo.`,
+      };
+    }
+
+    if (
+      !recordRow.aluno_id_real ||
+      recordRow.aluno_ra !== recordRow.ra_text ||
+      recordRow.aluno_periodo_id !== recordRow.periodo_id
+    ) {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Identidade inconsistente: aluno vinculado (${recordRow.aluno_id}) diverge em RA ou período do registro ${input.recordId}.`,
+      };
+    }
+
+    if (!recordRow.doc_id) {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Projeção documental inexistente: aluno vinculado (${recordRow.aluno_id}) não possui registro correspondente na tabela documentos.`,
+      };
+    }
+
+    const currentState = await db
+      .prepare(
+        `SELECT value, revision, status
+         FROM sync_field_state
+         WHERE record_id = ? AND field_key = ?`
+      )
+      .bind(input.recordId, input.fieldKey)
+      .first<{ value: number | null; revision: number; status: string }>();
+
+    if (!currentState) {
+      return {
+        ok: false,
+        status: 'SQL_ERROR',
+        error: `Campo ${input.fieldKey} do registro ${input.recordId} não encontrado.`,
+      };
+    }
+
+    if (currentState.status === 'UNBASELINED') {
+      return {
+        ok: false,
+        status: 'INTEGRITY_ERROR',
+        error: `Campo '${input.fieldKey}' do registro ${input.recordId} está no estado UNBASELINED. Estabeleça a linha de base inicial via establishFieldBaseline().`,
+      };
+    }
+
+    const isConverged =
+      currentState.status === 'CONFIRMED' &&
+      currentState.value === input.proposedValue &&
+      currentState.revision === input.fromRevision;
+
+    preparedMutations.push({
+      input,
+      epoch,
+      canonicalHash,
+      existingCommand: null,
+      receiptId: input.receiptId ?? crypto.randomUUID(),
+      isReplay: false,
+      isConverged,
+      currentState,
+      recordRow,
+      eventId: input.eventId ?? crypto.randomUUID(),
+      opIdControle: input.operationIdControle ?? crypto.randomUUID(),
+      opIdGeral: input.operationIdGeral ?? crypto.randomUUID(),
+    });
+  }
+
+  // Se todos forem replays:
+  const allReplays = preparedMutations.every((m) => m.isReplay);
+  if (allReplays) {
+    const results: MutationResult[] = [];
+    for (const m of preparedMutations) {
+      const receipt = await db
+        .prepare(
+          `SELECT receipt_id, revision, status FROM sync_receipts WHERE command_id = ?`
+        )
+        .bind(m.input.commandId)
+        .first<{ receipt_id: string; revision: number; status: string }>();
+
+      results.push({
+        ok: true,
+        status: 'IDEMPOTENT_REPLAY',
+        toRevision:
+          receipt?.revision ??
+          (m.existingCommand!.status === 'CONVERGED'
+            ? m.existingCommand!.from_revision
+            : m.existingCommand!.from_revision + 1),
+        receiptId: receipt?.receipt_id ?? '',
+      });
+    }
+    return { ok: true, status: 'IDEMPOTENT_REPLAY', results };
+  }
+
+  // Montagem do lote transacional D1
+  const stmts: D1PreparedStatement[] = [];
+  const results: MutationResult[] = [];
+
+  for (const m of preparedMutations) {
+    if (m.isReplay) {
+      results.push({
+        ok: true,
+        status: 'IDEMPOTENT_REPLAY',
+        toRevision: m.existingCommand!.from_revision + 1,
+        receiptId: m.receiptId,
+      });
+      continue;
+    }
+
+    if (m.isConverged) {
+      stmts.push(
+        db
+          .prepare(
+            `INSERT INTO sync_commands (
+              command_id, actor_id, record_id, field_key, from_revision, proposed_value, request_hash, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'CONVERGED')`
+          )
+          .bind(
+            m.input.commandId,
+            m.input.actorId,
+            m.input.recordId,
+            m.input.fieldKey,
+            m.input.fromRevision,
+            m.input.proposedValue,
+            m.canonicalHash
+          )
+      );
+      stmts.push(
+        db
+          .prepare(
+            `INSERT INTO sync_receipts (
+              receipt_id, command_id, record_id, field_key, revision, status
+            )
+            VALUES (
+              ?, ?, ?, ?,
+              (SELECT CASE WHEN (
+                r.lifecycle = 'ACTIVE'
+                AND r.generation = (
+                  SELECT MAX(sr2.generation) FROM sync_records sr2
+                  WHERE sr2.integration_id = r.integration_id AND sr2.group_key = r.group_key AND sr2.ra_text = r.ra_text
+                )
+                AND i.mode NOT IN ('PAUSED', 'QUARANTINED')
+                AND i.epoch = ?
+                AND r.aluno_id = ?
+                AND r.ra_text = ?
+                AND i.periodo_id = ?
+                AND EXISTS (SELECT 1 FROM documentos WHERE aluno_id = ?)
+                AND s.revision = ?
+                AND s.value = ?
+                AND s.status = 'CONFIRMED'
+              ) THEN s.revision ELSE NULL END
+              FROM sync_records r
+              JOIN sync_integrations i ON i.integration_id = r.integration_id
+              JOIN sync_field_state s ON s.record_id = r.record_id AND s.field_key = ?
+              WHERE r.record_id = ? AND r.integration_id = ?),
+              'CONVERGED'
+            )`
+          )
+          .bind(
+            m.receiptId,
+            m.input.commandId,
+            m.input.recordId,
+            m.input.fieldKey,
+            m.epoch,
+            m.recordRow.aluno_id,
+            m.recordRow.ra_text,
+            m.input.periodoId,
+            m.recordRow.aluno_id,
+            m.input.fromRevision,
+            m.input.proposedValue,
+            m.input.fieldKey,
+            m.input.recordId,
+            m.input.integrationId
+          )
+      );
+      results.push({
+        ok: true,
+        status: 'CONVERGED',
+        toRevision: m.currentState!.revision,
+        receiptId: m.receiptId,
+      });
+      continue;
+    }
+
+    const docColumn = FIELD_TO_DOC_COLUMN[m.input.fieldKey];
+    const valueOld = m.currentState!.value;
+
+    stmts.push(
+      db
+        .prepare(
+          `INSERT INTO sync_commands (
+            command_id, actor_id, record_id, field_key, from_revision, proposed_value, request_hash, status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACCEPTED')`
+        )
+        .bind(
+          m.input.commandId,
+          m.input.actorId,
+          m.input.recordId,
+          m.input.fieldKey,
+          m.input.fromRevision,
+          m.input.proposedValue,
+          m.canonicalHash
+        )
+    );
+
+    stmts.push(
+      db
+        .prepare(
+          `UPDATE sync_field_state
+           SET value = ?,
+               revision = revision + 1,
+               head_command_id = ?,
+               last_event_id = ?,
+               status = 'CONFIRMED',
+               updated_at = CURRENT_TIMESTAMP
+           WHERE record_id = ?
+             AND field_key = ?
+             AND revision = ?
+             AND status = 'CONFIRMED'`
+        )
+        .bind(
+          m.input.proposedValue,
+          m.input.commandId,
+          m.eventId!,
+          m.input.recordId,
+          m.input.fieldKey,
+          m.input.fromRevision
+        )
+    );
+
+    stmts.push(
+      db
+        .prepare(
+          `INSERT INTO sync_events (
+            event_id, record_id, field_key, command_id, from_revision, to_revision, value_old, value_new, actor_id
+          ) VALUES (
+            ?, ?, ?, ?, ?,
+            (SELECT sfs.revision
+             FROM sync_field_state sfs
+             JOIN sync_records r ON r.record_id = sfs.record_id
+             JOIN sync_integrations i ON i.integration_id = r.integration_id
+             JOIN alunos a ON a.id = r.aluno_id
+             JOIN documentos d ON d.aluno_id = r.aluno_id
+             WHERE sfs.record_id = ?
+               AND sfs.field_key = ?
+               AND sfs.head_command_id = ?
+               AND r.lifecycle = 'ACTIVE'
+               AND r.generation = (
+                 SELECT MAX(sr2.generation) FROM sync_records sr2
+                 WHERE sr2.integration_id = r.integration_id AND sr2.group_key = r.group_key AND sr2.ra_text = r.ra_text
+               )
+               AND i.mode NOT IN ('PAUSED', 'QUARANTINED')
+               AND a.ra = r.ra_text
+               AND a.periodo_id = i.periodo_id
+               AND r.integration_id = ?
+               AND r.group_key = ?
+               AND r.generation = ?
+               AND i.periodo_id = ?
+               AND i.epoch = ?
+            ),
+            ?, ?, ?
+          )`
+        )
+        .bind(
+          m.eventId!,
+          m.input.recordId,
+          m.input.fieldKey,
+          m.input.commandId,
+          m.input.fromRevision,
+          m.input.recordId,
+          m.input.fieldKey,
+          m.input.commandId,
+          m.input.integrationId,
+          m.input.groupKey,
+          m.input.generation,
+          m.input.periodoId,
+          m.epoch,
+          valueOld,
+          m.input.proposedValue,
+          m.input.actorId
+        )
+    );
+
+    stmts.push(
+      db
+        .prepare(
+          `UPDATE documentos
+           SET ${docColumn} = ?,
+               atualizado_em = CURRENT_TIMESTAMP
+           WHERE aluno_id = (SELECT aluno_id FROM sync_records WHERE record_id = ?)
+             AND EXISTS (SELECT 1 FROM sync_events WHERE event_id = ?)`
+        )
+        .bind(m.input.proposedValue, m.input.recordId, m.eventId!)
+    );
+
+    stmts.push(
+      db
+        .prepare(
+          `INSERT INTO sync_operations (
+            operation_id, event_id, record_id, field_key, target_key, target_revision, state
+          )
+          SELECT ?, ?, ?, ?, 'CONTROLE', (SELECT to_revision FROM sync_events WHERE event_id = ?), 'PENDING'
+          WHERE EXISTS (SELECT 1 FROM sync_events WHERE event_id = ?)`
+        )
+        .bind(
+          m.opIdControle!,
+          m.eventId!,
+          m.input.recordId,
+          m.input.fieldKey,
+          m.eventId!,
+          m.eventId!
+        )
+    );
+
+    if (m.input.fieldKey === 'contrato') {
+      stmts.push(
+        db
+          .prepare(
+            `INSERT INTO sync_operations (
+              operation_id, event_id, record_id, field_key, target_key, target_revision, state
+            )
+            SELECT ?, ?, ?, ?, 'GERAL_CONTRATO', (SELECT to_revision FROM sync_events WHERE event_id = ?), 'PENDING'
+            WHERE EXISTS (SELECT 1 FROM sync_events WHERE event_id = ?)`
+          )
+          .bind(
+            m.opIdGeral!,
+            m.eventId!,
+            m.input.recordId,
+            m.input.fieldKey,
+            m.eventId!,
+            m.eventId!
+          )
+      );
+    }
+
+    stmts.push(
+      db
+        .prepare(
+          `INSERT INTO sync_receipts (
+            receipt_id, command_id, record_id, field_key, revision, status
+          )
+          SELECT ?, ?, ?, ?, (SELECT to_revision FROM sync_events WHERE event_id = ?), 'D1_COMMITTED'
+          WHERE EXISTS (SELECT 1 FROM sync_events WHERE event_id = ?)`
+        )
+        .bind(
+          m.receiptId,
+          m.input.commandId,
+          m.input.recordId,
+          m.input.fieldKey,
+          m.eventId!,
+          m.eventId!
+        )
+    );
+
+    results.push({
+      ok: true,
+      status: 'COMMITTED',
+      toRevision: m.input.fromRevision + 1,
+      eventId: m.eventId!,
+      receiptId: m.receiptId,
+    });
+  }
+
+  if (stmts.length === 0) {
+    return { ok: true, status: 'CONVERGED', results };
+  }
+
+  try {
+    await db.batch(stmts);
+    return { ok: true, status: 'COMMITTED', results };
+  } catch (error: any) {
+    const msg = String(error?.message ?? error);
+
+    if (
+      msg.includes('NOT NULL constraint failed: sync_events.to_revision') ||
+      msg.includes('NOT NULL constraint failed: sync_receipts.revision')
+    ) {
+      return {
+        ok: false,
+        status: 'CAS_CONFLICT',
+        error: `NOT NULL constraint failed - Transação atômica abortada: CAS falhou ou condição de elegibilidade (ciclo de vida, geração, integração, projeção) foi invalidada concorrentemente.`,
+      };
+    }
+
+    if (
+      msg.includes(
+        'UNIQUE constraint failed: sync_events.record_id, sync_events.field_key, sync_events.to_revision'
+      )
+    ) {
+      return {
+        ok: false,
+        status: 'REVISION_CONFLICT',
+        error: msg,
+      };
+    }
+
+    if (msg.includes('UNIQUE constraint failed')) {
+      return {
+        ok: false,
+        status: 'CONSTRAINT_VIOLATION',
+        error: msg,
+      };
+    }
+
+    return {
+      ok: false,
+      status: 'SQL_ERROR',
+      error: msg,
+    };
+  }
+}
+
