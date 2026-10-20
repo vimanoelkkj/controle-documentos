@@ -55,3 +55,6 @@ Antes de aplicar qualquer configuração:
 - [ ] O banco D1 utilizado deve ser **exclusivamente** `controle-documentos-homolog-db`. Nunca use o D1 de desenvolvimento ou de produção.
 - [ ] A Service Account do Google Cloud deve ter permissão de edição **apenas** nas planilhas de teste de homologação. Nunca conceder acesso ao Drive raiz da instituição nem a planilhas reais de matrículas.
 - [ ] A flag `SYNC_V2_ENABLED` deve permanecer `"false"` até o momento explícito da etapa 1 do roteiro de testes.
+
+Consulte o [Roteiro de Homologação Integrada (10 Cenários)](./ROTEIRO_HOMOLOGACAO_ISOLADA.md) para o procedimento de execução.
+

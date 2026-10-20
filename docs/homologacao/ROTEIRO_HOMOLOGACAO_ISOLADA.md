@@ -67,7 +67,7 @@ Antes de iniciar qualquer execução, certifique-se de preencher e assinar este 
    ```
 
 ### 2.3 Secrets no Cloudflare Worker
-Configurar os segredos via terminal:
+Configurar os segredos via terminal (detalhes em [Variáveis e Segredos de Homologação](./SECRETS_E_VARIAVEIS.md)):
 ```bash
 npx wrangler secret put SYNC_ADMIN_SECRET --config config/homologacao/wrangler.homolog.jsonc
 npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_EMAIL --config config/homologacao/wrangler.homolog.jsonc
@@ -299,3 +299,4 @@ Após o encerramento dos testes de homologação:
    ```bash
    npx wrangler d1 delete controle-documentos-homolog-db
    ```
+

@@ -113,3 +113,4 @@ VALUES (9003, 1, 1, 0, 1, 0, 1, 0);
 -- DELTA: Todos entregues (1) - Completo
 INSERT OR REPLACE INTO documentos (aluno_id, identidade, cpf, certidao, residencia, titulo, ensino_medio, contrato)
 VALUES (9004, 1, 1, 1, 1, 1, 1, 1);
+

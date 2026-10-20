@@ -43,3 +43,4 @@
   // npx wrangler secret put GOOGLE_PRIVATE_KEY --config config/homologacao/wrangler.homolog.jsonc
   // =========================================================================
 }
+
