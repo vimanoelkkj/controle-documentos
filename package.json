@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "test": "vitest run --configLoader runner",
     "test:watch": "vitest --configLoader runner",
+    "test:apps-script": "node --test scripts/maintenance/apps-script/apps-script-encerramento-seguro.spec.cjs",
     "preview": "vite preview",
     "deploy:production": "node scripts/deploy-production.mjs"
   },
