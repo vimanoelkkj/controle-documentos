@@ -18,6 +18,7 @@
 import { env } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
 import {
+  runScheduledSyncV2,
   executeIntegrationSyncCycle,
   acquireCoordinatorLease,
 } from "../src/server/services/sync-coordinator";
@@ -775,5 +776,165 @@ describe("Sincronização Automática Inbound V2 — Cenários Específicos", ()
 
     const alunos999 = await env.DB.prepare(`SELECT ra FROM alunos WHERE periodo_id = 999 ORDER BY ra ASC`).all<any>();
     expect(alunos999.results.map((a) => a.ra)).toEqual(dummyRas);
+  });
+  it("9. Modo SHADOW é estritamente não persistente mesmo com autoCreateMissingAlunos = true e dryRun = false", async () => {
+    const pId = proximoId();
+    const intId = `integ-auto-shadow-safe-${pId}`;
+    const controlTab = "CONTROLE DE DOCUMENTOS FCH EAD";
+    const generalTab = "FCH - EAD 2027 - 1";
+    const raAluno = "00202709";
+
+    await env.DB.prepare(`INSERT INTO periodos (id, codigo, status) VALUES (?, '2027-1-SHADOW', 'ATIVO')`).bind(pId).run();
+    await env.DB.prepare(`INSERT INTO sync_integrations (integration_id, periodo_id, spreadsheet_id, mode) VALUES (?, ?, 'sheet-test', 'SHADOW')`).bind(intId, pId).run();
+
+    const adapter = new InMemorySheetAdapter();
+    adapter.setControlData(
+      controlTab,
+      buildControlGrid([
+        {
+          ra: raAluno,
+          nome: "ALUNO SHADOW TEST",
+          docs: {
+            identidade: "TRUE",
+            cpf_documento: "TRUE",
+            certidao: "TRUE",
+            residencia: "TRUE",
+            titulo: "TRUE",
+            ensino_medio: "TRUE",
+            contrato: "TRUE",
+          },
+        },
+      ]),
+    );
+    adapter.setGeneralStudent(generalTab, raAluno, "Em curso", "PSICOLOGIA");
+
+    const tabResolver = createTabNameResolver({
+      sheetsConfig: { aba_docs_fch_ead: controlTab, aba_base_fch_ead: generalTab },
+    });
+
+    // Executa ciclo em modo SHADOW
+    const repShadow = await executeIntegrationSyncCycle({
+      db: env.DB,
+      integration: { integration_id: intId, periodo_id: pId, spreadsheet_id: "sheet-test", mode: "SHADOW", epoch: 1 },
+      adapter,
+      tabNameResolver: tabResolver,
+      workerId: "w-shadow",
+    });
+
+    expect(repShadow.status).toBe("SUCCESS");
+    expect(repShadow.inboundReport?.dryRun).toBe(true);
+    expect(repShadow.inboundReport?.alunosCriadosNoD1).toBe(1); // Simulado no relatório
+    expect(repShadow.inboundReport?.mutacoesPersistidas).toBe(0);
+
+    // Conferência rigorosa no D1: NENHUM aluno, documento, sync_record ou baseline persistido!
+    const alunosCount = await env.DB.prepare(`SELECT COUNT(*) as total FROM alunos WHERE periodo_id = ?`).bind(pId).first<{ total: number }>();
+    expect(alunosCount?.total).toBe(0);
+
+    const docsCount = await env.DB.prepare(`SELECT COUNT(*) as total FROM documentos d JOIN alunos a ON a.id = d.aluno_id WHERE a.periodo_id = ?`).bind(pId).first<{ total: number }>();
+    expect(docsCount?.total).toBe(0);
+
+    const recordsCount = await env.DB.prepare(`SELECT COUNT(*) as total FROM sync_records WHERE integration_id = ?`).bind(intId).first<{ total: number }>();
+    expect(recordsCount?.total).toBe(0);
+
+    const baselineCount = await env.DB.prepare(`SELECT COUNT(*) as total FROM sync_field_state fs JOIN sync_records sr ON sr.record_id = fs.record_id WHERE sr.integration_id = ?`).bind(intId).first<{ total: number }>();
+    expect(baselineCount?.total).toBe(0);
+  });
+
+  it("10. Multi-período: PAUSED em um período não bloqueia CAPTURE em outro, e mesmo RA permanece isolado", async () => {
+    const p1 = proximoId();
+    const p2 = proximoId();
+    const int1 = `integ-multi-p1-${p1}`;
+    const int2 = `integ-multi-p2-${p2}`;
+    const raCompartilhado = "00202799";
+
+    // Período 1: 2026-2 em PAUSED
+    await env.DB.prepare(`INSERT INTO periodos (id, codigo, status) VALUES (?, '2026-2-MULTI', 'ATIVO')`).bind(p1).run();
+    await env.DB.prepare(`INSERT INTO sync_integrations (integration_id, periodo_id, spreadsheet_id, mode) VALUES (?, ?, 'sheet-p1', 'PAUSED')`).bind(int1, p1).run();
+
+    // Período 2: 2027-1 em CAPTURE
+    await env.DB.prepare(`INSERT INTO periodos (id, codigo, status) VALUES (?, '2027-1-MULTI', 'ATIVO')`).bind(p2).run();
+    await env.DB.prepare(`INSERT INTO sync_integrations (integration_id, periodo_id, spreadsheet_id, mode) VALUES (?, ?, 'sheet-p2', 'CAPTURE')`).bind(int2, p2).run();
+
+    // Cadastra o aluno previamente no Período 1 com identidade = 0
+    await env.DB.prepare(`INSERT INTO alunos (id, periodo_id, ra, nome, curso, unidade, status) VALUES (9801, ?, ?, 'ALUNO P1', 'ADMIN', 'FACE', 'ATIVO')`).bind(p1, raCompartilhado).run();
+    await env.DB.prepare(`INSERT INTO documentos (aluno_id, identidade, cpf, certidao, residencia, titulo, ensino_medio, contrato) VALUES (9801, 0, 0, 0, 0, 0, 0, 0)`).run();
+
+    // Na planilha do Período 2, o mesmo RA tem identidade = 1
+    const adapter = new InMemorySheetAdapter();
+    const controlTabP2 = "CONTROLE DE DOCUMENTOS FCH EAD";
+    const generalTabP2 = "FCH - EAD 2027 - 1";
+    adapter.setControlData(controlTabP2, buildControlGrid([{ ra: raCompartilhado, nome: "ALUNO P2", docs: { identidade: "TRUE", cpf_documento: "FALSE", certidao: "FALSE", residencia: "FALSE", titulo: "FALSE", ensino_medio: "FALSE", contrato: "FALSE" } }]));
+    adapter.setGeneralStudent(generalTabP2, raCompartilhado, "Em curso", "PEDAGOGIA");
+
+    // Executa ciclo do scheduler contendo ambos os períodos
+    const schedReport = await runScheduledSyncV2({
+      db: env.DB,
+      env: {
+        SYNC_V2_ENABLED: "true",
+        SYNC_V2_AUTO_ENABLED: "true",
+      },
+      customAdapter: adapter,
+      customTabNameResolver: createTabNameResolver({
+        sheetsConfig: { aba_docs_fch_ead: controlTabP2, aba_base_fch_ead: generalTabP2 },
+      }),
+    });
+
+    expect(schedReport.sucesso).toBe(true);
+    // Período 1 foi ignorado (PAUSED), Período 2 executou com sucesso
+    const repP1 = schedReport.relatorios.find((r) => r.integrationId === int1);
+    const repP2 = schedReport.relatorios.find((r) => r.integrationId === int2);
+
+    expect(repP1?.status).toBe("SKIPPED_NOT_ELIGIBLE");
+    expect(repP2?.status).toBe("SUCCESS");
+
+    // Isolamento de dados entre os dois períodos:
+    // Aluno no Período 1 permaneceu com identidade = 0
+    const docP1 = await env.DB.prepare(`SELECT identidade FROM documentos WHERE aluno_id = 9801`).first<{ identidade: number }>();
+    expect(docP1?.identidade).toBe(0);
+
+    // Aluno no Período 2 foi criado com identidade = 1
+    const alunoP2 = await env.DB.prepare(`SELECT id FROM alunos WHERE periodo_id = ? AND ra = ?`).bind(p2, raCompartilhado).first<{ id: number }>();
+    expect(alunoP2).toBeDefined();
+    expect(alunoP2?.id).not.toBe(9801);
+
+    const docP2 = await env.DB.prepare(`SELECT identidade FROM documentos WHERE aluno_id = ?`).bind(alunoP2!.id).first<{ identidade: number }>();
+    expect(docP2?.identidade).toBe(1);
+  });
+
+  it("11. Período encerrado/arquivado (status = 'ARQUIVADO') não sincroniza automaticamente sem reativação explícita", async () => {
+    const pId = proximoId();
+    const intId = `integ-auto-arquivado-${pId}`;
+
+    // Cadastra período como ARQUIVADO
+    await env.DB.prepare(`INSERT INTO periodos (id, codigo, status) VALUES (?, '2025-2-ARQ', 'ARQUIVADO')`).bind(pId).run();
+    await env.DB.prepare(`INSERT INTO sync_integrations (integration_id, periodo_id, spreadsheet_id, mode) VALUES (?, ?, 'sheet-test', 'CAPTURE')`).bind(intId, pId).run();
+
+    const adapter = new InMemorySheetAdapter();
+
+    // 1. O scheduler geral nem sequer busca integrações de períodos arquivados
+    const schedReport = await runScheduledSyncV2({
+      db: env.DB,
+      env: {
+        SYNC_V2_ENABLED: "true",
+        SYNC_V2_AUTO_ENABLED: "true",
+      },
+      customAdapter: adapter,
+      targetPeriodoId: pId,
+    });
+
+    expect(schedReport.sucesso).toBe(true);
+    expect(schedReport.totalIntegracoesEncontradas).toBe(0);
+
+    // 2. Se executeIntegrationSyncCycle for chamado diretamente, bloqueia com SKIPPED_NOT_ELIGIBLE
+    const directRep = await executeIntegrationSyncCycle({
+      db: env.DB,
+      integration: { integration_id: intId, periodo_id: pId, spreadsheet_id: "sheet-test", mode: "CAPTURE", epoch: 1 },
+      adapter,
+      tabNameResolver: createTabNameResolver(),
+      workerId: "w-arq-check",
+    });
+
+    expect(directRep.status).toBe("SKIPPED_NOT_ELIGIBLE");
+    expect(directRep.motivo).toContain("status = 'ARQUIVADO'");
   });
 });

@@ -188,6 +188,10 @@ export async function reconcileInboundFromSpreadsheet(
     );
   }
 
+  // Garantia estrita Fail-Safe: Em modo SHADOW, dryRun é forçado incondicionalmente como true
+  const effectiveDryRun = integracao.mode === "SHADOW" ? true : Boolean(dryRun);
+  report.dryRun = effectiveDryRun;
+
   const gruposAProcessar: GroupKey[] = targetGroupKey
     ? [targetGroupKey]
     : ["FACE_FEA", "FCH_EAD"];
@@ -303,7 +307,7 @@ export async function reconcileInboundFromSpreadsheet(
           const course = String(generalRow?.courseName || '').trim() || (groupKey === 'FACE_FEA' ? 'ADMINISTRAÇÃO' : 'PEDAGOGIA');
           const unidade = groupKey === 'FACE_FEA' ? 'FACE' : 'FCH';
 
-          if (!dryRun) {
+          if (!effectiveDryRun) {
             await db
               .prepare(
                 `INSERT INTO alunos (periodo_id, ra, nome, curso, unidade, status)
@@ -390,7 +394,7 @@ export async function reconcileInboundFromSpreadsheet(
 
       if (!syncRecord) {
         const recordId = `rec-${periodoId}-${groupKey}-${canonicalRa}`;
-        if (!dryRun) {
+        if (!effectiveDryRun) {
           await initSyncRecord(db, {
             recordId,
             integrationId,
@@ -523,7 +527,7 @@ export async function reconcileInboundFromSpreadsheet(
             statusOperacaoLocal: activeOp.state,
           });
 
-          if (!dryRun) {
+          if (!effectiveDryRun) {
             const conflictId = `conf-inbound-${crypto.randomUUID().slice(0, 8)}`;
             await db
               .prepare(
@@ -547,7 +551,7 @@ export async function reconcileInboundFromSpreadsheet(
 
         // Sem operação local pendente: Ingestão limpa (EXTERNAL_AHEAD)
         report.camposAtualizadosNoD1++;
-        if (dryRun) {
+        if (effectiveDryRun) {
           report.mutacoesPlanejadas = (report.mutacoesPlanejadas ?? 0) + 1;
         } else {
           report.mutacoesPersistidas = (report.mutacoesPersistidas ?? 0) + 1;
@@ -560,7 +564,7 @@ export async function reconcileInboundFromSpreadsheet(
           novoValor: sheetNormalized,
         });
 
-        if (!dryRun) {
+        if (!effectiveDryRun) {
           const commandId = `cmd-inbound-${crypto.randomUUID().slice(0, 8)}`;
           const eventId = `evt-inbound-${crypto.randomUUID().slice(0, 8)}`;
           const toRevision = currentRevision + 1;
@@ -660,7 +664,7 @@ export async function reconcileInboundFromSpreadsheet(
         // Trata como sincronia e estabelece o baseline atômico com revision = 0
         // SEM alterar a tabela documentos nem disparar mutações desnecessárias
         report.camposEmSincronia++;
-        if (!dryRun) {
+        if (!effectiveDryRun) {
           await db
             .prepare(
               `INSERT INTO sync_field_state (
@@ -691,7 +695,7 @@ export async function reconcileInboundFromSpreadsheet(
         statusOperacaoLocal: "BASELINE_AUSENTE_DIVERGENCIA",
       });
 
-      if (!dryRun) {
+      if (!effectiveDryRun) {
         const conflictId = `conf-inbound-${crypto.randomUUID().slice(0, 8)}`;
         await db
           .prepare(

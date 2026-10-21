@@ -139,7 +139,7 @@ async function setupTestEnvironment() {
 
   await env.DB.prepare(
     `INSERT INTO sync_integrations (integration_id, periodo_id, spreadsheet_id, mode, epoch, layout_revision)
-     VALUES (?, ?, ?, 'SHADOW', 1, 1)`,
+     VALUES (?, ?, ?, 'CAPTURE', 1, 1)`,
   )
     .bind(intId, pId, spreadId)
     .run();

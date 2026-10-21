@@ -439,6 +439,23 @@ export async function executeIntegrationSyncCycle(params: {
     };
   }
 
+  // 1.1. Verificação de status do período (períodos arquivados/encerrados não sincronizam)
+  const periodoRow = await db
+    .prepare(`SELECT status FROM periodos WHERE id = ?`)
+    .bind(integration.periodo_id)
+    .first<{ status?: string }>();
+
+  if (periodoRow && periodoRow.status === "ARQUIVADO") {
+    return {
+      integrationId: integration.integration_id,
+      periodoId: integration.periodo_id,
+      mode,
+      status: "SKIPPED_NOT_ELIGIBLE",
+      motivo: `Período ${integration.periodo_id} está arquivado/encerrado (status = 'ARQUIVADO'). Sincronização automática bloqueada sem reativação explícita.`,
+      duracaoMs: Date.now() - inicio,
+    };
+  }
+
   // 2. Aquisição de lease persistente no D1 (Coordenação anti-split-brain)
   const leaseAcq = await acquireCoordinatorLease({
     db,
@@ -613,15 +630,20 @@ export async function runScheduledSyncV2(
     });
   }
 
-  // 3. Busca de integrações cadastradas
-  let query = `SELECT integration_id, periodo_id, spreadsheet_id, mode, epoch FROM sync_integrations WHERE 1=1`;
+  // 3. Busca de integrações cadastradas em períodos ativos
+  let query = `
+    SELECT i.integration_id, i.periodo_id, i.spreadsheet_id, i.mode, i.epoch
+    FROM sync_integrations i
+    JOIN periodos p ON p.id = i.periodo_id
+    WHERE p.status = 'ATIVO'
+  `;
   const binds: any[] = [];
   if (targetPeriodoId) {
-    query += ` AND periodo_id = ?`;
+    query += ` AND i.periodo_id = ?`;
     binds.push(targetPeriodoId);
   }
   if (targetIntegrationId) {
-    query += ` AND integration_id = ?`;
+    query += ` AND i.integration_id = ?`;
     binds.push(targetIntegrationId);
   }
 
