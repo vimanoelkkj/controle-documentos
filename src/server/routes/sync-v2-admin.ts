@@ -882,10 +882,16 @@ export async function handleSyncV2AdminRoute(
         targetGroupKey,
       });
 
+      const persistidos = dryRun ? 0 : report.camposAtualizadosNoD1;
+      const planejados = dryRun ? report.camposAtualizadosNoD1 : 0;
+      const descMutacoes = dryRun
+        ? `${planejados} mutações planejadas (0 persistidas)`
+        : `${persistidos} campos persistidos no D1`;
+
       await registrarAuditoria(periodoId, {
         acao: "SYNC_V2_INBOUND_INGEST",
         entidade: "SYNC_INBOUND",
-        descricao: `Ingestão Inbound V2 executada (${dryRun ? "DRY-RUN" : "REAL"}): ${report.camposAtualizadosNoD1} campos atualizados, ${report.camposEmSincronia} em sincronia, ${report.conflitosDetectados} conflitos detectados, ${report.totalAlunosLidosNaPlanilha} alunos processados na planilha.`,
+        descricao: `Ingestão Inbound V2 executada (${dryRun ? "DRY-RUN" : "REAL"}): ${descMutacoes}, ${report.camposEmSincronia} em sincronia, ${report.conflitosDetectados} conflitos detectados, ${report.totalAlunosLidosNaPlanilha} alunos processados na planilha.`,
       });
 
       return Response.json({

@@ -2,6 +2,7 @@ import type { UsuarioSessao } from "./auth";
 import type { EventoAuditoria } from "../services/auditoria";
 import {
   executeMultiFieldMutation,
+  derivarGroupKey,
   type FieldKey,
   type GroupKey,
   type MutationInput,
@@ -250,9 +251,15 @@ export async function handleDocumentosRoute({
   }
 
   // 4.2. Busca e validação do registro do aluno na V2
-  const groupEsperado: GroupKey = ["FACE", "FEA"].includes(aluno.unidade)
-    ? "FACE_FEA"
-    : "FCH_EAD";
+  const groupEsperado = derivarGroupKey(aluno.unidade);
+  if (!groupEsperado) {
+    return Response.json(
+      {
+        erro: `Unidade '${aluno.unidade}' do aluno não corresponde a nenhum grupo V2 válido.`,
+      },
+      { status: 400 },
+    );
+  }
 
   const syncRecords = await db
     .prepare(

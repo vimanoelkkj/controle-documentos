@@ -1,5 +1,5 @@
 import { normalizarCampo } from "../../lib/texto";
-import { initSyncRecord, type GroupKey } from "../services/sync-d1-core";
+import { initSyncRecord, derivarGroupKey } from "../services/sync-d1-core";
 type Unidade = "FACE" | "FEA" | "FCH" | "EAD";
 
 type AlunoImportacao = {
@@ -301,11 +301,9 @@ export async function handleImportacaoAlunosRoute({
     const v2Ativa = Boolean(integracao) && integracao!.mode !== "LEGACY";
 
     if (v2Ativa) {
-      const groupKey: GroupKey = ["FACE", "FEA"].includes(body.unidade)
-        ? "FACE_FEA"
-        : "FCH_EAD";
-
-      for (const aluno of novos) {
+      const groupKey = derivarGroupKey(body.unidade);
+      if (groupKey) {
+        for (const aluno of novos) {
         const alunoDb = await db
           .prepare(`SELECT id FROM alunos WHERE periodo_id = ? AND ra = ?`)
           .bind(periodoId, aluno.ra)
@@ -333,7 +331,8 @@ export async function handleImportacaoAlunosRoute({
           });
         }
       }
-    } else {
+    }
+  } else {
       const novosRa = new Set(novos.map((aluno) => aluno.ra));
       for (const aluno of [...novos, ...alterados]) {
         await registrarPendencia(

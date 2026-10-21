@@ -1,4 +1,4 @@
-import { initSyncRecord, type GroupKey } from "../services/sync-d1-core";
+import { initSyncRecord, derivarGroupKey } from "../services/sync-d1-core";
 
 type DocumentosAluno = {
   identidade: boolean;
@@ -190,29 +190,29 @@ async function cadastrarAluno(
     const v2Ativa = Boolean(integracao) && integracao!.mode !== "LEGACY";
 
     if (v2Ativa) {
-      const groupKey: GroupKey = ["FACE", "FEA"].includes(dados.unidade)
-        ? "FACE_FEA"
-        : "FCH_EAD";
-      const recordId = `rec-${periodoId}-${groupKey}-${dados.ra}`;
+      const groupKey = derivarGroupKey(dados.unidade);
+      if (groupKey) {
+        const recordId = `rec-${periodoId}-${groupKey}-${dados.ra}`;
 
-      await initSyncRecord(db, {
-        recordId,
-        integrationId: integracao!.integration_id,
-        raText: dados.ra,
-        groupKey,
-        alunoId: resultado.meta.last_row_id,
-        generation: 1,
-        lifecycle: "ACTIVE",
-        initialValues: {
-          identidade: documentos?.identidade ? 1 : 0,
-          cpf_documento: documentos?.cpf ? 1 : 0,
-          certidao: documentos?.certidao ? 1 : 0,
-          residencia: documentos?.residencia ? 1 : 0,
-          titulo: documentos?.titulo ? 1 : 0,
-          ensino_medio: documentos?.ensino_medio ? 1 : 0,
-          contrato: documentos?.contrato ? 1 : 0,
-        },
-      });
+        await initSyncRecord(db, {
+          recordId,
+          integrationId: integracao!.integration_id,
+          raText: dados.ra,
+          groupKey,
+          alunoId: resultado.meta.last_row_id,
+          generation: 1,
+          lifecycle: "ACTIVE",
+          initialValues: {
+            identidade: documentos?.identidade ? 1 : 0,
+            cpf_documento: documentos?.cpf ? 1 : 0,
+            certidao: documentos?.certidao ? 1 : 0,
+            residencia: documentos?.residencia ? 1 : 0,
+            titulo: documentos?.titulo ? 1 : 0,
+            ensino_medio: documentos?.ensino_medio ? 1 : 0,
+            contrato: documentos?.contrato ? 1 : 0,
+          },
+        });
+      }
     } else {
       await registrarPendencia(dados.ra, "ATUALIZAR", "NOVO ALUNO");
     }
@@ -308,34 +308,34 @@ async function editarAluno(
           .bind(integracao!.integration_id, raAtual)
           .run();
 
-        const groupKey: GroupKey = ["FACE", "FEA"].includes(dados.unidade)
-          ? "FACE_FEA"
-          : "FCH_EAD";
-        const recordId = `rec-${periodoId}-${groupKey}-${dados.ra}`;
+        const groupKey = derivarGroupKey(dados.unidade);
+        if (groupKey) {
+          const recordId = `rec-${periodoId}-${groupKey}-${dados.ra}`;
 
-        const docRow = await db
-          .prepare(`SELECT * FROM documentos WHERE aluno_id = ?`)
-          .bind(aluno.id)
-          .first<any>();
+          const docRow = await db
+            .prepare(`SELECT * FROM documentos WHERE aluno_id = ?`)
+            .bind(aluno.id)
+            .first<any>();
 
-        await initSyncRecord(db, {
-          recordId,
-          integrationId: integracao!.integration_id,
-          raText: dados.ra,
-          groupKey,
-          alunoId: aluno.id,
-          generation: 1,
-          lifecycle: "ACTIVE",
-          initialValues: {
-            identidade: docRow?.identidade ? 1 : 0,
-            cpf_documento: docRow?.cpf ? 1 : 0,
-            certidao: docRow?.certidao ? 1 : 0,
-            residencia: docRow?.residencia ? 1 : 0,
-            titulo: docRow?.titulo ? 1 : 0,
-            ensino_medio: docRow?.ensino_medio ? 1 : 0,
-            contrato: docRow?.contrato ? 1 : 0,
-          },
-        });
+          await initSyncRecord(db, {
+            recordId,
+            integrationId: integracao!.integration_id,
+            raText: dados.ra,
+            groupKey,
+            alunoId: aluno.id,
+            generation: 1,
+            lifecycle: "ACTIVE",
+            initialValues: {
+              identidade: docRow?.identidade ? 1 : 0,
+              cpf_documento: docRow?.cpf ? 1 : 0,
+              certidao: docRow?.certidao ? 1 : 0,
+              residencia: docRow?.residencia ? 1 : 0,
+              titulo: docRow?.titulo ? 1 : 0,
+              ensino_medio: docRow?.ensino_medio ? 1 : 0,
+              contrato: docRow?.contrato ? 1 : 0,
+            },
+          });
+        }
       }
     } else {
       if (dados.ra !== raAtual) {

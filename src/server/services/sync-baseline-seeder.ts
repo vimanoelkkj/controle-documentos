@@ -15,16 +15,16 @@
  */
 
 import {
-  initSyncRecord,
-  establishFieldBaseline,
+  derivarGroupKey,
   type FieldKey,
   type GroupKey,
-  type BaselineEvidence,
 } from "./sync-d1-core";
 import {
   CONTROL_DOC_COLUMNS,
   type ISyncSpreadsheetAdapter,
 } from "./sync-sheet-contracts";
+
+export { derivarGroupKey } from "./sync-d1-core";
 
 export interface PrepareBaselinesOptions {
   periodoId: number;
@@ -37,6 +37,7 @@ export interface PrepareBaselinesOptions {
     faceFea?: string;
     fchEad?: string;
   };
+  targetRas?: string[];
 }
 
 export interface BaselineSeederReport {
@@ -76,20 +77,6 @@ export interface BaselineSeederReport {
   }>;
 }
 
-async function sha256Hex(content: string): Promise<string> {
-  const enc = new TextEncoder();
-  const digest = await crypto.subtle.digest("SHA-256", enc.encode(content));
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-export function derivarGroupKey(unidade: string): GroupKey {
-  return ["FACE", "FEA"].includes(String(unidade ?? "").trim().toUpperCase())
-    ? "FACE_FEA"
-    : "FCH_EAD";
-}
-
 export async function prepareExistingAlunosBaselines(
   db: D1Database,
   options: PrepareBaselinesOptions,
@@ -97,9 +84,10 @@ export async function prepareExistingAlunosBaselines(
   const {
     periodoId,
     integrationId,
-    actorId,
+    actorId: _actorId,
     dryRun = false,
     externalAdapter,
+    targetRas,
   } = options;
 
   const report: BaselineSeederReport = {
@@ -141,25 +129,32 @@ export async function prepareExistingAlunosBaselines(
     return report;
   }
 
-  if (integracao.mode === "PAUSED" || integracao.mode === "QUARANTINED") {
+  if (integracao.mode === "QUARANTINED") {
     report.bloqueios.push({
       ra: "*",
-      motivo: `Integração V2 está em modo ${integracao.mode}. Preparação de baselines bloqueada.`,
+      motivo: `Integração V2 está em modo QUARANTINED. Preparação de baselines bloqueada.`,
     });
     return report;
   }
 
-  // 2. Carregar todos os alunos do período com seus documentos consolidados no D1
+  // 2. Carregar alunos do período com seus documentos consolidados no D1 (com filtro opcional por targetRas)
+  let queryAlunos = `SELECT a.id, a.ra, a.nome, a.unidade, a.curso, a.status,
+                            d.identidade, d.cpf, d.certidao, d.residencia, d.titulo, d.ensino_medio, d.contrato
+                     FROM alunos a
+                     LEFT JOIN documentos d ON d.aluno_id = a.id
+                     WHERE a.periodo_id = ?`;
+  const paramsQuery: (string | number)[] = [periodoId];
+
+  if (targetRas && targetRas.length > 0) {
+    const placeholders = targetRas.map(() => "?").join(", ");
+    queryAlunos += ` AND a.ra IN (${placeholders})`;
+    paramsQuery.push(...targetRas);
+  }
+  queryAlunos += ` ORDER BY a.ra ASC, a.id ASC`;
+
   const alunosD1 = await db
-    .prepare(
-      `SELECT a.id, a.ra, a.nome, a.unidade, a.curso, a.status,
-              d.identidade, d.cpf, d.certidao, d.residencia, d.titulo, d.ensino_medio, d.contrato
-       FROM alunos a
-       LEFT JOIN documentos d ON d.aluno_id = a.id
-       WHERE a.periodo_id = ?
-       ORDER BY a.ra ASC, a.id ASC`,
-    )
-    .bind(periodoId)
+    .prepare(queryAlunos)
+    .bind(...paramsQuery)
     .all<{
       id: number;
       ra: string;
@@ -187,6 +182,19 @@ export async function prepareExistingAlunosBaselines(
   const mapaPorChave = new Map<string, typeof alunosD1.results>();
   for (const aluno of alunosD1.results) {
     const groupKey = derivarGroupKey(aluno.unidade);
+    if (!groupKey) {
+      report.bloqueios.push({
+        ra: aluno.ra,
+        motivo: `Unidade inválida ou desconhecida: '${aluno.unidade}'. Impossível derivar groupKey para o aluno ${aluno.ra}.`,
+      });
+      report.detalhes.push({
+        ra: aluno.ra,
+        groupKey: "FACE_FEA",
+        status: "BLOQUEADO",
+        motivo: `Unidade inválida: '${aluno.unidade}'`,
+      });
+      continue;
+    }
     const chave = `${groupKey}:${aluno.ra}`;
     const lista = mapaPorChave.get(chave) ?? [];
     lista.push(aluno);
@@ -273,6 +281,9 @@ export async function prepareExistingAlunosBaselines(
   // 5. Preparação individual idempotente para cada aluno não duplicado
   for (const aluno of alunosD1.results) {
     const groupKey = derivarGroupKey(aluno.unidade);
+    if (!groupKey) {
+      continue; // Já bloqueado e registrado na etapa 3
+    }
     const chave = `${groupKey}:${aluno.ra}`;
 
     if (rasDuplicados.has(chave)) {
@@ -294,39 +305,82 @@ export async function prepareExistingAlunosBaselines(
         generation: number;
       }>();
 
-    if (syncRecordExistente) {
-      // Verifica se todos os 7 campos já possuem baseline estabelecida
-      const fieldsState = await db
-        .prepare(
-          `SELECT field_key, status, revision, value
-           FROM sync_field_state
-           WHERE record_id = ?`,
-        )
-        .bind(syncRecordExistente.record_id)
-        .all<{
-          field_key: FieldKey;
-          status: string;
-          revision: number;
-          value: number | null;
-        }>();
+    const recordId =
+      syncRecordExistente?.record_id ??
+      `rec-${periodoId}-${groupKey}-${aluno.ra}`;
 
-      const todosConfirmados =
-        fieldsState.results.length === 7 &&
-        fieldsState.results.every((f) => f.status !== "UNBASELINED");
+    // 5.2. Carrega estado atual dos campos para validação de idempotência
+    const existingFieldStates = syncRecordExistente
+      ? await db
+          .prepare(
+            `SELECT field_key, status, revision, value
+             FROM sync_field_state
+             WHERE record_id = ?`,
+          )
+          .bind(recordId)
+          .all<{
+            field_key: FieldKey;
+            status: string;
+            revision: number;
+            value: number | null;
+          }>()
+      : { results: [] };
 
-      if (todosConfirmados) {
-        // Idempotência estrita: não sobrescreve baselines já existentes
-        report.alunosJaExistentes++;
-        report.detalhes.push({
-          ra: aluno.ra,
-          groupKey,
-          status: "JA_PREPARADO",
-        });
-        continue;
-      }
+    const existingFieldMap = new Map(
+      existingFieldStates.results.map((f) => [f.field_key, f]),
+    );
+
+    // Proteção de conflitos e operações pendentes em trânsito
+    const activeConflicts = syncRecordExistente
+      ? await db
+          .prepare(
+            `SELECT field_key FROM sync_conflicts WHERE record_id = ? AND resolved = 0`,
+          )
+          .bind(recordId)
+          .all<{ field_key: FieldKey }>()
+      : { results: [] };
+    const conflictFieldKeys = new Set(
+      activeConflicts.results.map((c) => c.field_key),
+    );
+
+    const pendingOps = syncRecordExistente
+      ? await db
+          .prepare(
+            `SELECT field_key FROM sync_operations
+             WHERE record_id = ? AND state IN ('PENDING', 'CLAIMED', 'RETRY_WAIT', 'UNCERTAIN')`,
+          )
+          .bind(recordId)
+          .all<{ field_key: FieldKey }>()
+      : { results: [] };
+    const pendingOpFieldKeys = new Set(
+      pendingOps.results.map((o) => o.field_key),
+    );
+
+    // Idempotência estrita: se todos os 7 campos já estiverem CONFIRMED ou protegidos
+    const todosJaPreparados =
+      syncRecordExistente !== null &&
+      CONTROL_DOC_COLUMNS.every((f) => {
+        const st = existingFieldMap.get(f);
+        return (
+          st &&
+          (st.status === "CONFIRMED" ||
+            st.revision > 0 ||
+            conflictFieldKeys.has(f) ||
+            pendingOpFieldKeys.has(f))
+        );
+      });
+
+    if (todosJaPreparados) {
+      report.alunosJaExistentes++;
+      report.detalhes.push({
+        ra: aluno.ra,
+        groupKey,
+        status: "JA_PREPARADO",
+      });
+      continue;
     }
 
-    // 5.2. Valores consolidados no D1
+    // 5.3. Valores consolidados no D1 (a partir da tabela documentos)
     const d1Values: Record<FieldKey, 0 | 1> = {
       identidade: aluno.identidade ? 1 : 0,
       cpf_documento: aluno.cpf ? 1 : 0,
@@ -337,7 +391,7 @@ export async function prepareExistingAlunosBaselines(
       contrato: aluno.contrato ? 1 : 0,
     };
 
-    // 5.3. Comparação com snapshot externo (se disponível)
+    // 5.4. Comparação com snapshot externo (se disponível)
     const mapRows = externalSnapshotsPorGrupo[groupKey];
     const externalRow = mapRows?.get(aluno.ra);
     const divergenciasAluno: Array<{
@@ -378,7 +432,7 @@ export async function prepareExistingAlunosBaselines(
       });
     }
 
-    // 5.4. Execução da inicialização (se não for dry-run)
+    // 5.5. Execução da inicialização (se não for dry-run)
     if (dryRun) {
       report.alunosPreparados++;
       if (divergenciasAluno.length === 0) {
@@ -392,69 +446,114 @@ export async function prepareExistingAlunosBaselines(
       continue;
     }
 
-    const recordId =
-      syncRecordExistente?.record_id ??
-      `rec-${periodoId}-${groupKey}-${aluno.ra}`;
+    const batchStmts: D1PreparedStatement[] = [];
 
-    // Garante sync_records criado
+    // Garante criação do registro de sincronização sem alterar documentos negociais
     if (!syncRecordExistente) {
-      await initSyncRecord(db, {
-        recordId,
-        integrationId,
-        raText: aluno.ra,
-        groupKey,
-        alunoId: aluno.id,
-        generation: 1,
-        lifecycle: "ACTIVE",
-      });
+      batchStmts.push(
+        db
+          .prepare(
+            `INSERT OR IGNORE INTO sync_records (
+               record_id, integration_id, aluno_id, ra_text, group_key, generation, lifecycle
+             ) VALUES (?, ?, ?, ?, ?, 1, 'ACTIVE')`,
+          )
+          .bind(recordId, integrationId, aluno.id, aluno.ra, groupKey),
+      );
     }
 
-    // Estabelece a linha de base comprovada para cada campo
+    // Inicializa campos que ainda não estão estabelecidos
     for (const field of CONTROL_DOC_COLUMNS) {
+      const existingField = existingFieldMap.get(field);
+
+      // Preservação estrita: não sobrescreve estados já confirmados, revisões superiores,
+      // conflitos abertos nem operações pendentes
+      if (
+        existingField &&
+        (existingField.status === "CONFIRMED" ||
+          existingField.revision > 0 ||
+          conflictFieldKeys.has(field) ||
+          pendingOpFieldKeys.has(field))
+      ) {
+        continue;
+      }
+
       const temDivergencia = divergenciasAluno.some(
         (d) => d.fieldKey === field,
       );
 
       // Regra de segurança: se o campo estiver com divergência externa não resolvida,
-      // não presume igualdade! Mantém UNBASELINED para resolução explícita F3.
+      // mantém UNBASELINED com value = NULL para resolução explícita
       if (temDivergencia) {
+        batchStmts.push(
+          db
+            .prepare(
+              `INSERT INTO sync_field_state (
+                 record_id, field_key, value, revision, status, updated_at
+               ) VALUES (?, ?, NULL, 0, 'UNBASELINED', CURRENT_TIMESTAMP)
+               ON CONFLICT(record_id, field_key) DO UPDATE SET
+                 value = NULL,
+                 revision = 0,
+                 status = 'UNBASELINED',
+                 updated_at = CURRENT_TIMESTAMP
+               WHERE revision = 0 AND (status = 'UNBASELINED' OR status IS NULL)`,
+            )
+            .bind(recordId, field),
+        );
         continue;
       }
 
       const baselineVal = d1Values[field];
-      const evidencePayload = JSON.stringify({
-        source: "LEGACY_MIGRATION",
-        alunoId: aluno.id,
-        ra: aluno.ra,
-        periodoId,
-        groupKey,
-        fieldKey: field,
-        d1Value: baselineVal,
-        timestamp: new Date().toISOString(),
-      });
-      const evidenceHash = await sha256Hex(evidencePayload);
+      // Inicializa sync_field_state com revision = 0 e status = CONFIRMED
+      // SEM ALTERAR A TABELA DOCUMENTOS NEM SEU TIMESTAMP (atualizado_em)
+      // Proteção atômica anti-TOCTOU no D1: condiciona inserção e atualização à ausência de
+      // conflitos não resolvidos e operações outbound ativas no exato instante do commit.
+      batchStmts.push(
+        db
+          .prepare(
+            `INSERT INTO sync_field_state (
+               record_id, field_key, value, revision, status, updated_at
+             )
+             SELECT ?, ?, ?, 0, 'CONFIRMED', CURRENT_TIMESTAMP
+             WHERE NOT EXISTS (
+               SELECT 1 FROM sync_conflicts
+               WHERE record_id = ? AND field_key = ? AND resolved = 0
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM sync_operations
+               WHERE record_id = ? AND field_key = ?
+                 AND state IN ('PENDING', 'CLAIMED', 'RETRY_WAIT', 'UNCERTAIN')
+             )
+             ON CONFLICT(record_id, field_key) DO UPDATE SET
+               value = excluded.value,
+               revision = 0,
+               status = 'CONFIRMED',
+               updated_at = CURRENT_TIMESTAMP
+             WHERE revision = 0
+               AND (status = 'UNBASELINED' OR status IS NULL)
+               AND NOT EXISTS (
+                 SELECT 1 FROM sync_conflicts
+                 WHERE record_id = excluded.record_id AND field_key = excluded.field_key AND resolved = 0
+               )
+               AND NOT EXISTS (
+                 SELECT 1 FROM sync_operations
+                 WHERE record_id = excluded.record_id AND field_key = excluded.field_key
+                   AND state IN ('PENDING', 'CLAIMED', 'RETRY_WAIT', 'UNCERTAIN')
+               )`,
+          )
+          .bind(
+            recordId,
+            field,
+            baselineVal,
+            recordId,
+            field,
+            recordId,
+            field,
+          ),
+      );
+    }
 
-      const evidence: BaselineEvidence = {
-        source: "LEGACY_MIGRATION",
-        evidencePayload,
-        evidenceHash,
-      };
-
-      const baselineCommandId = `base-${recordId}-${field}`;
-
-      await establishFieldBaseline(db, {
-        commandId: baselineCommandId,
-        actorId,
-        recordId,
-        fieldKey: field,
-        baselineValue: baselineVal,
-        integrationId,
-        periodoId,
-        groupKey,
-        generation: 1,
-        epoch: integracao.epoch,
-        evidence,
-      });
+    if (batchStmts.length > 0) {
+      await db.batch(batchStmts);
     }
 
     report.alunosPreparados++;

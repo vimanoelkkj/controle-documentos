@@ -12,6 +12,47 @@ import { getServerTrustedAdapter } from './sync-d1-auth';
 
 export type GroupKey = 'FACE_FEA' | 'FCH_EAD';
 
+const UNIDADES_FACE_FEA = new Set([
+  'FACE',
+  'FEA',
+  'FACE FEA',
+  'FEA FACE',
+]);
+
+const UNIDADES_FCH_EAD = new Set([
+  'FCH',
+  'EAD',
+  'FCH EAD',
+  'EAD FCH',
+]);
+
+/**
+ * Deriva determinística e estritamente a GroupKey correspondente
+ * a partir do campo textual unidade do aluno.
+ * Suporta separadores comuns ('/', '-', '_', múltiplos espaços) e variações de caixa.
+ * Retorna null (fail-closed) se a unidade for desconhecida, nula ou inválida,
+ * sem utilizar correspondência genérica por substring.
+ */
+export function derivarGroupKey(unidade: string | null | undefined): GroupKey | null {
+  if (!unidade || typeof unidade !== 'string') {
+    return null;
+  }
+  const normalizada = unidade
+    .trim()
+    .toUpperCase()
+    .replace(/[/\-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (UNIDADES_FACE_FEA.has(normalizada)) {
+    return 'FACE_FEA';
+  }
+  if (UNIDADES_FCH_EAD.has(normalizada)) {
+    return 'FCH_EAD';
+  }
+  return null;
+}
+
 export type FieldKey =
   | 'identidade'
   | 'cpf_documento'

@@ -71,6 +71,9 @@ export interface InboundSyncReport {
     tabName: string;
     erro: string;
   }>;
+  camposExaminados?: number;
+  mutacoesPlanejadas?: number;
+  mutacoesPersistidas?: number;
 }
 
 const FIELD_TO_DOC_COLUMN: Record<FieldKey, string> = {
@@ -112,6 +115,9 @@ export async function reconcileInboundFromSpreadsheet(
     divergenciasComOutboxPendente: [],
     mutacoesAplicadas: [],
     errosLayout: [],
+    camposExaminados: 0,
+    mutacoesPlanejadas: 0,
+    mutacoesPersistidas: 0,
   };
 
   // 1. Validação da integração
@@ -256,8 +262,19 @@ export async function reconcileInboundFromSpreadsheet(
 
       const recordId = syncRecord.record_id;
 
+      // Carrega valores consolidados da tabela documentos do D1 para proteção contra baseline ausente
+      const docRow = await db
+        .prepare(
+          `SELECT identidade, cpf, certidao, residencia, titulo, ensino_medio, contrato
+           FROM documentos
+           WHERE aluno_id = ?`,
+        )
+        .bind(aluno.id)
+        .first<Record<string, number | null>>();
+
       // 3.5. Avalia cada um dos 7 campos documentais
       for (const field of CONTROL_DOC_COLUMNS) {
+        report.camposExaminados = (report.camposExaminados ?? 0) + 1;
         const sheetField = rowSnapshot.fields[field];
         const sheetNormalized = sheetField?.normalizedValue ?? null;
 
@@ -265,6 +282,9 @@ export async function reconcileInboundFromSpreadsheet(
         if (sheetNormalized === null) {
           continue;
         }
+
+        const docCol = FIELD_TO_DOC_COLUMN[field];
+        const docVal = docRow ? (docRow[docCol] ? 1 : 0) : null;
 
         // Lê estado atual no D1
         const fieldState = await db
@@ -280,14 +300,18 @@ export async function reconcileInboundFromSpreadsheet(
             status: string;
           }>();
 
-        const d1Value = fieldState?.value ?? null;
-        const currentRevision = fieldState?.revision ?? 0;
+        // =========================================================================
+        // CENÁRIO 1: Estado já confirmado no sync_field_state (baseline estabelecida)
+        // =========================================================================
+        if (fieldState && fieldState.status === "CONFIRMED") {
+          const d1Value = fieldState.value;
+          const currentRevision = fieldState.revision;
 
-        // Se os valores já são iguais e o estado está confirmado, no-op
-        if (d1Value === sheetNormalized && fieldState?.status === "CONFIRMED") {
-          report.camposEmSincronia++;
-          continue;
-        }
+          // Se os valores já são iguais e o estado está confirmado, no-op
+          if (d1Value === sheetNormalized) {
+            report.camposEmSincronia++;
+            continue;
+          }
 
         // Se há divergência entre a planilha e o D1:
         // Verifica se existe operação local ativa na outbox pendente de despacho
@@ -361,6 +385,11 @@ export async function reconcileInboundFromSpreadsheet(
 
         // Sem operação local pendente: Ingestão limpa (EXTERNAL_AHEAD)
         report.camposAtualizadosNoD1++;
+        if (dryRun) {
+          report.mutacoesPlanejadas = (report.mutacoesPlanejadas ?? 0) + 1;
+        } else {
+          report.mutacoesPersistidas = (report.mutacoesPersistidas ?? 0) + 1;
+        }
         report.mutacoesAplicadas.push({
           ra: canonicalRa,
           groupKey,
@@ -455,6 +484,69 @@ export async function reconcileInboundFromSpreadsheet(
           // Não inserimos nenhuma linha em `sync_operations` para o destino CONTROLE.
           // Isso garante que a alteração vinda da planilha NÃO será enviada de volta à planilha!
         }
+        continue;
+      }
+
+      // =========================================================================
+      // CENÁRIO 2: Campo SEM baseline inicializada (fieldState null ou UNBASELINED)
+      // =========================================================================
+      // Proteção Fail-Closed: validação contra a tabela documentos existente
+
+      // Subcenário 2.1: Valores idênticos entre a planilha e o banco de dados
+      if (docVal !== null && sheetNormalized === docVal) {
+        // A planilha e a tabela documentos já possuem exatamente o mesmo valor documental.
+        // Trata como sincronia e estabelece o baseline atômico com revision = 0
+        // SEM alterar a tabela documentos nem disparar mutações desnecessárias
+        report.camposEmSincronia++;
+        if (!dryRun) {
+          await db
+            .prepare(
+              `INSERT INTO sync_field_state (
+                 record_id, field_key, value, revision, status, updated_at
+               ) VALUES (?, ?, ?, 0, 'CONFIRMED', CURRENT_TIMESTAMP)
+               ON CONFLICT(record_id, field_key) DO UPDATE SET
+                 value = excluded.value,
+                 revision = 0,
+                 status = 'CONFIRMED',
+                 updated_at = CURRENT_TIMESTAMP
+               WHERE revision = 0 AND (status = 'UNBASELINED' OR status IS NULL)`,
+            )
+            .bind(recordId, field, docVal)
+            .run();
+        }
+        continue;
+      }
+
+      // Subcenário 2.2: Divergência entre planilha e banco para aluno não semeado.
+      // FAIL-CLOSED: Rejeita mutação cega no D1 sem baseline confirmada prévia! Registra conflito.
+      report.conflitosDetectados++;
+      report.divergenciasComOutboxPendente.push({
+        ra: canonicalRa,
+        groupKey,
+        fieldKey: field,
+        valorPlanilha: sheetNormalized,
+        valorLocal: docVal,
+        statusOperacaoLocal: "BASELINE_AUSENTE_DIVERGENCIA",
+      });
+
+      if (!dryRun) {
+        const conflictId = `conf-inbound-${crypto.randomUUID().slice(0, 8)}`;
+        await db
+          .prepare(
+            `INSERT OR REPLACE INTO sync_conflicts (
+               conflict_id, record_id, field_key, target_key,
+               local_revision, local_value, external_value, reason, resolved
+             ) VALUES (?, ?, ?, 'CONTROLE', 0, ?, ?, 'BASELINE_AUSENTE_DIVERGENCIA', 0)`,
+          )
+          .bind(
+            conflictId,
+            recordId,
+            field,
+            docVal ?? 0,
+            sheetNormalized,
+          )
+          .run();
+      }
       }
     }
   }
