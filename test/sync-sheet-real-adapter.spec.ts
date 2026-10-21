@@ -367,7 +367,7 @@ describe('F4-A: Adaptador Real Google Sheets (GoogleSheetsRealAdapter)', () => {
 
     // Confirma que apenas a célula H2 foi modificada na planilha
     const tabData = store.get('CONTROLE DE DOCUMENTOS FACE FEA')!;
-    expect(tabData[1][7]).toBe('TRUE'); // Coluna H linha 2
+    expect(tabData[1][7] === true || tabData[1][7] === 'TRUE').toBe(true); // Coluna H linha 2 (booleano real para checkbox)
     expect(tabData[1][0]).toBe('000123'); // RA preservado intacto
     expect(tabData[1][1]).toBe('Aluno Com Zeros'); // Nome preservado intacto
     expect(tabData[1][2]).toBe('TRUE'); // Coluna C intacta
@@ -627,7 +627,7 @@ describe('F4-A: Adaptador Real Google Sheets (GoogleSheetsRealAdapter)', () => {
 
     const gradeAposEscrita = store.get('CONTROLE DE DOCUMENTOS FACE FEA')!;
     // Coluna H foi atualizada para TRUE
-    expect(gradeAposEscrita[1][7]).toBe('TRUE');
+    expect(gradeAposEscrita[1][7] === true || gradeAposEscrita[1][7] === 'TRUE').toBe(true); // Booleano real para checkbox
     // Colunas J (índice 9) e K (índice 10) preservadas com fórmulas originais intactas
     expect(gradeAposEscrita[1][9]).toBe('=CONT.SE(C2:I2, TRUE)');
     expect(gradeAposEscrita[1][10]).toBe('=SE(J2=7, "OK", "PENDENTE")');

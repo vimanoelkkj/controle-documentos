@@ -13,7 +13,6 @@
  * ============================================================================
  */
 
-import type { GroupKey } from "./sync-d1-core";
 import type { ISyncSpreadsheetAdapter } from "./sync-sheet-contracts";
 import { GoogleSheetsRealAdapter } from "./sync-sheet-real-adapter";
 import {
@@ -24,7 +23,7 @@ import {
   SyncV2Orchestrator,
   type SyncBatchResult,
   type TabNameResolver,
-  defaultTabNameResolver,
+  createTabNameResolver,
 } from "./sync-orchestrator";
 
 // ----------------------------------------------------------------------------
@@ -651,20 +650,7 @@ export async function runScheduledSyncV2(
           aba_base_fch_ead?: string;
         }>();
 
-      tabNameResolver = {
-        getControlTabName(groupKey: GroupKey): string {
-          if (groupKey === "FACE_FEA") {
-            return sheetsConfig?.aba_docs_face_fea || defaultTabNameResolver.getControlTabName(groupKey);
-          }
-          return sheetsConfig?.aba_docs_fch_ead || defaultTabNameResolver.getControlTabName(groupKey);
-        },
-        getGeneralTabName(groupKey: GroupKey): string {
-          if (groupKey === "FACE_FEA") {
-            return sheetsConfig?.aba_base_face_fea || defaultTabNameResolver.getGeneralTabName(groupKey);
-          }
-          return sheetsConfig?.aba_base_fch_ead || defaultTabNameResolver.getGeneralTabName(groupKey);
-        },
-      };
+      tabNameResolver = createTabNameResolver({ sheetsConfig });
     }
 
     try {

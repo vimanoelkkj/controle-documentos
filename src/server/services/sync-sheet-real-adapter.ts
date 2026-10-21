@@ -24,7 +24,8 @@ import {
   CONTROL_DOC_COLUMNS,
   FIELD_TO_CONTROL_COLUMN_INDEX,
   CONTROL_COLUMN_LETTERS,
-  EXPECTED_CONTROL_HEADERS,
+  validateControlHeadersRow,
+  normalizeHeaderString,
   normalizeDocumentCellValue,
   normalizeContractCellValue,
   type ISyncSpreadsheetAdapter,
@@ -260,36 +261,22 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
   // ==========================================================================
 
   private validateControlHeaders(headers: string[]): { valid: true; fingerprint: string } | { valid: false; error: string } {
-    if (headers.length < 9) {
-      return { valid: false, error: 'Aba de controle possui menos de 9 colunas (esperado C:I)' };
-    }
-    const headerCtoI = headers.slice(2, 9);
-    for (let idx = 0; idx < EXPECTED_CONTROL_HEADERS.length; idx++) {
-      const actual = (headerCtoI[idx] || '').trim().toUpperCase();
-      const expected = EXPECTED_CONTROL_HEADERS[idx];
-      if (actual !== expected) {
-        return {
-          valid: false,
-          error: `STRUCTURAL_LAYOUT_MUTATED: Coluna ${String.fromCharCode(67 + idx)} esperava '${expected}', encontrou '${actual}'`,
-        };
-      }
-    }
-    return { valid: true, fingerprint: headerCtoI.join('::') };
+    return validateControlHeadersRow(headers);
   }
 
   private validateGeneralHeaders(headers: string[]): { valid: true; fingerprint: string } | { valid: false; error: string } {
     if (headers.length < 7) {
       return { valid: false, error: 'Aba geral possui menos de 7 colunas (esperado A e G)' };
     }
-    const colAHeader = (headers[0] || '').trim().toUpperCase();
-    const colGHeader = (headers[6] || '').trim().toUpperCase();
-    if (!colAHeader.includes('SITUAÇÃO') && !colAHeader.includes('CONTRAT')) {
-      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: Coluna A da aba geral '${colAHeader}' não é situação contratual` };
+    const colAHeader = normalizeHeaderString(headers[0] || '');
+    const colGHeader = normalizeHeaderString(headers[6] || '');
+    if (!colAHeader.includes('SITUAC') && !colAHeader.includes('CONTRAT')) {
+      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: Coluna A da aba geral '${headers[0]}' não é situação contratual` };
     }
-    if (!colGHeader.includes('RA')) {
-      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: Coluna G da aba geral '${colGHeader}' não é RA` };
+    if (!colGHeader.includes('RA') && !colGHeader.includes('REGISTRO') && !colGHeader.includes('MATRICULA')) {
+      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: Coluna G da aba geral '${headers[6]}' não é RA` };
     }
-    return { valid: true, fingerprint: `${colAHeader}::${colGHeader}` };
+    return { valid: true, fingerprint: `${String(headers[0] || '').trim()}::${String(headers[6] || '').trim()}` };
   }
 
   // ==========================================================================
@@ -622,8 +609,9 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
     }
 
     // 5. Execução da mutação estritamente na célula única autorizada
+    // Para abas de controle com checkboxes nativos, escreve booleano real true/false
     const targetValueToWrite = isControl
-      ? (params.preconditions.targetValue === 1 ? 'TRUE' : 'FALSE')
+      ? (params.preconditions.targetValue === 1 ? true : false)
       : (params.preconditions.targetValue === 1 ? 'Entregue' : 'Não Entregue');
 
     const updateRange = `'${params.tabName.replace(/'/g, "''")}'!${cellCoordinate}`;

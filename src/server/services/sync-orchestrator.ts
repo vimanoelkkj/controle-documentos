@@ -58,6 +58,49 @@ export const defaultTabNameResolver: TabNameResolver = {
   },
 };
 
+/**
+ * Constrói um TabNameResolver dinâmico respeitando as abas configuradas do período
+ * (da tabela google_sheets_periodos) e derivando do código do período (ex: '2027-1' -> '2027 - 1')
+ * quando não houver sobreposição explícita na configuração.
+ */
+export function createTabNameResolver(options?: {
+  sheetsConfig?: {
+    aba_docs_face_fea?: string | null;
+    aba_docs_fch_ead?: string | null;
+    aba_base_face_fea?: string | null;
+    aba_base_fch_ead?: string | null;
+  } | null;
+  periodoCodigo?: string | null;
+}): TabNameResolver {
+  const cfg = options?.sheetsConfig;
+  const pCode = (options?.periodoCodigo || '').trim();
+
+  let formattedPeriodSuffix = '2026 - 2';
+  if (pCode) {
+    const match = pCode.match(/^(\d{4})[./\-_ ]*([12])$/);
+    if (match) {
+      formattedPeriodSuffix = `${match[1]} - ${match[2]}`;
+    } else {
+      formattedPeriodSuffix = pCode;
+    }
+  }
+
+  return {
+    getControlTabName(groupKey: GroupKey): string {
+      if (groupKey === 'FACE_FEA') {
+        return (cfg?.aba_docs_face_fea || '').trim() || 'CONTROLE DE DOCUMENTOS FACE FEA';
+      }
+      return (cfg?.aba_docs_fch_ead || '').trim() || 'CONTROLE DE DOCUMENTOS FCH EAD';
+    },
+    getGeneralTabName(groupKey: GroupKey): string {
+      if (groupKey === 'FACE_FEA') {
+        return (cfg?.aba_base_face_fea || '').trim() || `FACE - FEA ${formattedPeriodSuffix}`;
+      }
+      return (cfg?.aba_base_fch_ead || '').trim() || `FCH - EAD ${formattedPeriodSuffix}`;
+    },
+  };
+}
+
 export interface SyncOrchestratorOptions {
   db: D1Database;
   adapter: ISyncSpreadsheetAdapter;

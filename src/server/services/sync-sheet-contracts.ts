@@ -54,7 +54,7 @@ export const CONTROL_COLUMN_LETTERS: Record<FieldKey, string> = {
 };
 
 /**
- * Canonical Fingerprint dos cabeçalhos das 7 colunas C:I.
+ * Canonical Fingerprint dos cabeçalhos das 7 colunas C:I (Template legado/canônico).
  */
 export const EXPECTED_CONTROL_HEADERS = [
   'IDENTIDADE',
@@ -67,14 +67,98 @@ export const EXPECTED_CONTROL_HEADERS = [
 ];
 
 /**
- * Normalização determinística dos valores de células documentais.
- * - 'ENTREGUE', 'OK', 'SIM', '1', 'TRUE' -> 1
- * - 'PENDENTE', 'NÃO', 'FALTA', '0', 'FALSE' -> 0
- * - Vazio, '-' ou texto não mapeável -> null (desconhecido / UNBASELINED)
+ * Normaliza uma string de cabeçalho removendo acentos, pontuações e espaços redundantes.
  */
-export function normalizeDocumentCellValue(rawValue: unknown): 0 | 1 | null {
+export function normalizeHeaderString(header: string): string {
+  return String(header ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9]/g, ' ')
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * Valida se um cabeçalho de coluna corresponde ao documento esperado naquela posição C:I.
+ * Suporta tanto o template anterior quanto o formato original da planilha oficial (ex: CONTRATOS 2027 - 1°),
+ * como 'ID', 'RESIDENCIA', 'ENS. MEDIO', etc.
+ * colIndex varia de 0 a 6 (correspondente a C a I).
+ */
+export function isControlColumnMatchingField(colIndex: number, rawHeader: string): boolean {
+  const norm = normalizeHeaderString(rawHeader);
+  if (!norm) return false;
+  switch (colIndex) {
+    case 0: // C: identidade (ID, IDENTIDADE, RG, etc.)
+      return (
+        ['ID', 'IDENTIDADE', 'RG', 'RG IDENTIDADE', 'DOC IDENTIDADE', 'DOCUMENTO DE IDENTIDADE'].includes(norm) ||
+        norm.startsWith('ID ') ||
+        norm.endsWith(' ID') ||
+        norm.includes('IDENTIDADE') ||
+        norm.includes('IDENT')
+      );
+    case 1: // D: cpf
+      return norm === 'CPF' || norm.includes('CPF');
+    case 2: // E: certidao
+      return norm.includes('CERTIDAO');
+    case 3: // F: residencia (RESIDÊNCIA, COMP. RESIDÊNCIA, ENDEREÇO, etc.)
+      return norm.includes('RESIDENCIA') || norm.includes('ENDERECO');
+    case 4: // G: titulo
+      return norm.includes('TITULO') || norm.includes('ELEITOR');
+    case 5: // H: ensino_medio (ENS. MÉDIO, ENSINO MÉDIO, HISTÓRICO, etc.)
+      return norm.includes('MEDIO') || norm.includes('HISTORICO') || norm.includes('SEGUNDO GRAU');
+    case 6: // I: contrato
+      return norm.includes('CONTRATO');
+    default:
+      return false;
+  }
+}
+
+/**
+ * Validação estrutural de cabeçalhos da aba de controle C:I.
+ * Aceita tanto os nomes do template quanto os nomes originais da planilha oficial.
+ */
+export function validateControlHeadersRow(headers: string[]): { valid: true; fingerprint: string } | { valid: false; error: string } {
+  if (headers.length < 9) {
+    return { valid: false, error: 'Aba de controle possui menos de 9 colunas (esperado C:I)' };
+  }
+  const headerCtoI = headers.slice(2, 9);
+  for (let idx = 0; idx < 7; idx++) {
+    const raw = headerCtoI[idx] ?? '';
+    if (!isControlColumnMatchingField(idx, raw)) {
+      const field = CONTROL_DOC_COLUMNS[idx];
+      const colLetter = String.fromCharCode(67 + idx);
+      return {
+        valid: false,
+        error: `STRUCTURAL_LAYOUT_MUTATED: Coluna ${colLetter} esperava documento '${field}', mas encontrou '${String(raw).trim()}'`,
+      };
+    }
+  }
+  return { valid: true, fingerprint: headerCtoI.map(h => String(h || '').trim()).join('::') };
+}
+
+/**
+ * Normalização determinística dos valores de células documentais.
+ * - Booleano nativo: true -> 1, false -> 0 (checkboxes nativos do Google Sheets)
+ * - Strings equivalentes: 'ENTREGUE', 'OK', 'SIM', '1', 'TRUE' -> 1
+ * - Strings equivalentes: 'PENDENTE', 'NÃO', 'FALTA', '0', 'FALSE' -> 0
+ * - Vazio, '-' ou texto não mapeável -> null (desconhecido / UNBASELINED)
+ *   Célula vazia somente representa desmarcado (0) quando o tipo/contrato da coluna
+ *   garantir explicitamente essa interpretação (options?.treatEmptyAsUnchecked: true),
+ *   preservando o estado desconhecido por padrão para evitar falsos pendentes.
+ */
+export function normalizeDocumentCellValue(
+  rawValue: unknown,
+  options?: { treatEmptyAsUnchecked?: boolean },
+): 0 | 1 | null {
   if (rawValue === null || rawValue === undefined) return null;
+  if (typeof rawValue === 'boolean') {
+    return rawValue ? 1 : 0;
+  }
   const str = String(rawValue).trim().toUpperCase();
+  if (str === '') {
+    return options?.treatEmptyAsUnchecked ? 0 : null;
+  }
   if (['1', 'SIM', 'S', 'ENTREGUE', 'OK', 'TRUE', 'VERDADEIRO', 'CONFIRMADO', 'ENVIADO'].includes(str)) {
     return 1;
   }
@@ -191,7 +275,7 @@ export interface WriteResult {
     | 'STUDENT_NOT_FOUND'
     | 'AMBIGUOUS_IDENTITY';
   cellCoordinate?: string;
-  observedValue?: string;
+  observedValue?: string | boolean;
   error?: string;
 }
 

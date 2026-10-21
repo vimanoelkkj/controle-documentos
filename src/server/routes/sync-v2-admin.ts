@@ -3,7 +3,7 @@ import {
   SyncV2Orchestrator,
   type SyncBatchResult,
   type TabNameResolver,
-  defaultTabNameResolver,
+  createTabNameResolver,
 } from "../services/sync-orchestrator";
 import {
   GoogleSheetsRealAdapter,
@@ -1417,7 +1417,7 @@ export async function handleSyncV2AdminRoute(
 
     activeDispatches.add(dispatchKey);
 
-    // Monta resolver dinâmico de abas a partir de google_sheets_periodos (ou default)
+    // Monta resolver dinâmico de abas a partir de google_sheets_periodos e periodos
     const sheetsConfig = await db
       .prepare(`SELECT aba_docs_face_fea, aba_docs_fch_ead, aba_base_face_fea, aba_base_fch_ead FROM google_sheets_periodos WHERE periodo_id = ?`)
       .bind(periodoId)
@@ -1428,20 +1428,15 @@ export async function handleSyncV2AdminRoute(
         aba_base_fch_ead?: string;
       }>();
 
-    const tabNameResolver: TabNameResolver = {
-      getControlTabName(groupKey: GroupKey): string {
-        if (groupKey === "FACE_FEA") {
-          return sheetsConfig?.aba_docs_face_fea || defaultTabNameResolver.getControlTabName(groupKey);
-        }
-        return sheetsConfig?.aba_docs_fch_ead || defaultTabNameResolver.getControlTabName(groupKey);
-      },
-      getGeneralTabName(groupKey: GroupKey): string {
-        if (groupKey === "FACE_FEA") {
-          return sheetsConfig?.aba_base_face_fea || defaultTabNameResolver.getGeneralTabName(groupKey);
-        }
-        return sheetsConfig?.aba_base_fch_ead || defaultTabNameResolver.getGeneralTabName(groupKey);
-      },
-    };
+    const periodoRow = await db
+      .prepare(`SELECT codigo FROM periodos WHERE id = ?`)
+      .bind(periodoId)
+      .first<{ codigo?: string }>();
+
+    const tabNameResolver: TabNameResolver = createTabNameResolver({
+      sheetsConfig,
+      periodoCodigo: periodoRow?.codigo,
+    });
 
     try {
       // Cria instância do orquestrador com hook de parada operacional graciosa
@@ -1607,7 +1602,7 @@ export async function handleSyncV2AdminRoute(
       // ignore
     }
 
-    // 5. Monta resolver dinâmico de abas
+    // 5. Monta resolver dinâmico de abas a partir de google_sheets_periodos e periodos
     const sheetsConfig = await db
       .prepare(
         `SELECT aba_docs_face_fea, aba_docs_fch_ead, aba_base_face_fea, aba_base_fch_ead FROM google_sheets_periodos WHERE periodo_id = ?`,
@@ -1620,32 +1615,15 @@ export async function handleSyncV2AdminRoute(
         aba_base_fch_ead?: string;
       }>();
 
-    const tabNameResolver: TabNameResolver = {
-      getControlTabName(groupKey: GroupKey): string {
-        if (groupKey === "FACE_FEA") {
-          return (
-            sheetsConfig?.aba_docs_face_fea ||
-            defaultTabNameResolver.getControlTabName(groupKey)
-          );
-        }
-        return (
-          sheetsConfig?.aba_docs_fch_ead ||
-          defaultTabNameResolver.getControlTabName(groupKey)
-        );
-      },
-      getGeneralTabName(groupKey: GroupKey): string {
-        if (groupKey === "FACE_FEA") {
-          return (
-            sheetsConfig?.aba_base_face_fea ||
-            defaultTabNameResolver.getGeneralTabName(groupKey)
-          );
-        }
-        return (
-          sheetsConfig?.aba_base_fch_ead ||
-          defaultTabNameResolver.getGeneralTabName(groupKey)
-        );
-      },
-    };
+    const periodoRow = await db
+      .prepare(`SELECT codigo FROM periodos WHERE id = ?`)
+      .bind(periodoId)
+      .first<{ codigo?: string }>();
+
+    const tabNameResolver: TabNameResolver = createTabNameResolver({
+      sheetsConfig,
+      periodoCodigo: periodoRow?.codigo,
+    });
 
     const actorId = usuarioAtual?.email || `admin-secret:${periodoId}`;
 

@@ -19,7 +19,8 @@ import {
   CONTROL_DOC_COLUMNS,
   FIELD_TO_CONTROL_COLUMN_INDEX,
   CONTROL_COLUMN_LETTERS,
-  EXPECTED_CONTROL_HEADERS,
+  validateControlHeadersRow,
+  normalizeHeaderString,
   normalizeDocumentCellValue,
   normalizeContractCellValue,
   type ISyncSpreadsheetAdapter,
@@ -39,7 +40,7 @@ export interface FakeTabCellGrid {
   tabType: 'CONTROL' | 'GENERAL';
   groupKey?: GroupKey;
   // Matriz de dados: rows[linhaIdx][colunaIdx]
-  rows: string[][];
+  rows: (string | boolean)[][];
   // Mapa de RA -> lista de índices de linha (para detecção de duplicados/ambiguidade)
   raToRowIndices: Map<string, number[]>;
   // Versionamento sequencial por célula para controle de concorrência determinístico
@@ -113,7 +114,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
         'CONTRATO',
       ];
 
-    const gridRows: string[][] = [];
+    const gridRows: (string | boolean)[][] = [];
     const raMap = new Map<string, number[]>();
     const cellVersions = new Map<string, number>();
 
@@ -183,7 +184,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
         'RA',                 // Col G
       ];
 
-    const gridRows: string[][] = [];
+    const gridRows: (string | boolean)[][] = [];
     const raMap = new Map<string, number[]>();
     const cellVersions = new Map<string, number>();
 
@@ -226,21 +227,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
    * Valida layout de cabeçalho da aba de controle C:I
    */
   private validateControlHeader(headers: string[]): { valid: true; fingerprint: string } | { valid: false; error: string } {
-    if (headers.length < 9) {
-      return { valid: false, error: 'Control tab has less than 9 columns' };
-    }
-    const headerCtoI = headers.slice(2, 9);
-    for (let idx = 0; idx < EXPECTED_CONTROL_HEADERS.length; idx++) {
-      const actual = (headerCtoI[idx] || '').trim().toUpperCase();
-      const expected = EXPECTED_CONTROL_HEADERS[idx];
-      if (actual !== expected) {
-        return {
-          valid: false,
-          error: `STRUCTURAL_LAYOUT_MUTATED: Column ${String.fromCharCode(67 + idx)} header expected '${expected}', found '${actual}'`,
-        };
-      }
-    }
-    return { valid: true, fingerprint: headerCtoI.join('::') };
+    return validateControlHeadersRow(headers);
   }
 
   /**
@@ -250,15 +237,15 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
     if (headers.length < 7) {
       return { valid: false, error: 'General tab has less than 7 columns' };
     }
-    const colAHeader = (headers[0] || '').trim().toUpperCase();
-    const colGHeader = (headers[6] || '').trim().toUpperCase();
-    if (!colAHeader.includes('SITUAÇÃO') && !colAHeader.includes('CONTRAT')) {
-      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: General tab column A header '${colAHeader}' is invalid` };
+    const colAHeader = normalizeHeaderString(headers[0] || '');
+    const colGHeader = normalizeHeaderString(headers[6] || '');
+    if (!colAHeader.includes('SITUAC') && !colAHeader.includes('CONTRAT')) {
+      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: General tab column A header '${headers[0]}' is invalid` };
     }
-    if (!colGHeader.includes('RA')) {
-      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: General tab column G header '${colGHeader}' is not RA` };
+    if (!colGHeader.includes('RA') && !colGHeader.includes('REGISTRO') && !colGHeader.includes('MATRICULA')) {
+      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: General tab column G header '${headers[6]}' is not RA` };
     }
-    return { valid: true, fingerprint: `${colAHeader}::${colGHeader}` };
+    return { valid: true, fingerprint: `${String(headers[0] || '').trim()}::${String(headers[6] || '').trim()}` };
   }
 
   /**
@@ -291,8 +278,8 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
     const rowsByRa = new Map<string, ControlRowSnapshot>();
 
     for (let rowIdx = 0; rowIdx < tab.rows.length; rowIdx++) {
-      const row = tab.rows[rowIdx];
-      const cellB = (row[1] || '').trim();
+      const row = tab.rows[rowIdx] as (string | boolean)[];
+      const cellB = String(row[1] ?? '').trim();
       const match = cellB.match(/(\d+)$/);
       if (!match) continue;
 
@@ -310,7 +297,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
 
       for (const field of CONTROL_DOC_COLUMNS) {
         const colIdx = FIELD_TO_CONTROL_COLUMN_INDEX[field];
-        const rawValue = (row[colIdx] || '').trim();
+        const rawValue = typeof row[colIdx] === 'boolean' ? (row[colIdx] ? 'TRUE' : 'FALSE') : String(row[colIdx] ?? '').trim();
         const normalizedValue = normalizeDocumentCellValue(rawValue);
         const cellCoordinate = `${CONTROL_COLUMN_LETTERS[field]}${rowIdx + 2}`;
 
@@ -369,7 +356,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
 
     for (let rowIdx = 0; rowIdx < tab.rows.length; rowIdx++) {
       const row = tab.rows[rowIdx];
-      const raCell = (row[6] || '').trim();
+      const raCell = String(row[6] ?? '').trim();
       const raRes = validateCanonicalRa(raCell);
       if (!raRes.valid) continue;
 
@@ -379,7 +366,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
         throw new Error(`AMBIGUOUS_IDENTITY: Duplicate RA '${raRes.raText}' found at multiple rows in general tab '${params.tabName}'`);
       }
 
-      const contractRaw = (row[0] || '').trim();
+      const contractRaw = String(row[0] ?? '').trim();
       const contractNorm = normalizeContractCellValue(contractRaw);
 
       rowsByRa.set(raRes.raText, {
@@ -501,7 +488,10 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
     }
 
     const cellCoordinate = `${colLetter}${rowIdx + 2}`;
-    const currentRaw = (row[colIdx] || '').trim();
+    const isControl = params.preconditions.targetKey === 'CONTROLE';
+    const currentRaw = typeof row[colIdx] === 'boolean'
+      ? (row[colIdx] ? 'TRUE' : 'FALSE')
+      : String(row[colIdx] ?? '').trim();
     const currentNorm =
       params.preconditions.targetKey === 'GERAL_CONTRATO'
         ? normalizeContractCellValue(currentRaw)
@@ -536,7 +526,10 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
     }
 
     // Efetua a mutação estritamente na célula autorizada
-    const newRawValue = params.preconditions.targetValue === 1 ? 'ENTREGUE' : 'PENDENTE';
+    // Para abas de controle, grava booleano nativo true/false nos checkboxes
+    const newRawValue = isControl
+      ? (params.preconditions.targetValue === 1 ? true : false)
+      : (params.preconditions.targetValue === 1 ? 'ENTREGUE' : 'PENDENTE');
     row[colIdx] = newRawValue;
 
     // Incrementa versão sequencial da célula
@@ -547,7 +540,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
       success: true,
       status: 'COMMITTED',
       cellCoordinate,
-      observedValue: newRawValue,
+      observedValue: typeof newRawValue === 'boolean' ? (newRawValue ? 'TRUE' : 'FALSE') : newRawValue,
     };
   }
 
@@ -620,7 +613,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
       params.targetKey === 'GERAL_CONTRATO' ? 'A' : CONTROL_COLUMN_LETTERS[params.fieldKey];
     const cellCoordinate = `${colLetter}${rowIdx + 2}`;
 
-    const raw = (row[colIdx] || '').trim();
+    const raw = typeof row[colIdx] === 'boolean' ? (row[colIdx] ? 'TRUE' : 'FALSE') : String(row[colIdx] ?? '').trim();
     const norm =
       params.targetKey === 'GERAL_CONTRATO'
         ? normalizeContractCellValue(raw)
@@ -719,7 +712,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
     }
 
     const actualCellCoordinate = `${colLetter}${rowIdx + 2}`;
-    const actualRawValue = (row[colIdx] || '').trim();
+    const actualRawValue = typeof row[colIdx] === 'boolean' ? (row[colIdx] ? 'TRUE' : 'FALSE') : String(row[colIdx] ?? '').trim();
     const actualNormalizedValue =
       tab.tabType === 'CONTROL'
         ? normalizeDocumentCellValue(actualRawValue)
