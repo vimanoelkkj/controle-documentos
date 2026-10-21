@@ -374,7 +374,11 @@ export async function reconcileInboundFromSpreadsheet(
         }
       }
 
-      if (!aluno) {
+      // Em dryRun/SHADOW com autoCreateMissingAlunos=true, o aluno e simulado (aluno.id === 999999).
+      // A intencao de criacao ja foi computada em report.alunosCriadosNoD1.
+      // Como o aluno e seus documentos ainda NAO existem no D1, seus campos nao devem ser
+      // avaliados nem computados como camposEmSincronia (evita falsos positivos de sincronia).
+      if (!aluno || aluno.id === 999999) {
         continue;
       }
 
