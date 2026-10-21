@@ -26,10 +26,10 @@
   // Variáveis públicas e feature flags para homologação
   "vars": {
     "ENVIRONMENT": "homolog",
-    // Flag de controle: V2 DESATIVADA por padrão para arranque seguro
-    "SYNC_V2_ENABLED": "false",
-    // Flag de agendamento automático: DESATIVADA por padrão
-    "SYNC_V2_AUTO_ENABLED": "false",
+    // Flag de controle: V2 ATIVADA em homologação
+    "SYNC_V2_ENABLED": "true",
+    // Flag de agendamento automático: ATIVADA em homologação
+    "SYNC_V2_AUTO_ENABLED": "true",
     // Configurações de despacho e leases no ambiente de teste
     "SYNC_V2_DISPATCH_TIMEOUT_MS": "25000",
     "SYNC_V2_BATCH_SIZE": "20",
