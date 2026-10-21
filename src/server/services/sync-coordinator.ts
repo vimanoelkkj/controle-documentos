@@ -49,6 +49,8 @@ export interface ModePermissions {
   canRunOutbound: boolean;
   /** Se true, o outbound não grava no Google Sheets nem muta operações no D1 (simulação segura) */
   outboundDryRun: boolean;
+  /** Se true, cria novos alunos elegíveis identificados na planilha que ainda não constam no D1 */
+  autoCreateMissingAlunos?: boolean;
 }
 
 export const INTEGRATION_MODE_RULES: Record<IntegrationMode, ModePermissions> = {
@@ -59,6 +61,7 @@ export const INTEGRATION_MODE_RULES: Record<IntegrationMode, ModePermissions> = 
     inboundDryRun: false,
     canRunOutbound: true,
     outboundDryRun: false,
+    autoCreateMissingAlunos: true,
   },
   // CAPTURE: Apenas captura do Sheets para o D1; nunca despacha para o Sheets
   CAPTURE: {
@@ -67,6 +70,7 @@ export const INTEGRATION_MODE_RULES: Record<IntegrationMode, ModePermissions> = 
     inboundDryRun: false,
     canRunOutbound: false,
     outboundDryRun: true,
+    autoCreateMissingAlunos: true,
   },
   // SHADOW: Modo observador de homologação passiva (inbound dryRun, outbound estritamente simulado sem escrita no Sheets)
   SHADOW: {
@@ -75,6 +79,7 @@ export const INTEGRATION_MODE_RULES: Record<IntegrationMode, ModePermissions> = 
     inboundDryRun: true,
     canRunOutbound: true,
     outboundDryRun: true,
+    autoCreateMissingAlunos: true,
   },
   // LEGACY: Período legado ou desativado para V2
   LEGACY: {
@@ -167,7 +172,7 @@ export async function acquireCoordinatorLease(params: {
   db: D1Database;
   integrationId: string;
   owner: string;
-  leaseType: LeaseType;
+  leaseType?: LeaseType;
   durationSeconds?: number;
   now?: string;
 }): Promise<LeaseAcquireResult> {
@@ -175,7 +180,7 @@ export async function acquireCoordinatorLease(params: {
     db,
     integrationId,
     owner,
-    leaseType,
+    leaseType = "FULL_CYCLE",
     durationSeconds = 30,
     now = new Date().toISOString(),
   } = params;
@@ -377,6 +382,7 @@ export interface SchedulerOptions {
   customTabNameResolver?: TabNameResolver;
   targetPeriodoId?: number;
   targetIntegrationId?: string;
+  autoCreateMissingAlunos?: boolean;
   registrarAuditoria?: (periodoId: number, evento: { acao: string; entidade: string; descricao: string }) => Promise<void>;
 }
 
@@ -403,6 +409,7 @@ export async function executeIntegrationSyncCycle(params: {
   workerId: string;
   batchSize?: number;
   dispatchTimeoutMs?: number;
+  autoCreateMissingAlunos?: boolean;
   registrarAuditoria?: (periodoId: number, evento: { acao: string; entidade: string; descricao: string }) => Promise<void>;
 }): Promise<IntegrationExecutionReport> {
   const inicio = Date.now();
@@ -485,6 +492,7 @@ export async function executeIntegrationSyncCycle(params: {
         db,
         dryRun: permissions.inboundDryRun,
         tabNameResolver,
+        autoCreateMissingAlunos: params.autoCreateMissingAlunos !== undefined ? params.autoCreateMissingAlunos : (permissions.autoCreateMissingAlunos ?? true),
       });
     }
 
@@ -650,7 +658,11 @@ export async function runScheduledSyncV2(
           aba_base_fch_ead?: string;
         }>();
 
-      tabNameResolver = createTabNameResolver({ sheetsConfig });
+      const periodoRow = await db
+        .prepare(`SELECT codigo FROM periodos WHERE id = ?`)
+        .bind(integracao.periodo_id)
+        .first<{ codigo?: string }>();
+      tabNameResolver = createTabNameResolver({ sheetsConfig, periodoCodigo: periodoRow?.codigo });
     }
 
     try {
@@ -662,6 +674,7 @@ export async function runScheduledSyncV2(
         workerId,
         batchSize: Number(env.SYNC_V2_BATCH_SIZE || 20),
         dispatchTimeoutMs: Number(env.SYNC_V2_DISPATCH_TIMEOUT_MS || 25000),
+        autoCreateMissingAlunos: options.autoCreateMissingAlunos,
         registrarAuditoria: options.registrarAuditoria,
       });
 
