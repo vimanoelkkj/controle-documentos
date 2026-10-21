@@ -75,10 +75,10 @@ export const EXPECTED_CONTROL_HEADERS = [
 export function normalizeDocumentCellValue(rawValue: unknown): 0 | 1 | null {
   if (rawValue === null || rawValue === undefined) return null;
   const str = String(rawValue).trim().toUpperCase();
-  if (['1', 'SIM', 'S', 'ENTREGUE', 'OK', 'TRUE', 'CONFIRMADO', 'ENVIADO'].includes(str)) {
+  if (['1', 'SIM', 'S', 'ENTREGUE', 'OK', 'TRUE', 'VERDADEIRO', 'CONFIRMADO', 'ENVIADO'].includes(str)) {
     return 1;
   }
-  if (['0', 'NAO', 'NÃO', 'N', 'PENDENTE', 'FALTA', 'FALSE', 'RECUSADO'].includes(str)) {
+  if (['0', 'NAO', 'NÃO', 'N', 'PENDENTE', 'FALTA', 'FALSE', 'FALSO', 'RECUSADO'].includes(str)) {
     return 0;
   }
   return null;

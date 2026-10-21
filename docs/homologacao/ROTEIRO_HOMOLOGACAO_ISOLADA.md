@@ -50,17 +50,26 @@ Antes de iniciar qualquer execução, certifique-se de preencher e assinar este 
    npx wrangler d1 execute controle-documentos-homolog-db --file=config/homologacao/setup-homologacao.sql
    ```
 
-### 2.2 Google Cloud & Google Sheets
-1. Criar uma nova planilha Google Sheets no Google Drive com o nome `CONTROLE_DOCUMENTOS_HOMOLOG_2026_2`.
-2. Criar as 4 abas estruturadas conforme `config/homologacao/template-sheets-homologacao.json`:
-   - `CONTROLE DE DOCUMENTOS FACE FEA` (Aba de Controle)
-   - `CONTROLE DE DOCUMENTOS FCH EAD` (Aba de Controle)
-   - `BASE_FACE_FEA` (Aba Geral)
-   - `BASE_FCH_EAD` (Aba Geral)
-3. Inserir os cabeçalhos canônicos e as linhas iniciais com os alunos fictícios (`0090001001`, `0090001002`, `0090002001`, `0090002002`).
-4. Criar uma Service Account no Google Cloud Console com nome `sa-homolog-controle-docs`.
-5. Compartilhar a planilha de teste com o e-mail da Service Account com perfil **Editor**.
-6. Gerar e baixar a chave privada em formato JSON da Service Account (`credentials-homolog.json`).
+### 2.2 Google Cloud & Google Sheets (Provisionamento Automatizado e Seguro)
+Consulte o [Guia de Provisionamento Google Sheets](./GUIA_PROVISIONAMENTO_GOOGLE_SHEETS.md) para os comandos detalhados de criação de Service Account com privilégio mínimo.
+
+1. Criar uma nova planilha Google Sheets em branco no Google Drive com o nome `CONTROLE_DOCUMENTOS_HOMOLOG_2026_2`.
+2. Criar a Service Account exclusiva `sa-homolog-controle-docs` no Google Cloud sem privilégios de projeto (privilégio mínimo).
+3. Compartilhar a planilha de teste com o e-mail da Service Account com perfil **Editor**.
+4. Gerar e baixar a chave privada em formato JSON (`credentials-homolog.json`).
+5. Provisionar as 4 abas, checkboxes, formatação de RA e dados dos alunos fictícios de forma automatizada e idempotente:
+   ```bash
+   node scripts/homologacao/provisionar-sheets-homologacao.mjs \
+     --spreadsheet-id='<ID_DA_PLANILHA_GOOGLE>' \
+     --credentials=credentials-homolog.json
+   ```
+6. Validar o isolamento e conformidade dos dados:
+   ```bash
+   node scripts/homologacao/provisionar-sheets-homologacao.mjs \
+     --spreadsheet-id='<ID_DA_PLANILHA_GOOGLE>' \
+     --credentials=credentials-homolog.json \
+     --verify-only
+   ```
 7. Atualizar o `spreadsheet_id` no D1 de homologação:
    ```bash
    npx wrangler d1 execute controle-documentos-homolog-db --command="UPDATE sync_integrations SET spreadsheet_id = '<ID_DA_PLANILHA_GOOGLE>' WHERE integration_id = 'integ-homolog-2026-2';"

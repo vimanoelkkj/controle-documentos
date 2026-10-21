@@ -36,6 +36,15 @@ backups/
 backup-*.sql
 *-backup.sql
 
+# Credenciais, Chaves de Serviço e Segredos Locais
+*credentials*.json
+*service-account*.json
+*service_account*.json
+*.pem
+*.key
+*.p12
+credentials/
+secrets/
 
 # Procedimentos administrativos privados com dados reais de produção
 scripts/private/
