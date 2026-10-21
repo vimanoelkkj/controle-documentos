@@ -71,11 +71,13 @@ export interface SyncOrchestratorOptions {
   beforeWriteHook?: (operationId: string) => Promise<void>;
   integrationId?: string;
   shouldAbort?: () => Promise<boolean> | boolean;
+  dryRun?: boolean;
 }
 
 export type SyncOperationStatus =
   | 'OBSERVED'
   | 'OBSERVED_VIA_VERIFY'
+  | 'SIMULATED_SHADOW'
   | 'CONFLICT_RECORDED'
   | 'BLOCKED_BY_OPEN_CONFLICT'
   | 'STRUCTURAL_ERROR'
@@ -111,6 +113,8 @@ export interface SyncBatchResult {
   structuralErrorCount: number;
   fencingRejectedCount: number;
   skippedCount: number;
+  dryRun?: boolean;
+  simulatedCount?: number;
   operations: SyncOperationResult[];
 }
 
@@ -123,6 +127,7 @@ export class SyncV2Orchestrator {
   readonly tabNameResolver: TabNameResolver;
   readonly baseBackoffSeconds: number;
   readonly integrationId?: string;
+  readonly dryRun: boolean;
   private readonly logger?: (level: 'info' | 'warn' | 'error', message: string, meta?: any) => void;
   private readonly beforeWriteHook?: (operationId: string) => Promise<void>;
   private readonly shouldAbort?: () => Promise<boolean> | boolean;
@@ -136,6 +141,7 @@ export class SyncV2Orchestrator {
     this.tabNameResolver = options.tabNameResolver ?? defaultTabNameResolver;
     this.baseBackoffSeconds = options.baseBackoffSeconds ?? 10;
     this.integrationId = options.integrationId;
+    this.dryRun = options.dryRun ?? false;
     this.logger = options.logger;
     this.beforeWriteHook = options.beforeWriteHook;
     this.shouldAbort = options.shouldAbort;
@@ -156,12 +162,16 @@ export class SyncV2Orchestrator {
   async executeBatch(overrideOptions?: {
     batchSize?: number;
     now?: string | Date;
+    dryRun?: boolean;
   }): Promise<SyncBatchResult> {
+    const isDryRun = overrideOptions?.dryRun ?? this.dryRun ?? false;
     const now = toSqliteDatetime(overrideOptions?.now);
     const limit = overrideOptions?.batchSize ?? this.batchSize;
 
-    // 1. Manutenção contínua de leases expirados (G2, G4, G7)
-    const recoveredLeases = await recoverExpiredLeases(this.db, now);
+    // 1. Manutenção contínua de leases expirados (G2, G4, G7) — apenas em modo real
+    const recoveredLeases = isDryRun
+      ? { recoveredClaimed: 0, recoveredDispatchedToUncertain: 0, recoveredVerifyingToUncertain: 0, totalRecovered: 0 }
+      : await recoverExpiredLeases(this.db, now);
     if (
       recoveredLeases.recoveredClaimed > 0 ||
       recoveredLeases.recoveredDispatchedToUncertain > 0 ||
@@ -223,6 +233,83 @@ export class SyncV2Orchestrator {
     const operationsToProcess = eligibleOps.results || [];
     const operationResults: SyncOperationResult[] = [];
 
+    // Se estiver em modo dryRun (SHADOW / simulação segura), observa sem mutação externa
+    if (isDryRun) {
+      for (const rawOp of operationsToProcess) {
+        const opDetails = await this.db
+          .prepare(
+            `SELECT o.operation_id, o.record_id, o.target_key, o.target_revision, o.field_key,
+                    r.ra_text, r.group_key
+             FROM sync_operations o
+             JOIN sync_records r ON r.record_id = o.record_id
+             WHERE o.operation_id = ?`
+          )
+          .bind(rawOp.operation_id)
+          .first<{
+            operation_id: string;
+            record_id: string;
+            target_key: OperationTargetKey;
+            target_revision: number;
+            field_key: FieldKey;
+            ra_text: string;
+            group_key: GroupKey;
+          }>();
+
+        if (!opDetails) continue;
+
+        const openConflict = await this.db
+          .prepare(
+            `SELECT conflict_id
+             FROM sync_conflicts
+             WHERE record_id = ? AND field_key = ? AND target_key = ? AND resolved = 0`
+          )
+          .bind(opDetails.record_id, opDetails.field_key, opDetails.target_key)
+          .first<{ conflict_id: string }>();
+
+        if (openConflict) {
+          operationResults.push({
+            operationId: rawOp.operation_id,
+            recordId: opDetails.record_id,
+            raText: opDetails.ra_text,
+            groupKey: opDetails.group_key,
+            fieldKey: opDetails.field_key,
+            targetKey: opDetails.target_key,
+            targetRevision: opDetails.target_revision,
+            status: 'BLOCKED_BY_OPEN_CONFLICT',
+            conflictId: openConflict.conflict_id,
+          });
+        } else {
+          operationResults.push({
+            operationId: rawOp.operation_id,
+            recordId: opDetails.record_id,
+            raText: opDetails.ra_text,
+            groupKey: opDetails.group_key,
+            fieldKey: opDetails.field_key,
+            targetKey: opDetails.target_key,
+            targetRevision: opDetails.target_revision,
+            status: 'SIMULATED_SHADOW',
+          });
+        }
+      }
+
+      return {
+        workerId: this.workerId,
+        recoveredLeases,
+        processedCount: operationResults.length,
+        observedCount: 0,
+        simulatedCount: operationResults.filter(r => r.status === 'SIMULATED_SHADOW').length,
+        conflictCount: 0,
+        blockedByConflictCount: operationResults.filter(r => r.status === 'BLOCKED_BY_OPEN_CONFLICT').length,
+        uncertainCount: 0,
+        retryScheduledCount: 0,
+        structuralErrorCount: 0,
+        fencingRejectedCount: 0,
+        skippedCount: 0,
+        dryRun: true,
+        operations: operationResults,
+      };
+    }
+
     for (const rawOp of operationsToProcess) {
       if (this.shouldAbort && (await this.shouldAbort())) {
         this.log('warn', 'Parada operacional acionada durante lote. Interrompendo processamento.');
@@ -251,6 +338,7 @@ export class SyncV2Orchestrator {
       structuralErrorCount: operationResults.filter(r => r.status === 'STRUCTURAL_ERROR').length,
       fencingRejectedCount: operationResults.filter(r => r.status === 'FENCING_REJECTED').length,
       skippedCount: operationResults.filter(r => r.status === 'SKIPPED_NOT_ELIGIBLE').length,
+      dryRun: false,
       operations: operationResults,
     };
 

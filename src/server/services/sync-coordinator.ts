@@ -48,15 +48,18 @@ export interface ModePermissions {
   inboundDryRun: boolean;
   /** Permite executar o fluxo outbound (D1 -> Sheets) */
   canRunOutbound: boolean;
+  /** Se true, o outbound não grava no Google Sheets nem muta operações no D1 (simulação segura) */
+  outboundDryRun: boolean;
 }
 
 export const INTEGRATION_MODE_RULES: Record<IntegrationMode, ModePermissions> = {
-  // BIDIRECTIONAL: Sincronização plena em ambas as direções
+  // BIDIRECTIONAL: Sincronização plena em ambas as direções (único modo que permite escrita real no Sheets)
   BIDIRECTIONAL: {
     eligible: true,
     canRunInbound: true,
     inboundDryRun: false,
     canRunOutbound: true,
+    outboundDryRun: false,
   },
   // CAPTURE: Apenas captura do Sheets para o D1; nunca despacha para o Sheets
   CAPTURE: {
@@ -64,13 +67,15 @@ export const INTEGRATION_MODE_RULES: Record<IntegrationMode, ModePermissions> = 
     canRunInbound: true,
     inboundDryRun: false,
     canRunOutbound: false,
+    outboundDryRun: true,
   },
-  // SHADOW: Modo observador de homologação passiva (inbound dryRun, outbound simulado no orchestrator)
+  // SHADOW: Modo observador de homologação passiva (inbound dryRun, outbound estritamente simulado sem escrita no Sheets)
   SHADOW: {
     eligible: true,
     canRunInbound: true,
     inboundDryRun: true,
     canRunOutbound: true,
+    outboundDryRun: true,
   },
   // LEGACY: Período legado ou desativado para V2
   LEGACY: {
@@ -78,20 +83,23 @@ export const INTEGRATION_MODE_RULES: Record<IntegrationMode, ModePermissions> = 
     canRunInbound: false,
     inboundDryRun: true,
     canRunOutbound: false,
+    outboundDryRun: true,
   },
-  // PAUSED: Parada operacional administrativa imediata
+  // PAUSED: Parada operacional administrativa imediata (bloqueia ambas as direções)
   PAUSED: {
     eligible: false,
     canRunInbound: false,
     inboundDryRun: true,
     canRunOutbound: false,
+    outboundDryRun: true,
   },
-  // QUARANTINED: Quarentena de integridade
+  // QUARANTINED: Quarentena de integridade (bloqueia ambas as direções)
   QUARANTINED: {
     eligible: false,
     canRunInbound: false,
     inboundDryRun: true,
     canRunOutbound: false,
+    outboundDryRun: true,
   },
 };
 
@@ -511,10 +519,12 @@ export async function executeIntegrationSyncCycle(params: {
         batchSize,
         tabNameResolver,
         leaseDurationSeconds: Math.round(dispatchTimeoutMs / 1000),
+        dryRun: permissions.outboundDryRun,
       });
 
       outboundReport = await orchestrator.executeBatch({
         batchSize,
+        dryRun: permissions.outboundDryRun,
       });
     }
 

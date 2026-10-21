@@ -46,6 +46,13 @@ export class GoogleSheetsAuthError extends Error {
   }
 }
 
+export class GoogleSheetsReadOnlyError extends Error {
+  constructor(message = 'Operações de escrita bloqueadas: adaptador Google Sheets em modo somente leitura (SHADOW/READ_ONLY).') {
+    super(message);
+    this.name = 'GoogleSheetsReadOnlyError';
+  }
+}
+
 export class GoogleSheetsNotFoundError extends Error {
   constructor(message: string) {
     super(message);
@@ -101,10 +108,12 @@ export interface GoogleSheetsRealAdapterOptions {
   fetchFn?: typeof fetch;
   requestTimeoutMs?: number;
   adapterSecret?: string;
+  readOnly?: boolean;
 }
 
 export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
   readonly adapterId: string;
+  readonly readOnly: boolean;
   private readonly tokenProvider?: () => Promise<string>;
   private readonly serviceAccountJson?: string;
   private readonly fetchFn: typeof fetch;
@@ -113,6 +122,7 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
 
   constructor(options: GoogleSheetsRealAdapterOptions = {}) {
     this.adapterId = options.adapterId || 'google-sheets-real-adapter-v2';
+    this.readOnly = options.readOnly ?? false;
     this.tokenProvider = options.tokenProvider;
     this.serviceAccountJson = options.serviceAccountJson;
     this.fetchFn = options.fetchFn || globalThis.fetch;
@@ -472,6 +482,15 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
     fieldKey: FieldKey;
     preconditions: WritePreconditions;
   }): Promise<WriteResult> {
+    // 0. Bloqueio estrito de modo somente leitura (SHADOW/READ_ONLY)
+    if (this.readOnly) {
+      return {
+        success: false,
+        status: 'OUT_OF_BOUNDS',
+        error: 'WRITE_BLOCKED_IN_READ_ONLY_MODE: Adaptador configurado em modo somente leitura. Escrita no Google Sheets estritamente bloqueada.',
+      };
+    }
+
     const isControl = params.preconditions.targetKey === 'CONTROLE';
 
     // 1. Verificação de limites de coluna (Bounds Check)

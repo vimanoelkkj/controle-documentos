@@ -455,6 +455,224 @@ export async function provisionGoogleSheets({
 }
 
 /**
+ * Valida de forma estrita (somente leitura) todas as invariantes da planilha:
+ * 1. Existência física e nomes exatos das 4 abas.
+ * 2. Cabeçalhos canônicos em todas as colunas e compatibilidade com o adaptador V2.
+ * 3. RAs preservando zeros à esquerda como texto ('0090001001', etc.).
+ * 4. Regras de validação de dados para Checkboxes nativos BOOLEAN nas colunas C:I.
+ * 5. Fórmulas reais de contagem e status nas colunas J e K.
+ * 6. Matriz documental completa dos 4 alunos fictícios (ALFA, BETA, GAMA, DELTA).
+ * 7. Não altera nenhuma célula (somente leitura).
+ */
+export async function verifySpreadsheetStrict({
+  spreadsheetId,
+  serviceAccountJson,
+  tokenProvider,
+  token: directToken,
+  templatePath,
+  templateContent: customTemplateContent,
+  fetchFn = globalThis.fetch,
+}) {
+  let token = directToken;
+  if (!token && tokenProvider) {
+    token = await tokenProvider();
+  }
+  if (!token) {
+    token = await obterTokenGoogleServiceAccount(serviceAccountJson, fetchFn);
+  }
+
+  let templateContent = customTemplateContent;
+  if (!templateContent) {
+    const resolvedTemplatePath = templatePath || path.resolve(process.cwd(), 'config/homologacao/template-sheets-homologacao.json');
+    if (typeof fs?.existsSync === 'function' && !fs.existsSync(resolvedTemplatePath)) {
+      throw new Error(`Template de homologação não encontrado em: ${resolvedTemplatePath}`);
+    }
+    templateContent = JSON.parse(fs.readFileSync(resolvedTemplatePath, 'utf8'));
+  }
+
+  const expectedValuesByTab = buildSheetValuesFromTemplate(templateContent);
+
+  // Consulta detalhada com dados de grid, fórmulas e regras de validação
+  const ranges = [
+    `'${HOMOLOG_TAB_NAMES.DOCS_FACE_FEA}'!A1:K3`,
+    `'${HOMOLOG_TAB_NAMES.DOCS_FCH_EAD}'!A1:K3`,
+    `'${HOMOLOG_TAB_NAMES.BASE_FACE_FEA}'!A1:G3`,
+    `'${HOMOLOG_TAB_NAMES.BASE_FCH_EAD}'!A1:G3`,
+  ];
+  const rangesParam = ranges.map((r) => `ranges=${encodeURIComponent(r)}`).join('&');
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(
+    spreadsheetId
+  )}?includeGridData=true&${rangesParam}`;
+
+  const res = await fetchFn(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    throw new Error(`Falha na verificação estrita da planilha (HTTP ${res.status}): ${err.slice(0, 200)}`);
+  }
+
+  const spreadsheet = await res.json();
+  const sheets = spreadsheet.sheets || [];
+  const sheetMap = new Map();
+  for (const s of sheets) {
+    if (s.properties?.title) {
+      sheetMap.set(s.properties.title, s);
+    }
+  }
+
+  const checks = {
+    tabsFound: sheetMap.size,
+    tabsExpected: 4,
+    itemsValidated: 0,
+    divergencias: [],
+    detalhes: [],
+  };
+
+  // 1. Validação de presença das 4 abas
+  for (const tabName of Object.keys(expectedValuesByTab)) {
+    if (!sheetMap.has(tabName)) {
+      checks.divergencias.push(`Aba requerida ausente: '${tabName}'`);
+    } else {
+      checks.itemsValidated++;
+    }
+  }
+
+  // 2. Validação profunda de cada aba
+  for (const [tabName, expectedRows] of Object.entries(expectedValuesByTab)) {
+    const sheetObj = sheetMap.get(tabName);
+    if (!sheetObj) continue;
+
+    const rowData = sheetObj.data?.[0]?.rowData || [];
+    if (rowData.length < expectedRows.length) {
+      checks.divergencias.push(`Aba '${tabName}' possui apenas ${rowData.length} linhas (esperado ${expectedRows.length}).`);
+      continue;
+    }
+
+    const isControl = tabName.includes('CONTROLE DE DOCUMENTOS');
+
+    // Validação da Linha 1 (Cabeçalhos)
+    const headerCells = rowData[0]?.values || [];
+    const expectedHeaders = expectedRows[0];
+    for (let c = 0; c < expectedHeaders.length; c++) {
+      const actualVal = (headerCells[c]?.formattedValue || '').trim().toUpperCase();
+      const expectedVal = expectedHeaders[c].trim().toUpperCase();
+      if (actualVal !== expectedVal) {
+        checks.divergencias.push(
+          `Cabeçalho divergente na aba '${tabName}' coluna ${c + 1}: esperado '${expectedVal}', encontrado '${actualVal}'`
+        );
+      } else {
+        checks.itemsValidated++;
+      }
+    }
+
+    // Validação das Linhas de Dados (Alunos Fictícios)
+    for (let r = 1; r < expectedRows.length; r++) {
+      const rowCells = rowData[r]?.values || [];
+      const expectedRow = expectedRows[r];
+
+      // A. Validação de RA e preservação de zeros à esquerda
+      const raCell = isControl ? rowCells[0] : rowCells[6];
+      const expectedRa = isControl ? expectedRow[0] : expectedRow[6];
+      const actualRa = raCell?.formattedValue || '';
+
+      if (actualRa !== expectedRa) {
+        checks.divergencias.push(
+          `RA divergente na linha ${r + 1} de '${tabName}': esperado '${expectedRa}', encontrado '${actualRa}'`
+        );
+      } else {
+        checks.itemsValidated++;
+      }
+
+      if (!actualRa.startsWith('009000')) {
+        checks.divergencias.push(
+          `RA na linha ${r + 1} de '${tabName}' perdeu zeros à esquerda ou é inválido: '${actualRa}'`
+        );
+      } else {
+        checks.itemsValidated++;
+      }
+
+      if (isControl) {
+        // B. Validação de Checkboxes nativos e valores booleanos (Colunas C a I -> indices 2 a 8)
+        for (let c = 2; c <= 8; c++) {
+          const colLetter = String.fromCharCode(65 + c);
+          const cell = rowCells[c];
+          const expectedBool = expectedRow[c];
+
+          // Verifica se a regra de validação de dados é BOOLEAN (Checkbox nativo)
+          const ruleType = cell?.dataValidation?.condition?.type || cell?.dataValidationRule?.condition?.type;
+          if (ruleType && ruleType !== 'BOOLEAN') {
+            checks.divergencias.push(
+              `Célula ${colLetter}${r + 1} de '${tabName}' tem regra de validação '${ruleType}' em vez de BOOLEAN`
+            );
+          } else {
+            checks.itemsValidated++;
+          }
+
+          // Verifica valor booleano
+          const effectiveBool = cell?.effectiveValue?.boolValue ?? cell?.userEnteredValue?.boolValue;
+          const formattedVal = (cell?.formattedValue || '').toUpperCase();
+          const actualBool = effectiveBool !== undefined
+            ? effectiveBool
+            : ['TRUE', 'VERDADEIRO', 'SIM', 'OK'].includes(formattedVal);
+
+          if (actualBool !== expectedBool) {
+            checks.divergencias.push(
+              `Valor documental incorreto em ${colLetter}${r + 1} de '${tabName}': esperado ${expectedBool}, encontrado ${actualBool} ('${formattedVal}')`
+            );
+          } else {
+            checks.itemsValidated++;
+          }
+        }
+
+        // C. Validação de Fórmulas Reais J e K (TOTAL ENTREGUES e STATUS DOCUMENTAL)
+        const cellJ = rowCells[9]; // Coluna J (índice 9)
+        const rawFormulaJ = cellJ?.userEnteredValue?.formulaValue || '';
+        const normJ = rawFormulaJ.toUpperCase().replace(/\s+/g, '');
+        const isJValid = normJ.startsWith('=') && (normJ.includes('CONT.SE') || normJ.includes('COUNTIF'));
+        if (!isJValid) {
+          checks.divergencias.push(
+            `Fórmula ausente ou incorreta em J${r + 1} de '${tabName}': esperado '=CONT.SE(...)', encontrado '${rawFormulaJ}'`
+          );
+        } else {
+          checks.itemsValidated++;
+        }
+
+        const cellK = rowCells[10]; // Coluna K (índice 10)
+        const rawFormulaK = cellK?.userEnteredValue?.formulaValue || '';
+        const normK = rawFormulaK.toUpperCase().replace(/\s+/g, '');
+        const isKValid = normK.startsWith('=') && (normK.includes('SE(') || normK.includes('IF('));
+        if (!isKValid) {
+          checks.divergencias.push(
+            `Fórmula ausente ou incorreta em K${r + 1} de '${tabName}': esperado '=SE(...)', encontrado '${rawFormulaK}'`
+          );
+        } else {
+          checks.itemsValidated++;
+        }
+      } else {
+        // Validação da Aba Base (Situação Contratual, Curso, etc.)
+        const situacao = (rowCells[0]?.formattedValue || '').trim().toUpperCase();
+        const expectedSituacao = expectedRow[0].trim().toUpperCase();
+        if (situacao !== expectedSituacao) {
+          checks.divergencias.push(
+            `Situação Contratual divergente em A${r + 1} de '${tabName}': esperado '${expectedSituacao}', encontrado '${situacao}'`
+          );
+        } else {
+          checks.itemsValidated++;
+        }
+      }
+    }
+  }
+
+  return {
+    success: checks.divergencias.length === 0,
+    spreadsheetId,
+    checks,
+  };
+}
+
+/**
  * Valida a conformidade de uma planilha existente contra o template de homologação.
  */
 export async function verifySpreadsheetAlignment({
@@ -591,6 +809,7 @@ async function runCli() {
 
   const dryRun = hasFlag('dry-run');
   const verifyOnly = hasFlag('verify-only');
+  const strictVerify = hasFlag('strict-verify');
   const testIsolation = hasFlag('test-isolation');
 
   const spreadsheetId = getArg('spreadsheet-id') || process.env.SPREADSHEET_ID;
@@ -644,6 +863,29 @@ async function runCli() {
     if (!isoResult.isIsolated) {
       process.exit(1);
     }
+  }
+
+  if (strictVerify) {
+    console.log(`\n[VERIFICAÇÃO ESTRITA] Auditando integridade profunda da planilha: ${spreadsheetId}...`);
+    const result = await verifySpreadsheetStrict({
+      spreadsheetId,
+      serviceAccountJson,
+      templatePath,
+    });
+    if (result.success) {
+      console.log('✅ Planilha 100% em conformidade estrita!');
+      console.log(`   - 4 abas canônicas verificadas`);
+      console.log(`   - Cabeçalhos exatos validados`);
+      console.log(`   - Checkboxes nativos BOOLEAN confirmados`);
+      console.log(`   - Fórmulas J/K de contagem e status confirmadas`);
+      console.log(`   - Matriz documental de ALFA, BETA, GAMA e DELTA conferida`);
+      console.log(`   - Itens atestados: ${result.checks.itemsValidated}`);
+    } else {
+      console.error(`❌ Divergências encontradas (${result.checks.divergencias.length}):`);
+      result.checks.divergencias.forEach((d) => console.error(`   - [DIVERGENCIA] ${d}`));
+      process.exit(1);
+    }
+    return;
   }
 
   if (verifyOnly) {

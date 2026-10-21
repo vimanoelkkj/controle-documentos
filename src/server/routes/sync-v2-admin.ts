@@ -515,6 +515,21 @@ export async function handleSyncV2AdminRoute(
       );
     }
 
+    // 4.1 Bloqueio estrito de modo CAPTURE (fluxo outbound desativado)
+    if (integracao.mode === "CAPTURE") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "OUTBOUND_BLOQUEADO_EM_CAPTURE",
+          modo: integracao.mode,
+          mensagem: "Integração está em modo 'CAPTURE'. Despachos de saída para o Google Sheets estão estritamente bloqueados.",
+        },
+        { status: 409 },
+      );
+    }
+
+    const isShadow = integracao.mode === "SHADOW";
+
     // 5. Verificação de credenciais
     let adapter = customAdapter;
     if (!adapter) {
@@ -546,6 +561,7 @@ export async function handleSyncV2AdminRoute(
       }
       adapter = new GoogleSheetsRealAdapter({
         serviceAccountJson: env.GOOGLE_SERVICE_ACCOUNT_JSON,
+        readOnly: isShadow,
       });
     }
 
@@ -634,6 +650,7 @@ export async function handleSyncV2AdminRoute(
         integrationId: integracao.integration_id,
         batchSize,
         tabNameResolver,
+        dryRun: isShadow,
         shouldAbort: async () => {
           const row = await db
             .prepare(`SELECT mode FROM sync_integrations WHERE integration_id = ?`)
@@ -645,6 +662,7 @@ export async function handleSyncV2AdminRoute(
 
       const batchResult: SyncBatchResult = await orchestrator.executeBatch({
         batchSize,
+        dryRun: isShadow,
       });
 
       // 8. Registro de métricas e auditoria
@@ -772,7 +790,8 @@ export async function handleSyncV2AdminRoute(
     }
 
     // 4. Parse de opções do body (dryRun, targetGroupKey)
-    let dryRun = false;
+    // Em modo SHADOW, dryRun é estritamente forçado como true para impedir mutações no D1
+    let dryRun = integracao.mode === "SHADOW";
     let targetGroupKey: GroupKey | undefined;
     try {
       const body = (await request.json().catch(() => ({}))) as any;

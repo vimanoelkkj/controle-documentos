@@ -1185,7 +1185,7 @@ export async function recoverExpiredLeases(
       `UPDATE sync_operations
        SET state = 'RETRY_WAIT',
            lease_owner = NULL,
-           next_attempt_at = ?,
+           next_attempt_at = datetime(?, '+10 seconds'),
            updated_at = ?
        WHERE state = 'CLAIMED'
          AND datetime(?) > datetime(lease_until)`
