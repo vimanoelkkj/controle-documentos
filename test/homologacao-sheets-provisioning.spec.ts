@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 import template from '../config/homologacao/template-sheets-homologacao.json';
 import {
@@ -553,6 +554,14 @@ describe('Homologação Google Sheets — Provisionamento e Isolamento', () => {
       let updatedNextAttempt = '';
       let updatedOwner: string | null = 'init';
 
+      // Helper robusto para interpretação canônica UTC de strings de data:
+      // Suporta strings SQLite bare ('YYYY-MM-DD HH:mm:ss'), strings ISO com 'Z', e offsets explícitos (+00:00, -03:00, etc.)
+      const parseSqliteUtc = (str: string) => {
+        const normalized = str.trim().replace(' ', 'T');
+        const hasTimezone = normalized.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(normalized);
+        return new Date(hasTimezone ? normalized : normalized + 'Z');
+      };
+
       const mockDb: any = {
         prepare: (sql: string) => ({
           bind: (...args: any[]) => ({
@@ -560,8 +569,9 @@ describe('Homologação Google Sheets — Provisionamento e Isolamento', () => {
               if (sql.includes("sync_operations") && sql.includes("RETRY_WAIT")) {
                 updatedState = 'RETRY_WAIT';
                 updatedOwner = null;
-                const baseDate = new Date(args[0]);
-                baseDate.setSeconds(baseDate.getSeconds() + 10);
+                // SQLite datetime(?, '+10 seconds') opera em UTC sobre o formato SQLite 'YYYY-MM-DD HH:mm:ss'
+                const baseDate = parseSqliteUtc(args[0]);
+                baseDate.setUTCSeconds(baseDate.getUTCSeconds() + 10);
                 updatedNextAttempt = baseDate.toISOString().replace('T', ' ').slice(0, 19);
                 return { meta: { changes: 1 } };
               }
@@ -571,7 +581,7 @@ describe('Homologação Google Sheets — Provisionamento e Isolamento', () => {
         }),
       };
 
-      const now = '2026-10-21 00:00:00';
+      const now = '2026-10-21T00:00:00Z';
       const rec = await recoverExpiredLeases(mockDb, now);
 
       expect(rec.recoveredClaimed).toBe(1);
@@ -579,12 +589,153 @@ describe('Homologação Google Sheets — Provisionamento e Isolamento', () => {
       expect(updatedOwner).toBeNull();
       expect(updatedNextAttempt).toBe('2026-10-21 00:00:10');
 
-      const isEligibleAtNow = new Date(now).getTime() >= new Date(updatedNextAttempt).getTime();
+      const isEligibleAtNow = parseSqliteUtc(now).getTime() >= parseSqliteUtc(updatedNextAttempt).getTime();
       expect(isEligibleAtNow).toBe(false);
 
-      const futureTime = '2026-10-21 00:00:10';
-      const isEligibleAtFuture = new Date(futureTime).getTime() >= new Date(updatedNextAttempt).getTime();
+      const futureTime = '2026-10-21T00:00:10Z';
+      const isEligibleAtFuture = parseSqliteUtc(futureTime).getTime() >= parseSqliteUtc(updatedNextAttempt).getTime();
       expect(isEligibleAtFuture).toBe(true);
+    });
+
+    it('parseSqliteUtc interpreta com exatidão strings UTC com e sem Z e offsets explícitos', () => {
+      const parseSqliteUtc = (str: string) => {
+        const normalized = str.trim().replace(' ', 'T');
+        const hasTimezone = normalized.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(normalized);
+        return new Date(hasTimezone ? normalized : normalized + 'Z');
+      };
+
+      const expectedEpoch = 1792540800000; // 2026-10-21T00:00:00.000Z
+
+      // 1. Bare SQLite format (sem indicador de fuso, convencionado UTC)
+      expect(parseSqliteUtc('2026-10-21 00:00:00').getTime()).toBe(expectedEpoch);
+      expect(parseSqliteUtc('2026-10-21 00:00:00').toISOString()).toBe('2026-10-21T00:00:00.000Z');
+
+      // 2. ISO UTC com 'Z'
+      expect(parseSqliteUtc('2026-10-21T00:00:00Z').getTime()).toBe(expectedEpoch);
+      expect(parseSqliteUtc('2026-10-21T00:00:00.000Z').getTime()).toBe(expectedEpoch);
+
+      // 3. Offset explícito America/Sao_Paulo (UTC-3: 2026-10-20 21:00:00 -03:00)
+      expect(parseSqliteUtc('2026-10-20T21:00:00-03:00').getTime()).toBe(expectedEpoch);
+      expect(parseSqliteUtc('2026-10-20 21:00:00-03:00').toISOString()).toBe('2026-10-21T00:00:00.000Z');
+
+      // 4. Offset explícito UTC (+00:00)
+      expect(parseSqliteUtc('2026-10-21T00:00:00+00:00').getTime()).toBe(expectedEpoch);
+    });
+
+    it('recoverExpiredLeases calcula backoff com consistência idêntica para timezone UTC e America/Sao_Paulo', async () => {
+      const recordedAttempts: string[] = [];
+
+      const parseSqliteUtc = (str: string) => {
+        const normalized = str.trim().replace(' ', 'T');
+        const hasTimezone = normalized.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(normalized);
+        return new Date(hasTimezone ? normalized : normalized + 'Z');
+      };
+
+      const createMockDb = () => ({
+        prepare: (sql: string) => ({
+          bind: (...args: any[]) => ({
+            run: async () => {
+              if (sql.includes("sync_operations") && sql.includes("RETRY_WAIT")) {
+                const baseDate = parseSqliteUtc(args[0]);
+                baseDate.setUTCSeconds(baseDate.getUTCSeconds() + 10);
+                const nextAttempt = baseDate.toISOString().replace('T', ' ').slice(0, 19);
+                recordedAttempts.push(nextAttempt);
+                return { meta: { changes: 1 } };
+              }
+              return { meta: { changes: 0 } };
+            },
+          }),
+        }),
+      });
+
+      // 1. Instante canônico especificado em UTC
+      const nowUtcString = '2026-10-21T00:00:00.000Z';
+      await recoverExpiredLeases(createMockDb() as any, nowUtcString);
+
+      // 2. Mesmo instante representado com offset de America/Sao_Paulo (UTC-3: 2026-10-20 21:00:00-03:00)
+      const nowSaoPauloOffsetString = '2026-10-20T21:00:00-03:00';
+      await recoverExpiredLeases(createMockDb() as any, nowSaoPauloOffsetString);
+
+      // 3. Mesmo instante como objeto Date nativo
+      const nowDateObj = new Date(Date.UTC(2026, 9, 21, 0, 0, 0));
+      await recoverExpiredLeases(createMockDb() as any, nowDateObj);
+
+      expect(recordedAttempts).toHaveLength(3);
+      // Todos devem produzir exatamente o mesmo valor canônico UTC '2026-10-21 00:00:10'
+      expect(recordedAttempts[0]).toBe('2026-10-21 00:00:10');
+      expect(recordedAttempts[1]).toBe('2026-10-21 00:00:10');
+      expect(recordedAttempts[2]).toBe('2026-10-21 00:00:10');
+    });
+
+    it('valida o comportamento de datetime() e backoff no SQLite D1 real', async () => {
+      // 1. Validação direta da função datetime() do SQLite nativo no D1
+      const testInstant = '2026-10-21 00:00:00';
+      const sqliteRes = await env.DB.prepare(
+        "SELECT datetime(?, '+10 seconds') as next_attempt"
+      )
+        .bind(testInstant)
+        .first<{ next_attempt: string }>();
+
+      expect(sqliteRes).not.toBeNull();
+      expect(sqliteRes!.next_attempt).toBe('2026-10-21 00:00:10');
+
+      // 2. Validação da execução do recoverExpiredLeases diretamente no D1 real
+      const testUid = crypto.randomUUID().slice(0, 8);
+      const periodo = await env.DB.prepare("SELECT id FROM periodos LIMIT 1").first<{ id: number }>();
+      const periodoId = periodo?.id ?? 1;
+      const integId = `integ-test-${testUid}`;
+      const recordId = `rec-test-lease-${testUid}`;
+      const cmdId = `cmd-test-lease-${testUid}`;
+      const eventId = `evt-test-lease-${testUid}`;
+      const opId = `op-test-lease-${testUid}`;
+
+      await env.DB.prepare(
+        `INSERT INTO sync_integrations (integration_id, periodo_id, spreadsheet_id, epoch, layout_revision, mode)
+         VALUES (?, ?, 'sh-test', 1, 1, 'SHADOW')`
+      ).bind(integId, periodoId).run();
+
+      await env.DB.prepare(
+        `INSERT INTO sync_records (record_id, integration_id, aluno_id, ra_text, group_key, generation, lifecycle)
+         VALUES (?, ?, NULL, '0090001001', 'FACE_FEA', 1, 'ACTIVE')`
+      ).bind(recordId, integId).run();
+
+      await env.DB.prepare(
+        `INSERT INTO sync_commands (command_id, actor_id, record_id, field_key, from_revision, proposed_value, request_hash, status)
+         VALUES (?, 'test-actor', ?, 'identidade', 0, 1, 'hash-test', 'ACCEPTED')`
+      ).bind(cmdId, recordId).run();
+
+      await env.DB.prepare(
+        `INSERT INTO sync_events (event_id, record_id, field_key, command_id, from_revision, to_revision, value_old, value_new, actor_id)
+         VALUES (?, ?, 'identidade', ?, 0, 1, 0, 1, 'test-actor')`
+      ).bind(eventId, recordId, cmdId).run();
+
+      await env.DB.prepare(
+        `INSERT INTO sync_operations (
+           operation_id, event_id, record_id, field_key, target_key, target_revision,
+           state, lease_owner, lease_epoch, lease_until, next_attempt_at
+         ) VALUES (?, ?, ?, 'identidade', 'CONTROLE', 1, 'CLAIMED', 'worker-old', 1, '2026-10-20 23:59:00', '2026-10-20 23:59:00')`
+      ).bind(opId, eventId, recordId).run();
+
+      const recResult = await recoverExpiredLeases(env.DB, '2026-10-21T00:00:00Z');
+      expect(recResult.recoveredClaimed).toBeGreaterThanOrEqual(1);
+
+      const updatedOp = await env.DB.prepare(
+        `SELECT state, lease_owner, next_attempt_at FROM sync_operations WHERE operation_id = ?`
+      )
+        .bind(opId)
+        .first<{ state: string; lease_owner: string | null; next_attempt_at: string }>();
+
+      expect(updatedOp).not.toBeNull();
+      expect(updatedOp!.state).toBe('RETRY_WAIT');
+      expect(updatedOp!.lease_owner).toBeNull();
+      expect(updatedOp!.next_attempt_at).toBe('2026-10-21 00:00:10');
+
+      // Limpeza dos registros de teste
+      await env.DB.prepare(`DELETE FROM sync_operations WHERE operation_id = ?`).bind(opId).run();
+      await env.DB.prepare(`DELETE FROM sync_events WHERE event_id = ?`).bind(eventId).run();
+      await env.DB.prepare(`DELETE FROM sync_commands WHERE command_id = ?`).bind(cmdId).run();
+      await env.DB.prepare(`DELETE FROM sync_records WHERE record_id = ?`).bind(recordId).run();
+      await env.DB.prepare(`DELETE FROM sync_integrations WHERE integration_id = ?`).bind(integId).run();
     });
 
     it('handleSyncV2AdminRoute força dryRun=true em /inbound quando em modo SHADOW mesmo com dryRun=false no body', async () => {
