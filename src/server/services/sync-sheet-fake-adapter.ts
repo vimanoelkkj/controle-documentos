@@ -237,13 +237,22 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
     if (headers.length < 7) {
       return { valid: false, error: 'General tab has less than 7 columns' };
     }
-    const colAHeader = normalizeHeaderString(headers[0] || '');
     const colGHeader = normalizeHeaderString(headers[6] || '');
-    if (!colAHeader.includes('SITUAC') && !colAHeader.includes('CONTRAT')) {
-      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: General tab column A header '${headers[0]}' is invalid` };
-    }
     if (!colGHeader.includes('RA') && !colGHeader.includes('REGISTRO') && !colGHeader.includes('MATRICULA')) {
       return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: General tab column G header '${headers[6]}' is not RA` };
+    }
+
+    if (headers.length >= 8) {
+      const colHHeader = normalizeHeaderString(headers[7] || '');
+      if (!colHHeader.includes('SITUAC') && !colHHeader.includes('STATUS') && !colHHeader.includes('ALUNO')) {
+        return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: General tab column H header '${headers[7]}' is invalid` };
+      }
+      return { valid: true, fingerprint: `${String(headers[6] || '').trim()}::${String(headers[7] || '').trim()}` };
+    }
+
+    const colAHeader = normalizeHeaderString(headers[0] || '');
+    if (!colAHeader.includes('SITUAC') && !colAHeader.includes('CONTRAT')) {
+      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: General tab column A header '${headers[0]}' is invalid` };
     }
     return { valid: true, fingerprint: `${String(headers[0] || '').trim()}::${String(headers[6] || '').trim()}` };
   }
@@ -366,16 +375,18 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
         throw new Error(`AMBIGUOUS_IDENTITY: Duplicate RA '${raRes.raText}' found at multiple rows in general tab '${params.tabName}'`);
       }
 
-      const contractRaw = String(row[0] ?? '').trim();
+      const contractRaw = row.length >= 8 ? String(row[7] ?? '').trim() : String(row[0] ?? '').trim();
       const contractNorm = normalizeContractCellValue(contractRaw);
+      const courseName = row.length >= 3 && String(row[2] ?? '').trim() ? String(row[2] ?? '').trim() : String(row[1] ?? '').trim();
+      const cellCoordinate = row.length >= 8 ? `H${rowIdx + 2}` : `A${rowIdx + 2}`;
 
       rowsByRa.set(raRes.raText, {
         rowIndex: rowIdx + 2,
         raText: raRes.raText,
         contractRawValue: contractRaw,
         contractNormalizedValue: contractNorm,
-        courseName: String(row[1] ?? '').trim(),
-        cellCoordinate: `A${rowIdx + 2}`,
+        courseName,
+        cellCoordinate,
       });
     }
 

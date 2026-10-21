@@ -248,7 +248,7 @@ describe('F4-A: Adaptador Real Google Sheets (GoogleSheetsRealAdapter)', () => {
 
     // Validação do range solicitado
     const requestedUrl = decodeURIComponent(calls[0].url);
-    expect(requestedUrl).toContain('!A1:G');
+    expect(requestedUrl).toContain('!A1:I');
   });
 
   it('F4-A.4 — Rejeição de layout adulterado (LAYOUT_MUTATED) na aba de controle', async () => {

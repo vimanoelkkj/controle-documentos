@@ -177,38 +177,64 @@ export function normalizeDocumentCellValue(
 export function normalizeContractCellValue(rawValue: unknown): 0 | 1 | null {
   if (rawValue === null || rawValue === undefined) return null;
   const str = String(rawValue).trim().toUpperCase();
-  if (['ACEITO', 'ASSINADO', 'DEFERIDO', 'CONFIRMADO', 'OK', 'SIM', '1', 'ENTREGUE'].includes(str)) {
+  if (['ACEITO', 'ASSINADO', 'DEFERIDO', 'CONFIRMADO', 'OK', 'SIM', '1', 'ENTREGUE', 'EM CURSO'].includes(str)) {
     return 1;
   }
-  if (['PENDENTE', 'NAO ASSINADO', 'NÃO ASSINADO', 'INDEFERIDO', 'RECUSADO', '0', 'NAO ENTREGUE', 'NÃO ENTREGUE'].includes(str)) {
+  if (['PENDENTE', 'NAO ASSINADO', 'NÃO ASSINADO', 'INDEFERIDO', 'RECUSADO', '0', 'NAO ENTREGUE', 'NÃO ENTREGUE'].includes(str) || str.includes('RESERVA')) {
     return 0;
   }
   return null;
 }
 
 /**
- * Normaliza e verifica se a situação contratual informada corresponde a RESERVA DE VAGA.
- * Remove acentuação, normaliza espaços e compara variações equivalentes.
+ * Classificação rigorosa da Situação do Aluno na Coluna H das abas gerais:
+ * 1. "Em curso" → ALUNO FORA DA RESERVA → IMPORTAR.
+ * 2. "Em curso - (Reserva de vaga)" ou "Em Curso (reserva de vaga)" → ALUNO NA RESERVA → NÃO IMPORTAR.
+ * 3. Qualquer outra situação → NÃO IMPORTAR automaticamente; reportar para análise.
  */
-export function isReservaDeVaga(situacao: unknown): boolean {
-  if (situacao === null || situacao === undefined) return false;
-  const str = String(situacao)
+export type SituacaoAlunoClassificacao =
+  | 'ELEGIVEL_EM_CURSO'
+  | 'RESERVA_DE_VAGA'
+  | 'OUTRA_SITUACAO';
+
+export function classificarSituacaoAluno(situacao: unknown): SituacaoAlunoClassificacao {
+  if (situacao === null || situacao === undefined) return 'OUTRA_SITUACAO';
+  const raw = String(situacao).trim();
+  if (!raw) return 'OUTRA_SITUACAO';
+
+  const norm = raw
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
+    .replace(/[^A-Z0-9]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  return str.includes('RESERVA DE VAGA') || str.includes('RESERVA VAGA') || str.includes('RESERVA');
+
+  // Regra 2: "Em curso - (Reserva de vaga)" ou qualquer variação com RESERVA -> ALUNO NA RESERVA
+  if (norm.includes('RESERVA')) {
+    return 'RESERVA_DE_VAGA';
+  }
+
+  // Regra 1: "Em curso" -> ALUNO FORA DA RESERVA
+  if (norm === 'EM CURSO') {
+    return 'ELEGIVEL_EM_CURSO';
+  }
+
+  // Regra 3: Qualquer outra situação -> NÃO IMPORTAR AUTOMATICAMENTE
+  return 'OUTRA_SITUACAO';
 }
 
-/**
- * Valida se a situação contratual é conhecida e válida (não vazia, nula ou composta apenas de traços).
- */
+export function isReservaDeVaga(situacao: unknown): boolean {
+  return classificarSituacaoAluno(situacao) === 'RESERVA_DE_VAGA';
+}
+
 export function isSituacaoContratualValida(situacao: unknown): boolean {
-  if (situacao === null || situacao === undefined) return false;
-  const str = String(situacao).trim();
-  if (str === '' || str === '-' || str === '--') return false;
-  return true;
+  const c = classificarSituacaoAluno(situacao);
+  return c === 'ELEGIVEL_EM_CURSO' || c === 'RESERVA_DE_VAGA';
+}
+
+export function isSituacaoElegivelImportacao(situacao: unknown): boolean {
+  return classificarSituacaoAluno(situacao) === 'ELEGIVEL_EM_CURSO';
 }
 
 

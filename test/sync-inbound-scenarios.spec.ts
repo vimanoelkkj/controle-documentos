@@ -100,7 +100,7 @@ class MockScenariosAdapter implements ISyncSpreadsheetAdapter {
         for (let i = 1; i < gridData.length; i++) {
           const ra = String(gridData[i][0] ?? '').trim();
           if (ra) {
-            rowsByRa.set(ra, { rowIndex: i + 1, raText: ra, contractRawValue: 'MATRICULADO', courseName: 'CURSO TESTE' });
+            rowsByRa.set(ra, { rowIndex: i + 1, raText: ra, contractRawValue: 'Em curso', courseName: 'CURSO TESTE' });
           }
         }
       }

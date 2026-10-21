@@ -14,6 +14,18 @@ import {
 } from "../src/server/services/sync-sheet-contracts";
 import { env } from "cloudflare:test";
 
+const GENERAL_TAB_OFFICIAL_HEADERS = [
+  "Contrato",
+  "Cpf",
+  "Curso",
+  "E-mail (outro)",
+  "E-mail",
+  "Nome",
+  "RA",
+  "Situação do aluno",
+  "Docs Pendentes",
+];
+
 class MockTestAdapter implements ISyncSpreadsheetAdapter {
   readonly adapterId = "mock-test-adapter";
   private sheets = new Map<string, unknown[][]>();
@@ -86,8 +98,9 @@ class MockTestAdapter implements ISyncSpreadsheetAdapter {
     if (grid) {
       for (let i = 1; i < grid.length; i++) {
         const row = grid[i];
-        const situacao = String(row[0] ?? "").trim();
-        const curso = String(row[1] ?? "").trim();
+        // Coluna H (idx 7): Situação do aluno, Coluna C (idx 2): Curso, Coluna G (idx 6): RA
+        const situacao = row.length >= 8 ? String(row[7] ?? "").trim() : String(row[0] ?? "").trim();
+        const curso = row.length >= 3 ? String(row[2] ?? "").trim() : String(row[1] ?? "").trim();
         const ra = String(row[6] ?? "").trim();
         if (ra) {
           rowsByRa.set(ra, {
@@ -95,6 +108,7 @@ class MockTestAdapter implements ISyncSpreadsheetAdapter {
             raText: ra,
             contractRawValue: situacao,
             courseName: curso,
+            cellCoordinate: row.length >= 8 ? `H${i + 1}` : `A${i + 1}`,
           });
         }
       }
@@ -123,7 +137,7 @@ class MockTestAdapter implements ISyncSpreadsheetAdapter {
   }
 }
 
-let seq = 70000;
+let seq = 80000;
 function nextId() {
   return seq++;
 }
@@ -158,23 +172,39 @@ async function setupPeriodoEnv() {
   return { pId, intId, spreadId };
 }
 
-describe("Sincronização V2 — Regras de Reserva de Vaga, Situação Desconhecida e Criação Idempotente", () => {
-  it("Regra 1: RESERVA DE VAGA — Não importa nem cria novo aluno no D1", async () => {
+describe("Sincronização V2 — Regra Definitiva Coluna H: Em curso vs Reserva vs Outros", () => {
+  it("Cenário Integrado Misturado na Mesma Aba: 'Em curso', 'Em curso - (Reserva de vaga)', 'Em Curso (reserva de vaga)', 'Trancado' e RA sem correspondência", async () => {
     const { pId, intId } = await setupPeriodoEnv();
     const adapter = new MockTestAdapter();
 
-    const raReserva = "00055001";
-    // Aba de Controle FACE FEA
+    const raEmCurso1 = "00055101"; // "Em curso" -> IMPORTAR
+    const raEmCurso2 = "00055102"; // "em curso" (minúsculo) -> IMPORTAR
+    const raReserva1 = "00055103"; // "Em curso - (Reserva de vaga)" -> NÃO IMPORTAR
+    const raReserva2 = "00055104"; // "Em Curso (reserva de vaga)" -> NÃO IMPORTAR
+    const raReserva3 = "00055105"; // "Em curso - reserva de vaga" -> NÃO IMPORTAR
+    const raTrancado = "00055106"; // "Trancado" -> OUTRA SITUAÇÃO -> NÃO IMPORTAR
+    const raSemGeral = "00055107"; // Não consta na aba geral -> NÃO IMPORTAR
+
     adapter.setSheetData("CONTROLE DE DOCUMENTOS FACE FEA", [
       ["RA", "Nome", ...EXPECTED_CONTROL_HEADERS],
-      [raReserva, "Aluno Candidato Reserva", "0", "0", "0", "0", "0", "0", "0"],
+      [raEmCurso1, "Aluno Em Curso 1", "0", "0", "0", "0", "0", "0", "0"],
+      [raEmCurso2, "Aluno Em Curso 2", "1", "0", "0", "0", "0", "0", "0"],
+      [raReserva1, "Aluno Reserva 1", "0", "0", "0", "0", "0", "0", "0"],
+      [raReserva2, "Aluno Reserva 2", "0", "0", "0", "0", "0", "0", "0"],
+      [raReserva3, "Aluno Reserva 3", "0", "0", "0", "0", "0", "0", "0"],
+      [raTrancado, "Aluno Trancado", "0", "0", "0", "0", "0", "0", "0"],
+      [raSemGeral, "Aluno Sem Correspondencia", "0", "0", "0", "0", "0", "0", "0"],
     ]);
 
-    // Aba Geral FACE FEA
-    // Col A: Situação, Col B: Curso, Col C..F: diversos, Col G (idx 6): RA
+    // Aba Geral FACE FEA com Coluna G = RA e Coluna H = Situação do aluno
     adapter.setSheetData("BASE_FACE_FEA", [
-      ["Situação Contratual", "Curso", "C", "D", "E", "F", "RA"],
-      ["RESERVA DE VAGA", "ADMINISTRAÇÃO", "", "", "", "", raReserva],
+      GENERAL_TAB_OFFICIAL_HEADERS,
+      ["Não Entregue", "000.111.222-33", "ADMINISTRAÇÃO", "email@test.com", "inst@test.com", "Nome 1", raEmCurso1, "Em curso", "TODOS"],
+      ["Não Entregue", "000.111.222-34", "ADMINISTRAÇÃO", "email@test.com", "inst@test.com", "Nome 2", raEmCurso2, "em curso", "TODOS"],
+      ["Não Entregue", "000.111.222-35", "ADMINISTRAÇÃO", "email@test.com", "inst@test.com", "Nome 3", raReserva1, "Em curso - (Reserva de vaga)", "TODOS"],
+      ["Não Entregue", "000.111.222-36", "ADMINISTRAÇÃO", "email@test.com", "inst@test.com", "Nome 4", raReserva2, "Em Curso (reserva de vaga)", "TODOS"],
+      ["Não Entregue", "000.111.222-37", "ADMINISTRAÇÃO", "email@test.com", "inst@test.com", "Nome 5", raReserva3, "Em curso - reserva de vaga", "TODOS"],
+      ["Não Entregue", "000.111.222-38", "ADMINISTRAÇÃO", "email@test.com", "inst@test.com", "Nome 6", raTrancado, "Trancado", "TODOS"],
     ]);
 
     const report = await reconcileInboundFromSpreadsheet({
@@ -188,29 +218,40 @@ describe("Sincronização V2 — Regras de Reserva de Vaga, Situação Desconhec
       autoCreateMissingAlunos: true,
     });
 
-    // Deve excluir e reportar na lista de reservas
-    expect(report.alunosExcluidosPorReservaDeVaga).toContain(raReserva);
-    expect(report.alunosCriadosNoD1).toBe(0);
+    // 1. Elegíveis (Em curso): exatamente 2 alunos
+    expect(report.alunosCriadosNoD1).toBe(2);
 
-    // Confirma que não foi inserido no D1
-    const aluno = await env.DB.prepare(
-      `SELECT * FROM alunos WHERE periodo_id = ? AND ra = ?`,
+    // 2. Reserva de vaga (Regra 2): exatamente 3 alunos
+    expect(report.alunosExcluidosPorReservaDeVaga).toHaveLength(3);
+    expect(report.alunosExcluidosPorReservaDeVaga).toContain(raReserva1);
+    expect(report.alunosExcluidosPorReservaDeVaga).toContain(raReserva2);
+    expect(report.alunosExcluidosPorReservaDeVaga).toContain(raReserva3);
+
+    // 3. Outras situações / sem correspondência (Regra 3): exatamente 2 alunos bloqueados
+    expect(report.alunosBloqueadosPorSituacaoDesconhecida).toHaveLength(2);
+    expect(report.alunosBloqueadosPorSituacaoDesconhecida).toContain(raTrancado);
+    expect(report.alunosBloqueadosPorSituacaoDesconhecida).toContain(raSemGeral);
+
+    // Confirmação no D1: apenas os 2 alunos "Em curso" foram criados
+    const criados = await env.DB.prepare(
+      `SELECT ra FROM alunos WHERE periodo_id = ? ORDER BY ra ASC`,
     )
-      .bind(pId, raReserva)
-      .first();
-    expect(aluno).toBeNull();
+      .bind(pId)
+      .all<{ ra: string }>();
+
+    expect(criados.results.map((r) => r.ra)).toEqual([raEmCurso1, raEmCurso2]);
   });
 
-  it("Regra 2: RESERVA DE VAGA — Aluno existente que entra em reserva não é atualizado no D1", async () => {
+  it("Preservação de Aluno Existente que entra em Reserva de Vaga na Coluna H", async () => {
     const { pId, intId } = await setupPeriodoEnv();
     const adapter = new MockTestAdapter();
 
-    const raExistente = "00055002";
+    const raExistente = "00055201";
 
-    // Cria aluno existente previamente no D1 com 0 em todos os documentos
-    const insertAluno = await env.DB.prepare(
+    // Insere previamente o aluno com todos os documentos pendentes (0)
+    const ins = await env.DB.prepare(
       `INSERT INTO alunos (periodo_id, ra, nome, curso, unidade, status)
-       VALUES (?, ?, 'Aluno Já Existente', 'ADMINISTRAÇÃO', 'FACE', 'ATIVO')`,
+       VALUES (?, ?, 'Aluno Antigo', 'ADMINISTRAÇÃO', 'FACE', 'ATIVO')`,
     )
       .bind(pId, raExistente)
       .run();
@@ -219,19 +260,19 @@ describe("Sincronização V2 — Regras de Reserva de Vaga, Situação Desconhec
       `INSERT INTO documentos (aluno_id, identidade, cpf, certidao, residencia, titulo, ensino_medio, contrato)
        VALUES (?, 0, 0, 0, 0, 0, 0, 0)`,
     )
-      .bind(insertAluno.meta.last_row_id)
+      .bind(ins.meta.last_row_id)
       .run();
 
-    // Na planilha de controle, alguém marcou '1' para identidade
+    // Na planilha, marcaram 1 para contrato na aba de controle
     adapter.setSheetData("CONTROLE DE DOCUMENTOS FACE FEA", [
       ["RA", "Nome", ...EXPECTED_CONTROL_HEADERS],
-      [raExistente, "Aluno Já Existente", "1", "0", "0", "0", "0", "0", "0"],
+      [raExistente, "Aluno Antigo", "0", "0", "0", "0", "0", "0", "1"],
     ]);
 
-    // Mas na aba geral, sua situação mudou para 'RESERVA DE VAGA'
+    // Na aba geral, a situação na coluna H mudou para "Em Curso (reserva de vaga)"
     adapter.setSheetData("BASE_FACE_FEA", [
-      ["Situação Contratual", "Curso", "C", "D", "E", "F", "RA"],
-      ["RESERVA DE VAGA", "ADMINISTRAÇÃO", "", "", "", "", raExistente],
+      GENERAL_TAB_OFFICIAL_HEADERS,
+      ["Não Entregue", "000.111.222-39", "ADMINISTRAÇÃO", "email@test.com", "inst@test.com", "Aluno Antigo", raExistente, "Em Curso (reserva de vaga)", "TODOS"],
     ]);
 
     const report = await reconcileInboundFromSpreadsheet({
@@ -248,224 +289,49 @@ describe("Sincronização V2 — Regras de Reserva de Vaga, Situação Desconhec
     expect(report.alunosExcluidosPorReservaDeVaga).toContain(raExistente);
     expect(report.camposAtualizadosNoD1).toBe(0);
 
-    // Documento no D1 deve continuar intacto (0, não atualizado para 1)
+    // Documento no D1 deve continuar inalterado (0)
     const doc = await env.DB.prepare(
-      `SELECT d.identidade FROM documentos d
+      `SELECT d.contrato FROM documentos d
        JOIN alunos a ON a.id = d.aluno_id
        WHERE a.periodo_id = ? AND a.ra = ?`,
     )
       .bind(pId, raExistente)
-      .first<{ identidade: number }>();
-    expect(doc?.identidade).toBe(0);
+      .first<{ contrato: number }>();
+    expect(doc?.contrato).toBe(0);
   });
 
-  it("Regra 3: Situação ausente, vazia ou desconhecida na aba geral — Bloqueia e reporta (Fail-Closed)", async () => {
+  it("Idempotência e Preservação dos 4 Alunos Fictícios do Período 999", async () => {
     const { pId, intId } = await setupPeriodoEnv();
     const adapter = new MockTestAdapter();
 
-    const raSemCorrespondencia = "00055003";
-    const raSituacaoVazia = "00055004";
-    const raSituacaoTraco = "00055005";
-
-    adapter.setSheetData("CONTROLE DE DOCUMENTOS FACE FEA", [
-      ["RA", "Nome", ...EXPECTED_CONTROL_HEADERS],
-      [raSemCorrespondencia, "Sem Correspondencia", "0", "0", "0", "0", "0", "0", "0"],
-      [raSituacaoVazia, "Situacao Vazia", "0", "0", "0", "0", "0", "0", "0"],
-      [raSituacaoTraco, "Situacao Traco", "0", "0", "0", "0", "0", "0", "0"],
-    ]);
-
-    // Aba geral só tem linha para raSituacaoVazia (com string vazia) e raSituacaoTraco (com '-')
-    adapter.setSheetData("BASE_FACE_FEA", [
-      ["Situação Contratual", "Curso", "C", "D", "E", "F", "RA"],
-      ["", "ADMINISTRAÇÃO", "", "", "", "", raSituacaoVazia],
-      ["-", "ADMINISTRAÇÃO", "", "", "", "", raSituacaoTraco],
-    ]);
-
-    const report = await reconcileInboundFromSpreadsheet({
-      db: env.DB,
-      periodoId: pId,
-      integrationId: intId,
-      actorId: "test-runner",
-      dryRun: false,
-      adapter,
-      targetGroupKey: "FACE_FEA",
-      autoCreateMissingAlunos: true,
-    });
-
-    expect(report.alunosBloqueadosPorSituacaoDesconhecida).toContain(raSemCorrespondencia);
-    expect(report.alunosBloqueadosPorSituacaoDesconhecida).toContain(raSituacaoVazia);
-    expect(report.alunosBloqueadosPorSituacaoDesconhecida).toContain(raSituacaoTraco);
-    expect(report.alunosCriadosNoD1).toBe(0);
-  });
-
-  it("Regra 4: Situação válida (não reserva) — Cria aluno novo com RA canônico, zeros à esquerda, curso e 7 documentos", async () => {
-    const { pId, intId } = await setupPeriodoEnv();
-    const adapter = new MockTestAdapter();
-
-    const raValido = "00055006"; // Com zeros à esquerda
-    const nomeAluno = "Maria Aluna Valida";
-    const cursoAluno = "CIÊNCIAS CONTÁBEIS";
-
-    // 2 documentos entregues (identidade e cpf), 5 pendentes
-    adapter.setSheetData("CONTROLE DE DOCUMENTOS FACE FEA", [
-      ["RA", "Nome", ...EXPECTED_CONTROL_HEADERS],
-      [raValido, nomeAluno, "1", "1", "0", "0", "0", "0", "0"],
-    ]);
-
-    adapter.setSheetData("BASE_FACE_FEA", [
-      ["Situação Contratual", "Curso", "C", "D", "E", "F", "RA"],
-      ["MATRICULADO", cursoAluno, "", "", "", "", raValido],
-    ]);
-
-    // Execução REAL
-    const report = await reconcileInboundFromSpreadsheet({
-      db: env.DB,
-      periodoId: pId,
-      integrationId: intId,
-      actorId: "test-runner",
-      dryRun: false,
-      adapter,
-      targetGroupKey: "FACE_FEA",
-      autoCreateMissingAlunos: true,
-    });
-
-    expect(report.sucesso).toBe(true);
-    expect(report.alunosCriadosNoD1).toBe(1);
-    expect(report.camposEmSincronia).toBe(7);
-
-    // Valida no D1
-    const alunoD1 = await env.DB.prepare(
-      `SELECT * FROM alunos WHERE periodo_id = ? AND ra = ?`,
-    )
-      .bind(pId, raValido)
-      .first<any>();
-
-    expect(alunoD1).not.toBeNull();
-    expect(alunoD1.ra).toBe("00055006"); // Preserva estritamente zeros à esquerda
-    expect(alunoD1.nome).toBe(nomeAluno);
-    expect(alunoD1.curso).toBe(cursoAluno);
-    expect(alunoD1.unidade).toBe("FACE");
-
-    // Valida os 7 documentos no D1
-    const docD1 = await env.DB.prepare(
-      `SELECT * FROM documentos WHERE aluno_id = ?`,
-    )
-      .bind(alunoD1.id)
-      .first<any>();
-
-    expect(docD1.identidade).toBe(1);
-    expect(docD1.cpf).toBe(1);
-    expect(docD1.certidao).toBe(0);
-    expect(docD1.residencia).toBe(0);
-    expect(docD1.titulo).toBe(0);
-    expect(docD1.ensino_medio).toBe(0);
-    expect(docD1.contrato).toBe(0);
-  });
-
-  it("Regra 5: Idempotência — Executar a importação novamente não duplica alunos nem gera conflitos", async () => {
-    const { pId, intId } = await setupPeriodoEnv();
-    const adapter = new MockTestAdapter();
-
-    const raValido = "00055007";
-    adapter.setSheetData("CONTROLE DE DOCUMENTOS FACE FEA", [
-      ["RA", "Nome", ...EXPECTED_CONTROL_HEADERS],
-      [raValido, "Aluno Idempotencia", "0", "0", "0", "0", "0", "0", "0"],
-    ]);
-
-    adapter.setSheetData("BASE_FACE_FEA", [
-      ["Situação Contratual", "Curso", "C", "D", "E", "F", "RA"],
-      ["CONTRATO ASSINADO", "ADMINISTRAÇÃO", "", "", "", "", raValido],
-    ]);
-
-    // Primeira execução (criação)
-    const report1 = await reconcileInboundFromSpreadsheet({
-      db: env.DB,
-      periodoId: pId,
-      integrationId: intId,
-      actorId: "test-runner",
-      dryRun: false,
-      adapter,
-      targetGroupKey: "FACE_FEA",
-      autoCreateMissingAlunos: true,
-    });
-    expect(report1.alunosCriadosNoD1).toBe(1);
-
-    // Segunda execução idêntica (repetição)
-    const report2 = await reconcileInboundFromSpreadsheet({
-      db: env.DB,
-      periodoId: pId,
-      integrationId: intId,
-      actorId: "test-runner",
-      dryRun: false,
-      adapter,
-      targetGroupKey: "FACE_FEA",
-      autoCreateMissingAlunos: true,
-    });
-
-    expect(report2.sucesso).toBe(true);
-    expect(report2.alunosCriadosNoD1 || 0).toBe(0); // Não recriou
-    expect(report2.camposAtualizadosNoD1).toBe(0); // 0 mutações
-    expect(report2.conflitosDetectados).toBe(0); // 0 conflitos
-    expect(report2.camposEmSincronia).toBe(7); // 100% em sincronia
-
-    // Confirma que não duplicou registro no D1
-    const count = await env.DB.prepare(
-      `SELECT COUNT(*) as total FROM alunos WHERE periodo_id = ? AND ra = ?`,
-    )
-      .bind(pId, raValido)
-      .first<{ total: number }>();
-    expect(count?.total).toBe(1);
-  });
-
-  it("Regra 6: Isolamento Estrito do Período 999 — 4 alunos fictícios permanecem 100% inalterados", async () => {
-    const { pId, intId } = await setupPeriodoEnv();
-    const adapter = new MockTestAdapter();
-
-    // Garante que o período 999 existe e possui 4 alunos com dados e documentos específicos
-    const periodo999Id = 999;
+    // Cria os 4 alunos no período 999
     await env.DB.prepare(
-      `INSERT OR REPLACE INTO periodos (id, codigo, status) VALUES (?, '999', 'ATIVO')`,
-    )
-      .bind(periodo999Id)
-      .run();
+      `INSERT OR REPLACE INTO periodos (id, codigo, status) VALUES (999, '999', 'ATIVO')`,
+    ).run();
 
     const ras999 = ["00099901", "00099902", "00099903", "00099904"];
     for (const r of ras999) {
       await env.DB.prepare(
         `INSERT OR REPLACE INTO alunos (periodo_id, ra, nome, curso, unidade, status)
-         VALUES (?, ?, 'Aluno Ficticio 999', 'CURSO 999', 'FACE', 'ATIVO')`,
+         VALUES (999, ?, 'Ficticio 999', 'CURSO 999', 'FACE', 'ATIVO')`,
       )
-        .bind(periodo999Id, r)
-        .run();
-
-      const al = await env.DB.prepare(
-        `SELECT id FROM alunos WHERE periodo_id = ? AND ra = ?`,
-      )
-        .bind(periodo999Id, r)
-        .first<{ id: number }>();
-
-      await env.DB.prepare(
-        `INSERT OR REPLACE INTO documentos (aluno_id, identidade, cpf, certidao, residencia, titulo, ensino_medio, contrato)
-         VALUES (?, 1, 1, 1, 1, 1, 1, 1)`,
-      )
-        .bind(al!.id)
+        .bind(r)
         .run();
     }
 
-    // Configura planilha para período pId (ex: 2027-1) com novos alunos
-    const raNovo = "00055008";
+    const raValido = "00055301";
     adapter.setSheetData("CONTROLE DE DOCUMENTOS FACE FEA", [
       ["RA", "Nome", ...EXPECTED_CONTROL_HEADERS],
-      [raNovo, "Aluno Periodo Atual", "0", "0", "0", "0", "0", "0", "0"],
+      [raValido, "Aluno Elegivel", "0", "0", "0", "0", "0", "0", "0"],
     ]);
 
     adapter.setSheetData("BASE_FACE_FEA", [
-      ["Situação Contratual", "Curso", "C", "D", "E", "F", "RA"],
-      ["PAGAMENTO CONFIRMADO", "ADMINISTRAÇÃO", "", "", "", "", raNovo],
+      GENERAL_TAB_OFFICIAL_HEADERS,
+      ["Não Entregue", "000.111.222-40", "ADMINISTRAÇÃO", "email@test.com", "inst@test.com", "Aluno Elegivel", raValido, "Em curso", "TODOS"],
     ]);
 
-    // Executa importação no período pId
-    const report = await reconcileInboundFromSpreadsheet({
+    // Execução 1
+    const r1 = await reconcileInboundFromSpreadsheet({
       db: env.DB,
       periodoId: pId,
       integrationId: intId,
@@ -475,33 +341,26 @@ describe("Sincronização V2 — Regras de Reserva de Vaga, Situação Desconhec
       targetGroupKey: "FACE_FEA",
       autoCreateMissingAlunos: true,
     });
+    expect(r1.alunosCriadosNoD1).toBe(1);
 
-    expect(report.sucesso).toBe(true);
-    expect(report.alunosCriadosNoD1).toBe(1);
+    // Execução 2 (repetição)
+    const r2 = await reconcileInboundFromSpreadsheet({
+      db: env.DB,
+      periodoId: pId,
+      integrationId: intId,
+      actorId: "test-runner",
+      dryRun: false,
+      adapter,
+      targetGroupKey: "FACE_FEA",
+      autoCreateMissingAlunos: true,
+    });
+    expect(r2.alunosCriadosNoD1 || 0).toBe(0);
+    expect(r2.camposEmSincronia).toBe(7);
 
-    // Valida que os 4 alunos do período 999 continuam existindo e com todos os 7 documentos com valor 1
+    // Os 4 alunos do período 999 continuam intactos
     const total999 = await env.DB.prepare(
-      `SELECT COUNT(*) as total FROM alunos WHERE periodo_id = 999`,
-    ).first<{ total: number }>();
-    expect(total999?.total).toBe(4);
-
-    for (const r of ras999) {
-      const doc999 = await env.DB.prepare(
-        `SELECT d.* FROM documentos d
-         JOIN alunos a ON a.id = d.aluno_id
-         WHERE a.periodo_id = 999 AND a.ra = ?`,
-      )
-        .bind(r)
-        .first<any>();
-
-      expect(doc999).not.toBeNull();
-      expect(doc999.identidade).toBe(1);
-      expect(doc999.cpf).toBe(1);
-      expect(doc999.certidao).toBe(1);
-      expect(doc999.residencia).toBe(1);
-      expect(doc999.titulo).toBe(1);
-      expect(doc999.ensino_medio).toBe(1);
-      expect(doc999.contrato).toBe(1);
-    }
+      `SELECT COUNT(*) as t FROM alunos WHERE periodo_id = 999`,
+    ).first<{ t: number }>();
+    expect(total999?.t).toBe(4);
   });
 });

@@ -266,15 +266,24 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
 
   private validateGeneralHeaders(headers: string[]): { valid: true; fingerprint: string } | { valid: false; error: string } {
     if (headers.length < 7) {
-      return { valid: false, error: 'Aba geral possui menos de 7 colunas (esperado A e G)' };
+      return { valid: false, error: 'Aba geral possui menos de 7 colunas' };
     }
-    const colAHeader = normalizeHeaderString(headers[0] || '');
     const colGHeader = normalizeHeaderString(headers[6] || '');
-    if (!colAHeader.includes('SITUAC') && !colAHeader.includes('CONTRAT')) {
-      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: Coluna A da aba geral '${headers[0]}' não é situação contratual` };
-    }
     if (!colGHeader.includes('RA') && !colGHeader.includes('REGISTRO') && !colGHeader.includes('MATRICULA')) {
       return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: Coluna G da aba geral '${headers[6]}' não é RA` };
+    }
+
+    if (headers.length >= 8) {
+      const colHHeader = normalizeHeaderString(headers[7] || '');
+      if (!colHHeader.includes('SITUAC') && !colHHeader.includes('STATUS') && !colHHeader.includes('ALUNO')) {
+        return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: Coluna H da aba geral '${headers[7]}' não é situação do aluno` };
+      }
+      return { valid: true, fingerprint: `${String(headers[6] || '').trim()}::${String(headers[7] || '').trim()}` };
+    }
+
+    const colAHeader = normalizeHeaderString(headers[0] || '');
+    if (!colAHeader.includes('SITUAC') && !colAHeader.includes('CONTRAT')) {
+      return { valid: false, error: `STRUCTURAL_LAYOUT_MUTATED: Coluna A da aba geral '${headers[0]}' não é situação contratual` };
     }
     return { valid: true, fingerprint: `${String(headers[0] || '').trim()}::${String(headers[6] || '').trim()}` };
   }
@@ -384,7 +393,7 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
     spreadsheetId: string;
     tabName: string;
   }): Promise<GeneralTabReadResult> {
-    const rangeParam = `'${params.tabName.replace(/'/g, "''")}'!A1:G`;
+    const rangeParam = `'${params.tabName.replace(/'/g, "''")}'!A1:I`;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(
       params.spreadsheetId
     )}/values/${encodeURIComponent(rangeParam)}?valueRenderOption=FORMATTED_VALUE&majorDimension=ROWS`;
@@ -427,16 +436,18 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
         continue;
       }
 
-      const contractRawValue = String(row[0] ?? '').trim();
+      const contractRawValue = row.length >= 8 ? String(row[7] ?? '').trim() : String(row[0] ?? '').trim();
       const contractNormalizedValue = normalizeContractCellValue(contractRawValue);
+      const courseName = row.length >= 3 && String(row[2] ?? '').trim() ? String(row[2] ?? '').trim() : String(row[1] ?? '').trim();
+      const cellCoordinate = row.length >= 8 ? `H${rowIndex}` : `A${rowIndex}`;
 
       rowsByRa.set(raText, {
         rowIndex,
         raText,
         contractRawValue,
         contractNormalizedValue,
-        courseName: String(row[1] ?? '').trim(),
-        cellCoordinate: `A${rowIndex}`,
+        courseName,
+        cellCoordinate,
       });
     }
 
