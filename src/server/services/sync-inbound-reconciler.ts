@@ -20,12 +20,15 @@ import {
 } from "./sync-d1-core";
 import {
   CONTROL_DOC_COLUMNS,
+  isReservaDeVaga,
+  isSituacaoContratualValida,
   type ISyncSpreadsheetAdapter,
+  type GeneralTabReadResult,
 } from "./sync-sheet-contracts";
 import { validateCanonicalRa } from "./sync-d1-auth";
 import {
   type TabNameResolver,
-  defaultTabNameResolver,
+  createTabNameResolver,
 } from "./sync-orchestrator";
 
 export interface InboundSyncOptions {
@@ -37,6 +40,7 @@ export interface InboundSyncOptions {
   tabNameResolver?: TabNameResolver;
   db: D1Database;
   targetGroupKey?: GroupKey; // Se omitido, processa ambos ('FACE_FEA' e 'FCH_EAD')
+  autoCreateMissingAlunos?: boolean;
 }
 
 export interface InboundSyncReport {
@@ -51,6 +55,9 @@ export interface InboundSyncReport {
   conflitosDetectados: number;
   alunosNaoEncontradosNoD1: string[];
   alunosDuplicadosNaPlanilha: string[];
+  alunosExcluidosPorReservaDeVaga: string[];
+  alunosBloqueadosPorSituacaoDesconhecida: string[];
+  alunosCriadosNoD1?: number;
   divergenciasComOutboxPendente: Array<{
     ra: string;
     groupKey: GroupKey;
@@ -95,7 +102,7 @@ export async function reconcileInboundFromSpreadsheet(
     actorId,
     dryRun = false,
     adapter,
-    tabNameResolver = defaultTabNameResolver,
+    tabNameResolver: customTabNameResolver,
     db,
     targetGroupKey,
   } = options;
@@ -112,6 +119,9 @@ export async function reconcileInboundFromSpreadsheet(
     conflitosDetectados: 0,
     alunosNaoEncontradosNoD1: [],
     alunosDuplicadosNaPlanilha: [],
+    alunosExcluidosPorReservaDeVaga: [],
+    alunosBloqueadosPorSituacaoDesconhecida: [],
+    alunosCriadosNoD1: 0,
     divergenciasComOutboxPendente: [],
     mutacoesAplicadas: [],
     errosLayout: [],
@@ -119,6 +129,32 @@ export async function reconcileInboundFromSpreadsheet(
     mutacoesPlanejadas: 0,
     mutacoesPersistidas: 0,
   };
+
+  // Resolver dinâmico de abas do período se não fornecido explicitamente
+  let tabNameResolver = customTabNameResolver;
+  if (!tabNameResolver) {
+    const sheetsConfig = await db
+      .prepare(
+        `SELECT aba_docs_face_fea, aba_docs_fch_ead, aba_base_face_fea, aba_base_fch_ead FROM google_sheets_periodos WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{
+        aba_docs_face_fea?: string;
+        aba_docs_fch_ead?: string;
+        aba_base_face_fea?: string;
+        aba_base_fch_ead?: string;
+      }>();
+
+    const periodoRow = await db
+      .prepare(`SELECT codigo FROM periodos WHERE id = ?`)
+      .bind(periodoId)
+      .first<{ codigo?: string }>();
+
+    tabNameResolver = createTabNameResolver({
+      sheetsConfig,
+      periodoCodigo: periodoRow?.codigo,
+    });
+  }
 
   // 1. Validação da integração
   const integracao = await db
@@ -159,23 +195,43 @@ export async function reconcileInboundFromSpreadsheet(
   // 2. Itera sobre cada grupo documental
   for (const groupKey of gruposAProcessar) {
     report.gruposProcessados.push(groupKey);
-    const tabName = tabNameResolver.getControlTabName(groupKey);
+        const controlTabName = tabNameResolver.getControlTabName(groupKey);
+    const generalTabName = tabNameResolver.getGeneralTabName(groupKey);
 
     let controlRead;
     try {
       controlRead = await adapter.readControlTab({
         spreadsheetId: integracao.spreadsheet_id,
-        tabName,
+        tabName: controlTabName,
         groupKey,
       });
     } catch (err: any) {
       report.errosLayout.push({
         groupKey,
-        tabName,
+        tabName: controlTabName,
         erro: err?.message || String(err),
       });
       report.sucesso = false;
       continue;
+    }
+
+    // Leitura da aba geral para validação da situação contratual (filtro de reserva e desconhecidos)
+    let generalRead: GeneralTabReadResult | null = null;
+    if (typeof adapter.readGeneralTabContracts === "function") {
+      try {
+        generalRead = await adapter.readGeneralTabContracts({
+          spreadsheetId: integracao.spreadsheet_id,
+          tabName: generalTabName,
+        });
+      } catch (err: any) {
+        report.errosLayout.push({
+          groupKey,
+          tabName: generalTabName,
+          erro: `Falha ao ler aba geral contratual: ${err?.message || String(err)}`,
+        });
+        report.sucesso = false;
+        continue;
+      }
     }
 
     // Registra RAs duplicados na planilha para bloqueio estrito
@@ -196,15 +252,37 @@ export async function reconcileInboundFromSpreadsheet(
         continue;
       }
 
-      // 3.2. Validação canônica do RA
+            // 3.2. Validação canônica do RA
       const raCheck = validateCanonicalRa(raRaw);
       if (!raCheck.valid) {
         continue;
       }
       const canonicalRa = raCheck.raText;
 
+      // 3.2.1. Cruzamento contratual obrigatório com a aba geral
+      let generalRow = generalRead?.rowsByRa.get(canonicalRa);
+
+      if (generalRead) {
+        // Regra 1: Situação ausente, vazia, desconhecida ou sem correspondência
+        if (!generalRow || !isSituacaoContratualValida(generalRow.contractRawValue)) {
+          if (!report.alunosBloqueadosPorSituacaoDesconhecida.includes(canonicalRa)) {
+            report.alunosBloqueadosPorSituacaoDesconhecida.push(canonicalRa);
+          }
+          continue;
+        }
+
+        // Regra 2: RESERVA DE VAGA -> Não importar nem atualizar
+        // (Alunos existentes que entrem em reserva não recebem novas atualizações automáticas)
+        if (isReservaDeVaga(generalRow.contractRawValue)) {
+          if (!report.alunosExcluidosPorReservaDeVaga.includes(canonicalRa)) {
+            report.alunosExcluidosPorReservaDeVaga.push(canonicalRa);
+          }
+          continue;
+        }
+      }
+
       // 3.3. Busca aluno existente no D1 para o período
-      const aluno = await db
+      let aluno = await db
         .prepare(
           `SELECT id, ra, nome, unidade, periodo_id
            FROM alunos
@@ -220,9 +298,79 @@ export async function reconcileInboundFromSpreadsheet(
         }>();
 
       if (!aluno) {
-        if (!report.alunosNaoEncontradosNoD1.includes(canonicalRa)) {
-          report.alunosNaoEncontradosNoD1.push(canonicalRa);
+        if (options.autoCreateMissingAlunos) {
+          const studentName = String(rowSnapshot.studentName || '').trim() || 'ALUNO IMPORTADO';
+          const course = String(generalRow?.courseName || '').trim() || (groupKey === 'FACE_FEA' ? 'ADMINISTRAÇÃO' : 'PEDAGOGIA');
+          const unidade = groupKey === 'FACE_FEA' ? 'FACE' : 'FCH';
+
+          if (!dryRun) {
+            await db
+              .prepare(
+                `INSERT INTO alunos (periodo_id, ra, nome, curso, unidade, status)
+                 VALUES (?, ?, ?, ?, ?, 'ATIVO')
+                 ON CONFLICT(periodo_id, ra) DO UPDATE SET
+                   nome = excluded.nome,
+                   atualizado_em = CURRENT_TIMESTAMP`,
+              )
+              .bind(periodoId, canonicalRa, studentName, course, unidade)
+              .run();
+
+            aluno = await db
+              .prepare(
+                `SELECT id, ra, nome, unidade, periodo_id
+                 FROM alunos
+                 WHERE periodo_id = ? AND ra = ?`,
+              )
+              .bind(periodoId, canonicalRa)
+              .first<{
+                id: number;
+                ra: string;
+                nome: string;
+                unidade: string;
+                periodo_id: number;
+              }>();
+
+            if (aluno) {
+              const normDoc = (f: FieldKey) => rowSnapshot.fields[f]?.normalizedValue ?? 0;
+              await db
+                .prepare(
+                  `INSERT INTO documentos (aluno_id, identidade, cpf, certidao, residencia, titulo, ensino_medio, contrato)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(aluno_id) DO NOTHING`,
+                )
+                .bind(
+                  aluno.id,
+                  normDoc("identidade"),
+                  normDoc("cpf_documento"),
+                  normDoc("certidao"),
+                  normDoc("residencia"),
+                  normDoc("titulo"),
+                  normDoc("ensino_medio"),
+                  normDoc("contrato"),
+                )
+                .run();
+
+              report.alunosCriadosNoD1 = (report.alunosCriadosNoD1 || 0) + 1;
+            }
+          } else {
+            report.alunosCriadosNoD1 = (report.alunosCriadosNoD1 || 0) + 1;
+            aluno = {
+              id: 999999,
+              ra: canonicalRa,
+              nome: studentName,
+              unidade,
+              periodo_id: periodoId,
+            };
+          }
+        } else {
+          if (!report.alunosNaoEncontradosNoD1.includes(canonicalRa)) {
+            report.alunosNaoEncontradosNoD1.push(canonicalRa);
+          }
+          continue;
         }
+      }
+
+      if (!aluno) {
         continue;
       }
 
@@ -263,14 +411,28 @@ export async function reconcileInboundFromSpreadsheet(
       const recordId = syncRecord.record_id;
 
       // Carrega valores consolidados da tabela documentos do D1 para proteção contra baseline ausente
-      const docRow = await db
-        .prepare(
-          `SELECT identidade, cpf, certidao, residencia, titulo, ensino_medio, contrato
-           FROM documentos
-           WHERE aluno_id = ?`,
-        )
-        .bind(aluno.id)
-        .first<Record<string, number | null>>();
+      let docRow: Record<string, number | null> | null = null;
+      if (aluno.id !== 999999) {
+        docRow = await db
+          .prepare(
+            `SELECT identidade, cpf, certidao, residencia, titulo, ensino_medio, contrato
+             FROM documentos
+             WHERE aluno_id = ?`,
+          )
+          .bind(aluno.id)
+          .first<Record<string, number | null>>();
+      } else {
+        // Aluno simulado em dryRun: simula valores iniciais iguais à planilha
+        docRow = {
+          identidade: rowSnapshot.fields["identidade"]?.normalizedValue ?? 0,
+          cpf: rowSnapshot.fields["cpf_documento"]?.normalizedValue ?? 0,
+          certidao: rowSnapshot.fields["certidao"]?.normalizedValue ?? 0,
+          residencia: rowSnapshot.fields["residencia"]?.normalizedValue ?? 0,
+          titulo: rowSnapshot.fields["titulo"]?.normalizedValue ?? 0,
+          ensino_medio: rowSnapshot.fields["ensino_medio"]?.normalizedValue ?? 0,
+          contrato: rowSnapshot.fields["contrato"]?.normalizedValue ?? 0,
+        };
+      }
 
       // 3.5. Avalia cada um dos 7 campos documentais
       for (const field of CONTROL_DOC_COLUMNS) {
@@ -404,7 +566,7 @@ export async function reconcileInboundFromSpreadsheet(
           const toRevision = currentRevision + 1;
           const docColumn = FIELD_TO_DOC_COLUMN[field];
 
-          const evidenceHash = `inbound:${tabName}:${sheetField.cellCoordinate}:${sheetField.rawValue}:${sheetNormalized}`;
+          const evidenceHash = `inbound:${controlTabName}:${sheetField.cellCoordinate}:${sheetField.rawValue}:${sheetNormalized}`;
 
           // Transação Atômica D1 via batch
           await db.batch([

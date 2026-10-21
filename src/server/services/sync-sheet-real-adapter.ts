@@ -435,6 +435,7 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
         raText,
         contractRawValue,
         contractNormalizedValue,
+        courseName: String(row[1] ?? '').trim(),
         cellCoordinate: `A${rowIndex}`,
       });
     }
@@ -449,6 +450,7 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
       headerFingerprint: headerCheck.fingerprint,
       readAt: new Date().toISOString(),
       rowsByRa,
+      duplicateRas: Array.from(duplicateRas),
     };
   }
 

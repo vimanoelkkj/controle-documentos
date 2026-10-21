@@ -1590,10 +1590,12 @@ export async function handleSyncV2AdminRoute(
     // Em modo SHADOW, dryRun é estritamente forçado como true para impedir mutações no D1
     let dryRun = integracao.mode === "SHADOW";
     let targetGroupKey: GroupKey | undefined;
+    let autoCreateMissingAlunos = false;
     try {
       const body = (await request.json().catch(() => ({}))) as any;
       if (body) {
         if (body.dryRun === true) dryRun = true;
+        if (body.autoCreateMissingAlunos === true) autoCreateMissingAlunos = true;
         if (body.groupKey === "FACE_FEA" || body.groupKey === "FCH_EAD") {
           targetGroupKey = body.groupKey;
         }
@@ -1660,6 +1662,7 @@ export async function handleSyncV2AdminRoute(
         tabNameResolver,
         db,
         targetGroupKey,
+        autoCreateMissingAlunos,
       });
 
       const persistidos = dryRun ? 0 : report.camposAtualizadosNoD1;

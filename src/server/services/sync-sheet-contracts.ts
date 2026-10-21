@@ -187,6 +187,32 @@ export function normalizeContractCellValue(rawValue: unknown): 0 | 1 | null {
 }
 
 /**
+ * Normaliza e verifica se a situação contratual informada corresponde a RESERVA DE VAGA.
+ * Remove acentuação, normaliza espaços e compara variações equivalentes.
+ */
+export function isReservaDeVaga(situacao: unknown): boolean {
+  if (situacao === null || situacao === undefined) return false;
+  const str = String(situacao)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+  return str.includes('RESERVA DE VAGA') || str.includes('RESERVA VAGA') || str.includes('RESERVA');
+}
+
+/**
+ * Valida se a situação contratual é conhecida e válida (não vazia, nula ou composta apenas de traços).
+ */
+export function isSituacaoContratualValida(situacao: unknown): boolean {
+  if (situacao === null || situacao === undefined) return false;
+  const str = String(situacao).trim();
+  if (str === '' || str === '-' || str === '--') return false;
+  return true;
+}
+
+
+/**
  * Evidência de proveniência completa (Condição 4 da aprovação).
  */
 export interface ProvenanceEvidence {
@@ -240,6 +266,7 @@ export interface GeneralContractRowSnapshot {
   raText: string;
   contractRawValue: string;
   contractNormalizedValue: 0 | 1 | null;
+  courseName?: string;
   cellCoordinate: string; // Ex: 'A45'
 }
 
@@ -249,6 +276,7 @@ export interface GeneralTabReadResult {
   headerFingerprint: string;
   readAt: string;
   rowsByRa: Map<string, GeneralContractRowSnapshot>;
+  duplicateRas?: string[];
 }
 
 /**

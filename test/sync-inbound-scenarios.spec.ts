@@ -79,12 +79,37 @@ class MockScenariosAdapter implements ISyncSpreadsheetAdapter {
     };
   }
 
-  async readGeneralTabContracts(): Promise<GeneralTabReadResult> {
+  async readGeneralTabContracts(params: {
+    spreadsheetId: string;
+    tabName: string;
+  }): Promise<GeneralTabReadResult> {
+    const grid = this.sheets.get(params.tabName);
+    const rowsByRa = new Map<string, any>();
+    if (grid) {
+      for (let i = 1; i < grid.length; i++) {
+        const row = grid[i];
+        const situacao = String(row[0] ?? '').trim();
+        const curso = String(row[1] ?? '').trim();
+        const ra = String(row[2] ?? '').trim();
+        if (ra) {
+          rowsByRa.set(ra, { rowIndex: i + 1, raText: ra, contractRawValue: situacao, courseName: curso });
+        }
+      }
+    } else {
+      for (const [, gridData] of this.sheets.entries()) {
+        for (let i = 1; i < gridData.length; i++) {
+          const ra = String(gridData[i][0] ?? '').trim();
+          if (ra) {
+            rowsByRa.set(ra, { rowIndex: i + 1, raText: ra, contractRawValue: 'MATRICULADO', courseName: 'CURSO TESTE' });
+          }
+        }
+      }
+    }
     return {
-      spreadsheetId: "",
-      tabName: "",
-      readAt: "",
-      rowsByRa: new Map(),
+      spreadsheetId: params.spreadsheetId,
+      tabName: params.tabName,
+      readAt: new Date().toISOString(),
+      rowsByRa,
       duplicateRas: [],
     };
   }

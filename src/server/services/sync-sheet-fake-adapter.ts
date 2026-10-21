@@ -374,6 +374,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
         raText: raRes.raText,
         contractRawValue: contractRaw,
         contractNormalizedValue: contractNorm,
+        courseName: String(row[1] ?? '').trim(),
         cellCoordinate: `A${rowIdx + 2}`,
       });
     }
@@ -384,6 +385,7 @@ export class FakeSpreadsheetAdapter implements ISyncSpreadsheetAdapter {
       headerFingerprint: headerCheck.fingerprint,
       readAt,
       rowsByRa,
+      duplicateRas: [],
     };
   }
 
