@@ -16,6 +16,10 @@ import {
   releaseCoordinatorLease,
   runScheduledSyncV2,
 } from "../services/sync-coordinator";
+import {
+  prepareExistingAlunosBaselines,
+  type BaselineSeederReport,
+} from "../services/sync-baseline-seeder";
 
 export interface SyncV2AdminDependencies {
   request: Request;
@@ -44,6 +48,158 @@ export interface SyncV2AdminDependencies {
 
 // Conjunto em memória para exclusão mútua de despachos simultâneos no mesmo worker isolate
 const activeDispatches = new Set<string>();
+
+/**
+ * Assina payload com HMAC-SHA256 usando Web Crypto API nativa do Cloudflare Workers / Node.js
+ */
+async function signHmacSha256(secret: string, data: string): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+  return Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Valida assinatura HMAC-SHA256 em tempo constante
+ */
+async function verifyHmacSha256(
+  secret: string,
+  data: string,
+  signatureHex: string,
+): Promise<boolean> {
+  if (!signatureHex || typeof signatureHex !== "string") return false;
+  const expected = await signHmacSha256(secret, data);
+  if (expected.length !== signatureHex.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < expected.length; i++) {
+    mismatch |= expected.charCodeAt(i) ^ signatureHex.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
+const ALLOWED_HOMOLOG_RAS = [
+  "00099901",
+  "00099902",
+  "00099903",
+  "00099904",
+] as const;
+
+/**
+ * Calcula o snapshot determinístico dos 4 alunos, documentos consolidados, estados de baseline,
+ * conflitos abertos, operações ativas e parâmetros de integração no D1.
+ * O hash SHA-256 gerado vincula o token de prévia e impede execução sobre estado obsoleto.
+ */
+async function computeBaselineScopeSnapshot(
+  db: D1Database,
+  periodoId: number,
+  integrationId: string,
+  targetRas: string[],
+): Promise<{
+  snapshotHash: string;
+  summary: {
+    totalAlunos: number;
+    totalCamposD1: number;
+    openConflicts: number;
+    activeOperations: number;
+  };
+}> {
+  const placeholders = targetRas.map(() => "?").join(", ");
+
+  // 1. Alunos e Documentos Consolidados
+  const alunosDocs = await db
+    .prepare(
+      `SELECT a.id, a.ra, a.unidade, a.status as aluno_status,
+              d.identidade, d.cpf, d.certidao, d.residencia, d.titulo, d.ensino_medio, d.contrato
+       FROM alunos a
+       LEFT JOIN documentos d ON d.aluno_id = a.id
+       WHERE a.periodo_id = ? AND a.ra IN (${placeholders})
+       ORDER BY a.ra ASC`,
+    )
+    .bind(periodoId, ...targetRas)
+    .all<any>();
+
+  // 2. Estados existentes em sync_field_state
+  const fieldStates = await db
+    .prepare(
+      `SELECT s.record_id, s.field_key, s.value, s.revision, s.status
+       FROM sync_field_state s
+       JOIN sync_records r ON r.record_id = s.record_id
+       WHERE r.integration_id = ? AND r.ra_text IN (${placeholders})
+       ORDER BY s.record_id ASC, s.field_key ASC`,
+    )
+    .bind(integrationId, ...targetRas)
+    .all<any>();
+
+  // 3. Conflitos abertos em sync_conflicts
+  const openConflicts = await db
+    .prepare(
+      `SELECT c.conflict_id, c.record_id, c.field_key, c.target_key, c.local_revision
+       FROM sync_conflicts c
+       JOIN sync_records r ON r.record_id = c.record_id
+       WHERE r.integration_id = ? AND r.ra_text IN (${placeholders}) AND c.resolved = 0
+       ORDER BY c.conflict_id ASC`,
+    )
+    .bind(integrationId, ...targetRas)
+    .all<any>();
+
+  // 4. Operações ativas em sync_operations
+  const activeOps = await db
+    .prepare(
+      `SELECT o.operation_id, o.record_id, o.field_key, o.target_key, o.target_revision, o.state
+       FROM sync_operations o
+       JOIN sync_records r ON r.record_id = o.record_id
+       WHERE r.integration_id = ? AND r.ra_text IN (${placeholders})
+         AND o.state IN ('PENDING', 'CLAIMED', 'RETRY_WAIT', 'UNCERTAIN')
+       ORDER BY o.operation_id ASC`,
+    )
+    .bind(integrationId, ...targetRas)
+    .all<any>();
+
+  // 5. Integração
+  const integracao = await db
+    .prepare(
+      `SELECT integration_id, periodo_id, epoch, layout_revision, mode
+       FROM sync_integrations
+       WHERE integration_id = ? AND periodo_id = ?`,
+    )
+    .bind(integrationId, periodoId)
+    .first<any>();
+
+  const rawCanonicalData = JSON.stringify({
+    integration: integracao || null,
+    alunosDocs: alunosDocs.results || [],
+    fieldStates: fieldStates.results || [],
+    openConflicts: openConflicts.results || [],
+    activeOps: activeOps.results || [],
+  });
+
+  const enc = new TextEncoder();
+  const hashBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    enc.encode(rawCanonicalData),
+  );
+  const snapshotHash = Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return {
+    snapshotHash,
+    summary: {
+      totalAlunos: (alunosDocs.results || []).length,
+      totalCamposD1: (fieldStates.results || []).length,
+      openConflicts: (openConflicts.results || []).length,
+      activeOperations: (activeOps.results || []).length,
+    },
+  };
+}
 
 /**
  * Verifica de forma segura se uma tabela existe no D1 sem lançar exceção não tratada.
@@ -103,7 +259,7 @@ export async function handleSyncV2AdminRoute(
   } = deps;
 
   const matchPeriodo = url.pathname.match(
-    /^\/api\/periodos\/(\d+)\/sync-v2\/(status|dispatch|pause|resume|inbound|schedule-run)$/,
+    /^\/api\/periodos\/(\d+)\/sync-v2\/(status|dispatch|pause|resume|inbound|schedule-run|seed-baseline)$/,
   );
 
   let periodoId: number | null = null;
@@ -114,7 +270,7 @@ export async function handleSyncV2AdminRoute(
     action = matchPeriodo[2];
   } else {
     const matchDirect = url.pathname.match(
-      /^\/api\/sync-v2\/(status|dispatch|pause|resume|inbound|schedule-run)$/,
+      /^\/api\/sync-v2\/(status|dispatch|pause|resume|inbound|schedule-run|seed-baseline)$/,
     );
     if (matchDirect) {
       action = matchDirect[1];
@@ -320,6 +476,652 @@ export async function handleSyncV2AdminRoute(
         readyForDispatch,
         motivosBloqueio,
       },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1.1 POST /seed-baseline — Semeadura Administrativa P0.2 Controlada
+  // ---------------------------------------------------------------------------
+  if (action === "seed-baseline") {
+    // 1. Exige método POST estritamente
+    if (request.method !== "POST") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "METODO_NAO_PERMITIDO",
+          mensagem: "O endpoint de semeadura aceita exclusivamente requisições POST.",
+        },
+        { status: 405 },
+      );
+    }
+
+    // 2. Isolamento de ambiente: fail-closed absoluto fora de homologação
+    if (env.ENVIRONMENT !== "homolog") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "AMBIENTE_PROIBIDO",
+          mensagem:
+            "A semeadura administrativa de baseline é exclusiva do ambiente de homologação.",
+        },
+        { status: 403 },
+      );
+    }
+
+    // 3. Feature flag mestre
+    if (env.SYNC_V2_ENABLED !== "true") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "FEATURE_DISABLED",
+          mensagem:
+            "Sincronização V2 está desativada por configuração (SYNC_V2_ENABLED !== 'true').",
+        },
+        { status: 503 },
+      );
+    }
+
+    // 4. Autenticação e Autorização com Diferenciação Estrita de Identidade
+    let callerIdentity:
+      | {
+          type: "HUMAN";
+          id: number;
+          username: string;
+          nome: string;
+          email: string;
+          role: "ADMIN";
+        }
+      | {
+          type: "AUTOMATION";
+          id: string;
+          callerType: string;
+          authMethod: "SECRET_HEADER";
+        };
+
+    const adminSecret = env.SYNC_V2_ADMIN_SECRET || env.SYNC_ADMIN_SECRET;
+    const secretHeader = request.headers.get("X-Sync-Admin-Secret");
+
+    if (usuarioAtual) {
+      // 4.1 Identidade Humana
+      if (usuarioAtual.modo_apresentacao === 1) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "MODO_APRESENTACAO_BLOQUEADO",
+            mensagem:
+              "A semeadura administrativa de baseline está bloqueada no modo apresentação.",
+          },
+          { status: 403 },
+        );
+      }
+
+      const isAdmin =
+        usuarioAtual.perfil === "ADMIN" ||
+        (usuarioAtual as unknown as { role?: string }).role === "ADMIN";
+
+      if (!isAdmin) {
+        // SEGURANÇA: Usuário humano sem privilégio ADMIN NÃO pode usar o segredo de automação como bypass
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "PRIVILEGIO_INSUFICIENTE",
+            mensagem:
+              "A semeadura administrativa de baseline exige privilégio de Administrador do sistema. O segredo de automação não permite elevação de privilégio para sessões humanas não-admin.",
+          },
+          { status: 403 },
+        );
+      }
+
+      callerIdentity = {
+        type: "HUMAN",
+        id: usuarioAtual.id,
+        username: usuarioAtual.username,
+        nome: usuarioAtual.nome,
+        email: usuarioAtual.email,
+        role: "ADMIN",
+      };
+    } else {
+      // 4.2 Identidade de Automação
+      if (!secretHeader) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "NAO_AUTENTICADO",
+            mensagem:
+              "Acesso não autenticado. Requer sessão de Administrador ou credencial administrativa via header.",
+          },
+          { status: 401 },
+        );
+      }
+
+      const secretValido = Boolean(
+        adminSecret && secretHeader && secretHeader === adminSecret,
+      );
+
+      if (!secretValido) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "SECRET_INVALIDO",
+            mensagem: "Segredo administrativo inválido ou incorreto.",
+          },
+          { status: 403 },
+        );
+      }
+
+      const callerId =
+        request.headers.get("X-Sync-Caller-Id") || "automation:homolog-seeder";
+      const callerType =
+        request.headers.get("X-Sync-Caller-Type") || "automation";
+
+      callerIdentity = {
+        type: "AUTOMATION",
+        id: callerId,
+        callerType,
+        authMethod: "SECRET_HEADER",
+      };
+    }
+
+    // 5. Restrição estrita de escopo ao período 999
+    if (periodoId !== 999) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "PERIODO_INVALIDO",
+          mensagem:
+            "A semeadura de baseline P0.2 é restrita exclusivamente ao período de homologação 999.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // 6. Validação da integração e modo obrigatório PAUSED
+    const integracao = await db
+      .prepare(
+        `SELECT integration_id, periodo_id, spreadsheet_id, epoch, layout_revision, mode
+         FROM sync_integrations
+         WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<{
+        integration_id: string;
+        periodo_id: number;
+        spreadsheet_id: string;
+        epoch: number;
+        layout_revision: number;
+        mode: string;
+      }>();
+
+    if (!integracao) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "INTEGRACAO_NAO_ENCONTRADA",
+          mensagem: "Nenhuma integração V2 vinculada ao período 999.",
+        },
+        { status: 404 },
+      );
+    }
+
+    if (integracao.integration_id !== "integ-homolog-2026-2") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "INTEGRACAO_INVALIDA",
+          mensagem: `Integração '${integracao.integration_id}' incompatível com a homologação P0.2. Esperada 'integ-homolog-2026-2'.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    if (integracao.mode !== "PAUSED") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "MODO_INVALIDO",
+          mensagem: `A semeadura de baseline exige que a integração esteja estritamente em modo PAUSED (modo atual: '${integracao.mode}').`,
+        },
+        { status: 409 },
+      );
+    }
+
+    // 7. Parse de opções do corpo e validação estrita da allowlist de RAs
+    let body: Record<string, any> = {};
+    try {
+      body = (await request.json().catch(() => ({}))) as Record<string, any>;
+    } catch {
+      // corpo vazio ou não-JSON
+    }
+
+    const dryRun = body?.dryRun !== false; // Padrão defensivo: dryRun=true
+    const confirmToken =
+      typeof body?.confirmToken === "string" ? body.confirmToken.trim() : null;
+
+    let targetRas: string[] = [...ALLOWED_HOMOLOG_RAS];
+    if (Array.isArray(body?.targetRas) && body.targetRas.length > 0) {
+      const invalidRas = body.targetRas.filter(
+        (ra: any) =>
+          typeof ra !== "string" ||
+          !ALLOWED_HOMOLOG_RAS.includes(ra as (typeof ALLOWED_HOMOLOG_RAS)[number]),
+      );
+      if (invalidRas.length > 0) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "RA_FORA_DA_ALLOWLIST",
+            mensagem: `Os seguintes RAs não pertencem à allowlist fixa de homologação: ${invalidRas.join(
+              ", ",
+            )}. RAs autorizados: ${ALLOWED_HOMOLOG_RAS.join(", ")}.`,
+          },
+          { status: 400 },
+        );
+      }
+      targetRas = Array.from(new Set(body.targetRas as string[])).sort();
+    }
+
+    let adapter = customAdapter;
+    if (!adapter && env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+      try {
+        const parsed = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT_JSON);
+        if (parsed.client_email && parsed.private_key) {
+          adapter = new GoogleSheetsRealAdapter({
+            serviceAccountJson: env.GOOGLE_SERVICE_ACCOUNT_JSON,
+          });
+        }
+      } catch {
+        // ignora erro ao inicializar adapter opcional
+      }
+    }
+
+    const tokenSecret =
+      adminSecret || "CONTROLE_DOCS_HOMOLOG_P02_SEED_SECRET";
+
+    // -------------------------------------------------------------------------
+    // FASE 1: Prévia Segura (dryRun = true) — ZERO escritas no D1, ZERO auditoria
+    // -------------------------------------------------------------------------
+    if (dryRun) {
+      // Snapshot abrangente de validação
+      const snapshot = await computeBaselineScopeSnapshot(
+        db,
+        999,
+        integracao.integration_id,
+        targetRas,
+      );
+
+      // Executa prévia do seeder (dryRun = true) — zero mutações no D1
+      const report = await prepareExistingAlunosBaselines(db, {
+        periodoId: 999,
+        integrationId: integracao.integration_id,
+        actorId: String(callerIdentity.id),
+        dryRun: true,
+        targetRas,
+        externalAdapter: adapter,
+      });
+
+      const nonce = crypto.randomUUID();
+      const now = Date.now();
+      const expiresAt = now + 5 * 60 * 1000; // 5 minutos de validade
+
+      const tokenPayload = {
+        periodoId: 999,
+        integrationId: integracao.integration_id,
+        epoch: integracao.epoch,
+        layoutRevision: integracao.layout_revision,
+        targetRas,
+        snapshotHash: snapshot.snapshotHash,
+        snapshotSummary: snapshot.summary,
+        caller: {
+          type: callerIdentity.type,
+          id: String(callerIdentity.id),
+        },
+        nonce,
+        exp: expiresAt,
+      };
+
+      const payloadStr = JSON.stringify(tokenPayload);
+      const sig = await signHmacSha256(tokenSecret, payloadStr);
+      const generatedToken = `${btoa(payloadStr)}.${sig}`;
+
+      const totalCampos = report.totalAlunosD1 * 7;
+      const camposJaExistentes = report.alunosJaExistentes * 7;
+      const camposComDivergencia = report.divergencias.length;
+      const camposPreparados =
+        report.alunosPreparados * 7 - camposComDivergencia;
+      const camposBloqueados = report.bloqueios.length * 7;
+
+      return Response.json({
+        sucesso: report.sucesso,
+        fase: "PREVIA",
+        dryRun: true,
+        confirmToken: generatedToken,
+        tokenExpiraEm: new Date(expiresAt).toISOString(),
+        snapshot: {
+          periodoId: 999,
+          integrationId: integracao.integration_id,
+          epoch: integracao.epoch,
+          layoutRevision: integracao.layout_revision,
+          mode: integracao.mode,
+          targetRas,
+          snapshotHash: snapshot.snapshotHash,
+          snapshotSummary: snapshot.summary,
+        },
+        metricas: {
+          totalAlunos: report.totalAlunosD1,
+          alunosPreparados: report.alunosPreparados,
+          alunosJaExistentes: report.alunosJaExistentes,
+          alunosBloqueados: report.bloqueios.length,
+          totalCampos,
+          camposPreparados,
+          camposJaExistentes,
+          camposComDivergencia,
+          camposBloqueados,
+        },
+        report,
+        instrucoes:
+          "Prévia concluída sem qualquer escrita no banco D1. Para persistência real com garantia transacional, envie POST com { \"dryRun\": false, \"confirmToken\": \"<confirmToken>\" } dentro da janela de 5 minutos.",
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // FASE 2: Execução com Confirmação e Consistência Transacional (dryRun = false)
+    // -------------------------------------------------------------------------
+    if (!confirmToken) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "TOKEN_CONFIRMACAO_OBRIGATORIO",
+          mensagem:
+            "A execução real (dryRun=false) requer a realização prévia da prévia e o envio do 'confirmToken'.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const tokenParts = confirmToken.split(".");
+    if (tokenParts.length !== 2) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "TOKEN_CONFIRMACAO_INVALIDO",
+          mensagem: "Estrutura do token de confirmação inválida.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const [b64Payload, sig] = tokenParts;
+    let payloadStr: string;
+    let tokenPayload: any;
+    try {
+      payloadStr = atob(b64Payload);
+      tokenPayload = JSON.parse(payloadStr);
+    } catch {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "TOKEN_CONFIRMACAO_INVALIDO",
+          mensagem: "Decodificação do payload do token falhou.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const isSigValid = await verifyHmacSha256(tokenSecret, payloadStr, sig);
+    if (!isSigValid) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "TOKEN_CONFIRMACAO_INVALIDO",
+          mensagem:
+            "Assinatura do token de confirmação inválida ou forjada.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const now = Date.now();
+    if (now > tokenPayload.exp) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "TOKEN_CONFIRMACAO_EXPIRADO",
+          mensagem:
+            "O token de confirmação expirou. Gere uma nova prévia antes de executar.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Validação de vinculação de identidade do chamador ao token
+    if (
+      !tokenPayload.caller ||
+      tokenPayload.caller.type !== callerIdentity.type ||
+      tokenPayload.caller.id !== String(callerIdentity.id)
+    ) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "IDENTIDADE_DIVERGENTE",
+          mensagem:
+            "O token de confirmação foi emitido para outra identidade e não pode ser executado pelo chamador atual.",
+        },
+        { status: 403 },
+      );
+    }
+
+    // Consulta persistente anti-replay em D1
+    const existingNonce = await db
+      .prepare(`SELECT nonce FROM sync_auth_nonces WHERE nonce = ?`)
+      .bind(tokenPayload.nonce)
+      .first<{ nonce: string }>();
+
+    if (existingNonce) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "TOKEN_JA_UTILIZADO",
+          mensagem:
+            "Este token de confirmação já foi utilizado (ataque de repetição prevenido). Gere uma nova prévia.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Se o corpo informar targetRas, deve coincidir exatamente com os RAs assinados no token
+    if (Array.isArray(body?.targetRas)) {
+      const sortedBodyRas = Array.from(
+        new Set(body.targetRas as string[]),
+      ).sort();
+      const sortedTokenRas = Array.from(
+        new Set(tokenPayload.targetRas as string[]),
+      ).sort();
+      if (JSON.stringify(sortedBodyRas) !== JSON.stringify(sortedTokenRas)) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "PARAMETRO_DIVERGENTE",
+            mensagem:
+              "A lista de targetRas no corpo diverge dos RAs vinculados e assinados no token de confirmação.",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Revalidação estrita contra snapshot abrangente do token (alunos, docs, baseline, conflitos, operações)
+    const currentSnapshot = await computeBaselineScopeSnapshot(
+      db,
+      999,
+      integracao.integration_id,
+      tokenPayload.targetRas,
+    );
+
+    if (currentSnapshot.snapshotHash !== tokenPayload.snapshotHash) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "SNAPSHOT_OBSOLETO",
+          mensagem:
+            "O estado dos dados (alunos, documentos, baselines, conflitos ou operações) divergiu do snapshot verificado na prévia. A execução foi rejeitada para prevenir inconsistências. Gere uma nova prévia.",
+          snapshotEsperado: tokenPayload.snapshotHash,
+          snapshotAtual: currentSnapshot.snapshotHash,
+        },
+        { status: 409 },
+      );
+    }
+
+    if (
+      tokenPayload.periodoId !== 999 ||
+      tokenPayload.integrationId !== integracao.integration_id ||
+      tokenPayload.epoch !== integracao.epoch ||
+      tokenPayload.layoutRevision !== integracao.layout_revision ||
+      integracao.mode !== "PAUSED"
+    ) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "ESTADO_ALTERADO",
+          mensagem:
+            "O estado da integração ou do período foi modificado após a geração da prévia. Revalidação falhou; gere uma nova prévia.",
+        },
+        { status: 409 },
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // Consistência Transacional: Nonce D1 + Semeadura + Auditoria em Lote Único
+    // -------------------------------------------------------------------------
+    const nonceStmt = db
+      .prepare(
+        `INSERT INTO sync_auth_nonces (nonce, sender_id, integration_id, expires_at)
+         VALUES (?, ?, ?, ?)`,
+      )
+      .bind(
+        tokenPayload.nonce,
+        String(callerIdentity.id),
+        integracao.integration_id,
+        new Date(tokenPayload.exp).toISOString(),
+      );
+
+    const auditDesc = JSON.stringify({
+      integration_id: integracao.integration_id,
+      periodo_id: periodoId,
+      caller_type: callerIdentity.type,
+      caller_id: callerIdentity.id,
+      nonce: tokenPayload.nonce,
+      snapshot_hash: tokenPayload.snapshotHash,
+      target_ras: tokenPayload.targetRas,
+    });
+
+    const auditStmt = db
+      .prepare(
+        `INSERT INTO logs (
+           acao, entidade, descricao, ra, unidade, periodo_id,
+           usuario_id, usuario_nome, usuario_username
+         ) VALUES (?, ?, ?, NULL, NULL, ?, ?, ?, ?)`,
+      )
+      .bind(
+        "SYNC_V2_BASELINE_SEED",
+        "SYNC_BASELINE",
+        auditDesc,
+        periodoId,
+        callerIdentity.type === "HUMAN" ? callerIdentity.id : null,
+        callerIdentity.type === "HUMAN" ? callerIdentity.nome : null,
+        callerIdentity.type === "HUMAN"
+          ? callerIdentity.username
+          : `automation:${callerIdentity.id}`,
+      );
+
+    let report: BaselineSeederReport;
+    try {
+      report = await prepareExistingAlunosBaselines(db, {
+        periodoId: 999,
+        integrationId: integracao.integration_id,
+        actorId: String(callerIdentity.id),
+        dryRun: false,
+        targetRas: tokenPayload.targetRas,
+        externalAdapter: adapter,
+        prependStatements: [nonceStmt],
+        appendStatements: [auditStmt],
+      });
+    } catch (err: any) {
+      if (
+        err?.message?.includes("UNIQUE constraint failed") &&
+        err?.message?.includes("sync_auth_nonces")
+      ) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "TOKEN_JA_UTILIZADO",
+            mensagem:
+              "Este token de confirmação já foi consumido por outra execução concorrente (concorrência D1 prevenida).",
+          },
+          { status: 400 },
+        );
+      }
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "FALHA_TRANSACAO_D1",
+          mensagem: `A transação atômica contendo semeadura e auditoria falhou e foi integralmente revertida: ${
+            err?.message ?? err
+          }`,
+        },
+        { status: 500 },
+      );
+    }
+
+    // Listener de auditoria para espionagem em suítes de teste (não-bloqueante, D1 já commitado na transação)
+    try {
+      await registrarAuditoria(periodoId, {
+        acao: "SYNC_V2_BASELINE_SEED",
+        entidade: "SYNC_BASELINE",
+        descricao: auditDesc,
+      });
+    } catch {
+      // Ignora falha em listener externo, pois auditStmt foi gravado atomicamente no D1
+    }
+
+    const totalCampos = report.totalAlunosD1 * 7;
+    const camposJaExistentes = report.alunosJaExistentes * 7;
+    const camposComDivergencia = report.divergencias.length;
+    const camposPreparados =
+      report.alunosPreparados * 7 - camposComDivergencia;
+    const camposBloqueados = report.bloqueios.length * 7;
+
+    const statusPersistencia =
+      report.alunosPreparados > 0
+        ? "PERSISTIDO"
+        : report.alunosJaExistentes > 0
+        ? "NOOP_JA_SEMEADO"
+        : "SEM_ALUNOS";
+
+    const mensagemResultado =
+      report.alunosPreparados > 0
+        ? `Semeadura executada com sucesso: ${report.alunosPreparados} alunos e ${camposPreparados} campos preparados no D1.`
+        : report.alunosJaExistentes > 0
+        ? "Todos os alunos e campos já estavam semeados e confirmados. Nenhuma mutação adicional foi persistida."
+        : "Nenhum aluno encontrado para semeadura.";
+
+    return Response.json({
+      sucesso: report.sucesso,
+      fase: "EXECUCAO",
+      dryRun: false,
+      statusPersistencia,
+      auditoriaRegistrada: true,
+      metricas: {
+        totalAlunos: report.totalAlunosD1,
+        alunosPreparados: report.alunosPreparados,
+        alunosJaExistentes: report.alunosJaExistentes,
+        alunosBloqueados: report.bloqueios.length,
+        totalCampos,
+        camposPreparados,
+        camposJaExistentes,
+        camposComDivergencia,
+        camposBloqueados,
+      },
+      report,
+      mensagem: mensagemResultado,
     });
   }
 

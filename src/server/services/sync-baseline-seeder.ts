@@ -38,6 +38,8 @@ export interface PrepareBaselinesOptions {
     fchEad?: string;
   };
   targetRas?: string[];
+  prependStatements?: D1PreparedStatement[];
+  appendStatements?: D1PreparedStatement[];
 }
 
 export interface BaselineSeederReport {
@@ -279,6 +281,11 @@ export async function prepareExistingAlunosBaselines(
   }
 
   // 5. Preparação individual idempotente para cada aluno não duplicado
+  const allBatchStmts: D1PreparedStatement[] = [];
+  if (options.prependStatements && options.prependStatements.length > 0) {
+    allBatchStmts.push(...options.prependStatements);
+  }
+
   for (const aluno of alunosD1.results) {
     const groupKey = derivarGroupKey(aluno.unidade);
     if (!groupKey) {
@@ -553,7 +560,7 @@ export async function prepareExistingAlunosBaselines(
     }
 
     if (batchStmts.length > 0) {
-      await db.batch(batchStmts);
+      allBatchStmts.push(...batchStmts);
     }
 
     report.alunosPreparados++;
@@ -564,6 +571,14 @@ export async function prepareExistingAlunosBaselines(
         status: "PREPARADO",
       });
     }
+  }
+
+  if (options.appendStatements && options.appendStatements.length > 0) {
+    allBatchStmts.push(...options.appendStatements);
+  }
+
+  if (!dryRun && allBatchStmts.length > 0) {
+    await db.batch(allBatchStmts);
   }
 
   report.sucesso = true;
