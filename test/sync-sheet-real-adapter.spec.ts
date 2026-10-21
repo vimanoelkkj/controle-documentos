@@ -781,4 +781,75 @@ describe('F4-A: Adaptador Real Google Sheets (GoogleSheetsRealAdapter)', () => {
     expect(res.status).toBe('CONFLICT_DETECTED');
     expect(grid[1][7]).toBe('TRUE'); // Mantém o valor editado pelo humano intacto
   });
+
+  it('F4-A.21 — Preserva o contexto de globalThis.fetch quando fetchFn não é injetado (previne Illegal invocation)', async () => {
+    const originalFetch = globalThis.fetch;
+    let receptorCorreto = false;
+
+    // Simula runtime V8/workerd que exige estritamente receiver globalThis
+    const strictReceiverFetch = function (this: unknown, _input: any, _init: any) {
+      if (this !== globalThis) {
+        throw new TypeError('Illegal invocation: function called with incorrect `this` reference.');
+      }
+      receptorCorreto = true;
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            range: "'CONTROLE DE DOCUMENTOS FACE FEA'!A1:I2",
+            values: mockControleFaceFea,
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      );
+    };
+
+    try {
+      globalThis.fetch = strictReceiverFetch as unknown as typeof fetch;
+
+      const adapter = new GoogleSheetsRealAdapter({
+        tokenProvider: async () => 'mock-token',
+        // fetchFn omitido intencionalmente para acionar fallback a globalThis.fetch
+      });
+
+      const snapshot = await adapter.readControlTab({
+        spreadsheetId,
+        tabName: 'CONTROLE DE DOCUMENTOS FACE FEA',
+        groupKey: 'FACE_FEA',
+      });
+
+      expect(snapshot.rowsByRa.size).toBe(3);
+      expect(snapshot.rowsByRa.has('000123')).toBe(true);
+      expect(receptorCorreto).toBe(true);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('F4-A.22 — Preserva o comportamento exato de fetchFn customizado injetado em testes', async () => {
+    let mockInvocado = false;
+    const customMock: typeof fetch = async () => {
+      mockInvocado = true;
+      return new Response(
+        JSON.stringify({
+          range: "'CONTROLE DE DOCUMENTOS FCH EAD'!A1:I4",
+          values: mockControleFaceFea,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    };
+
+    const adapter = new GoogleSheetsRealAdapter({
+      tokenProvider: async () => 'mock-token',
+      fetchFn: customMock,
+    });
+
+    const snapshot = await adapter.readControlTab({
+      spreadsheetId,
+      tabName: 'CONTROLE DE DOCUMENTOS FCH EAD',
+      groupKey: 'FCH_EAD',
+    });
+
+    expect(snapshot.rowsByRa.size).toBe(3);
+    expect(mockInvocado).toBe(true);
+  });
 });

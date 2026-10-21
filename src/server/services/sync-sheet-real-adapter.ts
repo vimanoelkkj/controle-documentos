@@ -125,7 +125,7 @@ export class GoogleSheetsRealAdapter implements ISyncSpreadsheetAdapter {
     this.readOnly = options.readOnly ?? false;
     this.tokenProvider = options.tokenProvider;
     this.serviceAccountJson = options.serviceAccountJson;
-    this.fetchFn = options.fetchFn || globalThis.fetch;
+    this.fetchFn = options.fetchFn || (typeof globalThis.fetch === 'function' ? globalThis.fetch.bind(globalThis) : globalThis.fetch);
     this.requestTimeoutMs = options.requestTimeoutMs || 15000;
     this.adapterSecret = options.adapterSecret || 'default-adapter-secret-v2';
   }
