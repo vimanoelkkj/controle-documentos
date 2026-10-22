@@ -217,31 +217,147 @@ async function verificarTabelasV2Existem(db: D1Database): Promise<boolean> {
   }
 }
 
+type ResultadoAutorizacaoSyncV2 =
+  | { autorizado: true; tipo: "HUMANO" | "AUTOMACAO" }
+  | { autorizado: false; status: number; erro: string; mensagem: string };
+
 /**
- * Valida autorização da requisição administrativa:
- * Exige usuário com privilégio de escrita OU secret administrativo no header.
+ * Valida autorização estrita da requisição administrativa:
+ * 1. Se houver sessão humana (`usuarioAtual`), exige perfil ADMIN e `modo_apresentacao !== 1`.
+ *    Sessões humanas não-ADMIN NUNCA podem usar `X-Sync-Admin-Secret` como bypass/elevação.
+ * 2. Se não houver sessão humana (`usuarioAtual === null` e sem cookie `cd_session`),
+ *    permite automação autenticada com `X-Sync-Admin-Secret` válido.
  */
-function estaAutorizadoComoAdmin(
+function avaliarAutorizacaoAdminSyncV2(
   request: Request,
   usuarioAtual: UsuarioSessao | null,
   adminSecretConfigurado?: string,
-): boolean {
-  if (
-    usuarioAtual &&
-    (usuarioAtual.perfil === "ADMIN" ||
-      (usuarioAtual as unknown as { role?: string }).role === "ADMIN")
-  ) {
-    return true;
+  exige401QuandoSemCredenciais = false,
+): ResultadoAutorizacaoSyncV2 {
+  if (usuarioAtual) {
+    if (usuarioAtual.modo_apresentacao === 1) {
+      return {
+        autorizado: false,
+        status: 403,
+        erro: "MODO_APRESENTACAO_BLOQUEADO",
+        mensagem:
+          "Operações administrativas da Sincronização V2 são estritamente bloqueadas no modo apresentação.",
+      };
+    }
+
+    const isAdmin =
+      usuarioAtual.perfil === "ADMIN" ||
+      (usuarioAtual as unknown as { role?: string }).role === "ADMIN";
+
+    if (!isAdmin) {
+      return {
+        autorizado: false,
+        status: 403,
+        erro: "PRIVILEGIO_INSUFICIENTE",
+        mensagem:
+          "Esta operação requer privilégio de Administrador do sistema. O segredo de automação não permite elevação de privilégio para sessões humanas não-admin.",
+      };
+    }
+
+    return { autorizado: true, tipo: "HUMANO" };
   }
+
+  const cookieHeader = request.headers.get("Cookie") || "";
+  if (/(?:^|;\s*)cd_session=/.test(cookieHeader)) {
+    return {
+      autorizado: false,
+      status: 401,
+      erro: "NAO_AUTENTICADO",
+      mensagem:
+        "Sessão humana expirada ou inválida. Segredo de automação não pode ser combinado com cookie de sessão.",
+    };
+  }
+
   const secretHeader = request.headers.get("X-Sync-Admin-Secret");
-  if (
-    adminSecretConfigurado &&
-    secretHeader &&
-    secretHeader === adminSecretConfigurado
-  ) {
-    return true;
+  if (!secretHeader) {
+    if (exige401QuandoSemCredenciais) {
+      return {
+        autorizado: false,
+        status: 401,
+        erro: "NAO_AUTENTICADO",
+        mensagem: "Não autenticado.",
+      };
+    }
+    return {
+      autorizado: false,
+      status: 403,
+      erro: "PRIVILEGIO_INSUFICIENTE",
+      mensagem: "Esta operação requer privilégio de Administrador do sistema.",
+    };
   }
-  return false;
+
+  if (!adminSecretConfigurado || !adminSecretConfigurado.trim()) {
+    return {
+      autorizado: false,
+      status: 503,
+      erro: "SECRET_NAO_CONFIGURADO",
+      mensagem:
+        "O segredo administrativo (SYNC_V2_ADMIN_SECRET) não está configurado no ambiente.",
+    };
+  }
+
+  if (secretHeader !== adminSecretConfigurado) {
+    return {
+      autorizado: false,
+      status: 403,
+      erro: "SECRET_INVALIDO",
+      mensagem: "Segredo administrativo inválido ou incorreto.",
+    };
+  }
+
+  return { autorizado: true, tipo: "AUTOMACAO" };
+}
+
+async function lerCorpoJsonOpcional(
+  request: Request,
+): Promise<
+  | { ok: true; body: Record<string, any> }
+  | { ok: false; response: Response }
+> {
+  let rawText = "";
+  try {
+    rawText = await request.clone().text();
+  } catch {
+    return { ok: true, body: {} };
+  }
+  const trimmed = rawText.trim();
+  if (!trimmed) {
+    return { ok: true, body: {} };
+  }
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {
+        ok: false,
+        response: Response.json(
+          {
+            sucesso: false,
+            erro: "JSON_INVALIDO",
+            mensagem: "O corpo da requisição deve ser um objeto JSON válido.",
+          },
+          { status: 400 },
+        ),
+      };
+    }
+    return { ok: true, body: parsed as Record<string, any> };
+  } catch {
+    return {
+      ok: false,
+      response: Response.json(
+        {
+          sucesso: false,
+          erro: "JSON_INVALIDO",
+          mensagem: "Corpo da requisição não contém JSON válido.",
+        },
+        { status: 400 },
+      ),
+    };
+  }
 }
 
 export async function handleSyncV2AdminRoute(
@@ -275,8 +391,19 @@ export async function handleSyncV2AdminRoute(
     if (matchDirect) {
       action = matchDirect[1];
       const q = url.searchParams.get("periodoId");
-      if (q) {
-        periodoId = Number(q);
+      if (q !== null) {
+        const parsedQ = Number(q);
+        if (!Number.isInteger(parsedQ) || parsedQ <= 0) {
+          return Response.json(
+            {
+              sucesso: false,
+              erro: "PERIODO_INVALIDO",
+              mensagem: "O parâmetro periodoId informado é inválido.",
+            },
+            { status: 400 },
+          );
+        }
+        periodoId = parsedQ;
       }
     }
   }
@@ -286,11 +413,21 @@ export async function handleSyncV2AdminRoute(
   if (periodoId === null && (request.method === "POST" || request.method === "PATCH")) {
     try {
       const cloned = (await request.clone().json()) as Record<string, unknown> | null;
-      if (cloned && typeof cloned.periodoId === "number") {
+      if (cloned && cloned.periodoId !== undefined) {
+        if (typeof cloned.periodoId !== "number" || !Number.isInteger(cloned.periodoId) || cloned.periodoId <= 0) {
+          return Response.json(
+            {
+              sucesso: false,
+              erro: "PERIODO_INVALIDO",
+              mensagem: "O campo periodoId no corpo da requisição deve ser um inteiro positivo.",
+            },
+            { status: 400 },
+          );
+        }
         periodoId = cloned.periodoId;
       }
     } catch {
-      // ignore
+      // Será validado pelo parser de body da rota específica
     }
   }
 
@@ -312,14 +449,37 @@ export async function handleSyncV2AdminRoute(
     }
   }
 
+  if (!Number.isInteger(periodoId) || periodoId <= 0) {
+    return Response.json(
+      {
+        sucesso: false,
+        erro: "PERIODO_INVALIDO",
+        mensagem: "O identificador do período deve ser um número inteiro positivo.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const adminSecret = env.SYNC_V2_ADMIN_SECRET || env.SYNC_ADMIN_SECRET;
+
   // ---------------------------------------------------------------------------
-  // 1. GET /status — Consulta de Saúde e Prontidão
+  // 1. GET /status — Consulta de Saúde e Prontidão (Isolado por Período)
   // ---------------------------------------------------------------------------
   if (action === "status" && request.method === "GET") {
-    if (!usuarioAtual) {
+    const authStatus = avaliarAutorizacaoAdminSyncV2(
+      request,
+      usuarioAtual,
+      adminSecret,
+      true,
+    );
+    if (!authStatus.autorizado) {
       return Response.json(
-        { erro: "Não autenticado." },
-        { status: 401 },
+        {
+          sucesso: false,
+          erro: authStatus.erro,
+          mensagem: authStatus.mensagem,
+        },
+        { status: authStatus.status },
       );
     }
 
@@ -385,38 +545,54 @@ export async function handleSyncV2AdminRoute(
       motivosBloqueio.push("Credenciais de conta de serviço Google Sheets ausentes ou inválidas.");
     }
 
-    // Métricas operacionais do D1
-    const operacoesPorEstado = await db
-      .prepare(
-        `SELECT state, count(*) as total
-         FROM sync_operations
-         GROUP BY state`,
-      )
-      .all<{ state: string; total: number }>();
-
+    // Métricas operacionais do D1 estritamente filtradas pelo integration_id do período solicitado
     const operacoesMetrics: Record<string, number> = {};
-    for (const r of operacoesPorEstado.results || []) {
-      operacoesMetrics[r.state] = r.total;
-    }
-
-    const camposState = await db
-      .prepare(
-        `SELECT status, count(*) as total
-         FROM sync_field_state
-         GROUP BY status`,
-      )
-      .all<{ status: string; total: number }>();
-
     const camposMetrics: Record<string, number> = {};
-    for (const r of camposState.results || []) {
-      camposMetrics[r.status] = r.total;
-    }
+    let openConflictsCount = 0;
 
-    const conflitosAbertos = await db
-      .prepare(
-        `SELECT count(*) as total FROM sync_conflicts WHERE resolved = 0`,
-      )
-      .first<{ total: number }>();
+    if (integracao) {
+      const operacoesPorEstado = await db
+        .prepare(
+          `SELECT o.state as state, count(*) as total
+           FROM sync_operations o
+           INNER JOIN sync_records r ON r.record_id = o.record_id
+           WHERE r.integration_id = ?
+           GROUP BY o.state`,
+        )
+        .bind(integracao.integration_id)
+        .all<{ state: string; total: number }>();
+
+      for (const r of operacoesPorEstado.results || []) {
+        operacoesMetrics[r.state] = r.total;
+      }
+
+      const camposState = await db
+        .prepare(
+          `SELECT s.status as status, count(*) as total
+           FROM sync_field_state s
+           INNER JOIN sync_records r ON r.record_id = s.record_id
+           WHERE r.integration_id = ?
+           GROUP BY s.status`,
+        )
+        .bind(integracao.integration_id)
+        .all<{ status: string; total: number }>();
+
+      for (const r of camposState.results || []) {
+        camposMetrics[r.status] = r.total;
+      }
+
+      const conflitosAbertos = await db
+        .prepare(
+          `SELECT count(*) as total
+           FROM sync_conflicts c
+           INNER JOIN sync_records r ON r.record_id = c.record_id
+           WHERE r.integration_id = ? AND c.resolved = 0`,
+        )
+        .bind(integracao.integration_id)
+        .first<{ total: number }>();
+
+      openConflictsCount = conflitosAbertos?.total ?? 0;
+    }
 
     const unbaselinedCount = camposMetrics["UNBASELINED"] ?? 0;
     if (unbaselinedCount > 0) {
@@ -428,7 +604,8 @@ export async function handleSyncV2AdminRoute(
       tablesExist &&
       Boolean(integracao) &&
       !["LEGACY", "PAUSED", "QUARANTINED"].includes(integracao?.mode ?? "") &&
-      credentialsConfigured;
+      credentialsConfigured &&
+      unbaselinedCount === 0;
 
     let activeLease: {
       lease_owner: string;
@@ -471,7 +648,7 @@ export async function handleSyncV2AdminRoute(
         metrics: {
           operations: operacoesMetrics,
           fieldStates: camposMetrics,
-          openConflicts: conflitosAbertos?.total ?? 0,
+          openConflicts: openConflictsCount,
         },
         readyForDispatch,
         motivosBloqueio,
@@ -538,7 +715,6 @@ export async function handleSyncV2AdminRoute(
           authMethod: "SECRET_HEADER";
         };
 
-    const adminSecret = env.SYNC_V2_ADMIN_SECRET || env.SYNC_ADMIN_SECRET;
     const secretHeader = request.headers.get("X-Sync-Admin-Secret");
 
     if (usuarioAtual) {
@@ -594,9 +770,19 @@ export async function handleSyncV2AdminRoute(
         );
       }
 
-      const secretValido = Boolean(
-        adminSecret && secretHeader && secretHeader === adminSecret,
-      );
+      if (!adminSecret || !adminSecret.trim()) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "SECRET_NAO_CONFIGURADO",
+            mensagem:
+              "O segredo administrativo (SYNC_V2_ADMIN_SECRET) não está configurado no ambiente.",
+          },
+          { status: 503 },
+        );
+      }
+
+      const secretValido = Boolean(secretHeader === adminSecret);
 
       if (!secretValido) {
         return Response.json(
@@ -621,6 +807,20 @@ export async function handleSyncV2AdminRoute(
         authMethod: "SECRET_HEADER",
       };
     }
+
+    // 4.3 Fail-closed: segredo obrigatório para assinar/verificar tokens de confirmação
+    if (!adminSecret || !adminSecret.trim()) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "SECRET_NAO_CONFIGURADO",
+          mensagem:
+            "O segredo administrativo (SYNC_V2_ADMIN_SECRET) é obrigatório para assinar e verificar tokens de confirmação e não está configurado no ambiente.",
+        },
+        { status: 503 },
+      );
+    }
+    const tokenSecret = adminSecret;
 
     // 5. Restrição estrita de escopo ao período 999
     if (periodoId !== 999) {
@@ -686,11 +886,19 @@ export async function handleSyncV2AdminRoute(
     }
 
     // 7. Parse de opções do corpo e validação estrita da allowlist de RAs
-    let body: Record<string, any> = {};
-    try {
-      body = (await request.json().catch(() => ({}))) as Record<string, any>;
-    } catch {
-      // corpo vazio ou não-JSON
+    const parsedBody = await lerCorpoJsonOpcional(request);
+    if (!parsedBody.ok) return parsedBody.response;
+    const body = parsedBody.body;
+
+    if (body.dryRun !== undefined && typeof body.dryRun !== "boolean") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "PARAMETRO_INVALIDO",
+          mensagem: "O parâmetro dryRun deve ser booleano.",
+        },
+        { status: 400 },
+      );
     }
 
     const dryRun = body?.dryRun !== false; // Padrão defensivo: dryRun=true
@@ -698,25 +906,37 @@ export async function handleSyncV2AdminRoute(
       typeof body?.confirmToken === "string" ? body.confirmToken.trim() : null;
 
     let targetRas: string[] = [...ALLOWED_HOMOLOG_RAS];
-    if (Array.isArray(body?.targetRas) && body.targetRas.length > 0) {
-      const invalidRas = body.targetRas.filter(
-        (ra: any) =>
-          typeof ra !== "string" ||
-          !ALLOWED_HOMOLOG_RAS.includes(ra as (typeof ALLOWED_HOMOLOG_RAS)[number]),
-      );
-      if (invalidRas.length > 0) {
+    if (body?.targetRas !== undefined) {
+      if (!Array.isArray(body.targetRas)) {
         return Response.json(
           {
             sucesso: false,
-            erro: "RA_FORA_DA_ALLOWLIST",
-            mensagem: `Os seguintes RAs não pertencem à allowlist fixa de homologação: ${invalidRas.join(
-              ", ",
-            )}. RAs autorizados: ${ALLOWED_HOMOLOG_RAS.join(", ")}.`,
+            erro: "PARAMETRO_INVALIDO",
+            mensagem: "O parâmetro targetRas deve ser uma lista de RAs.",
           },
           { status: 400 },
         );
       }
-      targetRas = Array.from(new Set(body.targetRas as string[])).sort();
+      if (body.targetRas.length > 0) {
+        const invalidRas = body.targetRas.filter(
+          (ra: any) =>
+            typeof ra !== "string" ||
+            !ALLOWED_HOMOLOG_RAS.includes(ra as (typeof ALLOWED_HOMOLOG_RAS)[number]),
+        );
+        if (invalidRas.length > 0) {
+          return Response.json(
+            {
+              sucesso: false,
+              erro: "RA_FORA_DA_ALLOWLIST",
+              mensagem: `Os seguintes RAs não pertencem à allowlist fixa de homologação: ${invalidRas.join(
+                ", ",
+              )}. RAs autorizados: ${ALLOWED_HOMOLOG_RAS.join(", ")}.`,
+            },
+            { status: 400 },
+          );
+        }
+        targetRas = Array.from(new Set(body.targetRas as string[])).sort();
+      }
     }
 
     let adapter = customAdapter;
@@ -732,9 +952,6 @@ export async function handleSyncV2AdminRoute(
         // ignora erro ao inicializar adapter opcional
       }
     }
-
-    const tokenSecret =
-      adminSecret || "CONTROLE_DOCS_HOMOLOG_P02_SEED_SECRET";
 
     // -------------------------------------------------------------------------
     // FASE 1: Prévia Segura (dryRun = true) — ZERO escritas no D1, ZERO auditoria
@@ -1125,12 +1342,21 @@ export async function handleSyncV2AdminRoute(
     });
   }
 
-  // Para endpoints modificadores (dispatch, pause, resume), exige autorização de escrita
-  const adminSecret = env.SYNC_V2_ADMIN_SECRET || env.SYNC_ADMIN_SECRET;
-  if (!estaAutorizadoComoAdmin(request, usuarioAtual, adminSecret)) {
+  // Para endpoints modificadores (dispatch, pause, resume, inbound, schedule-run), exige autorização administrativa estrita
+  const authAdmin = avaliarAutorizacaoAdminSyncV2(
+    request,
+    usuarioAtual,
+    adminSecret,
+    false,
+  );
+  if (!authAdmin.autorizado) {
     return Response.json(
-      { erro: "PRIVILEGIO_INSUFICIENTE", mensagem: "Esta operação requer privilégio de Administrador do sistema." },
-      { status: 403 },
+      {
+        sucesso: false,
+        erro: authAdmin.erro,
+        mensagem: authAdmin.mensagem,
+      },
+      { status: authAdmin.status },
     );
   }
 
@@ -1138,6 +1364,9 @@ export async function handleSyncV2AdminRoute(
   // 2. POST /pause — Parada Operacional Imediata
   // ---------------------------------------------------------------------------
   if (action === "pause" && request.method === "POST") {
+    const parsedBody = await lerCorpoJsonOpcional(request);
+    if (!parsedBody.ok) return parsedBody.response;
+
     const integracao = await db
       .prepare(`SELECT integration_id, mode FROM sync_integrations WHERE periodo_id = ?`)
       .bind(periodoId)
@@ -1179,6 +1408,10 @@ export async function handleSyncV2AdminRoute(
   // 3. POST /resume — Retomada Operacional
   // ---------------------------------------------------------------------------
   if (action === "resume" && request.method === "POST") {
+    const parsedBody = await lerCorpoJsonOpcional(request);
+    if (!parsedBody.ok) return parsedBody.response;
+    const body = parsedBody.body;
+
     const integracao = await db
       .prepare(`SELECT integration_id, mode FROM sync_integrations WHERE periodo_id = ?`)
       .bind(periodoId)
@@ -1191,7 +1424,6 @@ export async function handleSyncV2AdminRoute(
       );
     }
 
-    const body = (await request.json().catch(() => ({}))) as any;
     let modoDestino = body?.modo;
 
     if (!modoDestino) {
@@ -1250,6 +1482,27 @@ export async function handleSyncV2AdminRoute(
   // 4. POST /dispatch — Despacho Controlado de Lote V2
   // ---------------------------------------------------------------------------
   if (action === "dispatch" && request.method === "POST") {
+    const parsedBody = await lerCorpoJsonOpcional(request);
+    if (!parsedBody.ok) return parsedBody.response;
+    const body = parsedBody.body;
+
+    if (
+      body.batchSize !== undefined &&
+      (typeof body.batchSize !== "number" ||
+        !Number.isInteger(body.batchSize) ||
+        body.batchSize <= 0 ||
+        body.batchSize > 500)
+    ) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "PARAMETRO_INVALIDO",
+          mensagem: "O parâmetro batchSize deve ser um número inteiro positivo (1..500).",
+        },
+        { status: 400 },
+      );
+    }
+
     // 1. Fail-closed: bloqueado por padrão se flag não estiver ativa
     if (env.SYNC_V2_ENABLED !== "true") {
       return Response.json(
@@ -1406,13 +1659,8 @@ export async function handleSyncV2AdminRoute(
 
     // 7. Parse de opções da requisição
     let batchSize = 20;
-    try {
-      const body = (await request.json().catch(() => ({}))) as any;
-      if (body && typeof body.batchSize === "number" && body.batchSize > 0) {
-        batchSize = Math.min(body.batchSize, 50);
-      }
-    } catch {
-      // Ignora erro de parse de body
+    if (typeof body.batchSize === "number" && body.batchSize > 0) {
+      batchSize = Math.min(body.batchSize, 50);
     }
 
     activeDispatches.add(dispatchKey);
@@ -1490,6 +1738,48 @@ export async function handleSyncV2AdminRoute(
   // 5. POST /inbound — Ingestão Inbound a partir do Google Sheets (Fluxo Inverso)
   // ---------------------------------------------------------------------------
   if (action === "inbound" && request.method === "POST") {
+    const parsedBody = await lerCorpoJsonOpcional(request);
+    if (!parsedBody.ok) return parsedBody.response;
+    const body = parsedBody.body;
+
+    if (body.dryRun !== undefined && typeof body.dryRun !== "boolean") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "PARAMETRO_INVALIDO",
+          mensagem: "O parâmetro dryRun deve ser booleano.",
+        },
+        { status: 400 },
+      );
+    }
+    if (
+      body.autoCreateMissingAlunos !== undefined &&
+      typeof body.autoCreateMissingAlunos !== "boolean"
+    ) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "PARAMETRO_INVALIDO",
+          mensagem: "O parâmetro autoCreateMissingAlunos deve ser booleano.",
+        },
+        { status: 400 },
+      );
+    }
+    if (
+      body.groupKey !== undefined &&
+      body.groupKey !== "FACE_FEA" &&
+      body.groupKey !== "FCH_EAD"
+    ) {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "PARAMETRO_INVALIDO",
+          mensagem: "O parâmetro groupKey deve ser FACE_FEA ou FCH_EAD.",
+        },
+        { status: 400 },
+      );
+    }
+
     // 1. Verificação de flag mestre
     if (env.SYNC_V2_ENABLED !== "true") {
       return Response.json(
@@ -1591,17 +1881,10 @@ export async function handleSyncV2AdminRoute(
     let dryRun = integracao.mode === "SHADOW";
     let targetGroupKey: GroupKey | undefined;
     let autoCreateMissingAlunos = false;
-    try {
-      const body = (await request.json().catch(() => ({}))) as any;
-      if (body) {
-        if (body.dryRun === true) dryRun = true;
-        if (body.autoCreateMissingAlunos === true) autoCreateMissingAlunos = true;
-        if (body.groupKey === "FACE_FEA" || body.groupKey === "FCH_EAD") {
-          targetGroupKey = body.groupKey;
-        }
-      }
-    } catch {
-      // ignore
+    if (body.dryRun === true) dryRun = true;
+    if (body.autoCreateMissingAlunos === true) autoCreateMissingAlunos = true;
+    if (body.groupKey === "FACE_FEA" || body.groupKey === "FCH_EAD") {
+      targetGroupKey = body.groupKey;
     }
 
     // 5. Monta resolver dinâmico de abas a partir de google_sheets_periodos e periodos
@@ -1692,15 +1975,42 @@ export async function handleSyncV2AdminRoute(
   }
 
   // ---------------------------------------------------------------------------
-  // 6. POST /schedule-run — Disparo Forçado do Ciclo Completo do Scheduler
+  // 6. POST /schedule-run — Disparo do Ciclo Completo do Scheduler (Fail-Closed)
   // ---------------------------------------------------------------------------
   if (action === "schedule-run" && request.method === "POST") {
+    const parsedBody = await lerCorpoJsonOpcional(request);
+    if (!parsedBody.ok) return parsedBody.response;
+
+    if (env.SYNC_V2_ENABLED !== "true") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "SINCRONIZACAO_V2_DESATIVADA",
+          mensagem:
+            "O processamento V2 está desativado por padrão neste ambiente (SYNC_V2_ENABLED !== 'true').",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (env.SYNC_V2_AUTO_ENABLED === "false") {
+      return Response.json(
+        {
+          sucesso: false,
+          erro: "SINCRONIZACAO_V2_AUTO_DESATIVADA",
+          mensagem:
+            "O agendamento automático V2 está explicitamente desativado neste ambiente (SYNC_V2_AUTO_ENABLED === 'false').",
+        },
+        { status: 403 },
+      );
+    }
+
     const report = await runScheduledSyncV2({
       db,
       env: {
         ...env,
         SYNC_V2_ENABLED: "true",
-        SYNC_V2_AUTO_ENABLED: "true",
+        SYNC_V2_AUTO_ENABLED: env.SYNC_V2_AUTO_ENABLED ?? "true",
       },
       targetPeriodoId: periodoId,
       customAdapter,

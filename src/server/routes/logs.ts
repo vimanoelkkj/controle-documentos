@@ -2,6 +2,8 @@ type UsuarioLog = {
   id: number;
   nome: string;
   username: string;
+  perfil?: string;
+  modo_apresentacao?: number;
 };
 
 type LogBody = {
@@ -20,11 +22,39 @@ type LogsRouteContext = {
   usuario: UsuarioLog | null;
 };
 
-async function listarLogs(url: URL, db: D1Database, periodoId: number) {
+async function listarLogs(
+  url: URL,
+  db: D1Database,
+  periodoId: number,
+  usuario: UsuarioLog | null,
+) {
+  if (usuario?.modo_apresentacao === 1) {
+    return Response.json(
+      {
+        erro: "Conteúdo indisponível no modo apresentação.",
+        codigo: "MODO_APRESENTACAO_BLOQUEADO",
+      },
+      { status: 403 },
+    );
+  }
+
+  const escopoGlobal = url.searchParams.get("scope") === "all";
+  if (escopoGlobal && usuario?.perfil !== "ADMIN") {
+    return Response.json(
+      {
+        erro: "Apenas administradores podem consultar o LOG global de todos os períodos.",
+        codigo: "PRIVILEGIO_INSUFICIENTE",
+      },
+      { status: 403 },
+    );
+  }
+
   try {
     const limiteSolicitado = Number(url.searchParams.get("limit") || "200");
-    const limite = Math.max(1, Math.min(500, limiteSolicitado));
-    const escopoGlobal = url.searchParams.get("scope") === "all";
+    const limite = Math.max(
+      1,
+      Math.min(500, Number.isFinite(limiteSolicitado) ? limiteSolicitado : 200),
+    );
     const consulta = escopoGlobal
       ? `SELECT l.id,
                 l.criado_em,
@@ -78,12 +108,30 @@ async function registrarLog(
   periodoId: number,
   usuario: UsuarioLog | null,
 ) {
+  let body: LogBody;
   try {
-    const body = await request.json<LogBody>();
+    body = await request.json<LogBody>();
+  } catch {
+    return Response.json(
+      { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+      { status: 400 },
+    );
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return Response.json(
+      { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+      { status: 400 },
+    );
+  }
+
+  try {
     if (
-      !body.acao?.trim() ||
-      !body.entidade?.trim() ||
-      !body.descricao?.trim()
+      typeof body.acao !== "string" ||
+      !body.acao.trim() ||
+      typeof body.entidade !== "string" ||
+      !body.entidade.trim() ||
+      typeof body.descricao !== "string" ||
+      !body.descricao.trim()
     ) {
       return Response.json(
         { erro: "Dados insuficientes para registrar o LOG." },
@@ -102,8 +150,8 @@ async function registrarLog(
         body.acao.trim(),
         body.entidade.trim(),
         body.descricao.trim(),
-        body.ra?.trim() || null,
-        body.unidade?.trim() || null,
+        typeof body.ra === "string" ? body.ra.trim() || null : null,
+        typeof body.unidade === "string" ? body.unidade.trim() || null : null,
         periodoId,
         usuario?.id ?? null,
         usuario?.nome ?? null,
@@ -131,7 +179,7 @@ export async function handleLogsRoute({
   if (url.pathname !== "/api/log") return null;
 
   if (request.method === "GET") {
-    return listarLogs(url, db, periodoId);
+    return listarLogs(url, db, periodoId, usuario);
   }
   if (request.method === "POST") {
     return registrarLog(request, db, periodoId, usuario);

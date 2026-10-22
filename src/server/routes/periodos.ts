@@ -1,3 +1,6 @@
+import type { UsuarioSessao } from "./auth";
+import { emModoApresentacao } from "../middleware/autorizacao";
+
 type EventoAuditoriaPeriodo = {
   acao: string;
   entidade: string;
@@ -8,6 +11,7 @@ type PeriodosRouteContext = {
   request: Request;
   url: URL;
   db: D1Database;
+  usuarioAtual?: UsuarioSessao | null;
   registrarAuditoria: (
     periodoId: number,
     evento: EventoAuditoriaPeriodo,
@@ -23,10 +27,41 @@ type PeriodoComTotal = {
   total_alunos: number;
 };
 
+function exigirAdminAtivo(usuarioAtual?: UsuarioSessao | null): Response | null {
+  if (!usuarioAtual) {
+    return Response.json(
+      { erro: "Sessão expirada ou não autenticada.", codigo: "NAO_AUTENTICADO" },
+      { status: 401 },
+    );
+  }
+  if (emModoApresentacao(usuarioAtual)) {
+    return Response.json(
+      {
+        erro: "Ação indisponível no modo apresentação.",
+        codigo: "MODO_APRESENTACAO_BLOQUEADO",
+      },
+      { status: 403 },
+    );
+  }
+  const isAdmin =
+    usuarioAtual.perfil === "ADMIN" || (usuarioAtual as any).role === "ADMIN";
+  if (!isAdmin) {
+    return Response.json(
+      {
+        erro: "Apenas administradores podem gerenciar períodos letivos.",
+        codigo: "PRIVILEGIO_INSUFICIENTE",
+      },
+      { status: 403 },
+    );
+  }
+  return null;
+}
+
 export async function handlePeriodosRoute({
   request,
   url,
   db,
+  usuarioAtual,
   registrarAuditoria,
 }: PeriodosRouteContext): Promise<Response | null> {
   if (url.pathname === "/api/periodos" && request.method === "GET") {
@@ -57,9 +92,28 @@ export async function handlePeriodosRoute({
   }
 
   if (url.pathname === "/api/periodos" && request.method === "POST") {
+    const bloqueio = exigirAdminAtivo(usuarioAtual);
+    if (bloqueio) return bloqueio;
+
+    let body: { codigo?: string };
     try {
-      const body = await request.json<{ codigo: string }>();
-      const codigo = body.codigo?.trim().toUpperCase();
+      body = await request.json<{ codigo?: string }>();
+    } catch {
+      return Response.json(
+        { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+        { status: 400 },
+      );
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return Response.json(
+        { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const codigo =
+        typeof body.codigo === "string" ? body.codigo.trim().toUpperCase() : "";
       if (!/^\d{4}-(1|2)$/.test(codigo || "")) {
         return Response.json(
           { erro: "Período inválido. Use AAAA-1 ou AAAA-2." },
@@ -133,10 +187,35 @@ export async function handlePeriodosRoute({
   const rotaPeriodo = url.pathname.match(/^\/api\/periodos\/(\d+)$/);
   if (!rotaPeriodo || request.method !== "PUT") return null;
 
+  const bloqueio = exigirAdminAtivo(usuarioAtual);
+  if (bloqueio) return bloqueio;
+
+  const id = Number(rotaPeriodo[1]);
+  if (!Number.isInteger(id) || id <= 0) {
+    return Response.json(
+      { erro: "ID de período inválido.", codigo: "PERIODO_INVALIDO" },
+      { status: 400 },
+    );
+  }
+
+  let body: { status?: "ATIVO" | "ARQUIVADO" };
   try {
-    const id = Number(rotaPeriodo[1]);
-    const body = await request.json<{ status: "ATIVO" | "ARQUIVADO" }>();
-    if (!["ATIVO", "ARQUIVADO"].includes(body.status)) {
+    body = await request.json<{ status?: "ATIVO" | "ARQUIVADO" }>();
+  } catch {
+    return Response.json(
+      { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+      { status: 400 },
+    );
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return Response.json(
+      { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+      { status: 400 },
+    );
+  }
+
+  try {
+    if (!body.status || !["ATIVO", "ARQUIVADO"].includes(body.status)) {
       return Response.json(
         { erro: "Status de período inválido." },
         { status: 400 },

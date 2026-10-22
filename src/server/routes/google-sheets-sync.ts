@@ -1,5 +1,6 @@
 import type { UsuarioSessao } from "./auth";
 import type { SheetsConfig } from "./google-sheets-config";
+import { obterIntegracaoV2Ativa } from "../services/google-sheets-pendencias";
 import {
   carregarUnidadePorCurso,
   montarCursoUnidades,
@@ -49,6 +50,27 @@ export async function handleGoogleSheetsSyncRoute({
       }
 
       const periodoId = Number(rotaSheetsSincronizar[1]);
+      if (!Number.isInteger(periodoId) || periodoId <= 0) {
+        return Response.json(
+          { sucesso: false, erro: "PERIODO_INVALIDO", mensagem: "ID de período inválido." },
+          { status: 400 },
+        );
+      }
+
+      const integracaoV2 = await obterIntegracaoV2Ativa(db, periodoId);
+      if (integracaoV2) {
+        return Response.json(
+          {
+            sucesso: false,
+            erro: "PERIODO_GERENCIADO_POR_SYNC_V2",
+            integrationId: integracaoV2.integration_id,
+            modo: integracaoV2.mode,
+            mensagem: `Operação legada V1 bloqueada: o período ${periodoId} possui integração V2 ativa no modo '${integracaoV2.mode}'. Utilize exclusivamente os fluxos de Sincronização V2.`,
+          },
+          { status: 409 },
+        );
+      }
+
       const config = await db
         .prepare(`SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`)
         .bind(periodoId)

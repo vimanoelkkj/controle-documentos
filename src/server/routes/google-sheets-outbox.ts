@@ -2,6 +2,7 @@ import type { SheetsConfig } from "./google-sheets-config";
 
 import type { UsuarioSessao } from "./auth";
 import { emModoApresentacao } from "../middleware/autorizacao";
+import { obterIntegracaoV2Ativa } from "../services/google-sheets-pendencias";
 
 type Aluno = {
   ra: string;
@@ -162,8 +163,20 @@ export async function handleGoogleSheetsOutboxRoute({
   );
   if (!rota) return null;
   const periodoId = Number(rota[1]);
+  if (!Number.isInteger(periodoId) || periodoId <= 0) {
+    return Response.json(
+      { sucesso: false, erro: "PERIODO_INVALIDO", mensagem: "ID de período inválido." },
+      { status: 400 },
+    );
+  }
 
   if (request.method === "GET") {
+    if (usuarioAtual && emModoApresentacao(usuarioAtual)) {
+      return Response.json(
+        { erro: "Operação indisponível no modo apresentação." },
+        { status: 403 },
+      );
+    }
     try {
       const resultado = await db
         .prepare(
@@ -256,8 +269,31 @@ export async function handleGoogleSheetsOutboxRoute({
       { status: 403 },
     );
   }
-  const body = await request.json<{ confirmacao?: string }>();
-  if (normalizarComparacao(body.confirmacao) !== "SINCRONIZAR") {
+
+  const integracaoV2 = await obterIntegracaoV2Ativa(db, periodoId);
+  if (integracaoV2) {
+    return Response.json(
+      {
+        sucesso: false,
+        erro: "PERIODO_GERENCIADO_POR_SYNC_V2",
+        integrationId: integracaoV2.integration_id,
+        modo: integracaoV2.mode,
+        mensagem: `Despacho legado V1 bloqueado: o período ${periodoId} possui integração V2 ativa no modo '${integracaoV2.mode}'. Utilize exclusivamente os fluxos de Sincronização V2.`,
+      },
+      { status: 409 },
+    );
+  }
+
+  let body: { confirmacao?: string };
+  try {
+    body = await request.json<{ confirmacao?: string }>();
+  } catch {
+    return Response.json(
+      { erro: "Corpo JSON inválido." },
+      { status: 400 },
+    );
+  }
+  if (!body || typeof body !== "object" || normalizarComparacao(body.confirmacao) !== "SINCRONIZAR") {
     return Response.json(
       { erro: 'Digite "SINCRONIZAR" para confirmar o envio.' },
       { status: 400 },

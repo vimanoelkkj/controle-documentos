@@ -24,7 +24,10 @@ import {
 import { obterPeriodoAtual } from "./services/periodo-context";
 import { normalizarComparacao, normalizarTexto } from "./utils/texto";
 import { registrarAuditoria } from "./services/auditoria";
-import { registrarPendenciaGoogleSheets } from "./services/google-sheets-pendencias";
+import {
+  obterIntegracaoV2Ativa,
+  registrarPendenciaGoogleSheets,
+} from "./services/google-sheets-pendencias";
 import {
   autorizarRequisicaoApi,
   bloquearEscritaSemPermissao,
@@ -92,6 +95,7 @@ export default {
       request,
       url,
       db: env.DB,
+      usuarioAtual,
       registrarAuditoria: (periodoId, evento) =>
         registrarAuditoria(env.DB, usuarioAtual, periodoId, evento),
     });
@@ -100,6 +104,7 @@ export default {
       request,
       url,
       db: env.DB,
+      usuarioAtual,
       extrairSpreadsheetId,
       normalizarTexto,
       normalizarComparacao,
@@ -205,6 +210,23 @@ export default {
     });
     if (respostaSyncV2Admin) return respostaSyncV2Admin;
 
+    const registrarPendenciaSegura = async (
+      ra: string,
+      tipo: "ATUALIZAR" | "REMOVER" = "ATUALIZAR",
+      motivo = "ATUALIZAÇÃO",
+    ) => {
+      const integracaoV2 = await obterIntegracaoV2Ativa(env.DB, periodoAtual!.id);
+      if (integracaoV2) return;
+      await registrarPendenciaGoogleSheets(
+        env.DB,
+        usuarioAtual,
+        periodoAtual!.id,
+        ra,
+        tipo,
+        motivo,
+      );
+    };
+
     const respostaLogs = await handleLogsRoute({
       request,
       url,
@@ -215,6 +237,8 @@ export default {
             id: usuarioAtual.id,
             nome: usuarioAtual.nome,
             username: usuarioAtual.username,
+            perfil: usuarioAtual.perfil,
+            modo_apresentacao: usuarioAtual.modo_apresentacao,
           }
         : null,
     });
@@ -239,14 +263,7 @@ export default {
       modoApresentacao:
         Boolean(usuarioAtual) && emModoApresentacao(usuarioAtual!),
       registrarPendencia: (ra, tipo, motivo) =>
-        registrarPendenciaGoogleSheets(
-          env.DB,
-          usuarioAtual,
-          periodoAtual!.id,
-          ra,
-          tipo,
-          motivo,
-        ),
+        registrarPendenciaSegura(ra, tipo, motivo),
     });
     if (respostaAlunos) return respostaAlunos;
 
@@ -257,14 +274,7 @@ export default {
       db: env.DB,
       periodoId: periodoAtual!.id,
       registrarPendencia: (ra, motivo) =>
-        registrarPendenciaGoogleSheets(
-          env.DB,
-          usuarioAtual,
-          periodoAtual!.id,
-          ra,
-          "ATUALIZAR",
-          motivo,
-        ),
+        registrarPendenciaSegura(ra, "ATUALIZAR", motivo),
     });
     if (respostaImportacaoAlunos) return respostaImportacaoAlunos;
     // =====================================================
@@ -274,14 +284,7 @@ export default {
       db: env.DB,
       periodoId: periodoAtual!.id,
       registrarPendencia: (ra) =>
-        registrarPendenciaGoogleSheets(
-          env.DB,
-          usuarioAtual,
-          periodoAtual!.id,
-          ra,
-          "ATUALIZAR",
-          "STATUS",
-        ),
+        registrarPendenciaSegura(ra, "ATUALIZAR", "STATUS"),
     });
     if (respostaCancelamentos) return respostaCancelamentos;
 
@@ -296,14 +299,7 @@ export default {
       registrarAuditoria: (evento) =>
         registrarAuditoria(env.DB, usuarioAtual, periodoAtual!.id, evento),
       registrarPendencia: (ra) =>
-        registrarPendenciaGoogleSheets(
-          env.DB,
-          usuarioAtual,
-          periodoAtual!.id,
-          ra,
-          "ATUALIZAR",
-          "DOCUMENTOS",
-        ),
+        registrarPendenciaSegura(ra, "ATUALIZAR", "DOCUMENTOS"),
     });
     if (respostaDocumentos) return respostaDocumentos;
 

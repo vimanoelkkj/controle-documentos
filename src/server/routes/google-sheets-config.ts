@@ -1,4 +1,6 @@
 import { aguardar } from "../utils/async";
+import type { UsuarioSessao } from "./auth";
+import { emModoApresentacao } from "../middleware/autorizacao";
 
 export type SheetsConfig = {
   periodo_id: number;
@@ -23,6 +25,7 @@ type SheetsConfigRouteContext = {
   request: Request;
   url: URL;
   db: D1Database;
+  usuarioAtual?: UsuarioSessao | null;
   extrairSpreadsheetId: (valor: string) => string;
   normalizarTexto: (valor: unknown) => string;
   normalizarComparacao: (valor: unknown) => string;
@@ -35,10 +38,41 @@ type SheetsConfigRouteContext = {
   ) => Promise<void>;
 };
 
+function exigirAdminConfig(usuarioAtual?: UsuarioSessao | null): Response | null {
+  if (!usuarioAtual) {
+    return Response.json(
+      { erro: "Sessão expirada ou não autenticada.", codigo: "NAO_AUTENTICADO" },
+      { status: 401 },
+    );
+  }
+  if (emModoApresentacao(usuarioAtual)) {
+    return Response.json(
+      {
+        erro: "Ação indisponível no modo apresentação.",
+        codigo: "MODO_APRESENTACAO_BLOQUEADO",
+      },
+      { status: 403 },
+    );
+  }
+  const isAdmin =
+    usuarioAtual.perfil === "ADMIN" || (usuarioAtual as any).role === "ADMIN";
+  if (!isAdmin) {
+    return Response.json(
+      {
+        erro: "Apenas administradores podem gerenciar configurações e mapeamentos da planilha.",
+        codigo: "PRIVILEGIO_INSUFICIENTE",
+      },
+      { status: 403 },
+    );
+  }
+  return null;
+}
+
 export async function handleGoogleSheetsConfigRoute({
   request,
   url,
   db,
+  usuarioAtual,
   extrairSpreadsheetId,
   normalizarTexto,
   normalizarComparacao,
@@ -49,6 +83,15 @@ export async function handleGoogleSheetsConfigRoute({
     /^\/api\/periodos\/(\d+)\/google-sheets\/status$/,
   );
   if (rotaStatus && request.method === "GET") {
+    if (usuarioAtual && emModoApresentacao(usuarioAtual)) {
+      return Response.json(
+        {
+          erro: "Conteúdo indisponível no modo apresentação.",
+          codigo: "MODO_APRESENTACAO_BLOQUEADO",
+        },
+        { status: 403 },
+      );
+    }
     const periodoId = Number(rotaStatus[1]);
     const config = await db
       .prepare(`SELECT * FROM google_sheets_periodos WHERE periodo_id = ?`)
@@ -91,6 +134,15 @@ export async function handleGoogleSheetsConfigRoute({
     /^\/api\/periodos\/(\d+)\/google-sheets$/,
   );
   if (rotaConfig && request.method === "GET") {
+    if (usuarioAtual && emModoApresentacao(usuarioAtual)) {
+      return Response.json(
+        {
+          erro: "Conteúdo indisponível no modo apresentação.",
+          codigo: "MODO_APRESENTACAO_BLOQUEADO",
+        },
+        { status: 403 },
+      );
+    }
     const periodoId = Number(rotaConfig[1]);
     let ultimoErro: unknown = null;
     for (let tentativa = 1; tentativa <= 3; tentativa += 1) {
@@ -123,12 +175,39 @@ export async function handleGoogleSheetsConfigRoute({
   }
 
   if (rotaConfig && request.method === "PUT") {
+    const bloqueio = exigirAdminConfig(usuarioAtual);
+    if (bloqueio) return bloqueio;
+
+    const periodoId = Number(rotaConfig[1]);
+    if (!Number.isInteger(periodoId) || periodoId <= 0) {
+      return Response.json(
+        { erro: "ID de período inválido.", codigo: "PERIODO_INVALIDO" },
+        { status: 400 },
+      );
+    }
+
+    let body: Omit<SheetsConfig, "periodo_id"> & { spreadsheet_id: string };
     try {
-      const periodoId = Number(rotaConfig[1]);
-      const body = await request.json<
+      body = await request.json<
         Omit<SheetsConfig, "periodo_id"> & { spreadsheet_id: string }
       >();
-      const spreadsheetId = extrairSpreadsheetId(body.spreadsheet_id || "");
+    } catch {
+      return Response.json(
+        { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+        { status: 400 },
+      );
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return Response.json(
+        { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const spreadsheetId = extrairSpreadsheetId(
+        typeof body.spreadsheet_id === "string" ? body.spreadsheet_id : "",
+      );
       const campos = [
         spreadsheetId,
         body.aba_base_face_fea,
@@ -270,9 +349,34 @@ export async function handleGoogleSheetsConfigRoute({
   }
 
   if (rotaMapeamentos && request.method === "PUT") {
+    const bloqueio = exigirAdminConfig(usuarioAtual);
+    if (bloqueio) return bloqueio;
+
+    const periodoId = Number(rotaMapeamentos[1]);
+    if (!Number.isInteger(periodoId) || periodoId <= 0) {
+      return Response.json(
+        { erro: "ID de período inválido.", codigo: "PERIODO_INVALIDO" },
+        { status: 400 },
+      );
+    }
+
+    let body: { curso?: string; unidade?: string };
     try {
-      const periodoId = Number(rotaMapeamentos[1]);
-      const body = await request.json<{ curso?: string; unidade?: string }>();
+      body = await request.json<{ curso?: string; unidade?: string }>();
+    } catch {
+      return Response.json(
+        { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+        { status: 400 },
+      );
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return Response.json(
+        { erro: "Corpo JSON inválido.", codigo: "JSON_INVALIDO" },
+        { status: 400 },
+      );
+    }
+
+    try {
       const curso = normalizarTexto(body.curso);
       const cursoChave = normalizarComparacao(curso);
       const unidade = normalizarComparacao(body.unidade);

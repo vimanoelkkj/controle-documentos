@@ -1,5 +1,33 @@
 import type { UsuarioAuditoria } from "./auditoria";
 
+export type IntegracaoV2Resumo = {
+  integration_id: string;
+  mode: string;
+};
+
+export async function obterIntegracaoV2Ativa(
+  db: D1Database,
+  periodoId: number,
+): Promise<IntegracaoV2Resumo | null> {
+  try {
+    const integracao = await db
+      .prepare(
+        `SELECT integration_id, mode
+         FROM sync_integrations
+         WHERE periodo_id = ?`,
+      )
+      .bind(periodoId)
+      .first<IntegracaoV2Resumo>();
+
+    if (integracao && integracao.mode !== "LEGACY") {
+      return integracao;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 type AlunoPendente = {
   ra: string;
   nome: string;
@@ -25,6 +53,11 @@ export async function registrarPendenciaGoogleSheets(
   operacao: "ATUALIZAR" | "REMOVER" = "ATUALIZAR",
   motivo = "ATUALIZAÇÃO",
 ) {
+  const integracaoV2 = await obterIntegracaoV2Ativa(db, periodoId);
+  if (integracaoV2) {
+    return;
+  }
+
   let payload: string | null = null;
   if (operacao === "ATUALIZAR") {
     const aluno = await db
