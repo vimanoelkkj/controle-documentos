@@ -477,185 +477,249 @@ export async function reconcileInboundFromSpreadsheet(
           const d1Value = fieldState.value;
           const currentRevision = fieldState.revision;
 
-          // Se os valores já são iguais e o estado está confirmado, no-op
+          // Verifica PRIMEIRO se existe operação local ativa na outbox pendente de despacho/observação
+          // (deve preceder a comparação d1Value === sheetNormalized para detectar alterações concorrentes
+          //  em que Site e Planilha mudaram para o mesmo valor ou sofreram toggle antes da sincronização).
+          const activeOpsRes = await db
+            .prepare(
+              `SELECT o.operation_id, o.state, o.target_revision, e.value_old, e.value_new
+               FROM sync_operations o
+               LEFT JOIN sync_events e ON e.event_id = o.event_id
+               WHERE o.record_id = ? AND o.field_key = ? AND o.target_key = 'CONTROLE'
+                 AND o.state IN ('PENDING', 'CLAIMED', 'DISPATCHED', 'VERIFYING', 'RETRY_WAIT', 'UNCERTAIN')
+               ORDER BY o.target_revision ASC`,
+            )
+            .bind(recordId, field)
+            .all<{
+              operation_id: string;
+              state: string;
+              target_revision: number;
+              value_old: number | null;
+              value_new: number | null;
+            }>();
+
+          const activeOps = activeOpsRes.results || [];
+
+          if (activeOps.length > 0) {
+            const oldestOp = activeOps[0];
+            const latestOp = activeOps[activeOps.length - 1];
+
+            // Se já houve resolução administrativa explícita KEEP_LOCAL nesta revisão,
+            // preserva a operação local para despacho pelo Outbound sem reabrir conflito.
+            const keepLocalResolved = await db
+              .prepare(
+                `SELECT conflict_id
+                 FROM sync_conflicts
+                 WHERE record_id = ? AND field_key = ? AND target_key = 'CONTROLE'
+                   AND local_revision = ? AND resolved = 1 AND resolution_action = 'KEEP_LOCAL'
+                 LIMIT 1`,
+              )
+              .bind(recordId, field, currentRevision)
+              .first<{ conflict_id: string }>();
+
+            if (keepLocalResolved) {
+              continue;
+            }
+
+            const isInFlightOrUncertain = activeOps.some((op) =>
+              ["UNCERTAIN", "DISPATCHED", "VERIFYING"].includes(op.state),
+            );
+            const anchorValue = oldestOp.value_old;
+
+            // CENÁRIO LOCAL_AHEAD (Site alterou documento e Planilha continua com o valor anterior):
+            // Operação ainda não despachada/incerta, planilha mantém exatamente a âncora pré-mutação (anchorValue)
+            // e o D1 avançou para outro valor. Não descarta operação pendente, não sobrescreve D1 e não abre falso conflito.
+            if (
+              !isInFlightOrUncertain &&
+              anchorValue !== null &&
+              sheetNormalized === anchorValue &&
+              d1Value !== sheetNormalized
+            ) {
+              continue;
+            }
+
+            // CONFLITO REAL:
+            // - Operação incerta/em trânsito (UNCERTAIN / DISPATCHED / VERIFYING), OU
+            // - Tanto o Site (operação pendente desde anchorValue) quanto a Planilha (sheetNormalized !== anchorValue)
+            //   alteraram o mesmo documento antes da sincronização (mesmo se convergiram para o mesmo bit ou após toggle).
+            report.conflitosDetectados++;
+            report.divergenciasComOutboxPendente.push({
+              ra: canonicalRa,
+              groupKey,
+              fieldKey: field,
+              valorPlanilha: sheetNormalized,
+              valorLocal: d1Value as 0 | 1 | null,
+              statusOperacaoLocal: latestOp.state,
+            });
+
+            if (!effectiveDryRun) {
+              const existingOpenConflict = await db
+                .prepare(
+                  `SELECT conflict_id FROM sync_conflicts
+                   WHERE record_id = ? AND field_key = ? AND target_key = 'CONTROLE' AND resolved = 0
+                   LIMIT 1`,
+                )
+                .bind(recordId, field)
+                .first<{ conflict_id: string }>();
+
+              if (!existingOpenConflict) {
+                const conflictId = `conf-inbound-${crypto.randomUUID().slice(0, 8)}`;
+                await db
+                  .prepare(
+                    `INSERT OR IGNORE INTO sync_conflicts (
+                       conflict_id, record_id, field_key, target_key,
+                       local_revision, local_value, external_value, reason, resolved
+                     ) VALUES (?, ?, ?, 'CONTROLE', ?, ?, ?, 'DIVERGENCIA_COM_OPERACAO_PENDENTE', 0)`,
+                  )
+                  .bind(
+                    conflictId,
+                    recordId,
+                    field,
+                    currentRevision,
+                    d1Value ?? 0,
+                    sheetNormalized,
+                  )
+                  .run();
+              }
+            }
+            continue;
+          }
+
+          // Se existe conflito F3 aberto para este campo/alvo, não sobrescreve o D1 automaticamente
+          const openConflictNoOp = await db
+            .prepare(
+              `SELECT conflict_id FROM sync_conflicts
+               WHERE record_id = ? AND field_key = ? AND target_key = 'CONTROLE' AND resolved = 0
+               LIMIT 1`,
+            )
+            .bind(recordId, field)
+            .first<{ conflict_id: string }>();
+
+          if (openConflictNoOp) {
+            report.conflitosDetectados++;
+            continue;
+          }
+
+          // Se os valores já são iguais e não há operação local pendente, está em sincronia (no-op)
           if (d1Value === sheetNormalized) {
             report.camposEmSincronia++;
             continue;
           }
 
-        // Se há divergência entre a planilha e o D1:
-        // Verifica se existe operação local ativa na outbox pendente de despacho
-        const activeOp = await db
-          .prepare(
-            `SELECT o.operation_id, o.state, e.value_old, e.value_new
-             FROM sync_operations o
-             LEFT JOIN sync_events e ON e.event_id = o.event_id
-             WHERE o.record_id = ? AND o.field_key = ? AND o.target_key = 'CONTROLE'
-               AND o.state IN ('PENDING', 'CLAIMED', 'RETRY_WAIT', 'UNCERTAIN')
-             LIMIT 1`,
-          )
-          .bind(recordId, field)
-          .first<{
-            operation_id: string;
-            state: string;
-            value_old: number | null;
-            value_new: number | null;
-          }>();
-
-        if (activeOp) {
-          // Se a operação for UNCERTAIN, exige reconciliação humana obrigatória (F3)
-          const isUncertain = activeOp.state === "UNCERTAIN";
-
-          // Se a operação NÃO for UNCERTAIN e a planilha ainda contiver o valor causal anterior (value_old):
-          // Significa que a alteração da secretaria ainda está na fila para ser despachada.
-          // Não sobrescrevemos o D1 e não abrimos conflito falso: deixamos o Outbound despachar.
-          if (!isUncertain && activeOp.value_old !== null && sheetNormalized === activeOp.value_old) {
-            continue;
+          // Sem operação local pendente: Ingestão limpa (EXTERNAL_AHEAD)
+          report.camposAtualizadosNoD1++;
+          if (effectiveDryRun) {
+            report.mutacoesPlanejadas = (report.mutacoesPlanejadas ?? 0) + 1;
+          } else {
+            report.mutacoesPersistidas = (report.mutacoesPersistidas ?? 0) + 1;
           }
-
-          // Se a planilha já convergiu para o novo valor proposto (value_new):
-          if (!isUncertain && activeOp.value_new !== null && sheetNormalized === activeOp.value_new) {
-            report.camposEmSincronia++;
-            continue;
-          }
-
-          // CONFLITO REAL: Divergência não causal ou incerteza operacional em trânsito
-          // NÃO sobrescrever! Registra formalmente na tabela de conflitos F3.
-          report.conflitosDetectados++;
-          report.divergenciasComOutboxPendente.push({
+          report.mutacoesAplicadas.push({
             ra: canonicalRa,
             groupKey,
             fieldKey: field,
-            valorPlanilha: sheetNormalized,
-            valorLocal: d1Value as 0 | 1 | null,
-            statusOperacaoLocal: activeOp.state,
+            valorAnterior: d1Value as 0 | 1 | null,
+            novoValor: sheetNormalized,
           });
 
           if (!effectiveDryRun) {
-            const conflictId = `conf-inbound-${crypto.randomUUID().slice(0, 8)}`;
-            await db
-              .prepare(
-                `INSERT OR REPLACE INTO sync_conflicts (
-                   conflict_id, record_id, field_key, target_key,
-                   local_revision, local_value, external_value, reason, resolved
-                 ) VALUES (?, ?, ?, 'CONTROLE', ?, ?, ?, 'DIVERGENCIA_COM_OPERACAO_PENDENTE', 0)`,
-              )
-              .bind(
-                conflictId,
-                recordId,
-                field,
-                currentRevision,
-                d1Value ?? 0,
-                sheetNormalized,
-              )
-              .run();
+            const commandId = `cmd-inbound-${crypto.randomUUID().slice(0, 8)}`;
+            const eventId = `evt-inbound-${crypto.randomUUID().slice(0, 8)}`;
+            const receiptId = `rcpt-inbound-${crypto.randomUUID().slice(0, 8)}`;
+            const toRevision = currentRevision + 1;
+            const docColumn = FIELD_TO_DOC_COLUMN[field];
+
+            const evidenceHash = `inbound:${controlTabName}:${sheetField.cellCoordinate}:${sheetField.rawValue}:${sheetNormalized}`;
+
+            // Transação Atômica D1 via batch
+            await db.batch([
+              // 1. Registra comando administrativo de aceitação inbound
+              db
+                .prepare(
+                  `INSERT INTO sync_commands (
+                     command_id, actor_id, record_id, field_key,
+                     from_revision, proposed_value, request_hash, status
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACCEPTED')`,
+                )
+                .bind(
+                  commandId,
+                  actorId,
+                  recordId,
+                  field,
+                  currentRevision,
+                  sheetNormalized,
+                  evidenceHash,
+                ),
+
+              // 2. Registra evento causal
+              db
+                .prepare(
+                  `INSERT INTO sync_events (
+                     event_id, record_id, field_key, command_id,
+                     from_revision, to_revision, value_old, value_new, actor_id
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                )
+                .bind(
+                  eventId,
+                  recordId,
+                  field,
+                  commandId,
+                  currentRevision,
+                  toRevision,
+                  d1Value,
+                  sheetNormalized,
+                  actorId,
+                ),
+
+              // 3. Atualiza estado em sync_field_state
+              db
+                .prepare(
+                  `INSERT INTO sync_field_state (
+                     record_id, field_key, value, revision, last_event_id, head_command_id, status, updated_at
+                   ) VALUES (?, ?, ?, ?, ?, ?, 'CONFIRMED', CURRENT_TIMESTAMP)
+                   ON CONFLICT(record_id, field_key) DO UPDATE SET
+                     value = excluded.value,
+                     revision = ?,
+                     last_event_id = excluded.last_event_id,
+                     head_command_id = excluded.head_command_id,
+                     status = 'CONFIRMED',
+                     updated_at = CURRENT_TIMESTAMP`,
+                )
+                .bind(
+                  recordId,
+                  field,
+                  sheetNormalized,
+                  toRevision,
+                  eventId,
+                  commandId,
+                  toRevision,
+                ),
+
+              // 4. Registra recibo OBSERVED de confirmação causal na revisão atualizada
+              db
+                .prepare(
+                  `INSERT INTO sync_receipts (
+                     receipt_id, command_id, operation_id, target_key,
+                     record_id, field_key, revision, status
+                   ) VALUES (?, ?, NULL, 'CONTROLE', ?, ?, ?, 'OBSERVED')`,
+                )
+                .bind(receiptId, commandId, recordId, field, toRevision),
+
+              // 5. Atualiza a tabela documentos (visualização do site)
+              db
+                .prepare(
+                  `UPDATE documentos
+                   SET ${docColumn} = ?, atualizado_em = CURRENT_TIMESTAMP
+                   WHERE aluno_id = ?`,
+                )
+                .bind(sheetNormalized, aluno.id),
+            ]);
+
+            // NOTA CRÍTICA DE AUSÊNCIA DE ECO:
+            // Não inserimos nenhuma linha em `sync_operations` para o destino CONTROLE.
+            // Isso garante que a alteração vinda da planilha NÃO será enviada de volta à planilha!
           }
           continue;
         }
-
-        // Sem operação local pendente: Ingestão limpa (EXTERNAL_AHEAD)
-        report.camposAtualizadosNoD1++;
-        if (effectiveDryRun) {
-          report.mutacoesPlanejadas = (report.mutacoesPlanejadas ?? 0) + 1;
-        } else {
-          report.mutacoesPersistidas = (report.mutacoesPersistidas ?? 0) + 1;
-        }
-        report.mutacoesAplicadas.push({
-          ra: canonicalRa,
-          groupKey,
-          fieldKey: field,
-          valorAnterior: d1Value as 0 | 1 | null,
-          novoValor: sheetNormalized,
-        });
-
-        if (!effectiveDryRun) {
-          const commandId = `cmd-inbound-${crypto.randomUUID().slice(0, 8)}`;
-          const eventId = `evt-inbound-${crypto.randomUUID().slice(0, 8)}`;
-          const toRevision = currentRevision + 1;
-          const docColumn = FIELD_TO_DOC_COLUMN[field];
-
-          const evidenceHash = `inbound:${controlTabName}:${sheetField.cellCoordinate}:${sheetField.rawValue}:${sheetNormalized}`;
-
-          // Transação Atômica D1 via batch
-          await db.batch([
-            // 1. Registra comando administrativo de aceitação inbound
-            db
-              .prepare(
-                `INSERT INTO sync_commands (
-                   command_id, actor_id, record_id, field_key,
-                   from_revision, proposed_value, request_hash, status
-                 ) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACCEPTED')`,
-              )
-              .bind(
-                commandId,
-                actorId,
-                recordId,
-                field,
-                currentRevision,
-                sheetNormalized,
-                evidenceHash,
-              ),
-
-            // 2. Registra evento causal
-            db
-              .prepare(
-                `INSERT INTO sync_events (
-                   event_id, record_id, field_key, command_id,
-                   from_revision, to_revision, value_old, value_new, actor_id
-                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              )
-              .bind(
-                eventId,
-                recordId,
-                field,
-                commandId,
-                currentRevision,
-                toRevision,
-                d1Value,
-                sheetNormalized,
-                actorId,
-              ),
-
-            // 3. Atualiza estado em sync_field_state
-            db
-              .prepare(
-                `INSERT INTO sync_field_state (
-                   record_id, field_key, value, revision, last_event_id, head_command_id, status, updated_at
-                 ) VALUES (?, ?, ?, ?, ?, ?, 'CONFIRMED', CURRENT_TIMESTAMP)
-                 ON CONFLICT(record_id, field_key) DO UPDATE SET
-                   value = excluded.value,
-                   revision = ?,
-                   last_event_id = excluded.last_event_id,
-                   head_command_id = excluded.head_command_id,
-                   status = 'CONFIRMED',
-                   updated_at = CURRENT_TIMESTAMP`,
-              )
-              .bind(
-                recordId,
-                field,
-                sheetNormalized,
-                toRevision,
-                eventId,
-                commandId,
-                toRevision,
-              ),
-
-            // 4. Atualiza a tabela documentos (visualização do site)
-            db
-              .prepare(
-                `UPDATE documentos
-                 SET ${docColumn} = ?, atualizado_em = CURRENT_TIMESTAMP
-                 WHERE aluno_id = ?`,
-              )
-              .bind(sheetNormalized, aluno.id),
-          ]);
-
-          // NOTA CRÍTICA DE AUSÊNCIA DE ECO:
-          // Não inserimos nenhuma linha em `sync_operations` para o destino CONTROLE.
-          // Isso garante que a alteração vinda da planilha NÃO será enviada de volta à planilha!
-        }
-        continue;
-      }
 
       // =========================================================================
       // CENÁRIO 2: Campo SEM baseline inicializada (fieldState null ou UNBASELINED)

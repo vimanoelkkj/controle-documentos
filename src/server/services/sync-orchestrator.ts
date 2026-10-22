@@ -223,7 +223,7 @@ export class SyncV2Orchestrator {
       this.log('info', 'Leases expirados recuperados pelo orquestrador', recoveredLeases);
     }
 
-    // 2. Busca de operações elegíveis para processamento (com isolamento por integração se informada)
+    // 2. Busca de operações elegíveis para processamento (com isolamento por integração e bloqueio de PAUSED/CAPTURE em escrita real)
     const eligibleOps = this.integrationId
       ? await this.db
           .prepare(
@@ -234,7 +234,9 @@ export class SyncV2Orchestrator {
                o.lease_until
              FROM sync_operations o
              JOIN sync_records r ON r.record_id = o.record_id
+             JOIN sync_integrations i ON i.integration_id = r.integration_id
              WHERE r.integration_id = ?
+               AND (? = 1 OR i.mode NOT IN ('PAUSED', 'CAPTURE', 'QUARANTINED', 'LEGACY'))
                AND (
                  (o.state IN ('PENDING', 'RETRY_WAIT') AND datetime(?) >= datetime(o.next_attempt_at))
                  OR (o.state = 'CLAIMED' AND datetime(?) > datetime(o.lease_until))
@@ -243,7 +245,7 @@ export class SyncV2Orchestrator {
              ORDER BY o.next_attempt_at ASC, o.target_revision ASC
              LIMIT ?`
           )
-          .bind(this.integrationId, now, now, now, limit)
+          .bind(this.integrationId, isDryRun ? 1 : 0, now, now, now, limit)
           .all<{
             operation_id: string;
             state: string;
@@ -253,20 +255,23 @@ export class SyncV2Orchestrator {
       : await this.db
           .prepare(
             `SELECT
-               operation_id,
-               state,
-               next_attempt_at,
-               lease_until
-             FROM sync_operations
-             WHERE (
-               (state IN ('PENDING', 'RETRY_WAIT') AND datetime(?) >= datetime(next_attempt_at))
-               OR (state = 'CLAIMED' AND datetime(?) > datetime(lease_until))
-               OR (state = 'UNCERTAIN' AND datetime(?) >= datetime(next_attempt_at))
-             )
-             ORDER BY next_attempt_at ASC, target_revision ASC
+               o.operation_id,
+               o.state,
+               o.next_attempt_at,
+               o.lease_until
+             FROM sync_operations o
+             JOIN sync_records r ON r.record_id = o.record_id
+             JOIN sync_integrations i ON i.integration_id = r.integration_id
+             WHERE (? = 1 OR i.mode NOT IN ('PAUSED', 'CAPTURE', 'QUARANTINED', 'LEGACY'))
+               AND (
+                 (o.state IN ('PENDING', 'RETRY_WAIT') AND datetime(?) >= datetime(o.next_attempt_at))
+                 OR (o.state = 'CLAIMED' AND datetime(?) > datetime(o.lease_until))
+                 OR (o.state = 'UNCERTAIN' AND datetime(?) >= datetime(next_attempt_at))
+               )
+             ORDER BY o.next_attempt_at ASC, o.target_revision ASC
              LIMIT ?`
           )
-          .bind(now, now, now, limit)
+          .bind(isDryRun ? 1 : 0, now, now, now, limit)
           .all<{
             operation_id: string;
             state: string;
@@ -395,6 +400,43 @@ export class SyncV2Orchestrator {
     operationId: string,
     now: string
   ): Promise<SyncOperationResult> {
+    // 0. Bloqueio de defesa em profundidade para períodos em PAUSED / CAPTURE / QUARANTINED / LEGACY
+    const modeGuard = await this.db
+      .prepare(
+        `SELECT i.mode, o.record_id, o.field_key, o.target_key, o.target_revision, r.ra_text, r.group_key
+         FROM sync_operations o
+         JOIN sync_records r ON r.record_id = o.record_id
+         JOIN sync_integrations i ON i.integration_id = r.integration_id
+         WHERE o.operation_id = ?`
+      )
+      .bind(operationId)
+      .first<{
+        mode: string;
+        record_id: string;
+        field_key: FieldKey;
+        target_key: OperationTargetKey;
+        target_revision: number;
+        ra_text: string;
+        group_key: GroupKey;
+      }>();
+
+    if (
+      modeGuard &&
+      ['PAUSED', 'CAPTURE', 'QUARANTINED', 'LEGACY'].includes(modeGuard.mode)
+    ) {
+      return {
+        operationId,
+        recordId: modeGuard.record_id,
+        raText: modeGuard.ra_text,
+        groupKey: modeGuard.group_key,
+        fieldKey: modeGuard.field_key,
+        targetKey: modeGuard.target_key,
+        targetRevision: modeGuard.target_revision,
+        status: 'SKIPPED_NOT_ELIGIBLE',
+        error: `Bloqueio de escrita externa: integração em modo '${modeGuard.mode}' não permite despacho Outbound.`,
+      };
+    }
+
     // 1. Reivindicação atômica e exclusiva (G1, G2)
     const claimRes = await claimOperation(this.db, {
       operationId,
@@ -531,7 +573,27 @@ export class SyncV2Orchestrator {
       .bind(payload.eventId)
       .first<{ value_old: number | null }>();
 
-    const expectedCurrentValue = eventRow ? (eventRow.value_old as 0 | 1 | null) : null;
+    // Se houve conflito F3 nesta revisão resolvido explicitamente como KEEP_LOCAL,
+    // o valor observado na planilha no momento do conflito passa a ser a precondição autorizada pelo administrador.
+    const keepLocalConflict = await this.db
+      .prepare(
+        `SELECT external_value
+         FROM sync_conflicts
+         WHERE record_id = ? AND field_key = ? AND target_key = ? AND local_revision = ?
+           AND resolved = 1 AND resolution_action = 'KEEP_LOCAL'
+         ORDER BY resolved_at DESC
+         LIMIT 1`
+      )
+      .bind(payload.recordId, payload.fieldKey, payload.targetKey, payload.targetRevision)
+      .first<{ external_value: number | null }>();
+
+    const expectedCurrentValue: 0 | 1 | null =
+      keepLocalConflict &&
+      (keepLocalConflict.external_value === 0 || keepLocalConflict.external_value === 1)
+        ? (keepLocalConflict.external_value as 0 | 1)
+        : eventRow
+          ? (eventRow.value_old as 0 | 1 | null)
+          : null;
 
     const preconditions: WritePreconditions = {
       targetKey: payload.targetKey,
@@ -909,15 +971,39 @@ export class SyncV2Orchestrator {
     operationId: string,
     now: string
   ): Promise<SyncOperationResult> {
-    // 1. Claim exclusivo da operação incerta
-    const claimRes = await claimOperation(this.db, {
-      operationId,
-      workerId: this.workerId,
-      leaseDurationSeconds: this.leaseDurationSeconds,
-      now,
-    });
+    // 1. Consulta contexto completo da operação incerta e verifica modo da integração
+    const opContext = await this.db
+      .prepare(
+        `SELECT o.operation_id, o.event_id, o.record_id, o.field_key, o.target_key,
+                o.target_revision, o.state, o.lease_epoch,
+                r.integration_id, r.ra_text, r.group_key,
+                e.value_new,
+                i.spreadsheet_id, i.mode
+         FROM sync_operations o
+         JOIN sync_records r ON r.record_id = o.record_id
+         JOIN sync_events e ON e.event_id = o.event_id
+         JOIN sync_integrations i ON i.integration_id = r.integration_id
+         WHERE o.operation_id = ?`
+      )
+      .bind(operationId)
+      .first<{
+        operation_id: string;
+        event_id: string;
+        record_id: string;
+        field_key: FieldKey;
+        target_key: OperationTargetKey;
+        target_revision: number;
+        state: string;
+        lease_epoch: number;
+        integration_id: string;
+        ra_text: string;
+        group_key: GroupKey;
+        value_new: number;
+        spreadsheet_id: string;
+        mode: string;
+      }>();
 
-    if (!claimRes.ok) {
+    if (!opContext) {
       return {
         operationId,
         recordId: '',
@@ -927,164 +1013,167 @@ export class SyncV2Orchestrator {
         targetKey: 'CONTROLE',
         targetRevision: 0,
         status: 'SKIPPED_NOT_ELIGIBLE',
-        error: claimRes.error,
+        error: `Operação '${operationId}' não encontrada para resolução de incerteza.`,
       };
     }
 
-    const { payload, leaseEpoch } = claimRes;
+    if (['PAUSED', 'CAPTURE', 'QUARANTINED', 'LEGACY'].includes(opContext.mode)) {
+      return {
+        operationId,
+        recordId: opContext.record_id,
+        raText: opContext.ra_text,
+        groupKey: opContext.group_key,
+        fieldKey: opContext.field_key,
+        targetKey: opContext.target_key,
+        targetRevision: opContext.target_revision,
+        status: 'SKIPPED_NOT_ELIGIBLE',
+        error: `Bloqueio operacional: integração em modo '${opContext.mode}' não permite verificação/despacho Outbound.`,
+      };
+    }
 
-    // Busca a última tentativa associada
-    const lastAttempt = await this.db
-      .prepare(
-        `SELECT attempt_id
-         FROM sync_attempts
-         WHERE operation_id = ?
-         ORDER BY attempt_number DESC
-         LIMIT 1`
-      )
-      .bind(operationId)
-      .first<{ attempt_id: string }>();
-
-    const attemptId = lastAttempt?.attempt_id || `att_recovered_${crypto.randomUUID()}`;
-
-    // 2. Transiciona para VERIFYING
+    // 2. Transiciona atomicamente de UNCERTAIN para VERIFYING com novo attemptId dedicado (G4, C3)
+    const verifyAttemptId = `att_verify_${crypto.randomUUID()}`;
     const verifyRes = await verifyOperation(this.db, {
       operationId,
       workerId: this.workerId,
-      leaseEpoch,
-      attemptId,
+      leaseEpoch: opContext.lease_epoch,
+      leaseExtensionSeconds: this.leaseDurationSeconds,
+      attemptId: verifyAttemptId,
       now,
     });
 
     if (!verifyRes.ok) {
       return {
         operationId,
-        recordId: payload.recordId,
-        raText: payload.raText,
-        groupKey: payload.groupKey,
-        fieldKey: payload.fieldKey,
-        targetKey: payload.targetKey,
-        targetRevision: payload.targetRevision,
-        status: 'FENCING_REJECTED',
+        recordId: opContext.record_id,
+        raText: opContext.ra_text,
+        groupKey: opContext.group_key,
+        fieldKey: opContext.field_key,
+        targetKey: opContext.target_key,
+        targetRevision: opContext.target_revision,
+        status: verifyRes.code === 'FENCING_CONFLICT' ? 'FENCING_REJECTED' : 'SKIPPED_NOT_ELIGIBLE',
         error: verifyRes.error,
-        attemptId,
+        attemptId: verifyAttemptId,
       };
     }
 
-    // 3. Consulta integração e planilha
-    const integration = await this.db
-      .prepare(`SELECT spreadsheet_id FROM sync_integrations WHERE integration_id = ?`)
-      .bind(payload.integrationId)
-      .first<{ spreadsheet_id: string }>();
-
-    if (!integration) {
-      return {
-        operationId,
-        recordId: payload.recordId,
-        raText: payload.raText,
-        groupKey: payload.groupKey,
-        fieldKey: payload.fieldKey,
-        targetKey: payload.targetKey,
-        targetRevision: payload.targetRevision,
-        status: 'STRUCTURAL_ERROR',
-        error: 'Integração não encontrada durante verificação incerta',
-        attemptId,
-      };
-    }
+    const currentEpoch = verifyRes.operation.lease_epoch;
+    const effectiveAttemptId = verifyRes.attemptId;
 
     const tabName =
-      payload.targetKey === 'CONTROLE'
-        ? this.tabNameResolver.getControlTabName(payload.groupKey)
-        : this.tabNameResolver.getGeneralTabName(payload.groupKey);
+      opContext.target_key === 'CONTROLE'
+        ? this.tabNameResolver.getControlTabName(opContext.group_key)
+        : this.tabNameResolver.getGeneralTabName(opContext.group_key);
 
-    // 4. Executa verifyExternalEffect (C3)
+    // 3. Executa verifyExternalEffect (C3) — NUNCA repete escrita antes de conferir se o efeito ocorreu
     let check: ExternalEffectCheckResult;
     try {
       check = await this.adapter.verifyExternalEffect({
-        spreadsheetId: integration.spreadsheet_id,
+        spreadsheetId: opContext.spreadsheet_id,
         tabName,
-        groupKey: payload.groupKey,
-        raText: payload.raText,
-        fieldKey: payload.fieldKey,
-        targetKey: payload.targetKey,
-        expectedTargetValue: payload.proposedValue as 0 | 1,
+        groupKey: opContext.group_key,
+        raText: opContext.ra_text,
+        fieldKey: opContext.field_key,
+        targetKey: opContext.target_key,
+        expectedTargetValue: opContext.value_new as 0 | 1,
       });
     } catch (err: any) {
+      await markUncertainOperation(this.db, {
+        operationId,
+        workerId: this.workerId,
+        leaseEpoch: currentEpoch,
+        errorMessage: `Falha na releitura externa de operação UNCERTAIN: ${err?.message || err}`,
+        attemptId: effectiveAttemptId,
+        now,
+      });
+
       return {
         operationId,
-        recordId: payload.recordId,
-        raText: payload.raText,
-        groupKey: payload.groupKey,
-        fieldKey: payload.fieldKey,
-        targetKey: payload.targetKey,
-        targetRevision: payload.targetRevision,
+        recordId: opContext.record_id,
+        raText: opContext.ra_text,
+        groupKey: opContext.group_key,
+        fieldKey: opContext.field_key,
+        targetKey: opContext.target_key,
+        targetRevision: opContext.target_revision,
         status: 'UNCERTAIN_PRESERVED',
         error: `Falha na releitura externa: ${err?.message || err}`,
-        attemptId,
+        attemptId: effectiveAttemptId,
       };
     }
 
+    // 4. Se o efeito foi observado na planilha -> Conclui como OBSERVED_VIA_VERIFY sem repetir escrita!
     if (check.effectObserved) {
       const obsRes = await observeOperation(this.db, {
         operationId,
         workerId: this.workerId,
-        leaseEpoch,
-        targetRevision: payload.targetRevision,
-        attemptId,
+        leaseEpoch: currentEpoch,
+        targetRevision: opContext.target_revision,
+        attemptId: effectiveAttemptId,
         responsePayload: JSON.stringify(check),
         now,
       });
 
       return {
         operationId,
-        recordId: payload.recordId,
-        raText: payload.raText,
-        groupKey: payload.groupKey,
-        fieldKey: payload.fieldKey,
-        targetKey: payload.targetKey,
-        targetRevision: payload.targetRevision,
+        recordId: opContext.record_id,
+        raText: opContext.ra_text,
+        groupKey: opContext.group_key,
+        fieldKey: opContext.field_key,
+        targetKey: opContext.target_key,
+        targetRevision: opContext.target_revision,
         status: 'OBSERVED_VIA_VERIFY',
-        attemptId,
+        attemptId: effectiveAttemptId,
         receiptId: obsRes.ok ? obsRes.receiptId : undefined,
       };
     }
 
+    // 5. Se foi conclusivamente comprovado que o efeito externo está ausente -> Agenda RETRY_WAIT seguro
     if (check.isAbsentConfirmed) {
       await markRetryWaitOperation(this.db, {
         operationId,
         workerId: this.workerId,
-        leaseEpoch,
+        leaseEpoch: currentEpoch,
         backoffSeconds: this.baseBackoffSeconds,
         confirmEffectAbsent: true,
         errorMessage: 'Efeito comprovadamente ausente na verificação incerta',
-        attemptId,
+        attemptId: effectiveAttemptId,
         now,
       });
 
       return {
         operationId,
-        recordId: payload.recordId,
-        raText: payload.raText,
-        groupKey: payload.groupKey,
-        fieldKey: payload.fieldKey,
-        targetKey: payload.targetKey,
-        targetRevision: payload.targetRevision,
+        recordId: opContext.record_id,
+        raText: opContext.ra_text,
+        groupKey: opContext.group_key,
+        fieldKey: opContext.field_key,
+        targetKey: opContext.target_key,
+        targetRevision: opContext.target_revision,
         status: 'RETRY_SCHEDULED',
-        attemptId,
+        attemptId: effectiveAttemptId,
       };
     }
 
+    // 6. Efeito continua indeterminado -> Reverte de VERIFYING para UNCERTAIN sem retry cego
+    await markUncertainOperation(this.db, {
+      operationId,
+      workerId: this.workerId,
+      leaseEpoch: currentEpoch,
+      errorMessage: `Efeito continua indeterminado na verificação incerta: ${JSON.stringify(check)}`,
+      attemptId: effectiveAttemptId,
+      now,
+    });
+
     return {
       operationId,
-      recordId: payload.recordId,
-      raText: payload.raText,
-      groupKey: payload.groupKey,
-      fieldKey: payload.fieldKey,
-      targetKey: payload.targetKey,
-      targetRevision: payload.targetRevision,
+      recordId: opContext.record_id,
+      raText: opContext.ra_text,
+      groupKey: opContext.group_key,
+      fieldKey: opContext.field_key,
+      targetKey: opContext.target_key,
+      targetRevision: opContext.target_revision,
       status: 'UNCERTAIN_PRESERVED',
       error: 'Efeito continua indeterminado',
-      attemptId,
+      attemptId: effectiveAttemptId,
     };
   }
 }

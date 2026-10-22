@@ -723,12 +723,14 @@ export async function applyAdminConflictResolution(
                value = ?,
                status = 'CONFIRMED',
                head_command_id = ?,
+               last_event_id = ?,
                updated_at = ?
            WHERE record_id = ? AND field_key = ? AND revision = ?`
         )
         .bind(
           proposedVal,
           commandId,
+          eventId,
           nowIso,
           conflict.record_id,
           conflict.field_key,
@@ -809,6 +811,72 @@ export async function applyAdminConflictResolution(
             eventId,
             eventId
           )
+      );
+    }
+
+    // Encerramento atômico de operações locais anteriores superadas pela resolução ACCEPT_EXTERNAL,
+    // impedindo que operações órfãs em RETRY_WAIT / PENDING / UNCERTAIN sobrescrevam a planilha posteriormente.
+    stmts.push(
+      db
+        .prepare(
+          `UPDATE sync_operations
+           SET state = 'OBSERVED',
+               lease_owner = NULL,
+               lease_until = NULL,
+               updated_at = ?
+           WHERE record_id = ?
+             AND field_key = ?
+             AND target_revision <= ?
+             AND state != 'OBSERVED'
+             AND EXISTS (SELECT 1 FROM sync_events WHERE event_id = ?)`
+        )
+        .bind(nowIso, conflict.record_id, conflict.field_key, currentField.revision, eventId)
+    );
+
+    // Emissão de recibo OBSERVED para o alvo originador na nova revisão (âncora causal atualizada)
+    const resolutionReceiptId = `rcpt_admin_res_${crypto.randomUUID()}`;
+    stmts.push(
+      db
+        .prepare(
+          `INSERT INTO sync_receipts (
+             receipt_id, command_id, operation_id, target_key, record_id, field_key, revision, status, created_at
+           )
+           SELECT ?, ?, NULL, ?, ?, ?, (SELECT to_revision FROM sync_events WHERE event_id = ?), 'OBSERVED', ?
+           WHERE EXISTS (SELECT 1 FROM sync_events WHERE event_id = ?)`
+        )
+        .bind(
+          resolutionReceiptId,
+          commandId,
+          conflict.target_key,
+          conflict.record_id,
+          conflict.field_key,
+          eventId,
+          nowIso,
+          eventId
+        )
+    );
+
+    // Sincronização da tabela documentos (visualização do site) quando o registro possui aluno_id vinculado
+    const docColMap: Record<FieldKey, string> = {
+      identidade: 'identidade',
+      cpf_documento: 'cpf',
+      certidao: 'certidao',
+      residencia: 'residencia',
+      titulo: 'titulo',
+      ensino_medio: 'ensino_medio',
+      contrato: 'contrato',
+    };
+    const docCol = docColMap[conflict.field_key];
+    if (docCol) {
+      stmts.push(
+        db
+          .prepare(
+            `UPDATE documentos
+             SET ${docCol} = ?, atualizado_em = CURRENT_TIMESTAMP
+             WHERE aluno_id = (SELECT aluno_id FROM sync_records WHERE record_id = ?)
+               AND EXISTS (SELECT 1 FROM sync_events WHERE event_id = ?)`
+          )
+          .bind(proposedVal, conflict.record_id, eventId)
       );
     }
 
@@ -895,6 +963,49 @@ export async function applyAdminConflictResolution(
       }
       return { success: false, error: 'CONCURRENT_RESOLUTION_CONFLICT' };
     }
+
+    // Pós-resolução KEEP_LOCAL:
+    // 1. Garante que sync_field_state permaneça em status 'CONFIRMED' na revisão atual.
+    // 2. Encerra operações antigas superadas (target_revision < currentField.revision) para evitar operações órfãs.
+    // 3. Reabilita imediatamente a operação da revisão atual (target_revision = currentField.revision) que estava em RETRY_WAIT / UNCERTAIN.
+    await db.batch([
+      db
+        .prepare(
+          `UPDATE sync_field_state
+           SET status = 'CONFIRMED', updated_at = ?
+           WHERE record_id = ? AND field_key = ? AND revision = ?`
+        )
+        .bind(nowIso, conflict.record_id, conflict.field_key, currentField.revision),
+      db
+        .prepare(
+          `UPDATE sync_operations
+           SET state = 'OBSERVED',
+               lease_owner = NULL,
+               lease_until = NULL,
+               updated_at = ?
+           WHERE record_id = ?
+             AND field_key = ?
+             AND target_key = ?
+             AND target_revision < ?
+             AND state != 'OBSERVED'`
+        )
+        .bind(nowIso, conflict.record_id, conflict.field_key, conflict.target_key, currentField.revision),
+      db
+        .prepare(
+          `UPDATE sync_operations
+           SET state = 'PENDING',
+               lease_owner = NULL,
+               lease_until = NULL,
+               next_attempt_at = CURRENT_TIMESTAMP,
+               updated_at = ?
+           WHERE record_id = ?
+             AND field_key = ?
+             AND target_key = ?
+             AND target_revision = ?
+             AND state IN ('RETRY_WAIT', 'UNCERTAIN')`
+        )
+        .bind(nowIso, conflict.record_id, conflict.field_key, conflict.target_key, currentField.revision),
+    ]);
 
     return { success: true, authenticatedActorId: authenticatedAdminActor };
   }
