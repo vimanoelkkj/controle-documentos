@@ -14,7 +14,6 @@ import { handleGoogleSheetsPreviewRoute } from "./routes/google-sheets-preview";
 import { handleGoogleSheetsSyncRoute } from "./routes/google-sheets-sync";
 import { handleGoogleSheetsOutboxRoute } from "./routes/google-sheets-outbox";
 import { handleSyncV2AdminRoute } from "./routes/sync-v2-admin";
-import { handleAdminHomologOutboundRoute } from "./routes/admin-homologacao-outbound";
 import {
   escreverValoresGoogle,
   extrairSpreadsheetId,
@@ -205,15 +204,6 @@ export default {
         registrarAuditoria(env.DB, usuarioAtual, periodoId, evento),
     });
     if (respostaSyncV2Admin) return respostaSyncV2Admin;
-
-    const respostaAdminHomologOutbound = await handleAdminHomologOutboundRoute({
-      request,
-      url,
-      db: env.DB,
-      env,
-      usuarioAtual,
-    });
-    if (respostaAdminHomologOutbound) return respostaAdminHomologOutbound;
 
     const respostaLogs = await handleLogsRoute({
       request,
